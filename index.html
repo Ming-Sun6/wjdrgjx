@@ -2734,7 +2734,7 @@
     .forum-detail-count{color:var(--muted);font-size:.85rem;display:inline-flex;align-items:center;gap:6px;}
     .forum-detail-count-icon{display:inline-flex;align-items:center;justify-content:center;}
     .forum-detail-count-icon svg{width:14px;height:14px;fill:currentColor;opacity:.85;}
-    .forum-content-view{line-height:1.7;color:#e2e8f0;}
+    .forum-content-view{line-height:1.7;color:#e2e8f0;white-space:pre-wrap;}
     .forum-comments{margin-top:16px;border-top:1px solid rgba(255,255,255,.08);padding-top:12px;}
     .forum-comments-title{font-weight:800;color:#fff;margin-bottom:8px;}
     .forum-comment-field{margin-bottom:8px;}
@@ -3086,7 +3086,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.4</div>
+  <div class="version-tag">版本 V0.9.6</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -3597,6 +3597,19 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.6（2026-05-05）</h4>
+        <p><strong>浏览器标题规范与邻邦进度表修正</strong></p>
+        <ol>
+          <li><strong>全站 <code>&lt;title&gt;</code> 命名</strong>：除首页与入口页仍为「无尽冬日工具箱」外，<code>public</code> 内各工具页、礼包参考子页及用户协议/隐私等，统一为「<strong>功能名-无尽冬日工具箱</strong>」格式，标签栏更易辨认来源；标题中不再保留「（奶酪）」「缥缈」等署名式后缀（页面正文与作者信息不变）。</li>
+          <li><strong>邻邦进度（游戏进度查询）</strong>：总表与按区服查询的区间上限修正，<strong>3628～3799</strong> 等区段可正常展示与匹配；去除 <strong>3510～3556 / 3557～3591</strong> 误套用的日期覆盖；<strong>3628～3799</strong> 等与公式一致的冗余覆盖已撤下，里程碑与主站公式对齐（<strong>3592～3627</strong> 仍保留单独覆盖）。</li>
+        </ol>
+
+        <h4>V0.9.5（2026-05-04）</h4>
+        <p><strong>论坛文章阅读</strong></p>
+        <ol>
+          <li>修复论坛「文章」在<strong>首页阅读弹层</strong>与<strong>单独打开的帖子阅读页</strong>（新标签页）中换行丢失的问题：正文按与评论区一致的规则保留换行，编辑时分段与发布后展示一致（「图文」不受影响）。</li>
+        </ol>
+
         <h4>V0.9.4（2026-05-01）</h4>
         <p><strong>综合优化：搜索更好用、手机更好看、表格更好查</strong></p>
         <ol>
@@ -3609,7 +3622,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           <li><strong>礼包参考总览移动端更顺手</strong>：手机端礼包栏支持下拉选择；目录支持搜索与清空，找表更快。</li>
           <li><strong>论坛浏览量</strong>：修复多次阅读计数异常、列表预览与详情不一致、以及 PostgreSQL 环境下列表浏览量长期显示为 0 等问题；优化在 IIS/反代下的计数与列表刷新策略。</li>
           <li><strong>论坛阅读体验</strong>：阅读弹层内作者行展示头像与「关注」，点头像或昵称进入用户主页；弹层内未点赞时爱心与背景对比度增强，更易辨认。</li>
-          <li><strong>独立阅读页（forum-post）</strong>：与弹层一致的头像/关注/进主页；点赞、收藏与浏览量操作条移至<strong>正文下方</strong>，便于先读文再互动。</li>
+          <li><strong>帖子单独阅读页</strong>（新标签打开）：与弹层一致的头像/关注/进主页；点赞、收藏与浏览量操作条移至<strong>正文下方</strong>，便于先读文再互动。</li>
           <li><strong>从阅读页回首页看作者</strong>：支持通过链接参数打开指定用户主页（与论坛流程衔接）。</li>
         </ol>
 

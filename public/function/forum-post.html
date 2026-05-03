@@ -144,6 +144,8 @@
     #viewPill .icon svg{width:16px;height:16px;}
     #viewPill .count{font-size:.8rem;}
     .content{font-size:.98rem;line-height:1.8;word-break:break-word;}
+    /* 文章：正文多为纯换行或 contenteditable 产生的文本节点，需保留换行（与首页论坛弹层 .forum-content-view 一致） */
+    .content.is-forum-article{white-space:pre-wrap;}
     .content img{max-width:100%;height:auto;border-radius:10px;border:1px solid var(--border);display:block;margin:10px auto;}
     .content a{color:var(--accent);text-decoration:none;border-bottom:1px dotted currentColor;}
     .notice{color:var(--muted);font-size:.92rem;line-height:1.7;}
@@ -660,6 +662,9 @@
         favBtn.classList.toggle('primary', !!post.favoritedByMe);
 
         var contentBox=document.getElementById('content');
+        if(contentBox){
+          contentBox.classList.toggle('is-forum-article', post.type === 'article');
+        }
         var bodyHtml='';
         if(post.contentHtml){
           bodyHtml=sanitizeHtml(post.contentHtml);

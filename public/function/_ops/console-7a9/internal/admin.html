@@ -762,7 +762,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.4</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.6</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1391,6 +1391,16 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.6（2026-05-05）</div>
+            <div style="color:var(--muted);line-height:1.6;">管理端 HTML <code>&lt;title&gt;</code> 由「后台管理 - 无尽冬日工具」更正为「<strong>后台管理-无尽冬日工具箱</strong>」，与全站产品名一致；属静态文案，不影响登录与鉴权。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>无后端变更</strong>：未新增/调整管理端菜单与权限点，接口、数据库字段与缓存策略均无改动。</div>
+          </div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.5（2026-05-04）</div>
+            <div style="color:var(--muted);line-height:1.6;">本轮为<strong>前台静态展示</strong>修复：论坛「文章」正文在阅读区补充 <code>white-space: pre-wrap</code>（首页弹层 <code>.forum-content-view</code>、独立页 <code>forum-post.html</code> 文章态），与既有评论换行策略对齐。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>无后端变更</strong>：未新增/调整管理端菜单与权限点，论坛相关接口、数据库字段与缓存策略均无改动；管理端联调与审计无需跟进接口版本。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.4（2026-05-01）</div>
             <div style="color:var(--muted);line-height:1.6;">本轮以前台论坛与阅读链路修复为主；<strong>管理端菜单/权限点无新增</strong>，仍无新库表字段。论坛相关接口有<strong>向后兼容的响应体扩展</strong>，见下。</div>
