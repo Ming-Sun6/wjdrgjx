@@ -19,7 +19,7 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>邻邦进度（奶酪）</title>
+  <title>游戏进度查询-无尽冬日工具箱</title>
   <style>
     :root {
       --bg-1: #0b1220;
@@ -519,11 +519,7 @@
 
       // 指定区间的里程碑日期覆盖（按 stageDefs 顺序：火5、4代、战争学院、5代、火8、6代、7代、火10、8代、9代、10代、11代；11 代亦可由 10 代覆盖日 +84 天推算）
       var scheduleOverrides = {
-        "3592~3627": ["2026-03-30","2026-05-11","2026-06-08","2026-08-03","2026-08-17","2026-09-28","2026-12-21","2027-02-01","2027-03-15","2027-06-07","2027-08-30"],
-        "3628~3671": ["2026-04-13","2026-05-25","2026-06-22","2026-08-17","2026-08-24","2026-09-28","2026-12-21","2027-02-01","2027-03-15","2027-06-07","2027-08-30"],
-        "3672~3716": ["2026-04-27","2026-06-08","2026-07-06","2026-08-31","2026-10-12","2026-11-23","2027-02-15","2027-03-29","2027-05-10","2027-08-02","2027-10-25"],
-        "3717~3755": ["2026-05-11","2026-06-22","2026-07-20","2026-09-14","2026-10-26","2026-12-07","2027-03-01","2027-04-12","2027-05-24","2027-08-16","2027-11-08"],
-        "3756~3799": ["2026-05-25","2026-07-06","2026-08-03","2026-09-28","2026-11-09","2026-12-21","2027-03-15","2027-04-26","2027-06-07","2027-08-30","2027-11-22"]
+        "3592~3627": ["2026-03-30","2026-05-11","2026-06-08","2026-08-03","2026-08-17","2026-09-28","2026-12-21","2027-02-01","2027-03-15","2027-06-07","2027-08-30"]
       };
 
       // 预录入（默认隐藏，不参与渲染/计算；等你后续操作再打开开关）
@@ -676,6 +672,13 @@
         return t;
       }
 
+      function getNeighborScheduleRowCount() {
+        for (var i = 0; i < labels.length; i++) {
+          if (/^NB\d+$/.test(String(labels[i] || ""))) return i;
+        }
+        return labels.length;
+      }
+
       function toDisplayState(state) {
         if (!state) return "-";
         return stateLabelMap[state] || state;
@@ -714,7 +717,7 @@
       }
 
       function findScheduleRangeIndex(serverId) {
-        var rowCount = Math.min(42, labels.length);
+        var rowCount = getNeighborScheduleRowCount();
         for (var i = 0; i < rowCount; i++) {
           if (rangeContains(labels[i], serverId)) return i;
         }
@@ -770,7 +773,7 @@
         fullScheduleHead.innerHTML = head;
 
         var body = "";
-        var rowCount = Math.min(42, labels.length);
+        var rowCount = getNeighborScheduleRowCount();
         for (var r = 0; r < rowCount; r++) {
           var raw = labels[r];
           var rangeLabel = toDisplayRangeForTable(raw);
