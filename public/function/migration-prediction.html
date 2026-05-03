@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>移民预测（奶酪）</title>
+  <style>
+    :root{
+      --bg-1:#0b1220;--bg-2:#111a2e;
+      --card:rgba(16,24,40,.78);--card-strong:rgba(20,30,50,.92);
+      --border:rgba(148,163,184,.28);--text:#e6edf8;--muted:#93a4bf;
+      --accent:#34d399;--accent-2:#60a5fa;
+      --shadow:0 14px 36px rgba(0,0,0,.35);
+      --grid:rgba(148,163,184,.34);--grid-s:rgba(148,163,184,.58);
+      --head-bg:rgba(15,23,42,.94);--head-text:#c6d4ea;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body.wjdr-mp-watermark > .wrap,
+    body.wjdr-mp-watermark > footer.wjdr-footer{position:relative;z-index:1}
+    .wjdr-mp-watermark-layer{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      user-select:none;
+      -webkit-user-select:none;
+      overflow:hidden;
+    }
+    .wjdr-mp-watermark-layer svg{
+      display:block;
+      width:100%;
+      height:100%;
+    }
+    body.wjdr-mp-watermark .wjdr-mp-watermark-layer svg pattern text{
+      fill:rgba(226,232,240,.085);
+      font-size:17px;
+      font-weight:700;
+      font-family:"Segoe UI","Microsoft YaHei",sans-serif;
+    }
+    body.theme-light.wjdr-mp-watermark .wjdr-mp-watermark-layer svg pattern text,
+    html[data-theme="day"] body.wjdr-mp-watermark .wjdr-mp-watermark-layer svg pattern text{
+      fill:rgba(71,85,105,.068);
+    }
+    body{font-family:"Segoe UI","Microsoft YaHei",sans-serif;color:var(--text);min-height:100vh;background:
+      radial-gradient(900px 550px at 8% 0%,rgba(52,211,153,.14),transparent 52%),
+      radial-gradient(900px 550px at 90% 12%,rgba(96,165,250,.18),transparent 52%),
+      linear-gradient(140deg,var(--bg-1),var(--bg-2));padding:20px 16px 28px}
+    body.theme-light{
+      --bg-1:#eaf2ff;--bg-2:#f8fbff;--card:rgba(255,255,255,.88);--card-strong:rgba(255,255,255,.96);
+      --border:rgba(71,85,105,.38);--text:#0f172a;--muted:#475569;
+      --shadow:0 10px 28px rgba(15,23,42,.12);
+      --grid:rgba(71,85,105,.32);--grid-s:rgba(71,85,105,.48);
+      --head-bg:rgba(226,232,240,.96);--head-text:#0f172a;
+    }
+    .wrap{max-width:1080px;margin:0 auto}
+    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap}
+    .top-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .title{font-size:1.35rem;font-weight:800;letter-spacing:.02em}
+    .sub{color:var(--muted);margin-top:6px;font-size:.9rem;line-height:1.5}
+    .btn{border:1px solid var(--border);background:var(--card);color:var(--text);text-decoration:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:.86rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:.2s}
+    .btn:hover{background:rgba(96,165,250,.22);border-color:rgba(96,165,250,.6)}
+    .card{background:linear-gradient(165deg,var(--card-strong),var(--card));border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+    .card h2{font-size:1.03rem;margin-bottom:10px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+    label{color:var(--muted);font-size:.88rem;min-width:100px}
+    input[type="number"]{background:rgba(15,23,42,.7);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:8px 10px;min-width:140px}
+    body.theme-light input[type="number"]{background:#fff;color:#0f172a}
+    input:focus{border-color:rgba(96,165,250,.8);outline:none;box-shadow:0 0 0 3px rgba(96,165,250,.2)}
+    .tiny{color:var(--muted);font-size:.82rem;line-height:1.55;margin:6px 0 10px}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:700;background:rgba(96,165,250,.2);border:1px solid rgba(96,165,250,.35);margin-right:8px;color:var(--text)}
+    .pill.forecast{border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.15)}
+    .table-wrap{overflow:auto;border:1px solid var(--grid-s);border-radius:10px}
+    table{width:100%;border-collapse:collapse;min-width:720px;font-size:.88rem}
+    th,td{padding:9px 10px;border-bottom:1px solid var(--grid);border-right:1px solid var(--grid);text-align:left;white-space:nowrap}
+    td.matrix-ranges{white-space:normal;max-width:28rem;line-height:1.45;font-size:.84rem}
+    th:last-child,td:last-child{border-right:none}
+    th{position:sticky;top:0;background:var(--head-bg);color:var(--head-text);font-weight:700;border-bottom:1px solid var(--grid-s);z-index:1}
+    tbody tr:hover{background:rgba(96,165,250,.1)}
+    tbody tr.row-matrix-user{background:rgba(96,165,250,.14);outline:1px solid rgba(59,130,246,.45)}
+    body.theme-light tbody tr.row-matrix-user{background:rgba(59,130,246,.12);outline-color:rgba(37,99,235,.4)}
+    .st-accent{color:var(--accent);font-weight:700}
+    .st-soft{color:var(--accent-2);font-weight:700}
+    .summary-box{border:1px solid var(--grid-s);border-radius:10px;padding:12px 14px;margin-top:10px;background:rgba(15,23,42,.35);font-size:.9rem;line-height:1.6}
+    body.theme-light .summary-box{background:rgba(255,255,255,.72)}
+    .summary-box strong{color:#e2e8f0;font-weight:800}
+    body.theme-light .summary-box strong{color:#0f172a}
+    .foot{margin-top:8px;color:var(--muted);font-size:.82rem;line-height:1.65}
+    .matrix-table-toolbar{display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .matrix-forecast-tag{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .matrix-forecast-label{color:var(--muted);font-size:.86rem;font-weight:700}
+    body.theme-light .matrix-forecast-label{color:#475569}
+    thead.matrix-thead-matrix .matrix-banner-row th{
+      position:static;
+      text-align:center;
+      font-weight:900;
+      font-size:1.05rem;
+      letter-spacing:.16em;
+      padding:11px 10px;
+      background:linear-gradient(180deg,rgba(96,165,250,.38),rgba(59,130,246,.26));
+      border-bottom:2px solid var(--grid-strong,rgba(148,163,184,.52));
+      color:var(--text);
+    }
+    body.theme-light thead.matrix-thead-matrix .matrix-banner-row th{
+      background:linear-gradient(180deg,rgba(59,130,246,.28),rgba(37,99,235,.14));
+      color:#0f172a;
+    }
+    thead.matrix-thead-matrix .matrix-head-cols th{
+      position:sticky;
+      top:0;
+    }
+    @media (max-width:760px){.row{flex-direction:column;align-items:stretch}label{min-width:0}input{min-width:0;width:100%}}
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body class="wjdr-mp-watermark">
+  <div class="wjdr-mp-watermark-layer" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="wjdr_wm_pattern" patternUnits="userSpaceOnUse" width="430" height="320">
+          <text x="44" y="158" transform="rotate(-21 215 156)">冬日工具箱wjgl.store</text>
+          <text x="278" y="78" transform="rotate(-21 215 156)">冬日工具箱wjgl.store</text>
+          <text x="146" y="268" transform="rotate(-21 215 156)">冬日工具箱wjgl.store</text>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#wjdr_wm_pattern)"></rect>
+    </svg>
+  </div>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="title">移民开放时间 · 同期分组一览</div>
+        <div class="sub"><strong>界定同组</strong>：在<strong>某一移民展示日</strong>上，凡「历史移民分组矩阵」所用的<strong>+1 日</strong>口径下算出<strong>相同进度档</strong>的邻邦表行，即视为<strong>该期同一组</strong>。<br />下方为<strong>下期外推展示日</strong>的矩阵同档聚合与多期推演。<strong style="color:#fbbf24;">仅供参考。</strong></div>
+      </div>
+      <div class="top-actions">
+        <a class="btn" href="neighbor-progress.html">邻邦进度</a>
+        <a class="btn" href="history-immigration-group.html">历史移民分组</a>
+        <a class="btn" href="../rukou.html">返回首页</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2>区服选择与概览</h2>
+      <div class="row">
+        <label for="serverInput">区服编号</label>
+        <input id="serverInput" type="number" min="1" max="10000" value="755" />
+        <button class="btn" id="runBtn" type="button">更新预测</button>
+      </div>
+      <div class="tiny" id="rhythmHint"></div>
+      <div class="summary-box" id="userSummary"><strong>…</strong></div>
+    </section>
+
+    <section class="card">
+      <h2>下期推算日 · 矩阵 +1 日同档分组</h2>
+      <p class="tiny">同一<strong>进度</strong>行内，左上方<strong>推算展示日（当期）</strong>对应的本表一次聚合；算法与<a href="history-immigration-group.html">历史移民分组矩阵</a>一致：<strong>展示日 +1 日</strong>再对里程碑。进度列为<strong>火晶档 + 英雄代</strong>组合口径（与常见对照表一致）；其中<strong>战争学院（T11）</strong>指战争学院阶段、<strong>非</strong> T11 兵种。首列为<strong>组序号</strong>（第一组、第二组…）；末列<strong>区服分段</strong>为连续区服段的<strong>头～尾</strong>合并。</p>
+      <div class="matrix-table-toolbar">
+        <div class="matrix-forecast-tag">
+          <span class="matrix-forecast-label">推算展示日（当期）</span>
+          <span id="matrixForecastDateBadge" class="pill forecast">—</span>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead class="matrix-thead-matrix">
+            <tr class="matrix-banner-row">
+              <th colspan="3">wjgl.store</th>
+            </tr>
+            <tr class="matrix-head-cols">
+              <th>分组</th>
+              <th>进度</th>
+              <th>区服分段</th>
+            </tr>
+          </thead>
+          <tbody id="matrixGroupBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <details class="card">
+      <summary style="cursor:pointer;font-weight:800;font-size:1.02rem">下期起多期开放日推演（展开）</summary>
+      <p class="tiny" style="margin-top:10px">按历史移民日期间距的中位数外推后续窗口（节律非官方）；「为你区服档位」一栏按您输入的区服推演。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>期序</th><th>推算开放日</th><th>还剩</th><th>当期为你区服的档位预测</th></tr></thead>
+          <tbody id="forecastBody"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <details class="card">
+      <summary style="cursor:pointer;font-weight:800;font-size:1.02rem">历史移民日与为你区服的档位对照（展开）</summary>
+      <p class="tiny" style="margin-top:10px">日期与「历史移民分组」列一致；+1 天口径与同页矩阵一致。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>移民展示日</th><th>为你区服的档位预测</th><th>备注</th></tr></thead>
+          <tbody id="historyPredictionBody"></tbody>
+        </table>
+      </div>
+    </details>
+
+    <div class="foot">
+      说明：<br />
+      1. <strong>同期同组的判定</strong>：在<strong>同一移民展示日</strong>上，凡按历史移民矩阵使用的<strong>+1 日</strong>口径算出的<strong>进度档完全相同</strong>的邻邦表行，即为该期的<strong>同一组</strong>（见上文「下期推算日·矩阵同档分组」聚合表）。<br />
+      2. 概览中「习惯分段」取自社区整理的区服组别（至 3716）；未覆盖空档（如 329~341）、以及<strong>表外区服</strong>请以游戏与官方社群为准。<br />
+      3. 推算开放日仅供参考；档位计算若命中邻邦表中的<strong>里程碑覆盖</strong>行会自动采用覆盖日期（与同站邻邦进度页一致）。<br />
+      4. 表内「第一组」「第二组」等为<strong>当期矩阵档位</strong>下的序号；与论坛子版块命名无必然对应。<br />
+      5. 对照表里常见的「T11」指<strong>战争学院</strong>（与 T11 兵等无关）；本站写作「战争学院（T11）」。里程碑已含<strong>11 代英雄</strong>开启日（与邻邦进度表同源）；更晚代际需后续再补数据。
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    var labels = ["1~13","14~73","74~163","164~250","251~328","329~416","417~522","523~636","637~742","743~830","831~918","919~1040","1041~1180","1181~1334","1335~1469","1470~1579","1580~1702","1703~1833","1834~1925","1926~2021","2022~2138","2139~2285","2286~2441","2442~2511","2512~2577","2578~2647","2648~2731","2732~2790","2791~2858","2859~2913","2914~2982","2983~3075","3076~3176","3177~3236","3237~3311","3312~3383","3384~3442","3443~3509","3510~3556","3557~3591","3592~3627","3628~3671","3672~3716","3717~3755","3756~3799","NB39","NB40","NB41","NB42","NB43","NB44","NB45","NB46","NB47","NB48","NB49","NB50","NB51","NB52","NB53","NB54","NB55","NB56","NB57","NB58","NB59","NB60","NB61","NB62","NB63","NB64","NB65","NB66","NB67","NB68","NB69","NB70","NB71","NB72","NB73","NB74","NB75","NB76","NB77","NB78","NB79","NB80","NB81","NB82","NB83","NB84","NB85","NB86","NB87","NB88","NB89","NB90","NB91","NB92","NB93","NB94","NB95","NB96","NB97","NB98","NB99","NB100"];
+    var stageDefs = [
+      { name:"\u706b\u6676\u4e94", key:"FC5", offset:0 },
+      { name:"4\u4ee3\u82f1\u96c4", key:"Hero4", offset:42 },
+      { name:"\u6218\u4e89\u5b66\u9662", key:"WarAcad", offset:70 },
+      { name:"5\u4ee3\u82f1\u96c4", key:"Hero5", offset:126 },
+      { name:"\u706b\u6676\u516b", key:"FC8", offset:168 },
+      { name:"6\u4ee3\u82f1\u96c4", key:"Hero6", offset:210 },
+      { name:"7\u4ee3\u82f1\u96c4", key:"Hero7", offset:294 },
+      { name:"\u706b\u6676\u5341", key:"FC10", offset:336 },
+      { name:"8\u4ee3\u82f1\u96c4", key:"Hero8", offset:378 },
+      { name:"9\u4ee3\u82f1\u96c4", key:"Hero9", offset:462 },
+      { name:"10\u4ee3\u82f1\u96c4", key:"Hero10", offset:546 },
+      { name:"11\u4ee3\u82f1\u96c4", key:"Hero11", offset:630 }
+    ];
+    function milestoneFlagsFromOpens(opensSerials, cutoffSerial){
+      var fl = {};
+      for (var fi = 0; fi < stageDefs.length; fi++){
+        var k = stageDefs[fi].key;
+        fl[k] = !!(opensSerials && opensSerials[fi] <= cutoffSerial);
+      }
+      return fl;
+    }
+    function compoundProgressText(fl){
+      if (!fl) return "-";
+      var fc10 = fl.FC10, fc8 = fl.FC8, fc5 = fl.FC5, war = fl.WarAcad;
+      var left = "";
+      if (fc10) left = "\u706b10";
+      else if (fc8) left = "\u706b8";
+      else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662\uFF08T11\uFF09";
+      else if (fc5) left = "\u706b5";
+      var maxH = 0;
+      for (var g = 11; g >= 4; g--){
+        if (fl["Hero" + g]){ maxH = g; break; }
+      }
+      var right = maxH ? (maxH + "\u4ee3") : "";
+      if (left && right) return left + " + " + right;
+      if (right) return right;
+      if (left) return left;
+      return "-";
+    }
+    function compoundProgressSortKey(fl){
+      if (!fl) return -1;
+      var fc10 = fl.FC10, fc8 = fl.FC8, fc5 = fl.FC5, war = fl.WarAcad;
+      var leftCode = 0;
+      if (fc10) leftCode = 40;
+      else if (fc8) leftCode = 30;
+      else if (war && !fc8) leftCode = 25;
+      else if (fc5) leftCode = 10;
+      var maxH = 0;
+      for (var g2 = 11; g2 >= 4; g2--){
+        if (fl["Hero" + g2]){ maxH = g2; break; }
+      }
+      return leftCode * 40 + maxH;
+    }
+    function dominantStateKeyFromFlags(fl){
+      if (!fl) return "";
+      var best = "";
+      for (var di = 0; di < stageDefs.length; di++){
+        var dk = stageDefs[di].key;
+        if (fl[dk]) best = dk;
+      }
+      return best;
+    }
+    function progressBundleForCutoff(rangeIdx, cutoffSerial){
+      if (rangeIdx < 0 || !Number.isFinite(cutoffSerial)){
+        return { text: "-", sortKey: -1, bucketKey: "__empty__", domState: "" };
+      }
+      var opens = getStageOpenSerialsForRange(rangeIdx);
+      var fl = milestoneFlagsFromOpens(opens, cutoffSerial);
+      var any = false;
+      for (var ai = 0; ai < stageDefs.length; ai++){
+        if (opens[ai] <= cutoffSerial){ any = true; break; }
+      }
+      if (!any){
+        return { text: "-", sortKey: -1, bucketKey: "__empty__", domState: "" };
+      }
+      var sk = compoundProgressSortKey(fl);
+      return {
+        text: compoundProgressText(fl),
+        sortKey: sk,
+        bucketKey: String(sk),
+        domState: dominantStateKeyFromFlags(fl)
+      };
+    }
+    var historyDateMarks = ["2024-11-10","2024-12-08","2025-01-05","2025-02-02","2025-03-30","2025-04-27","2025-06-08","2025-07-06","2025-08-17","2025-09-15","2025-10-12","2025-11-09","2025-12-08","2026-01-04","2026-02-01","2026-03-15","2026-04-26"];
+    var baseSerial = 45537;
+    var stepDays = 14;
+    var serialEpochUtc = Date.UTC(1899,11,30);
+    var scheduleOverrides = {
+      "3510~3556":["2026-02-16","2026-03-30","2026-04-27","2026-06-22","2026-08-03","2026-09-14","2026-12-07","2027-01-18","2027-03-01","2027-05-24","2027-08-16"],
+      "3557~3591":["2026-02-16","2026-03-30","2026-04-27","2026-06-22","2026-08-03","2026-09-14","2026-12-07","2027-01-18","2027-03-01","2027-05-24","2027-08-16"],
+      "3592~3627":["2026-03-30","2026-05-11","2026-06-08","2026-08-03","2026-08-17","2026-09-28","2026-12-21","2027-02-01","2027-03-15","2027-06-07","2027-08-30"],
+      "3628~3671":["2026-04-13","2026-05-25","2026-06-22","2026-08-17","2026-08-24","2026-09-28","2026-12-21","2027-02-01","2027-03-15","2027-06-07","2027-08-30"],
+      "3672~3716":["2026-04-27","2026-06-08","2026-07-06","2026-08-31","2026-10-12","2026-11-23","2027-02-15","2027-03-29","2027-05-10","2027-08-02","2027-10-25"],
+      "3717~3755":["2026-05-11","2026-06-22","2026-07-20","2026-09-14","2026-10-26","2026-12-07","2027-03-01","2027-04-12","2027-05-24","2027-08-16","2027-11-08"],
+      "3756~3799":["2026-05-25","2026-07-06","2026-08-03","2026-09-28","2026-11-09","2026-12-21","2027-03-15","2027-04-26","2027-06-07","2027-08-30","2027-11-22"]
+    };
+    var hero11OpenByLabel = {
+      "1~13":"2026-05-25","14~73":"2026-06-08","74~163":"2026-06-22","164~250":"2026-07-06","251~328":"2026-07-20",
+      "329~416":"2026-08-03","417~522":"2026-08-17","523~636":"2026-08-31","637~742":"2026-09-14","743~830":"2026-09-28",
+      "831~918":"2026-10-12","919~1040":"2026-10-26","1041~1180":"2026-11-09","1181~1334":"2026-11-23","1335~1469":"2026-12-07",
+      "1470~1579":"2026-12-21","1580~1702":"2027-01-04","1703~1833":"2027-01-18","1834~1925":"2027-02-01","1926~2021":"2027-02-15",
+      "2022~2138":"2027-03-01","2139~2285":"2027-03-15","2286~2441":"2027-03-29","2442~2511":"2027-04-05","2512~2577":"2027-04-19",
+      "2578~2647":"2027-05-03","2648~2731":"2027-05-17","2732~2790":"2027-05-31","2791~2858":"2027-06-14","2859~2913":"2027-06-28",
+      "2914~2982":"2027-07-12","2983~3075":"2027-07-26","3076~3176":"2027-08-09","3177~3236":"2027-08-23","3237~3311":"2027-09-06"
+    };
+    var enableHiddenNeighborOverrides = false;
+    var hiddenNeighborOverrides = {};
+    try {
+      if (typeof window.__migrationPredHiddenNeighborOverrides === "object" && window.__migrationPredHiddenNeighborOverrides) {
+        hiddenNeighborOverrides = window.__migrationPredHiddenNeighborOverrides;
+      }
+    } catch(e) {}
+
+    function pad(n){return String(n).padStart(2,"0")}
+    function serialToDateStr(serial){
+      var d = new Date(serialEpochUtc + serial * 86400000);
+      return d.getUTCFullYear() + "-" + pad(d.getUTCMonth()+1) + "-" + pad(d.getUTCDate());
+    }
+    function dateStrToSerial(dateStr){
+      if (!dateStr) return NaN;
+      var m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(String(dateStr).trim());
+      if (!m) return NaN;
+      var ms = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      return Math.floor((ms - serialEpochUtc) / 86400000);
+    }
+    function getTodaySerial(){
+      var now = new Date();
+      var ms = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+      return Math.floor((ms - serialEpochUtc) / 86400000);
+    }
+    function rangeContains(rangeText, value){
+      if (!rangeText || !Number.isFinite(value)) return false;
+      var t = String(rangeText).trim();
+      var m1 = t.match(/^NB(\d+)$/);
+      if (m1) return Number(m1[1]) === value;
+      var m2 = t.match(/^(\d+)\s*~\s*(\d+)$/);
+      if (m2){
+        var a = Number(m2[1]), b = Number(m2[2]);
+        if (a > b){ var c=a; a=b; b=c; }
+        return value >= a && value <= b;
+      }
+      var m3 = t.match(/^(\d+)$/);
+      if (m3) return Number(m3[1]) === value;
+      return false;
+    }
+    function findScheduleRangeIndex(serverId){
+      if (!Number.isFinite(serverId)) return -1;
+      for (var i = 0; i < labels.length; i++){
+        var lb = labels[i];
+        if (/^NB\d+$/.test(String(lb))) break;
+        if (rangeContains(lb, serverId)) return i;
+      }
+      return -1;
+    }
+
+    /* \u793e\u533a\"\u540c\u671f\"\u8868\u683c\u4e95\u683c\uff082026 \u793a\u610f\u56fe\u53e3\u5f84\uff09 */
+    var immigrationBands = [
+      { g: 1, start: 6, end: 328 },
+      { g: 2, start: 342, end: 918 },
+      { g: 3, start: 919, end: 1702 },
+      { g: 4, start: 1703, end: 2021 },
+      { g: 5, start: 2022, end: 2441 },
+      { g: 6, start: 2442, end: 2858 },
+      { g: 7, start: 2859, end: 3075 },
+      { g: 8, start: 3076, end: 3311 },
+      { g: 9, start: 3312, end: 3509 },
+      { g: 10, start: 3510, end: 3591 },
+      { g: 11, start: 3592, end: 3716 }
+    ];
+    function findUserBand(serverId){
+      if (!Number.isFinite(serverId)) return null;
+      for (var bi = 0; bi < immigrationBands.length; bi++){
+        var b = immigrationBands[bi];
+        if (serverId >= b.start && serverId <= b.end) return b;
+      }
+      return null;
+    }
+    function getOverrideDatesForLabel(label){
+      var key = String(label || "");
+      if (scheduleOverrides[key]) return scheduleOverrides[key];
+      if (enableHiddenNeighborOverrides && hiddenNeighborOverrides[key]) return hiddenNeighborOverrides[key];
+      return null;
+    }
+    function hero11SerialFallback(rangeIdx, override){
+      if (override && override.length >= 11 && override[10]){
+        var t10 = dateStrToSerial(String(override[10]));
+        if (Number.isFinite(t10)) return t10 + 84;
+      }
+      var raw = labels[rangeIdx];
+      if (hero11OpenByLabel[raw]){
+        var s = dateStrToSerial(String(hero11OpenByLabel[raw]));
+        if (Number.isFinite(s)) return s;
+      }
+      return baseSerial + rangeIdx * stepDays + 630;
+    }
+    function getStageOpenSerialsForRange(rangeIdx){
+      var serials = [];
+      var raw = labels[rangeIdx];
+      var override = getOverrideDatesForLabel(raw);
+      var base = baseSerial + rangeIdx * stepDays;
+      for (var i = 0; i < stageDefs.length; i++){
+        var st = stageDefs[i];
+        if (st.key === "Hero11"){
+          if (override && override[i]){
+            var sh = dateStrToSerial(String(override[i]));
+            serials.push(Number.isFinite(sh) ? sh : hero11SerialFallback(rangeIdx, override));
+          } else {
+            serials.push(hero11SerialFallback(rangeIdx, override));
+          }
+          continue;
+        }
+        if (override && override[i]){
+          var s = dateStrToSerial(String(override[i]));
+          serials.push(Number.isFinite(s) ? s : base + st.offset);
+        } else {
+          serials.push(base + st.offset);
+        }
+      }
+      return serials;
+    }
+    function immigrationMarkSerial(dateStr){
+      var s = dateStrToSerial(dateStr);
+      return Number.isFinite(s) ? s + 1 : NaN;
+    }
+    function currentProgressDisplayForSid(sid){
+      var ri = findScheduleRangeIndex(sid);
+      if (ri < 0) return { text: "\u672a\u547d\u4e2d\u90bb\u90a6\u8fdb\u5ea6\u8868\uff08NB \u5217\u4e4b\u524d\uff09", rangeIdx: -1 };
+      var b = progressBundleForCutoff(ri, getTodaySerial());
+      return { text: b.text, rangeIdx: ri };
+    }
+    function medianInt(arr){
+      if (!arr || !arr.length) return NaN;
+      var a = arr.slice().sort(function(x,y){ return x-y; });
+      var mid = Math.floor(a.length / 2);
+      if (a.length % 2) return a[mid];
+      return Math.round((a[mid - 1] + a[mid]) / 2);
+    }
+    function forecastDatesFromHistory(markStrs, count){
+      var serials = markStrs.map(function(d){ return dateStrToSerial(d); }).filter(function(x){ return Number.isFinite(x); });
+      var gaps = [];
+      for (var i = 1; i < serials.length; i++) gaps.push(serials[i] - serials[i - 1]);
+      var last = serials[serials.length - 1];
+      var slice = gaps.slice(-6);
+      var step = medianInt(slice);
+      if (!Number.isFinite(step) || step < 14) step = 28;
+      var out = [];
+      var cur = last;
+      for (var k = 0; k < count; k++){
+        cur += step;
+        out.push(serialToDateStr(cur));
+      }
+      return { dates: out, step: step, gapsSample: slice };
+    }
+    function displayRangeLabel(idx){
+      if (idx < 0 || idx >= labels.length) return "";
+      var t = labels[idx];
+      var m = /^NB(\d+)$/.exec(String(t));
+      if (m) return "\u7b2c" + m[1] + "\u90bb\u90a6";
+      if (/^\d+\s*~\s*\d+$/.test(String(t))) return t.replace("~","\uFF5E");
+      return t;
+    }
+    function daysFromToday(targetSerial){
+      var t = getTodaySerial();
+      return targetSerial - t;
+    }
+    function countNumericScheduleRows(){
+      var i = 0;
+      for (; i < labels.length; i++){
+        if (/^NB\d+$/.test(String(labels[i]))) break;
+      }
+      return i;
+    }
+    function buildMatrixGroupsForDate(dateStr){
+      var markSerial = immigrationMarkSerial(dateStr);
+      var n = countNumericScheduleRows();
+      var bucket = {};
+      for (var ri = 0; ri < n; ri++){
+        var pb = progressBundleForCutoff(ri, markSerial);
+        var k = pb.bucketKey;
+        if (!bucket[k]) bucket[k] = { sortKey: pb.sortKey, progressText: pb.text, ranges: [] };
+        bucket[k].ranges.push(displayRangeLabel(ri));
+      }
+      var keys = Object.keys(bucket);
+      keys.sort(function(a, b){
+        var sa = bucket[a].sortKey;
+        var sb = bucket[b].sortKey;
+        return sb - sa;
+      });
+      return keys.map(function(k){
+        var cell = bucket[k];
+        return {
+          bucketKey: k,
+          sortKey: cell.sortKey,
+          progressText: cell.progressText,
+          ranges: cell.ranges
+        };
+      });
+    }
+    function countRangesSameMatrixPlusOne(dateStr, bucketKeyWant){
+      if (!dateStr || !bucketKeyWant) return 0;
+      var markSerial = immigrationMarkSerial(dateStr);
+      var n = countNumericScheduleRows();
+      var nMatch = 0;
+      for (var ri = 0; ri < n; ri++){
+        if (progressBundleForCutoff(ri, markSerial).bucketKey === bucketKeyWant) nMatch++;
+      }
+      return nMatch;
+    }
+    function parseDisplayedRangeBounds(label){
+      var t = String(label || "").trim().replace(/\uFF5E/g, "~");
+      var m = /^(\d+)\s*~\s*(\d+)$/i.exec(t);
+      if (!m) return null;
+      var a = Number(m[1]);
+      var b = Number(m[2]);
+      if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+      if (a > b){ var sw = a; a = b; b = sw; }
+      return { lo: a, hi: b };
+    }
+    function matrixGroupOrdinal(nOneBased){
+      if (!Number.isFinite(nOneBased) || nOneBased < 1) return "";
+      var map = ["\u7b2c\u4e00\u7ec4","\u7b2c\u4e8c\u7ec4","\u7b2c\u4e09\u7ec4","\u7b2c\u56db\u7ec4","\u7b2c\u4e94\u7ec4","\u7b2c\u516d\u7ec4","\u7b2c\u4e03\u7ec4","\u7b2c\u516b\u7ec4","\u7b2c\u4e5d\u7ec4","\u7b2c\u5341\u7ec4"];
+      if (nOneBased <= 10) return map[nOneBased - 1];
+      return "\u7b2c" + nOneBased + "\u7ec4";
+    }
+    function summarizeGroupRangeLabels(rangeLabels){
+      var segs = [];
+      for (var i = 0; i < rangeLabels.length; i++){
+        var pb = parseDisplayedRangeBounds(rangeLabels[i]);
+        if (pb) segs.push(pb);
+      }
+      if (!segs.length) return rangeLabels.join("\u3001");
+      segs.sort(function(x, y){ return x.lo - y.lo; });
+      var merged = [];
+      var cur = { lo: segs[0].lo, hi: segs[0].hi };
+      for (var j = 1; j < segs.length; j++){
+        var nx = segs[j];
+        if (nx.lo <= cur.hi + 1) cur.hi = Math.max(cur.hi, nx.hi);
+        else {
+          merged.push(cur);
+          cur = { lo: nx.lo, hi: nx.hi };
+        }
+      }
+      merged.push(cur);
+      var parts = [];
+      for (var k = 0; k < merged.length; k++){
+        parts.push(merged[k].lo + "\uFF5E" + merged[k].hi);
+      }
+      return parts.join("\u3001");
+    }
+    function renderAll(){
+      var input = document.getElementById("serverInput");
+      var sid = Number(input && input.value);
+      if (!Number.isFinite(sid)) sid = 755;
+      sid = Math.max(1, Math.floor(sid));
+      if (input) input.value = sid;
+
+      var userBand = findUserBand(sid);
+      var rangeIdx = findScheduleRangeIndex(sid);
+      var effectiveRangeIdx = rangeIdx >= 0 ? rangeIdx : (userBand ? findScheduleRangeIndex(userBand.start) : -1);
+
+      var rhythmEl = document.getElementById("rhythmHint");
+      var histBody = document.getElementById("historyPredictionBody");
+      var fcBody = document.getElementById("forecastBody");
+      var matrixBody = document.getElementById("matrixGroupBody");
+      var matrixForecastDateBadge = document.getElementById("matrixForecastDateBadge");
+      var summaryEl = document.getElementById("userSummary");
+
+      var fc = forecastDatesFromHistory(historyDateMarks, 10);
+      var nextOpen = fc.dates.length ? fc.dates[0] : "-";
+
+      if (rhythmEl){
+        var gapStr = fc.gapsSample.length ? fc.gapsSample.join("\u3001") + " \u5929" : "-";
+        rhythmEl.innerHTML =
+          "\u5386\u53f2\u79fb\u6c11\u5217\u6700\u540e\u4e00\u671f\u5c55\u793a\u65e5\uFF1A<b>" +
+          historyDateMarks[historyDateMarks.length - 1] +
+          "</b>\u3002\u5916\u63a8\u4f9d\u6700\u8fd1 " +
+          fc.gapsSample.length +
+          "\u671f\u9593\u8DDD\u7684<strong>\u4E2D\u4F4D\u6570</strong>\uff1a<b>" +
+          fc.step +
+          "</b> \u5929\uff08\u6837\u672c\u9593\u8DDD\u5E8F\u5217\uFF1A" +
+          gapStr +
+          "\uff09\u3002";
+      }
+
+      var curMine = currentProgressDisplayForSid(sid);
+      var rngLabelMine =
+        rangeIdx >= 0 ? displayRangeLabel(rangeIdx)
+        : userBand ? ("\uff08\u4ee5\u5206\u7ec4\u521d\u533a\u670d " + userBand.start + " \u4f9b\u9884\u6f14\u7b97\uff09") : "-";
+      var bandStr =
+        userBand ? ("\u7b2c " + userBand.g + " \u7ec4\uFF08" + userBand.start + "\uFF5E" + userBand.end + "\uff09")
+        : ("\u8868\u5185<strong>\u65e0</strong>\uff08\u65e5\u524d\u53ea\u8986\u76d6\u5230<strong>3716</strong>\uff0c329\u301C341\u7b49\u7a7a\u6863\u672a\u5217\u5165\uff09");
+
+      var userBundleNext =
+        rangeIdx >= 0 && nextOpen !== "-" ? progressBundleForCutoff(rangeIdx, immigrationMarkSerial(nextOpen)) : null;
+      var userBucketNext = userBundleNext ? userBundleNext.bucketKey : "";
+      var userTextNext = userBundleNext ? userBundleNext.text : "";
+      var matrixMateLine = "";
+      if (userBucketNext && userBucketNext !== "__empty__"){
+        var nMate = countRangesSameMatrixPlusOne(nextOpen, userBucketNext);
+        matrixMateLine =
+          "<br /><strong>\u4e0b\u671f\u9884\u6d4b\u5c55\u793a\u65e5\uff1a</strong>" +
+          nextOpen +
+          "\uff08<strong>\u77e9\u9635 +1 \u5929</strong>\u53e3\u5f84\uff09\u3002" +
+          "<strong>\u60a8\u5728\u6b64\u671f\u7684\u540c\u7ec4\u6863\u4f4d\uff1a</strong>" +
+          "<span class=\"st-soft\">\u3010" + userTextNext + "\u3011</span>\u3002" +
+          "\u5171 <strong>" + nMate + "</strong> \u6761\u90bb\u90a6\u8868\u884c\u4e0e\u6b64\u6863\u76f8\u540c\uff0c" +
+          "<strong>\u5373\u8be5\u671f\u540c\u671f\u540c\u7ec4</strong>\u3002";
+      } else if (rangeIdx < 0 && nextOpen !== "-"){
+        matrixMateLine =
+          "<br /><span style=\"opacity:.88\">\u8f93\u5165 NB \u5217\u4e4b\u524d\u7684\u533a\u670d\u540e\uff0c\u53ef\u5728\u6b64\u663e\u793a\u4e0b\u671f\u77e9\u9635\u540c\u7ec4\u6982\u8981\u3002</span>";
+      }
+
+      if (summaryEl){
+        summaryEl.innerHTML =
+          "<strong>" + sid + " \u533a\u670d</strong>\uFF1A" + bandStr +
+          "\u3002<strong>\u5f53\u524d\u8fdb\u5ea6\uff08\u4eca\u65e5\uff09</strong>\uff1a<span class=\"st-accent\">" +
+          curMine.text +
+          "</span>\u3002<br /><strong>\u90bb\u90a6\u8fdb\u5ea6\u8868\u5bf9\u5e94\u884c</strong>\uff1a" +
+          (rangeIdx >= 0 ? displayRangeLabel(rangeIdx) : rngLabelMine) +
+          "\u3002<strong>\u6700\u8fd1\u4e00\u671f\u5c55\u793a/\u9884\u6d4b</strong>\uff1a" +
+          "<span class=\"st-soft\">" + nextOpen + "</span>\u3002" +
+          matrixMateLine;
+      }
+
+      if (matrixForecastDateBadge){
+        matrixForecastDateBadge.textContent = nextOpen === "-" ? "\u2014" : nextOpen;
+      }
+
+      var mgHtml = "";
+      if (matrixBody){
+        if (nextOpen === "-"){
+          mgHtml = "<tr><td colspan=\"3\">\u6682\u65e0\u5916\u63a8\u65e5\u671f\u3002</td></tr>";
+        } else {
+          var groupsMg = buildMatrixGroupsForDate(nextOpen);
+          var nMg = groupsMg.length;
+          for (var mi = 0; mi < nMg; mi++){
+            var grp = groupsMg[mi];
+            var trM = userBucketNext && grp.bucketKey === userBucketNext ? " class=\"row-matrix-user\"" : "";
+            mgHtml +=
+              "<tr" + trM + ">" +
+              "<td>" + matrixGroupOrdinal(mi + 1) + "</td>" +
+              "<td class=\"st-soft\">" + grp.progressText + "</td>" +
+              "<td class=\"matrix-ranges\">" + summarizeGroupRangeLabels(grp.ranges) + "</td>" +
+              "</tr>";
+          }
+        }
+        matrixBody.innerHTML = mgHtml;
+      }
+
+      /* \u5c55\u958b\u5386\u53f2 */
+      var hHtml = "";
+      if (effectiveRangeIdx < 0){
+        if (histBody){
+          histBody.innerHTML =
+            "<tr><td colspan=\"3\">\u672a\u5728 NB \u5217\u4e4b\u524d\u7684\u90bb\u90a6\u8868\u4e2d\u627e\u5230\u53ef\u7528\u884c\uFF08\u533a\u670d/\u9644\u8fd1\u5206\u7ec4\u521d\u5747\u65e0\u547d\u4e2d\uff09\uFF0C\u5386\u53f2\u5bf9\u7167\u6682\u4E0d\u663E\u793A.</td></tr>";
+        }
+      } else {
+        for (var h = 0; h < historyDateMarks.length; h++){
+          var d = historyDateMarks[h];
+          var hb = progressBundleForCutoff(effectiveRangeIdx, immigrationMarkSerial(d));
+          var past = immigrationMarkSerial(d) <= getTodaySerial();
+          hHtml += "<tr><td><span class=\"pill\">" + d + "</span></td>" +
+            "<td class=\"st-accent\">" + hb.text + "</td>" +
+            "<td>" + (past ? "\u5df2\u53d1\u751f\u8FC7\u7684\u79FB\u6C11\u5217\u65E5" : "\u5c55\u793a/\u9884\u6d4b") + "</td></tr>";
+        }
+        if (histBody) histBody.innerHTML = hHtml;
+      }
+
+      /* \u591a\u671f\u63a8\u6f14 */
+      var fHtml = "";
+      if (rangeIdx < 0){
+        if (fcBody){
+          fcBody.innerHTML =
+            "<tr><td colspan=\"4\">\u5f53\u524d\u8f93\u5165\u7684\u533a\u670d\u672a\u5728 NB \u5217\u4e4b\u524d\u7684\u90bb\u90a6\u8868\u4e2d\u627e\u5230\u5bf9\u5e94\u884c\uFF0C\u591a\u671f\u63a8\u6f14\u6682\u4e0d\u53ef\u7528\u3002\u5982\u5df2\u77e5\u5206\u7ec4\uff0c\u53ef\u8bd5\u8f93\u5165<strong>\u5206\u7ec4\u521d</strong>\u533a\u670d\u518d\u8bd5\u3002</td></tr>";
+        }
+      } else {
+        for (var f = 0; f < fc.dates.length; f++){
+          var ds = fc.dates[f];
+          var stf = progressBundleForCutoff(rangeIdx, immigrationMarkSerial(ds)).text;
+          var tgt = immigrationMarkSerial(ds);
+          var diff = Number.isFinite(tgt) ? daysFromToday(tgt) : NaN;
+          var diffTxt;
+          if (!Number.isFinite(diff)) diffTxt = "-";
+          else if (diff <= 0) diffTxt = "\u5df2\u5230/\u5df2\u8fc7";
+          else diffTxt = "\u8FD8\u5269 " + diff + " \u5929";
+          fHtml +=
+            "<tr><td>\u7B2C " + (f + 1) + " \u671F</td><td><span class=\"pill forecast\">" + ds +
+            "</span></td><td>" + diffTxt +
+            "</td><td class=\"st-soft\">" + stf +
+            "</td></tr>";
+        }
+        if (fcBody) fcBody.innerHTML = fHtml;
+      }
+    }
+
+    document.getElementById("runBtn").addEventListener("click", renderAll);
+    document.getElementById("serverInput").addEventListener("keydown", function(e){
+      if (e.key === "Enter") renderAll();
+    });
+    renderAll();
+  })();
+  </script>
+<style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px}}</style>
+<footer class="wjdr-footer">
+  <p class="site-footer-legal">
+    版权所有 © 2026 无尽冬日工具箱
+    <span class="site-footer-sep">|</span>
+    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026012727号</a>
+  </p>
+</footer>
+</body>
+</html>

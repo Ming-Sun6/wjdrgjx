@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>火10建筑计算器</title>
+  <style>
+    :root {
+      --bg0: #0f172a;
+      --bg1: #1e293b;
+      --line: rgba(148, 163, 184, 0.28);
+      --txt: #e2e8f0;
+      --muted: #94a3b8;
+      --panel: rgba(15, 23, 42, 0.78);
+      --surface: rgba(30, 41, 59, 0.72);
+      --surface-strong: rgba(15, 23, 42, 0.9);
+      --table-head: rgba(15, 23, 42, 0.95);
+      --acc1: #fb923c;
+      --acc2: #22d3ee;
+      --good: #22c55e;
+    }
+
+    body.theme-day {
+      --bg0: #eaf2ff;
+      --bg1: #f8fbff;
+      --line: rgba(15, 23, 42, 0.14);
+      --txt: #0f172a;
+      --muted: #475569;
+      --panel: rgba(255, 255, 255, 0.94);
+      --surface: rgba(255, 255, 255, 0.95);
+      --surface-strong: rgba(255, 255, 255, 0.95);
+      --table-head: rgba(255, 255, 255, 0.98);
+      --acc1: #ea580c;
+      --acc2: #0369a1;
+      --good: #15803d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Source Han Sans SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+      color: var(--txt);
+      min-height: 100vh;
+      background:
+        radial-gradient(900px 420px at -10% -10%, rgba(251,146,60,.24), transparent 65%),
+        radial-gradient(900px 420px at 110% 0%, rgba(34,211,238,.2), transparent 68%),
+        linear-gradient(140deg, var(--bg0), var(--bg1));
+      padding: 16px;
+      transition: background .2s ease, color .2s ease;
+    }
+    .home-btn {
+      position: fixed; top: 10px; left: 10px; z-index: 20;
+      text-decoration: none; color: var(--txt);
+      border: 1px solid var(--line); background: var(--surface-strong);
+      border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 700;
+    }
+    .theme-toggle {
+      position: fixed; top: 10px; left: 112px; z-index: 20;
+      border: 1px solid var(--line); background: var(--surface-strong); color: var(--txt);
+      border-radius: 10px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .app { max-width: 1180px; margin: 52px auto 24px; display: grid; gap: 14px; }
+    .hero, .panel { border: 1px solid var(--line); border-radius: 18px; background: var(--panel); padding: 16px; }
+    h1 { font-size: clamp(24px,4vw,36px); margin-bottom: 8px; }
+    .subtitle { color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn { border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; background: var(--surface); color: var(--txt); cursor: pointer; font-weight: 700; min-height: 40px; }
+    .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    #cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .card { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: var(--surface); }
+    .card h3 { font-size: 15px; margin-bottom: 8px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .field { display: grid; gap: 5px; }
+    label { font-size: 12px; color: var(--muted); }
+    select { width: 100%; border: 1px solid var(--line); background: var(--surface-strong); color: var(--txt); border-radius: 10px; padding: 9px; }
+    .stats { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); }
+    .stat { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--surface); }
+    .label { color: var(--muted); font-size: 12px; }
+    .value { font-size: clamp(22px,4vw,30px); font-weight: 800; }
+    .v1 { color: var(--acc1); } .v2 { color: var(--acc2); } .v3 { color: var(--good); }
+    .table-wrap { border: 1px solid var(--line); border-radius: 12px; overflow: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--line); text-align: right; font-size: 13px; white-space: nowrap; }
+    th { background: var(--table-head); color: var(--txt); }
+    th:first-child, td:first-child { text-align: left; }
+    .note { color: var(--muted); font-size: 12px; }
+    @media (min-width: 1083px) and (max-width: 1436px) {
+      body { padding: 14px; }
+      .app { max-width: 100%; margin-top: 56px; gap: 12px; }
+      .hero, .panel { padding: 14px; border-radius: 16px; }
+      #cards { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+      .card { min-width: 0; padding: 11px; }
+      .card h3 { font-size: 14px; margin-bottom: 6px; }
+      .row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      select { font-size: 14px; padding: 8px; }
+      .table-wrap { max-width: 100%; overflow-x: auto; }
+      table { min-width: 640px; }
+    }
+    @media (max-width: 1082px) {
+      body { padding: 12px; }
+      .app { margin-top: 50px; gap: 10px; }
+      .hero, .panel { padding: 12px; border-radius: 14px; }
+      h1 { font-size: clamp(22px, 6vw, 30px); }
+      .subtitle, .note { font-size: 13px; }
+      .grid { grid-template-columns: 1fr; gap: 10px; }
+      #cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+      #cards .card { padding: 10px; border-radius: 12px; }
+      #cards .card h3 { font-size: 14px; margin-bottom: 6px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .field { justify-items: start; }
+      .field select { width: min(100%, 136px); }
+      .btn { flex: 1 1 150px; }
+      select { font-size: 16px; padding: 10px; }
+      table { min-width: 620px; }
+    }
+    @media (max-width: 680px) {
+      body { padding: 10px; }
+      .home-btn { top: 8px; left: 8px; padding: 7px 10px; }
+      .app { margin-top: 46px; gap: 8px; }
+      .hero, .panel { padding: 10px; border-radius: 12px; }
+      #cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+      #cards .card { padding: 8px; border-radius: 10px; }
+      #cards .card h3 { font-size: 13px; margin-bottom: 4px; }
+      .stats { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+      .field select { width: min(100%, 120px); }
+      .btn-row .btn { flex: 1 1 100%; width: 100%; }
+      th, td { padding: 8px; font-size: 12px; }
+      table { min-width: 560px; }
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../rukou.html">返回主页</a>
+
+  <main class="app">
+    <section class="hero">
+      <h1>火晶建筑计算器</h1>
+    </section>
+
+    <section class="panel">
+      <div class="btn-row">
+        <button class="btn" id="reset">全30级</button>
+        <button class="btn" id="presetAll3">全火三</button>
+        <button class="btn" id="presetAll5">全火五</button>
+        <button class="btn" id="presetAll8">全火八</button>
+        <button class="btn" id="preset30to3">30-火三</button>
+        <button class="btn" id="preset3to5">火三-火五</button>
+        <button class="btn" id="preset5to8">火五-火八</button>
+        <button class="btn" id="preset8to10">火八-火十</button>
+        <button class="btn" id="preset5to10">火五-火十</button>
+      </div>
+      <div id="cards" class="grid" style="margin-top: 12px;"></div>
+      <div class="stats" style="margin-top: 12px;">
+        <div class="stat"><div class="label">总火晶</div><div id="totalCrystal" class="value v1">0</div></div>
+        <div class="stat"><div class="label">总精炼</div><div id="totalRefine" class="value v2">0</div></div>
+        <div class="stat"><div class="label">按“80+6”每周期约 226.56（每周第一天精练80次，后续每天精炼一次）</div><div id="weeks" class="value v3">0 周</div></div>
+      </div>
+      <div class="table-wrap" style="margin-top: 12px;">
+        <table>
+          <thead><tr><th>建筑</th><th>当前</th><th>目标</th><th>火晶</th><th>精炼</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+    const fireData = [{"level":31,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":32,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":33,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":34,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":35,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":36,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":37,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":38,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":39,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":40,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":41,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":42,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":43,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":44,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":45,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":46,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":47,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":48,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":49,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":50,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":51,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":52,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":53,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":54,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":55,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":56,"furnace":[200.0,10.0],"embassy":[50.0,2.0],"infirmary":[40.0,2.0],"command":[40.0,2.0],"shield":[90.0,4.0],"lancer":[90.0,4.0],"marksman":[90.0,4.0],"academy":[90.0,4.0]},{"level":57,"furnace":[200.0,10.0],"embassy":[50.0,2.0],"infirmary":[40.0,2.0],"command":[40.0,2.0],"shield":[90.0,4.0],"lancer":[90.0,4.0],"marksman":[90.0,4.0],"academy":[90.0,4.0]},{"level":58,"furnace":[200.0,10.0],"embassy":[50.0,2.0],"infirmary":[40.0,2.0],"command":[40.0,2.0],"shield":[90.0,4.0],"lancer":[90.0,4.0],"marksman":[90.0,4.0],"academy":[90.0,4.0]},{"level":59,"furnace":[200.0,10.0],"embassy":[50.0,2.0],"infirmary":[40.0,2.0],"command":[40.0,2.0],"shield":[90.0,4.0],"lancer":[90.0,4.0],"marksman":[90.0,4.0],"academy":[90.0,4.0]},{"level":60,"furnace":[100.0,20.0],"embassy":[25.0,5.0],"infirmary":[20.0,5.0],"command":[20.0,5.0],"shield":[45.0,9.0],"lancer":[45.0,9.0],"marksman":[45.0,9.0],"academy":[45.0,9.0]},{"level":61,"furnace":[240.0,15.0],"embassy":[60.0,3.0],"infirmary":[48.0,3.0],"command":[48.0,3.0],"shield":[108.0,6.0],"lancer":[108.0,6.0],"marksman":[108.0,6.0],"academy":[108.0,6.0]},{"level":62,"furnace":[240.0,15.0],"embassy":[60.0,3.0],"infirmary":[48.0,3.0],"command":[48.0,3.0],"shield":[108.0,6.0],"lancer":[108.0,6.0],"marksman":[108.0,6.0],"academy":[108.0,6.0]},{"level":63,"furnace":[240.0,15.0],"embassy":[60.0,3.0],"infirmary":[48.0,3.0],"command":[48.0,3.0],"shield":[108.0,6.0],"lancer":[108.0,6.0],"marksman":[108.0,6.0],"academy":[108.0,6.0]},{"level":64,"furnace":[240.0,15.0],"embassy":[60.0,3.0],"infirmary":[48.0,3.0],"command":[48.0,3.0],"shield":[108.0,6.0],"lancer":[108.0,6.0],"marksman":[108.0,6.0],"academy":[108.0,6.0]},{"level":65,"furnace":[120.0,30.0],"embassy":[30.0,7.0],"infirmary":[24.0,7.0],"command":[24.0,7.0],"shield":[54.0,13.0],"lancer":[54.0,13.0],"marksman":[54.0,13.0],"academy":[54.0,13.0]},{"level":66,"furnace":[240.0,20.0],"embassy":[60.0,5.0],"infirmary":[48.0,4.0],"command":[48.0,4.0],"shield":[108.0,9.0],"lancer":[108.0,9.0],"marksman":[108.0,9.0],"academy":[108.0,9.0]},{"level":67,"furnace":[240.0,20.0],"embassy":[60.0,5.0],"infirmary":[48.0,4.0],"command":[48.0,4.0],"shield":[108.0,9.0],"lancer":[108.0,9.0],"marksman":[108.0,9.0],"academy":[108.0,9.0]},{"level":68,"furnace":[240.0,20.0],"embassy":[60.0,5.0],"infirmary":[48.0,4.0],"command":[48.0,4.0],"shield":[108.0,9.0],"lancer":[108.0,9.0],"marksman":[108.0,9.0],"academy":[108.0,9.0]},{"level":69,"furnace":[240.0,20.0],"embassy":[60.0,5.0],"infirmary":[48.0,4.0],"command":[48.0,4.0],"shield":[108.0,9.0],"lancer":[108.0,9.0],"marksman":[108.0,9.0],"academy":[108.0,9.0]},{"level":70,"furnace":[120.0,40.0],"embassy":[30.0,10.0],"infirmary":[24.0,8.0],"command":[24.0,8.0],"shield":[54.0,18.0],"lancer":[54.0,18.0],"marksman":[54.0,18.0],"academy":[54.0,18.0]},{"level":71,"furnace":[280.0,30.0],"embassy":[70.0,7.0],"infirmary":[56.0,6.0],"command":[56.0,6.0],"shield":[126.0,13.0],"lancer":[126.0,13.0],"marksman":[126.0,13.0],"academy":[126.0,13.0]},{"level":72,"furnace":[280.0,30.0],"embassy":[70.0,7.0],"infirmary":[56.0,6.0],"command":[56.0,6.0],"shield":[126.0,13.0],"lancer":[126.0,13.0],"marksman":[126.0,13.0],"academy":[126.0,13.0]},{"level":73,"furnace":[280.0,30.0],"embassy":[70.0,7.0],"infirmary":[56.0,6.0],"command":[56.0,6.0],"shield":[126.0,13.0],"lancer":[126.0,13.0],"marksman":[126.0,13.0],"academy":[126.0,13.0]},{"level":74,"furnace":[280.0,30.0],"embassy":[70.0,7.0],"infirmary":[56.0,6.0],"command":[56.0,6.0],"shield":[126.0,13.0],"lancer":[126.0,13.0],"marksman":[126.0,13.0],"academy":[126.0,13.0]},{"level":75,"furnace":[140.0,60.0],"embassy":[35.0,15.0],"infirmary":[28.0,12.0],"command":[28.0,12.0],"shield":[63.0,27.0],"lancer":[63.0,27.0],"marksman":[63.0,27.0],"academy":[63.0,27.0]},{"level":76,"furnace":[350.0,70.0],"embassy":[87.0,17.0],"infirmary":[70.0,14.0],"command":[70.0,14.0],"shield":[157.0,31.0],"lancer":[157.0,31.0],"marksman":[157.0,31.0],"academy":[157.0,31.0]},{"level":77,"furnace":[350.0,70.0],"embassy":[87.0,17.0],"infirmary":[70.0,14.0],"command":[70.0,14.0],"shield":[157.0,31.0],"lancer":[157.0,31.0],"marksman":[157.0,31.0],"academy":[157.0,31.0]},{"level":78,"furnace":[350.0,70.0],"embassy":[87.0,17.0],"infirmary":[70.0,14.0],"command":[70.0,14.0],"shield":[157.0,31.0],"lancer":[157.0,31.0],"marksman":[157.0,31.0],"academy":[157.0,31.0]},{"level":79,"furnace":[350.0,70.0],"embassy":[87.0,17.0],"infirmary":[70.0,14.0],"command":[70.0,14.0],"shield":[157.0,31.0],"lancer":[157.0,31.0],"marksman":[157.0,31.0],"academy":[157.0,31.0]},{"level":80,"furnace":[175.0,140.0],"embassy":[43.0,35.0],"infirmary":[35.0,28.0],"command":[35.0,28.0],"shield":[78.0,63.0],"lancer":[78.0,63.0],"marksman":[78.0,63.0],"academy":[78.0,61.0]}];
+
+    const levelStages = [
+      { start: 30, name: "30" },
+      { start: 35, name: "火一" },
+      { start: 40, name: "火二" },
+      { start: 45, name: "火三" },
+      { start: 50, name: "火四" },
+      { start: 55, name: "火五" },
+      { start: 60, name: "火六" },
+      { start: 65, name: "火七" },
+      { start: 70, name: "火八" },
+      { start: 75, name: "火九" },
+      { start: 80, name: "火十" }
+    ];
+
+    const structures = [
+      { key: "furnace", name: "熔炉" },
+      { key: "embassy", name: "大使馆" },
+      { key: "infirmary", name: "军医所" },
+      { key: "command", name: "指挥部" },
+      { key: "shield", name: "盾兵营" },
+      { key: "lancer", name: "矛兵营" },
+      { key: "marksman", name: "射手营" },
+      { key: "academy", name: "战争学院" }
+    ];
+
+    const fireByLevel = new Map(fireData.map(x => [x.level, x]));
+    const state = {};
+
+    function fmt(n, d = 0) {
+      return Number(n).toLocaleString("zh-CN", { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+
+    function fmtSmart(n) {
+      return Number(n).toLocaleString("zh-CN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    function levelLabel(level) {
+      const lv = Number(level);
+      let current = levelStages[0];
+      for (const stage of levelStages) {
+        if (lv >= stage.start) current = stage;
+        else break;
+      }
+      const diff = lv - current.start;
+      return diff > 0 ? `${current.name}-${diff}` : current.name;
+    }
+
+    function optionHtml(start, end, selected) {
+      let html = "";
+      for (let i = start; i <= end; i += 1) {
+        html += `<option value="${i}" ${i === selected ? "selected" : ""}>${levelLabel(i)}</option>`;
+      }
+      return html;
+    }
+
+    function renderCards() {
+      const container = document.getElementById("cards");
+      structures.forEach(s => {
+        state[s.key] = { current: 30, target: 30 };
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${s.name}</h3>
+          <div class="row">
+            <div class="field">
+              <label>当前等级</label>
+              <select id="current-${s.key}">${optionHtml(30, 80, state[s.key].current)}</select>
+            </div>
+            <div class="field">
+              <label>目标等级</label>
+              <select id="target-${s.key}">${optionHtml(30, 80, state[s.key].target)}</select>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+
+        ["current", "target"].forEach(type => {
+          document.getElementById(`${type}-${s.key}`).addEventListener("change", e => {
+            state[s.key][type] = Number(e.target.value);
+            if (state[s.key].target < state[s.key].current) {
+              state[s.key].target = state[s.key].current;
+              document.getElementById(`target-${s.key}`).value = state[s.key].target;
+            }
+            calc();
+          });
+        });
+      });
+    }
+
+    function calc() {
+      let totalCrystal = 0;
+      let totalRefine = 0;
+      const tbody = document.getElementById("tbody");
+      tbody.innerHTML = "";
+
+      structures.forEach(s => {
+        const st = state[s.key];
+        let crystal = 0;
+        let refine = 0;
+        for (let lv = st.current + 1; lv <= st.target; lv += 1) {
+          const row = fireByLevel.get(lv);
+          if (!row || !row[s.key]) continue;
+          crystal += row[s.key][0];
+          refine += row[s.key][1];
+        }
+        totalCrystal += crystal;
+        totalRefine += refine;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${s.name}</td>
+          <td>${levelLabel(st.current)}</td>
+          <td>${levelLabel(st.target)}</td>
+          <td>${fmt(crystal)}</td>
+          <td>${fmt(refine)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById("totalCrystal").textContent = fmt(totalCrystal);
+      document.getElementById("totalRefine").textContent = fmt(totalRefine);
+      document.getElementById("weeks").textContent = `${fmtSmart(totalRefine / 226.56)} 周`;
+    }
+
+    function setAll(current, target) {
+      structures.forEach(s => {
+        state[s.key].current = current;
+        state[s.key].target = target;
+        document.getElementById(`current-${s.key}`).value = current;
+        document.getElementById(`target-${s.key}`).value = target;
+      });
+      calc();
+    }
+
+    function init() {
+      renderCards();
+      document.getElementById("reset").addEventListener("click", () => setAll(30, 30));
+      document.getElementById("presetAll3").addEventListener("click", () => setAll(45, 45));
+      document.getElementById("presetAll5").addEventListener("click", () => setAll(55, 55));
+      document.getElementById("presetAll8").addEventListener("click", () => setAll(70, 70));
+      document.getElementById("preset30to3").addEventListener("click", () => setAll(30, 45));
+      document.getElementById("preset3to5").addEventListener("click", () => setAll(45, 55));
+      document.getElementById("preset5to8").addEventListener("click", () => setAll(55, 70));
+      document.getElementById("preset8to10").addEventListener("click", () => setAll(70, 80));
+      document.getElementById("preset5to10").addEventListener("click", () => setAll(55, 80));
+      calc();
+    }
+
+    init();
+  </script>
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>
+

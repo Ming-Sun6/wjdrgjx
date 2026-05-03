@@ -1,0 +1,33 @@
+<service>
+	<id>wjglnode.exe</id>
+	<name>wjgl-node</name>
+	<description>WJGL local node server (server.js)</description>
+	<executable>c:\Users\Administrator\AppData\Local\Programs\cursor\resources\app\resources\helpers\node.exe</executable>
+	<argument>--harmony</argument>
+	<argument>C:\inetpub\wwwroot\node_modules\node-windows\lib\wrapper.js</argument>
+	<argument>--file</argument>
+	<argument>C:\inetpub\wwwroot\server.js</argument>
+	<argument>--scriptoptions=</argument>
+	<argument>--log</argument>
+	<argument>wjgl-node wrapper</argument>
+	<argument>--grow</argument>
+	<argument>0.5</argument>
+	<argument>--wait</argument>
+	<argument>2</argument>
+	<argument>--maxrestarts</argument>
+	<argument>3</argument>
+	<argument>--abortonerror</argument>
+	<argument>n</argument>
+	<argument>--stopparentfirst</argument>
+	<argument>undefined</argument>
+	<argument>--maxretries</argument>
+	<argument>10</argument>
+	<logmode>rotate</logmode>
+	<stoptimeout>30sec</stoptimeout>
+	<serviceaccount>
+		<domain>IZ6QTB6DDNT4CCZ</domain>
+		<user>LocalSystem</user>
+		<password></password>
+	</serviceaccount>
+	<workingdirectory>C:\inetpub\wwwroot</workingdirectory>
+</service>

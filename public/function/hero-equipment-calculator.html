@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>英雄装备计算器</title>
+  <style>
+:root {
+      --bg1: #0a1426;
+      --bg2: #13253b;
+      --card: rgba(15, 23, 42, 0.8);
+      --card2: rgba(15, 23, 42, 0.92);
+      --line: rgba(148, 163, 184, 0.28);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --a1: #06b6d4;
+      --a2: #f97316;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+    }
+    :root[data-theme="day"] {
+      --bg1: #eef6ff;
+      --bg2: #fff5ea;
+      --card: rgba(255, 255, 255, 0.82);
+      --card2: rgba(255, 255, 255, 0.94);
+      --line: rgba(15, 23, 42, 0.15);
+      --text: #0f172a;
+      --muted: #475569;
+      --a1: #0284c7;
+      --a2: #ea580c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Bahnschrift", "DIN Alternate", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 620px at 10% -12%, rgba(6, 182, 212, 0.24), transparent 58%),
+        radial-gradient(900px 540px at 92% 0%, rgba(249, 115, 22, 0.22), transparent 56%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      padding: 16px 12px 28px;
+    }
+    .top-btn {
+      position: fixed;
+      top: 9px;
+      z-index: 1000;
+      border: 1px solid var(--line);
+      background: var(--card2);
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 11px;
+      backdrop-filter: blur(8px);
+    }
+    #homeBtn { left: 10px; }
+    #themeBtn { right: 10px; cursor: pointer; }
+    .wrap { max-width: 1220px; margin: 0 auto; display: grid; gap: 12px; padding-top: 40px; }
+    .hero, .panel {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 20px 46px rgba(2, 6, 23, 0.36);
+      backdrop-filter: blur(8px);
+    }
+    .hero { padding: 22px 18px; }
+    .hero h1 { font-size: clamp(24px, 4vw, 38px); margin-bottom: 10px; line-height: 1.1; }
+    .hero p { color: var(--muted); line-height: 1.62; font-size: 14px; max-width: 900px; }
+    .chips { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--line); background: var(--card2); border-radius: 999px; font-size: 12px; font-weight: 700; padding: 4px 10px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 9px 13px;
+      cursor: pointer;
+    }
+    .tab.active { background: linear-gradient(105deg, var(--a1), #0ea5e9); color: #fff; border-color: transparent; }
+    .panel { display: none; padding: 12px; gap: 10px; }
+    .panel.active { display: grid; animation: rise .25s ease both; }
+    .box { border: 1px solid var(--line); border-radius: 12px; background: var(--card2); padding: 11px; display: grid; gap: 8px; }
+    .box h3 { font-size: 15px; }
+    .hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; align-items: end; }
+    .f { grid-column: span 3; display: grid; gap: 5px; }
+    .f2 { grid-column: span 2; display: grid; gap: 5px; }
+    .f label, .f2 label { font-size: 12px; color: var(--muted); font-weight: 800; }
+    .f input, .f2 input, .f select, .f2 select {
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.24);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 8px 9px;
+      font-size: 14px;
+      outline: none;
+    }
+    :root[data-theme="day"] .f input,
+    :root[data-theme="day"] .f2 input,
+    :root[data-theme="day"] .f select,
+    :root[data-theme="day"] .f2 select { background: rgba(255, 255, 255, 0.9); }
+    .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+    .stat { border: 1px solid var(--line); border-radius: 10px; padding: 9px; background: rgba(15, 23, 42, 0.3); }
+    :root[data-theme="day"] .stat { background: rgba(255, 255, 255, 0.9); }
+    .k { color: var(--muted); font-size: 12px; }
+    .v { font-size: 21px; font-weight: 900; font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid var(--line); padding: 7px; text-align: left; }
+    th { background: rgba(15, 23, 42, 0.54); }
+    :root[data-theme="day"] th { background: rgba(241, 245, 249, 0.96); }
+    .res-name { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
+    .res-name img { width: 16px; height: 16px; object-fit: contain; border-radius: 3px; }
+    .status { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font-size: 13px; font-weight: 800; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 1024px) {
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .f { grid-column: span 4; }
+      .f2 { grid-column: span 3; }
+    }
+    @media (max-width: 760px) {
+      .row2 { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .f, .f2 { grid-column: span 6; }
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a id="homeBtn" class="top-btn" href="../rukou.html">返回主页</a>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>英雄装备计算器</h1>
+      <p>专注英雄装备与专精成长，单独查看螺丝、专精石、橙装、秘银与属性增量。</p>
+      <div class="chips">
+        <span class="chip">英雄装备升级</span>
+        <span class="chip">专精成长</span>
+        <span class="chip">属性增量</span>
+      </div>
+    </section>
+
+    <section class="panel active" data-panel="hero">
+      <div class="box">
+        <h3>英雄装备升级</h3>
+        <div class="grid">
+          <div class="f"><label>当前装备等级</label><select id="heroFrom"></select></div>
+          <div class="f"><label>目标装备等级</label><select id="heroTo"></select></div>
+          <div class="f2"><label>当前专精等级</label><select id="spFrom"></select></div>
+          <div class="f2"><label>目标专精等级</label><select id="spTo"></select></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">螺丝 (/100)</div><div class="v" id="hScrew">0</div></div>
+          <div class="stat"><div class="k">专精石</div><div class="v" id="hStone">0</div></div>
+          <div class="stat"><div class="k">橙装</div><div class="v" id="hOrange">0</div></div>
+          <div class="stat"><div class="k">秘银</div><div class="v" id="hMithril">0</div></div>
+          <div class="stat"><div class="k">当前属性</div><div class="v" id="hAttrNow">0</div></div>
+          <div class="stat"><div class="k">目标属性</div><div class="v" id="hAttrTo">0</div></div>
+        </div>
+        <div class="hint" id="heroMeta"></div>
+      </div>
+      <div class="status" id="heroStatus">就绪</div>
+    </section>
+  </main>
+
+  <script>
+    const N = (v)=>{ const n = Number(v); return Number.isFinite(n) ? n : null; };
+        const F = (v,d=2)=>Number.isFinite(v) ? v.toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d}) : "--";
+        const I = (v)=>Number.isFinite(v) ? v.toLocaleString("zh-CN") : "--";
+        const YW = (yiVal)=>{
+          if(!Number.isFinite(yiVal)) return "--";
+          if(yiVal >= 1) return `${yiVal.toFixed(1)}亿`;
+          return `${(yiVal * 10000).toFixed(1)}万`;
+        };
+        const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+        const txt = (id,v)=>{ const el = document.getElementById(id); if(el) el.textContent = String(v); };
+        const sumRange = (s,e,fn)=>{ let t=0; if(e<=s) return 0; for(let i=s+1;i<=e;i++) t+=fn(i); return t; };
+
+
+
+    function heroScrewAt(lv){
+          if(lv<1||lv>200) return 0;
+          if(lv<=29) return 5*lv+5; if(lv<=39) return 10*lv-140; if(lv<=59) return 20*lv-530;
+          if(lv<=69) return 680+(lv-60)*30; if(lv<=79) return 990+(lv-70)*40; if(lv<=99) return 1400+(lv-80)*50;
+          if(lv===100) return 2400;
+          if([101,120,140,160,180,200].includes(lv)) return 0;
+          if(lv<=119) return 2500+(lv-102)*50; if(lv<=139) return 3500+(lv-121)*50;
+          if(lv<=159) return 4450+(lv-141)*50; if(lv<=179) return 5500+(lv-161)*100;
+          return 7500+(lv-181)*100;
+        }
+        function heroMithrilAt(lv){ if(lv===120)return 10; if(lv===140)return 20; if(lv===160)return 30; if(lv===180)return 40; if(lv===200)return 50; return 0; }
+        function heroOrangeAt(lv){ if(lv===101)return 2; if(lv===120)return 3; if(lv===140||lv===160)return 5; if(lv===180||lv===200)return 10; return 0; }
+        function heroAttrAt(lv){ return lv<=100 ? 0.0333 + (0.5-0.0333)/100*lv : 0.5 + (lv-100)*0.5/100; }
+        function specStoneAt(lv){ return lv>=1&&lv<=20 ? lv*10 : 0; }
+        function specOrangeAt(lv){ return lv>=11&&lv<=20 ? lv-10 : 0; }
+
+
+
+    function recalcHero(){
+          const hf = clamp(Math.round(N(document.getElementById("heroFrom").value) ?? 1), 1, 200);
+          const ht = clamp(Math.round(N(document.getElementById("heroTo").value) ?? 1), 1, 200);
+          const sf = clamp(Math.round(N(document.getElementById("spFrom").value) ?? 1), 1, 20);
+          const st = clamp(Math.round(N(document.getElementById("spTo").value) ?? 1), 1, 20);
+          const screw = sumRange(hf,ht,heroScrewAt)/100;
+          const mithril = sumRange(hf,ht,heroMithrilAt);
+          const orange = sumRange(hf,ht,heroOrangeAt) + sumRange(sf,st,specOrangeAt);
+          const stone = sumRange(sf,st,specStoneAt);
+          const attrNow = heroAttrAt(hf)*(1+sf*0.1), attrTo = heroAttrAt(ht)*(1+st*0.1);
+          txt("hScrew", F(screw,2)); txt("hStone", I(stone)); txt("hOrange", I(orange)); txt("hMithril", I(mithril));
+          txt("hAttrNow", F(attrNow,4)); txt("hAttrTo", F(attrTo,4));
+          txt("heroMeta", `属性增量: ${F(attrTo-attrNow,4)} | 装备 ${hf} -> ${ht} | 专精 ${sf} -> ${st}`);
+          if(ht<hf||st<sf){ txt("heroStatus","目标等级低于当前等级，材料按 0 处理"); document.getElementById("heroStatus").className = "status warn"; }
+          else { txt("heroStatus","英雄装备计算已更新"); document.getElementById("heroStatus").className = "status ok"; }
+        }
+
+
+
+    function init(){
+      const hOpts = Array.from({length:200}, (_, i)=>({v:i+1,l:String(i+1)}));
+      const sOpts = Array.from({length:20}, (_, i)=>({v:i+1,l:String(i+1)}));
+      const setOptions = (id, opts, value)=>{
+        const el = document.getElementById(id);
+        el.innerHTML = opts.map((o)=>`<option value="${o.v}">${o.l}</option>`).join("");
+        el.value = String(value);
+      };
+      setOptions("heroFrom", hOpts, 1);
+      setOptions("heroTo", hOpts, 1);
+      setOptions("spFrom", sOpts, 1);
+      setOptions("spTo", sOpts, 1);
+
+      ["heroFrom","heroTo","spFrom","spTo"].forEach((id)=>document.getElementById(id).addEventListener("input", recalcHero));
+      recalcHero();
+    }
+    init();
+  </script>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>

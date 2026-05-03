@@ -1,0 +1,68 @@
+/* Unified theme toggle (shared by all pages) */
+:root{
+  --wjdr-fab-size:44px;
+  --wjdr-fab-right:14px;
+  --wjdr-fab-bottom:14px;
+}
+
+/* Floating action button look */
+#themeToggleBtn,
+#themeToggle{
+  position:fixed;
+  right:var(--wjdr-fab-right);
+  bottom:var(--wjdr-fab-bottom);
+  z-index:10060;
+  width:var(--wjdr-fab-size);
+  height:var(--wjdr-fab-size);
+  min-width:var(--wjdr-fab-size);
+  min-height:var(--wjdr-fab-size);
+  padding:0;
+  margin:0;
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+  cursor:pointer;
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* If a page already provides its own .theme-toggle styling, keep it.
+   We only enforce FAB sizing/position above. */
+.wjdr-theme-fab{
+  box-shadow:0 10px 24px rgba(15,23,42,.28);
+  transition:transform .18s ease, box-shadow .22s ease, background-color .2s ease, color .2s ease;
+  overflow:hidden;
+}
+.wjdr-theme-fab:hover{
+  transform:translateY(-2px) scale(1.04);
+  box-shadow:0 14px 30px rgba(37,99,235,.28);
+}
+.wjdr-theme-fab:active{
+  transform:translateY(0) scale(.96);
+}
+
+.wjdr-theme-fab-icon{
+  width:20px;
+  height:20px;
+  display:block;
+  fill:currentColor;
+  pointer-events:none;
+}
+
+/* Smooth transition during theme switching */
+html.wjdr-theme-switching,
+html.wjdr-theme-switching body,
+html.wjdr-theme-switching *{
+  transition: background-color .28s ease, color .28s ease, border-color .28s ease, box-shadow .28s ease, filter .28s ease !important;
+}
+
+@media (max-width: 768px){
+  :root{
+    --wjdr-fab-size:42px;
+    --wjdr-fab-right:12px;
+    --wjdr-fab-bottom:12px;
+  }
+}
+

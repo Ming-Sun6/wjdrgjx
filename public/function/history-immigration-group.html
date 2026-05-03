@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>历史移民分组（奶酪）</title>
+  <style>
+    :root {
+      --bg-1: #0b1220;
+      --bg-2: #111a2e;
+      --card: rgba(16, 24, 40, 0.78);
+      --card-strong: rgba(20, 30, 50, 0.92);
+      --border: rgba(148, 163, 184, 0.28);
+      --text: #e6edf8;
+      --muted: #93a4bf;
+      --accent: #34d399;
+      --accent-2: #60a5fa;
+      --danger: #fb7185;
+      --shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+      --table-grid: rgba(148, 163, 184, 0.34);
+      --table-grid-strong: rgba(148, 163, 184, 0.58);
+      --table-head-bg: rgba(15, 23, 42, 0.94);
+      --table-head-text: #c6d4ea;
+      --row-hover: rgba(96, 165, 250, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      background:
+        radial-gradient(900px 550px at 8% 0%, rgba(52, 211, 153, 0.14), transparent 52%),
+        radial-gradient(900px 550px at 90% 12%, rgba(96, 165, 250, 0.18), transparent 52%),
+        linear-gradient(140deg, var(--bg-1), var(--bg-2));
+      padding: 20px 16px 28px;
+    }
+
+    body.theme-light {
+      --bg-1: #eaf2ff;
+      --bg-2: #f8fbff;
+      --card: rgba(255, 255, 255, 0.88);
+      --card-strong: rgba(255, 255, 255, 0.96);
+      --border: rgba(71, 85, 105, 0.38);
+      --text: #0f172a;
+      --muted: #475569;
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+      --table-grid: rgba(71, 85, 105, 0.32);
+      --table-grid-strong: rgba(71, 85, 105, 0.48);
+      --table-head-bg: rgba(226, 232, 240, 0.96);
+      --table-head-text: #0f172a;
+      --row-hover: rgba(59, 130, 246, 0.12);
+      background:
+        radial-gradient(900px 550px at 8% 0%, rgba(52, 211, 153, 0.10), transparent 52%),
+        radial-gradient(900px 550px at 90% 12%, rgba(96, 165, 250, 0.12), transparent 52%),
+        linear-gradient(140deg, var(--bg-1), var(--bg-2));
+    }
+
+    body.theme-light input[type="number"],
+    body.theme-light input[type="date"] {
+      background: rgba(255, 255, 255, 0.96);
+      color: #0f172a;
+      border-color: rgba(71, 85, 105, 0.46);
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .top {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .title {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 0.9rem;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      text-decoration: none;
+      padding: 9px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.86rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: rgba(96, 165, 250, 0.22);
+      border-color: rgba(96, 165, 250, 0.6);
+    }
+
+    .theme-toggle {
+      min-width: 108px;
+      justify-content: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .page-tabs {
+      display: flex;
+      gap: 10px;
+      margin: 0 0 14px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      width: fit-content;
+      max-width: 100%;
+    }
+
+    .page-tab-btn {
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .page-tab-btn.active {
+      color: var(--text);
+      border-color: rgba(96, 165, 250, 0.6);
+      background: rgba(96, 165, 250, 0.22);
+    }
+
+    .page-panel.hidden {
+      display: none;
+    }
+    .card {
+      background: linear-gradient(165deg, var(--card-strong), var(--card));
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .card h2 {
+      font-size: 1.03rem;
+      margin-bottom: 12px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .row:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 0.88rem;
+      min-width: 110px;
+    }
+
+    input[type="number"],
+    input[type="date"] {
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 8px 10px;
+      min-width: 220px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: rgba(96, 165, 250, 0.8);
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+    }
+
+    .summary {
+      margin: 8px 0 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .summary b {
+      color: var(--text);
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--table-grid-strong);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-size: 0.9rem;
+    }
+
+    th,
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--table-grid);
+      border-right: 1px solid var(--table-grid);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th:last-child,
+    td:last-child {
+      border-right: none;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--table-head-bg);
+      z-index: 1;
+      font-weight: 700;
+      color: var(--table-head-text);
+      border-bottom: 1px solid var(--table-grid-strong);
+    }
+
+    /* 固定第一列：横向滚动时第一列不动 */
+    th:first-child{
+      left:0;
+      z-index:3; /* 高于其它表头单元格 */
+      box-shadow: 8px 0 18px rgba(0,0,0,.10);
+    }
+    td:first-child{
+      position: sticky;
+      left:0;
+      z-index:2; /* 高于普通单元格，低于表头 */
+      background: var(--card-strong);
+      box-shadow: 8px 0 18px rgba(0,0,0,.10);
+    }
+    tbody tr:hover td:first-child{
+      background: color-mix(in srgb, var(--card-strong) 78%, var(--row-hover) 22%);
+    }
+
+    tbody tr:hover {
+      background: var(--row-hover);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .ok {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .warn {
+      color: #fbbf24;
+      font-weight: 700;
+    }
+
+    .bad {
+      color: var(--danger);
+      font-weight: 700;
+    }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+
+    .highlight {
+      background: rgba(52, 211, 153, 0.16);
+    }
+
+    .history-state {
+      text-align: center;
+      font-weight: 700;
+      color: #f8fbff;
+    }
+
+    .history-state-empty {
+      background: rgba(148, 163, 184, 0.10);
+      color: #93a4bf;
+      font-weight: 600;
+    }
+
+    .history-state-fc3 { background: rgba(251, 146, 60, 0.38); }
+    .history-state-fc5 { background: rgba(249, 115, 22, 0.42); }
+    .history-state-fc8 { background: rgba(234, 88, 12, 0.46); }
+    .history-state-fc10 { background: rgba(194, 65, 12, 0.52); }
+
+    .history-state-waracad { background: rgba(14, 165, 233, 0.42); }
+    .history-state-hero4 { background: rgba(59, 130, 246, 0.40); }
+    .history-state-hero5 { background: rgba(99, 102, 241, 0.42); }
+    .history-state-hero6 { background: rgba(139, 92, 246, 0.42); }
+    .history-state-hero7 { background: rgba(168, 85, 247, 0.44); }
+    .history-state-hero8 { background: rgba(217, 70, 239, 0.42); }
+    .history-state-hero9 { background: rgba(236, 72, 153, 0.42); }
+    .history-state-hero10 { background: rgba(244, 63, 94, 0.44); }
+    .history-state-hero11 { background: rgba(225, 29, 72, 0.46); }
+
+    .foot {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 14px 10px 24px;
+      }
+
+      .title {
+        font-size: 1.1rem;
+      }
+
+      .row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      label {
+        min-width: 0;
+      }
+
+      input[type="number"],
+      input[type="date"] {
+        min-width: 0;
+        width: 100%;
+      }
+    }
+  
+    @media (max-width: 760px) {
+      .page-tabs {
+        width: 100%;
+      }
+
+      .page-tab-btn {
+        flex: 1;
+        text-align: center;
+      }
+    }
+  </style>
+<!-- theme toggle moved to /function/theme.js -->
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="title">历史移民分组</div>
+        <div class="sub"></div>
+      </div>
+      <div class="top-actions">
+        <a class="btn" href="../rukou.html">返回首页</a>
+      </div>
+    </div>
+
+    <div class="page-tabs" id="pageTabs">
+      <button class="page-tab-btn active" type="button" data-page="history">历史移民分组</button>
+    </div>
+    <div class="grid">
+      <section class="card page-panel" id="pageHistory">
+        <h2>历史移民分组矩阵</h2>
+        <div class="row">
+          <label for="rangeFilter">筛选邻邦</label>
+          <input id="rangeFilter" type="number" min="1" max="10000" placeholder="例如：755" />
+          <button class="btn" id="filterBtn" type="button">筛选</button>
+          <button class="btn" id="clearFilterBtn" type="button">清除</button>
+        </div>
+        <div class="tiny">会高亮分组标签包含该邻邦值的行。</div>
+        <div class="table-wrap" style="margin-top:10px;">
+          <table id="historyTable">
+            <thead id="historyHead"></thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 已按需求将 3/15、4/26 合并进上方矩阵列头；此处不再单独展示分组表 -->
+      </section>
+    </div>
+
+    <div class="foot">
+      说明：<br />
+      1. 该表格仅供参考。<br />
+      2. 格内「战争学院（T11）」表示战争学院阶段已开放且火晶八尚未开放；其中 T11 为社群俗称，与 T11 兵种无关。
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var labels = ["1~13","14~73","74~163","164~250","251~328","329~416","417~522","523~636","637~742","743~830","831~918","919~1040","1041~1180","1181~1334","1335~1469","1470~1579","1580~1702","1703~1833","1834~1925","1926~2021","2022~2138","2139~2285","2286~2441","2442~2511","2512~2577","2578~2647","2648~2731","2732~2790","2791~2858","2859~2913","2914~2982","2983~3075","3076~3176","3177~3236","3237~3311","3312~3383","3384~3442","3443~3483","3484~3509","3510~3556","3557~3591","3592~3627","3628~3671","3672~3716","3717~3755","3756~3799","NB39","NB40","NB41","NB42","NB43","NB44","NB45","NB46","NB47","NB48","NB49","NB50","NB51","NB52","NB53","NB54","NB55","NB56","NB57","NB58","NB59","NB60","NB61","NB62","NB63","NB64","NB65","NB66","NB67","NB68","NB69","NB70","NB71","NB72","NB73","NB74","NB75","NB76","NB77","NB78","NB79","NB80","NB81","NB82","NB83","NB84","NB85","NB86","NB87","NB88","NB89","NB90","NB91","NB92","NB93","NB94","NB95","NB96","NB97","NB98","NB99","NB100"];
+
+      var stageDefs = [
+        { name: "\u706b\u6676\u4e94", key: "FC5", offset: 0 },
+        { name: "4\u4ee3\u82f1\u96c4", key: "Hero4", offset: 42 },
+        { name: "\u6218\u4e89\u5b66\u9662", key: "WarAcad", offset: 70 },
+        { name: "5\u4ee3\u82f1\u96c4", key: "Hero5", offset: 126 },
+        { name: "\u706b\u6676\u516b", key: "FC8", offset: 168 },
+        { name: "6\u4ee3\u82f1\u96c4", key: "Hero6", offset: 210 },
+        { name: "7\u4ee3\u82f1\u96c4", key: "Hero7", offset: 294 },
+        { name: "\u706b\u6676\u5341", key: "FC10", offset: 336 },
+        { name: "8\u4ee3\u82f1\u96c4", key: "Hero8", offset: 378 },
+        { name: "9\u4ee3\u82f1\u96c4", key: "Hero9", offset: 462 },
+        { name: "10\u4ee3\u82f1\u96c4", key: "Hero10", offset: 546 },
+        { name: "11\u4ee3\u82f1\u96c4", key: "Hero11", offset: 630 }
+      ];
+
+      var stateLabelMap = {
+        WarAcad: "\u6218\u4e89\u5b66\u9662",
+        Hero4: "4\u4ee3",
+        Hero5: "5\u4ee3",
+        Hero6: "6\u4ee3",
+        Hero7: "7\u4ee3",
+        Hero8: "8\u4ee3",
+        Hero9: "9\u4ee3",
+        Hero10: "10\u4ee3",
+        Hero11: "11\u4ee3",
+        FC3: "\u706b3",
+        FC5: "\u706b5",
+        FC8: "\u706b8",
+        FC10: "\u706b10"
+      };
+
+      // 历史矩阵：日期列（新增 3/15、4/26）
+      var historyDateMarks = ["2024-11-10","2024-12-08","2025-01-05","2025-02-02","2025-03-30","2025-04-27","2025-06-08","2025-07-06","2025-08-17","2025-09-15","2025-10-12","2025-11-09","2025-12-08","2026-01-04","2026-02-01","2026-03-15","2026-04-26"];
+      // 历史矩阵：行（邻邦区间），直接取邻邦进度表的区间口径，避免手填出错
+      var historyRangeLabels = labels.slice(0, Math.min(42, labels.length));
+
+      var baseSerial = 45537;
+      var stepDays = 14;
+      var serialEpochUtc = Date.UTC(1899, 11, 30);
+
+      var scheduleOverrides = {
+        "3510~3556": ["2026-02-16", "2026-03-30", "2026-04-27", "2026-06-22", "2026-08-03", "2026-09-14", "2026-12-07", "2027-01-18", "2027-03-01", "2027-05-24", "2027-08-16"],
+        "3557~3591": ["2026-02-16", "2026-03-30", "2026-04-27", "2026-06-22", "2026-08-03", "2026-09-14", "2026-12-07", "2027-01-18", "2027-03-01", "2027-05-24", "2027-08-16"],
+        "3592~3627": ["2026-03-30", "2026-05-11", "2026-06-08", "2026-08-03", "2026-08-17", "2026-09-28", "2026-12-21", "2027-02-01", "2027-03-15", "2027-06-07", "2027-08-30"],
+        "3628~3671": ["2026-04-13", "2026-05-25", "2026-06-22", "2026-08-17", "2026-08-24", "2026-09-28", "2026-12-21", "2027-02-01", "2027-03-15", "2027-06-07", "2027-08-30"],
+        "3672~3716": ["2026-04-27", "2026-06-08", "2026-07-06", "2026-08-31", "2026-10-12", "2026-11-23", "2027-02-15", "2027-03-29", "2027-05-10", "2027-08-02", "2027-10-25"],
+        "3717~3755": ["2026-05-11", "2026-06-22", "2026-07-20", "2026-09-14", "2026-10-26", "2026-12-07", "2027-03-01", "2027-04-12", "2027-05-24", "2027-08-16", "2027-11-08"],
+        "3756~3799": ["2026-05-25", "2026-07-06", "2026-08-03", "2026-09-28", "2026-11-09", "2026-12-21", "2027-03-15", "2027-04-26", "2027-06-07", "2027-08-30", "2027-11-22"]
+      };
+      var hero11OpenByLabel = {
+        "1~13": "2026-05-25", "14~73": "2026-06-08", "74~163": "2026-06-22", "164~250": "2026-07-06", "251~328": "2026-07-20",
+        "329~416": "2026-08-03", "417~522": "2026-08-17", "523~636": "2026-08-31", "637~742": "2026-09-14", "743~830": "2026-09-28",
+        "831~918": "2026-10-12", "919~1040": "2026-10-26", "1041~1180": "2026-11-09", "1181~1334": "2026-11-23", "1335~1469": "2026-12-07",
+        "1470~1579": "2026-12-21", "1580~1702": "2027-01-04", "1703~1833": "2027-01-18", "1834~1925": "2027-02-01", "1926~2021": "2027-02-15",
+        "2022~2138": "2027-03-01", "2139~2285": "2027-03-15", "2286~2441": "2027-03-29", "2442~2511": "2027-04-05", "2512~2577": "2027-04-19",
+        "2578~2647": "2027-05-03", "2648~2731": "2027-05-17", "2732~2790": "2027-05-31", "2791~2858": "2027-06-14", "2859~2913": "2027-06-28",
+        "2914~2982": "2027-07-12", "2983~3075": "2027-07-26", "3076~3176": "2027-08-09", "3177~3236": "2027-08-23", "3237~3311": "2027-09-06"
+      };
+      var enableHiddenNeighborOverrides = false;
+      var hiddenNeighborOverrides = {};
+      try {
+        if (typeof window.__histImmigHiddenNeighborOverrides === "object" && window.__histImmigHiddenNeighborOverrides) {
+          hiddenNeighborOverrides = window.__histImmigHiddenNeighborOverrides;
+        }
+      } catch (e0) {}
+
+      function getOverrideDatesForLabel(label) {
+        var key = String(label || "");
+        if (scheduleOverrides[key]) return scheduleOverrides[key];
+        if (enableHiddenNeighborOverrides && hiddenNeighborOverrides[key]) return hiddenNeighborOverrides[key];
+        return null;
+      }
+
+      function hero11SerialFallback(rangeIdx, override) {
+        if (override && override.length >= 11 && override[10]) {
+          var t10 = dateStrToSerial(String(override[10]));
+          if (Number.isFinite(t10)) return t10 + 84;
+        }
+        var raw = labels[rangeIdx];
+        if (hero11OpenByLabel[raw]) {
+          var s = dateStrToSerial(String(hero11OpenByLabel[raw]));
+          if (Number.isFinite(s)) return s;
+        }
+        return baseSerial + rangeIdx * stepDays + 630;
+      }
+
+      function getStageOpenSerialsForRange(rangeIdx) {
+        var serials = [];
+        var raw = labels[rangeIdx];
+        var override = getOverrideDatesForLabel(raw);
+        var base = baseSerial + rangeIdx * stepDays;
+        for (var gi = 0; gi < stageDefs.length; gi++) {
+          var stg = stageDefs[gi];
+          if (stg.key === "Hero11") {
+            if (override && override[gi]) {
+              var sh = dateStrToSerial(String(override[gi]));
+              serials.push(Number.isFinite(sh) ? sh : hero11SerialFallback(rangeIdx, override));
+            } else {
+              serials.push(hero11SerialFallback(rangeIdx, override));
+            }
+            continue;
+          }
+          if (override && override[gi]) {
+            var sv = dateStrToSerial(String(override[gi]));
+            serials.push(Number.isFinite(sv) ? sv : base + stg.offset);
+          } else {
+            serials.push(base + stg.offset);
+          }
+        }
+        return serials;
+      }
+
+      function milestoneFlagsFromOpens(opensSerials, cutoffSerial) {
+        var fl = {};
+        for (var fi = 0; fi < stageDefs.length; fi++) {
+          var kk = stageDefs[fi].key;
+          fl[kk] = !!(opensSerials && opensSerials[fi] <= cutoffSerial);
+        }
+        return fl;
+      }
+
+      function compoundProgressText(fl) {
+        if (!fl) return "-";
+        var fc10 = fl.FC10, fc8 = fl.FC8, fc5 = fl.FC5, war = fl.WarAcad;
+        var left = "";
+        if (fc10) left = "\u706b10";
+        else if (fc8) left = "\u706b8";
+        else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662\uFF08T11\uFF09";
+        else if (fc5) left = "\u706b5";
+        var maxH = 0;
+        for (var g = 11; g >= 4; g--) {
+          if (fl["Hero" + g]) { maxH = g; break; }
+        }
+        var right = maxH ? (maxH + "\u4ee3") : "";
+        if (left && right) return left + " + " + right;
+        if (right) return right;
+        if (left) return left;
+        return "-";
+      }
+
+      function dominantStateKeyFromFlags(fl) {
+        if (!fl) return "";
+        var best = "";
+        for (var di = 0; di < stageDefs.length; di++) {
+          var dk = stageDefs[di].key;
+          if (fl[dk]) best = dk;
+        }
+        return best;
+      }
+
+      function pad(num) {
+        return String(num).padStart(2, "0");
+      }
+
+      function serialToDateStr(serial) {
+        var d = new Date(serialEpochUtc + serial * 86400000);
+        return d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate());
+      }
+
+      function serialToShortDate(serial) {
+        var d = new Date(serialEpochUtc + serial * 86400000);
+        return d.getUTCFullYear() + "-" + (d.getUTCMonth() + 1) + "-" + d.getUTCDate();
+      }
+
+      function dateStrToSerial(dateStr) {
+        if (!dateStr) return NaN;
+        var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+        if (!m) return NaN;
+        var ms = Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+        return Math.floor((ms - serialEpochUtc) / 86400000);
+      }
+
+      function getNeighborLabel(idx) {
+        if (idx < 1 || idx > labels.length) return "";
+        return labels[idx - 1];
+      }
+
+      function toDisplayLabel(label) {
+        var m = /^NB(\d+)$/.exec(String(label || ""));
+        if (m) return "\u7b2c" + m[1] + "\u90bb\u90a6";
+        return label || "";
+      }
+
+      function toDisplayRangeForTable(label) {
+        var t = String(label || "");
+        if (t === "3237~3311") return "3237\uFF5E3311";
+        if (t === "3312~3383") return "3312\uFF5E3383";
+        if (t === "3384~3442") return "3384\uFF5E3442";
+        if (t === "3443~3509") return "3443\uFF5E3509";
+        return t;
+      }
+
+      function toDisplayState(state) {
+        if (!state) return "-";
+        return stateLabelMap[state] || state;
+      }
+
+      function getHistoryStateClass(state) {
+        if (!state) return "history-state-empty";
+        if (state === "WarAcad") return "history-state-waracad";
+        if (state === "Hero4") return "history-state-hero4";
+        if (state === "Hero5") return "history-state-hero5";
+        if (state === "Hero6") return "history-state-hero6";
+        if (state === "Hero7") return "history-state-hero7";
+        if (state === "Hero8") return "history-state-hero8";
+        if (state === "Hero9") return "history-state-hero9";
+        if (state === "Hero10") return "history-state-hero10";
+        if (state === "Hero11") return "history-state-hero11";
+        if (state === "FC3") return "history-state-fc3";
+        if (state === "FC5") return "history-state-fc5";
+        if (state === "FC8") return "history-state-fc8";
+        if (state === "FC10") return "history-state-fc10";
+        return "history-state-empty";
+      }
+
+      function getTodaySerial() {
+        var now = new Date();
+        var ms = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+        return Math.floor((ms - serialEpochUtc) / 86400000);
+      }
+
+      function toOpenCountdownText(targetSerial, todaySerial) {
+        if (!Number.isFinite(targetSerial)) return "-";
+        var d = Number.isFinite(todaySerial) ? todaySerial : getTodaySerial();
+        var diff = targetSerial - d;
+        if (diff <= 0) return "\u5df2\u5f00\u653e";
+        return "\u8ddd\u79bb\u5f00\u653e\u8fd8\u6709" + diff + "\u5929";
+      }
+
+      function findScheduleRangeIndex(serverId) {
+        var rowCount = Math.min(42, labels.length);
+        for (var i = 0; i < rowCount; i++) {
+          if (rangeContains(labels[i], serverId)) return i;
+        }
+        return -1;
+      }
+
+      function renderProgress() {
+        var input = document.getElementById("neighborInput");
+        var summary = document.getElementById("neighborSummary");
+        var progressTableBody = document.getElementById("progressTableBody");
+        if (!input || !summary || !progressTableBody) return;
+
+        var serverId = Number(input.value);
+        if (!Number.isFinite(serverId)) serverId = 1;
+        serverId = Math.max(1, Math.floor(serverId));
+        input.value = serverId;
+
+        var rangeIdx = findScheduleRangeIndex(serverId);
+        if (rangeIdx < 0) {
+          summary.innerHTML = "\u5f53\u524d\u533a\u670d\uff1a<b>" + serverId + "</b>\uff0c\u672a\u547d\u4e2d\u53c2\u8003\u533a\u95f4\u3002";
+          progressTableBody.innerHTML = "<tr><td colspan=\"3\">\u65e0\u5339\u914d\u6570\u636e</td></tr>";
+          return;
+        }
+
+        var rangeLabel = toDisplayRangeForTable(labels[rangeIdx]);
+        summary.innerHTML = "\u5f53\u524d\u533a\u670d\uff1a<b>" + serverId + "</b>\uff0c\u5339\u914d\u533a\u95f4\uff1a<b>" + rangeLabel + "</b>\u3002";
+
+        var html = "";
+        var todaySerial = getTodaySerial();
+        var opens = getStageOpenSerialsForRange(rangeIdx);
+        for (var i = 0; i < stageDefs.length; i++) {
+          var stage = stageDefs[i];
+          var serial = opens[i];
+          html += "<tr>" +
+            "<td>" + stage.name + "</td>" +
+            "<td>" + serialToDateStr(serial) + "</td>" +
+            "<td>" + toOpenCountdownText(serial, todaySerial) + "</td>" +
+            "</tr>";
+        }
+        progressTableBody.innerHTML = html;
+      }
+
+      function renderFullScheduleTable() {
+        var fullScheduleHead = document.getElementById("fullScheduleHead");
+        var fullScheduleBody = document.getElementById("fullScheduleBody");
+        if (!fullScheduleHead || !fullScheduleBody) return;
+
+        var head = "<tr><th>\u90bb\u90a6</th>";
+        for (var h = 0; h < stageDefs.length; h++) {
+          head += "<th>" + stageDefs[h].name + "</th>";
+        }
+        head += "</tr>";
+        fullScheduleHead.innerHTML = head;
+
+        var body = "";
+        var rowCount = Math.min(42, labels.length);
+        for (var r = 0; r < rowCount; r++) {
+          var rangeLabel = toDisplayRangeForTable(labels[r]);
+          body += "<tr><td>" + rangeLabel + "</td>";
+          var opensR = getStageOpenSerialsForRange(r);
+          for (var c = 0; c < stageDefs.length; c++) {
+            body += "<td>" + serialToShortDate(opensR[c]) + "</td>";
+          }
+          body += "</tr>";
+        }
+        fullScheduleBody.innerHTML = body;
+      }
+
+      function rangeContains(rangeText, value) {
+        if (!rangeText || !Number.isFinite(value)) return false;
+        var t = String(rangeText).trim();
+        var m1 = t.match(/^NB(\d+)$/);
+        if (m1) return Number(m1[1]) === value;
+        var m2 = t.match(/^(\d+)\s*~\s*(\d+)$/);
+        if (m2) {
+          var a = Number(m2[1]);
+          var b = Number(m2[2]);
+          if (a > b) {
+            var c = a;
+            a = b;
+            b = c;
+          }
+          return value >= a && value <= b;
+        }
+        var m3 = t.match(/^(\d+)$/);
+        if (m3) return Number(m3[1]) === value;
+        return false;
+      }
+
+      function renderHistory(filterNum) {
+        var historyHead = document.getElementById("historyHead");
+        var historyBody = document.getElementById("historyBody");
+        if (!historyHead || !historyBody) return;
+
+        var head = "<tr><th>\u90bb\u90a6\u533a\u95f4</th>";
+        for (var i = 0; i < historyDateMarks.length; i++) {
+          var mark = historyDateMarks[i];
+          head += "<th>" + (typeof mark === "number" ? serialToDateStr(mark) : String(mark || "")) + "</th>";
+        }
+        head += "</tr>";
+        historyHead.innerHTML = head;
+
+        function markToSerial(mark) {
+          // 口径：移民天数按 +1 天计算（例如显示 2026-04-26，按 2026-04-27 计算）
+          var serial = (typeof mark === "number" && Number.isFinite(mark))
+            ? mark
+            : dateStrToSerial(String(mark || ""));
+          return Number.isFinite(serial) ? serial + 1 : serial;
+        }
+
+        // 与邻邦进度 / 移民预测一致：里程碑日期含区间覆盖表；展示为「火晶 + 代」组合（战争学院期写作「战争学院（T11）」）
+        function getCellForMark(rangeIdx, markSerial) {
+          if (!Number.isFinite(rangeIdx) || rangeIdx < 0) return { text: "-", domState: "" };
+          if (!Number.isFinite(markSerial)) return { text: "-", domState: "" };
+          var opens = getStageOpenSerialsForRange(rangeIdx);
+          var any = false;
+          for (var oi = 0; oi < opens.length; oi++) {
+            if (opens[oi] <= markSerial) { any = true; break; }
+          }
+          if (!any) return { text: "-", domState: "" };
+          var fl = milestoneFlagsFromOpens(opens, markSerial);
+          return { text: compoundProgressText(fl), domState: dominantStateKeyFromFlags(fl) };
+        }
+
+        var body = "";
+        for (var r = 0; r < historyRangeLabels.length; r++) {
+          var rangeText = historyRangeLabels[r];
+          var cls = "";
+          if (Number.isFinite(filterNum) && rangeContains(rangeText, filterNum)) {
+            cls = " class=\"highlight\"";
+          }
+          body += "<tr" + cls + "><td>" + toDisplayLabel(rangeText) + "</td>";
+          for (var c = 0; c < historyDateMarks.length; c++) {
+            var cell = getCellForMark(r, markToSerial(historyDateMarks[c]));
+            var stateClass = "history-state " + getHistoryStateClass(cell.domState);
+            body += "<td class=\"" + stateClass + "\">" + cell.text + "</td>";
+          }
+          body += "</tr>";
+        }
+        historyBody.innerHTML = body;
+      }
+
+      function bindPageTabs() {
+        var tabs = document.querySelectorAll("#pageTabs .page-tab-btn");
+        var pages = {
+          progress: document.getElementById("pageProgress"),
+          history: document.getElementById("pageHistory")
+        };
+
+        function setActivePage(pageKey) {
+          var targetKey = pages[pageKey] ? pageKey : "progress";
+
+          for (var key in pages) {
+            if (!Object.prototype.hasOwnProperty.call(pages, key)) continue;
+            if (pages[key]) {
+              pages[key].classList.toggle("hidden", key !== targetKey);
+            }
+          }
+
+          for (var i = 0; i < tabs.length; i++) {
+            tabs[i].classList.toggle("active", tabs[i].getAttribute("data-page") === targetKey);
+          }
+        }
+
+        for (var i = 0; i < tabs.length; i++) {
+          tabs[i].addEventListener("click", function () {
+            setActivePage(this.getAttribute("data-page"));
+          });
+        }
+
+        setActivePage("history");
+      }
+      function bindEvents() {
+        var neighborQueryBtn = document.getElementById("neighborQueryBtn");
+        var neighborInput = document.getElementById("neighborInput");
+        if (neighborQueryBtn) {
+          neighborQueryBtn.addEventListener("click", renderProgress);
+        }
+        if (neighborInput) {
+          neighborInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") renderProgress();
+          });
+        }
+
+        var filterBtn = document.getElementById("filterBtn");
+        var clearFilterBtn = document.getElementById("clearFilterBtn");
+        var rangeFilter = document.getElementById("rangeFilter");
+        if (filterBtn && rangeFilter) {
+          filterBtn.addEventListener("click", function () {
+            var n = Number(rangeFilter.value);
+            if (!Number.isFinite(n)) return renderHistory(NaN);
+            renderHistory(Math.floor(n));
+          });
+        }
+        if (clearFilterBtn && rangeFilter) {
+          clearFilterBtn.addEventListener("click", function () {
+            rangeFilter.value = "";
+            renderHistory(NaN);
+          });
+        }
+      }
+      function init() {
+        renderFullScheduleTable();
+        renderProgress();
+        renderHistory(NaN);
+        bindPageTabs();
+        bindEvents();
+      }
+
+      init();
+    })();
+  </script>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>
+
+
+
+

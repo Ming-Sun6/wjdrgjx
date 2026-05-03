@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>礼包性价比自动计算（火五-火十）缥缈</title>
+  <style>
+    :root {
+      --bg-a: #fbf8f1;
+      --bg-b: #eaf7ff;
+      --panel: rgba(255, 255, 255, 0.84);
+      --panel-strong: rgba(255, 255, 255, 0.94);
+      --text: #1e293b;
+      --muted: #536076;
+      --border: rgba(30, 41, 59, 0.12);
+      --accent: #0ea5a4;
+      --accent-2: #f97316;
+      --good: #15803d;
+      --mid: #2563eb;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Source Han Sans SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 520px at 10% -10%, rgba(14, 165, 164, 0.24), transparent 62%),
+        radial-gradient(1100px 560px at 90% 0%, rgba(249, 115, 22, 0.24), transparent 58%),
+        linear-gradient(135deg, var(--bg-a), var(--bg-b));
+      min-height: 100vh;
+      padding: 22px 14px 40px;
+      transition: background .25s ease, color .2s ease;
+    }
+
+    .home-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      border: 1px solid var(--border);
+      background: var(--panel-strong);
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 7px 12px;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      border: 1px solid var(--border);
+      background: var(--panel-strong);
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 12px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
+    }
+
+    :root[data-theme="dark"] {
+      --bg-a: #0b1220;
+      --bg-b: #111a2e;
+      --panel: rgba(15, 23, 42, 0.82);
+      --panel-strong: rgba(15, 23, 42, 0.92);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --border: rgba(148, 163, 184, 0.26);
+      --accent: #06b6d4;
+      --accent-2: #fb923c;
+      --good: #22c55e;
+      --mid: #38bdf8;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --shadow: 0 22px 50px rgba(2, 6, 23, 0.55);
+    }
+
+    :root[data-theme="dark"] .hero {
+      background: linear-gradient(140deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.8));
+    }
+
+    :root[data-theme="dark"] .chip,
+    :root[data-theme="dark"] .btn,
+    :root[data-theme="dark"] .field select,
+    :root[data-theme="dark"] .field input,
+    :root[data-theme="dark"] .table-wrap,
+    :root[data-theme="dark"] .stat,
+    :root[data-theme="dark"] .big-value,
+    :root[data-theme="dark"] .advice,
+    :root[data-theme="dark"] .top,
+    :root[data-theme="dark"] .top-item,
+    :root[data-theme="dark"] .tips,
+    :root[data-theme="dark"] thead th {
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    :root[data-theme="dark"] tbody td {
+      border-bottom-color: rgba(148, 163, 184, 0.16);
+    }
+
+    :root[data-theme="dark"] .name,
+    :root[data-theme="dark"] .unit,
+    :root[data-theme="dark"] .top-item .row {
+      color: var(--text);
+    }
+
+    :root[data-theme="dark"] .field input::placeholder {
+      color: #8ba0be;
+    }
+
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hero {
+      border: 1px solid var(--border);
+      background: linear-gradient(140deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.74));
+      box-shadow: var(--shadow);
+      border-radius: 22px;
+      padding: 28px 22px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -80px;
+      top: -80px;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(14, 165, 164, 0.26), transparent 65%);
+      pointer-events: none;
+    }
+
+    .hero h1 {
+      font-size: clamp(24px, 3.8vw, 38px);
+      line-height: 1.1;
+      letter-spacing: 0.4px;
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 860px;
+    }
+
+    .hero .chips {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: var(--panel-strong);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: var(--text);
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      border-radius: 18px;
+      padding: 14px;
+      backdrop-filter: blur(6px);
+      animation: rise .45s ease both;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field {
+      grid-column: span 3;
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .field select,
+    .field input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    .field select:focus,
+    .field input:focus {
+      border-color: rgba(14, 165, 164, 0.65);
+      box-shadow: 0 0 0 3px rgba(14, 165, 164, 0.18);
+    }
+
+    .actions {
+      grid-column: span 6;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+    }
+
+    .btn.primary {
+      background: linear-gradient(100deg, var(--accent), #06b6d4);
+      color: #ffffff;
+      border-color: transparent;
+    }
+
+    .stats {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.74);
+      border-radius: 12px;
+      padding: 10px;
+      display: grid;
+      gap: 2px;
+    }
+
+    .stat .k {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .stat .v {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 14px;
+    }
+
+    .table-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .table-head h2 {
+      font-size: 18px;
+    }
+
+    .table-head .meta {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff;
+      max-height: 64vh;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #f8fafc;
+      color: #334155;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    tbody td {
+      border-bottom: 1px solid #eef2f7;
+      padding: 8px;
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .name {
+      font-weight: 700;
+      color: #1e293b;
+      min-width: 160px;
+    }
+
+    .unit {
+      color: #334155;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .qty-input {
+      width: 110px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 8px;
+      font-size: 13px;
+    }
+
+    .qty-input:disabled {
+      background: #f3f4f6;
+      color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    .subtotal {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      color: #0f766e;
+      white-space: nowrap;
+    }
+
+    .na {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .result {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .big-value {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .big-value .label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .big-value .num {
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ratio-badge {
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      background: linear-gradient(100deg, #64748b, #475569);
+    }
+
+    .ratio-badge.good { background: linear-gradient(100deg, #16a34a, #22c55e); }
+    .ratio-badge.mid { background: linear-gradient(100deg, #0284c7, #0ea5e9); }
+    .ratio-badge.warn { background: linear-gradient(100deg, #d97706, #f59e0b); }
+    .ratio-badge.bad { background: linear-gradient(100deg, #b91c1c, #ef4444); }
+
+    .advice {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .advice h3,
+    .top h3 {
+      font-size: 14px;
+    }
+
+    .advice p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .top {
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .top-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 8px;
+      display: grid;
+      gap: 2px;
+      background: #f8fafc;
+    }
+
+    .top-item .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .top-item .row b {
+      color: #0f766e;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tips {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      border: 1px dashed rgba(30, 41, 59, 0.16);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .table-wrap {
+        max-height: none;
+      }
+      .actions {
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .field {
+        grid-column: span 6;
+      }
+      .actions {
+        grid-column: 1 / -1;
+      }
+      .stats {
+        grid-template-columns: 1fr;
+      }
+      .hero {
+        padding: 22px 14px 16px;
+      }
+      .panel {
+        border-radius: 14px;
+      }
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../rukou.html">返回主页</a>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>礼包性价比自动计算（火五-火十）</h1>
+      <p>选择阶段和档位后，输入礼包内材料数量，系统会自动计算总价值、性价比并给出建议。</p>
+      <div class="chips">
+        <span class="chip">阶段: 火五 / 战争学院 / 六代火八 / 七代火八 / 七代火十-八代</span>
+        <span class="chip">档位: 30 / 68 / 128 / 328 / 648 / 1202</span>
+        <span class="chip">支持自动保存草稿</span>
+      </div>
+    </section>
+
+    <section class="panel controls">
+      <div class="field">
+        <label for="stageSelect">进度阶段</label>
+        <select id="stageSelect"></select>
+      </div>
+      <div class="field">
+        <label for="tierSelect">礼包档位</label>
+        <select id="tierSelect"></select>
+      </div>
+      <div class="field">
+        <label for="searchInput">筛选材料</label>
+        <input id="searchInput" type="text" placeholder="输入材料名关键字" />
+      </div>
+      <div class="actions">
+        <button class="btn" id="resetCurrentBtn" type="button">清空当前输入</button>
+        <button class="btn" id="clearAllBtn" type="button">清空所有草稿</button>
+        <button class="btn primary" id="copyReportBtn" type="button">复制结果摘要</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">材料条目</div><div class="v" id="statTotalMaterials">0</div></div>
+        <div class="stat"><div class="k">可计算条目</div><div class="v" id="statAvailableMaterials">0</div></div>
+        <div class="stat"><div class="k">当前档位价格</div><div class="v" id="statTierPrice">0</div></div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <section class="panel">
+        <div class="table-head">
+          <h2>材料录入明细</h2>
+          <div class="meta" id="tableMeta">-</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>材料</th>
+                <th>单价</th>
+                <th>数量</th>
+                <th>小计</th>
+              </tr>
+            </thead>
+            <tbody id="materialBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <aside class="result">
+        <div class="big-value">
+          <div class="label">礼包总价值</div>
+          <div class="num" id="totalValue">0.00</div>
+        </div>
+        <div class="big-value">
+          <div class="label">性价比 (总价值 / 档位价格)</div>
+          <div class="num" id="ratioValue">0.00</div>
+        </div>
+        <div class="ratio-badge" id="ratioBadge">等待输入材料数量</div>
+        <div class="advice">
+          <h3>建议说明</h3>
+          <p id="adviceText">填写材料数量后将显示评估建议。</p>
+        </div>
+        <div class="top">
+          <h3>价值贡献 Top 5</h3>
+          <div id="topList"></div>
+        </div>
+        <div class="tips">
+          性价比参考区间: &lt;1 不划算, ≈1 常规礼包, ≈1.3 节日礼包, &gt;1.5 较高性价比, &gt;2 高性价比, &gt;3 微氪建议氪, &gt;4 冲
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const DATA = {"tiers":[30,68,128,328,648,1202],"stages":{"stage5":[["\u87ba\u4e1d",[1,1.133333,1.066667,1.093333,1.08,1.082883]],["\u6a59\u788e",[2.5,2.833333,2.666667,2.733333,2.7,2.707207]],["\u88c5\u5907\u7bb1\u5b50",[1.428704,1.619198,1.523951,1.562049,1.543,1.547119]],["\u6a59\u88c5",[46.938333,53.196778,50.067556,51.319244,50.6934,50.828718]],["\u4e13\u7cbe\u77f3\u5934",[1.428704,1.619198,1.523951,1.562049,1.543,1.547119]],["\u52a0\u901f",[0.648148,0.734568,0.691358,0.708642,0.7,0.701869]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\uff08\u56fe\u7eb8\u6216\u8005\u624b\u518c\uff09",[0.462963,0.524691,0.493827,0.506173,0.5,0.501335]],["\u79d8\u5178",[11.759259,13.32716,12.54321,12.85679,12.7,12.733901]],["\u9886\u4e3b\u88c5\u5907\u5976\u74f6",[0.1,0.113333,0.106667,0.109333,0.108,0.108288]],["\u9886\u4e3b\u88c5\u5907\u5408\u91d1",[0.1,0.113333,0.106667,0.109333,0.108,0.108288]],["\u9886\u4e3b\u88c5\u5907\u56fe\u7eb8",[0.488889,0.554074,0.521481,0.534519,0.528,0.529409]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u7bb1\u5b50",[1.288889,1.460741,1.374815,1.409185,1.392,1.395716]],["\u7425\u73c0",[4.888889,5.540741,5.214815,5.345185,5.28,5.294094]],["\u5ba0\u7269\u91d1\u77f3\u5934",[5,5.666667,5.333333,5.466667,5.4,5.414414]],["\u5ba0\u7269\u84dd\u77f3\u5934",[0.713889,0.809074,0.761481,0.780519,0.771,0.773058]],["\u5ba0\u7269\u7bb1\u5b50",[2,2.266667,2.133333,2.186667,2.16,2.165766]],["\u5ba0\u7269\u53e3\u7cae",[23.259259,26.360494,24.809877,25.430123,25.12,25.187054]],["\u79d8\u94f6",[30,34,32,32.8,32.4,32.486486]],["\u706b\u6676",[0.833333,0.944444,0.888889,0.911111,0.9,0.902402]]],"academy":[["\u87ba\u4e1d",[0.715741,0.811173,0.763457,0.782543,0.773,0.775063]],["\u6a59\u788e",[2.5,2.833333,2.666667,2.733333,2.7,2.707207]],["\u88c5\u5907\u7bb1\u5b50",[1.25,1.416667,1.333333,1.366667,1.35,1.353604]],["\u6a59\u88c5",[47.923046,54.312786,51.117916,52.395864,51.75689,51.895047]],["\u4e13\u7cbe\u77f3\u5934",[1.25,1.416667,1.333333,1.366667,1.35,1.353604]],["\u52a0\u901f",[0.666667,0.755556,0.711111,0.728889,0.72,0.721922]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\uff08\u56fe\u7eb8\u6216\u8005\u624b\u518c\uff09",[0.462963,0.524691,0.493827,0.506173,0.5,0.501335]],["\u79d8\u5178",[11.759259,13.32716,12.54321,12.85679,12.7,12.733901]],["\u9886\u4e3b\u88c5\u5907\u5976\u74f6",[0.083333,0.094444,0.088889,0.091111,0.09,0.09024]],["\u9886\u4e3b\u88c5\u5907\u5408\u91d1",[0.083333,0.094444,0.088889,0.091111,0.09,0.09024]],["\u9886\u4e3b\u88c5\u5907\u56fe\u7eb8",[0.407407,0.461728,0.434568,0.445432,0.44,0.441175]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u7bb1\u5b50",[1.074074,1.217284,1.145679,1.174321,1.16,1.163096]],["\u7425\u73c0",[6,6.8,6.4,6.56,6.48,6.497297]],["\u5ba0\u7269\u91d1\u77f3\u5934",[5,5.666667,5.333333,5.466667,5.4,5.414414]],["\u5ba0\u7269\u84dd\u77f3\u5934",[0.715741,0.811173,0.763457,0.782543,0.773,0.775063]],["\u5ba0\u7269\u7bb1\u5b50",[2,2.266667,2.133333,2.186667,2.16,2.165766]],["\u5ba0\u7269\u53e3\u7cae",[23.259259,26.360494,24.809877,25.430123,25.12,25.187054]],["\u79d8\u94f6",[30,34,32,32.8,32.4,32.486486]],["\u706b\u6676",[0.453704,0.514198,0.483951,0.496049,0.49,0.491308]],["\u706b\u6676\u5fae\u7c92",[0.349074,0.395617,0.372346,0.381654,0.377,0.378006]],["\u94a2\u6750",[4,4.533333,4.266667,4.373333,4.32,4.331532]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\u968f\u673a\u5b9d\u7bb1",[2.146296,2.432469,2.289383,2.346617,2.318,2.324188]],["\u94bb\u77f3",[12.5,14.166667,13.333333,13.666667,13.5,13.536036]],["\u6668\u66e6\u5c9b\u788e\u7247",[6,6.8,6.4,6.56,6.48,6.497297]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u968f\u673a\u5b9d\u7bb1",[1.385787,1.570559,1.478173,1.515127,1.49665,1.500645]]],"gen6_h8":[["\u87ba\u4e1d",[0.556,0.63,0.593,0.607,0.6,0.601]],["\u6a59\u788e",[2.5,2.833333,2.666667,2.733333,2.7,2.707207]],["\u88c5\u5907\u7bb1\u5b50",[1,1.133,1.067,1.093,1.08,1.083]],["\u6a59\u88c5",[39.05308,44.260157,41.656619,42.698034,42.177326,42.289912]],["\u4e13\u7cbe\u77f3\u5934",[1,1.133,1.067,1.093,1.08,1.083]],["\u52a0\u901f",[0.556,0.630133,0.593067,0.607893,0.60048,0.602083]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\uff08\u56fe\u7eb8\u6216\u8005\u624b\u518c\uff09",[0.375,0.425,0.4,0.41,0.405,0.406081]],["\u79d8\u5178",[12.375,14.025,13.2,13.53,13.365,13.400676]],["\u9886\u4e3b\u88c5\u5907\u5976\u74f6",[0.071,0.08,0.075733,0.078,0.077,0.077]],["\u9886\u4e3b\u88c5\u5907\u5408\u91d1",[0.071,0.08,0.075733,0.078,0.077,0.077]],["\u9886\u4e3b\u88c5\u5907\u56fe\u7eb8",[0.331,0.375,0.353067,0.362,0.357,0.358]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u7bb1\u5b50",[0.899,1.015,0.958933,0.986,0.973,0.974]],["\u7425\u73c0",[3.31,3.75,3.530667,3.62,3.57,3.58]],["\u5ba0\u7269\u91d1\u77f3\u5934",[5,5.666667,5.333333,5.466667,5.4,5.414414]],["\u5ba0\u7269\u84dd\u77f3\u5934",[0.625,0.708333,0.666667,0.683333,0.675,0.676802]],["\u5ba0\u7269\u7bb1\u5b50",[1.667,1.889267,1.778133,1.822587,1.80036,1.805166]],["\u5ba0\u7269\u53e3\u7cae",[20,22.666667,21.333333,21.866667,21.6,21.657658]],["\u79d8\u94f6",[30,34,32,32.8,32.4,32.486486]],["\u706b\u6676",[0.385,0.436333,0.410667,0.420933,0.4158,0.41691]],["\u706b\u6676\u5fae\u7c92",[0.296154,0.335641,0.315897,0.323795,0.319846,0.3207]],["\u94a2\u6750",[4,4.533333,4.266667,4.373333,4.32,4.331532]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\u968f\u673a\u5b9d\u7bb1",[1.15875,1.31325,1.236,1.2669,1.25145,1.254791]],["\u94bb\u77f3",[12.5,14.166667,13.333333,13.666667,13.5,13.536036]],["\u6668\u66e6\u5c9b\u788e\u7247",[6,6.8,6.4,6.56,6.48,6.497297]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u968f\u673a\u5b9d\u7bb1",[1.149072,1.298738,1.225677,1.259155,1.242307,1.24427]]],"gen7_h8":[["\u87ba\u4e1d",[0.455,0.515667,0.485333,0.497467,0.4914,0.492712]],["\u6a59\u788e",[2.5,2.833333,2.666667,2.733333,2.7,2.707207]],["\u88c5\u5907\u7bb1\u5b50",[0.833,0.944067,0.888533,0.910747,0.89964,0.902041]],["\u6a59\u88c5",[32.88215,37.266437,35.074293,35.951151,35.512722,35.607517]],["\u4e13\u7cbe\u77f3\u5934",[0.833,0.944067,0.888533,0.910747,0.89964,0.902041]],["\u52a0\u901f",[0.556,0.630133,0.593067,0.607893,0.60048,0.602083]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\uff08\u56fe\u7eb8\u6216\u8005\u624b\u518c\uff09",[0.3125,0.354167,0.333333,0.341667,0.3375,0.338401]],["\u79d8\u5178",[12.8125,14.520833,13.666667,14.008333,13.8375,13.874437]],["\u9886\u4e3b\u88c5\u5907\u5976\u74f6",[0.057,0.0646,0.0608,0.06232,0.06156,0.061724]],["\u9886\u4e3b\u88c5\u5907\u5408\u91d1",[0.057,0.0646,0.0608,0.06232,0.06156,0.061724]],["\u9886\u4e3b\u88c5\u5907\u56fe\u7eb8",[0.279,0.3162,0.2976,0.30504,0.30132,0.302124]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u7bb1\u5b50",[0.735,0.833,0.784,0.8036,0.7938,0.795919]],["\u7425\u73c0",[2.79,3.162,2.976,3.0504,3.0132,3.021243]],["\u5ba0\u7269\u91d1\u77f3\u5934",[5,5.666667,5.333333,5.466667,5.4,5.414414]],["\u5ba0\u7269\u84dd\u77f3\u5934",[0.625,0.708333,0.666667,0.683333,0.675,0.676802]],["\u5ba0\u7269\u7bb1\u5b50",[1.667,1.889267,1.778133,1.822587,1.80036,1.805166]],["\u5ba0\u7269\u53e3\u7cae",[20,22.666667,21.333333,21.866667,21.6,21.657658]],["\u79d8\u94f6",[30,34,32,32.8,32.4,32.486486]],["\u706b\u6676",[0.385,0.436333,0.410667,0.420933,0.4158,0.41691]],["\u706b\u6676\u5fae\u7c92",[0.296154,0.335641,0.315897,0.323795,0.319846,0.3207]],["\u94a2\u6750",[4,4.533333,4.266667,4.373333,4.32,4.331532]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\u968f\u673a\u5b9d\u7bb1",[0.965625,1.094375,1.03,1.05575,1.042875,1.045659]],["\u94bb\u77f3",[12.5,14.166667,13.333333,13.666667,13.5,13.536036]],["\u6668\u66e6\u5c9b\u788e\u7247",[6,6.8,6.4,6.56,6.48,6.497297]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u968f\u673a\u5b9d\u7bb1",[0.948533,1.075004,1.011768,1.037062,1.024415,1.02715]],["\u5f81\u9014\u8865\u7ed9",[2,2.266667,2.133333,2.186667,2.16,2.165766]],["\u901a\u7528\u4e13\u5bb6\u5370\u8bb0",[3.75,4.25,4,4.1,4.05,4.060811]],["\u4e13\u5bb6\u597d\u611f\u5ea6",[34.091,38.636467,36.363733,37.272827,36.81828,36.91656]],["\u5b66\u8bc6\u4e4b\u4e66",[12,13.6,12.8,13.12,12.96,12.994595]]],"gen7h10_gen8":[["\u87ba\u4e1d",[0.455,0.515667,0.485333,0.497467,0.4914,0.492712]],["\u6a59\u788e",[2.5,2.833333,2.666667,2.733333,2.7,2.707207]],["\u88c5\u5907\u7bb1\u5b50",[0.833,0.944067,0.888533,0.910747,0.89964,0.902041]],["\u6a59\u88c5",[32.88215,37.266437,35.074293,35.951151,35.512722,35.607517]],["\u4e13\u7cbe\u77f3\u5934",[0.833,0.944067,0.888533,0.910747,0.89964,0.902041]],["\u52a0\u901f",[0.556,0.630133,0.593067,0.607893,0.60048,0.602083]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\uff08\u56fe\u7eb8\u6216\u8005\u624b\u518c\uff09",[0.3125,0.354167,0.333333,0.341667,0.3375,0.338401]],["\u79d8\u5178",[12.8125,14.520833,13.666667,14.008333,13.8375,13.874437]],["\u9886\u4e3b\u88c5\u5907\u5976\u74f6",[0.057,0.0646,0.0608,0.06232,0.06156,0.061724]],["\u9886\u4e3b\u88c5\u5907\u5408\u91d1",[0.057,0.0646,0.0608,0.06232,0.06156,0.061724]],["\u9886\u4e3b\u88c5\u5907\u56fe\u7eb8",[0.279,0.3162,0.2976,0.30504,0.30132,0.302124]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u7bb1\u5b50",[0.735,0.833,0.784,0.8036,0.7938,0.795919]],["\u7425\u73c0",[2.79,3.162,2.976,3.0504,3.0132,3.021243]],["\u5ba0\u7269\u91d1\u77f3\u5934",[5,5.666667,5.333333,5.466667,5.4,5.414414]],["\u5ba0\u7269\u84dd\u77f3\u5934",[0.625,0.708333,0.666667,0.683333,0.675,0.676802]],["\u5ba0\u7269\u7bb1\u5b50",[1.667,1.889267,1.778133,1.822587,1.80036,1.805166]],["\u5ba0\u7269\u53e3\u7cae",[20,22.666667,21.333333,21.866667,21.6,21.657658]],["\u79d8\u94f6",[30,34,32,32.8,32.4,32.486486]],["\u706b\u6676",[0.341686,0.387244,0.364465,0.373576,0.369021,0.370006]],["\u706b\u6676\u5fae\u7c92",[0.262835,0.29788,0.280357,0.287366,0.283862,0.28462]],["\u94a2\u6750",[4,4.533333,4.266667,4.373333,4.32,4.331532]],["\u9886\u4e3b\u5b9d\u77f3\u6750\u6599\u968f\u673a\u5b9d\u7bb1",[0.965625,1.094375,1.03,1.05575,1.042875,1.045659]],["\u94bb\u77f3",[12.5,14.166667,13.333333,13.666667,13.5,13.536036]],["\u6668\u66e6\u5c9b\u788e\u7247",[null,6.8,6.4,6.56,6.48,null]],["\u9886\u4e3b\u88c5\u5907\u6750\u6599\u968f\u673a\u5b9d\u7bb1",[0.948533,1.075004,1.011768,1.037062,1.024415,1.02715]],["\u5f81\u9014\u8865\u7ed9",[2,2.266667,2.133333,2.186667,2.16,2.165766]],["\u901a\u7528\u4e13\u5bb6\u5370\u8bb0",[3.75,4.25,4,4.1,4.05,4.060811]],["\u4e13\u5bb6\u597d\u611f\u5ea6",[34.091,38.636467,36.363733,37.272827,36.81828,36.91656]],["\u5b66\u8bc6\u4e4b\u4e66",[12,13.6,12.8,13.12,12.96,12.994595]]]}};
+
+    const STAGE_META = [
+      { id: "stage5", label: "\u706b\u4e94" },
+      { id: "academy", label: "\u6218\u4e89\u5b66\u9662" },
+      { id: "gen6_h8", label: "\u516d\u4ee3\u706b\u516b" },
+      { id: "gen7_h8", label: "\u4e03\u4ee3\u706b\u516b" },
+      { id: "gen7h10_gen8", label: "\u4e03\u4ee3\u706b\u5341 / \u516b\u4ee3" }
+    ];
+
+    const TIER_LABELS = {
+      30: "30",
+      68: "68",
+      128: "128",
+      328: "328",
+      648: "648",
+      1202: "1202(\u4e00\u8f6e1202)"
+    };
+
+    const SAVE_KEY = "gift_value_calc_drafts_v1";
+    const THEME_KEY = "wjdr_theme";
+    const LEGACY_THEME_KEY = "gift_value_calc_theme_v1";
+
+    const state = {
+      stage: STAGE_META[0].id,
+      tier: DATA.tiers[0],
+      filter: "",
+      drafts: loadDrafts(),
+      rowModels: []
+    };
+
+    const stageSelect = document.getElementById("stageSelect");
+    const tierSelect = document.getElementById("tierSelect");
+    const searchInput = document.getElementById("searchInput");
+    const materialBody = document.getElementById("materialBody");
+    const tableMeta = document.getElementById("tableMeta");
+    const themeToggleEl = document.getElementById("themeToggle");
+
+    const statTotalMaterials = document.getElementById("statTotalMaterials");
+    const statAvailableMaterials = document.getElementById("statAvailableMaterials");
+    const statTierPrice = document.getElementById("statTierPrice");
+
+    const totalValueEl = document.getElementById("totalValue");
+    const ratioValueEl = document.getElementById("ratioValue");
+    const ratioBadgeEl = document.getElementById("ratioBadge");
+    const adviceTextEl = document.getElementById("adviceText");
+    const topListEl = document.getElementById("topList");
+
+    function loadDrafts() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveDrafts() {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state.drafts));
+    }
+
+    function loadThemePreference() {
+      try {
+        const raw = localStorage.getItem(THEME_KEY);
+        if (raw === "day" || raw === "night") {
+          return raw;
+        }
+        const legacy = localStorage.getItem(LEGACY_THEME_KEY);
+        if (legacy === "light") return "day";
+        if (legacy === "dark") return "night";
+      } catch {
+      }
+      try {
+        const prefersLight = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches);
+        return prefersLight ? "day" : "night";
+      } catch {
+        return "night";
+      }
+    }
+
+    function applyTheme(theme) {
+      const nextTheme = theme === "day" ? "day" : "night";
+      const isDay = nextTheme === "day";
+      document.documentElement.setAttribute("data-theme", isDay ? "light" : "dark");
+      if (!themeToggleEl) return;
+      themeToggleEl.textContent = isDay ? "\u5207\u6362\u5230\u591c\u95f4" : "\u5207\u6362\u5230\u65e5\u95f4";
+      themeToggleEl.setAttribute(
+        "aria-label",
+        isDay ? "\u5207\u6362\u5230\u591c\u95f4\u6a21\u5f0f" : "\u5207\u6362\u5230\u65e5\u95f4\u6a21\u5f0f"
+      );
+    }
+
+    function toggleTheme() {
+      const isLightNow = document.documentElement.getAttribute("data-theme") === "light";
+      const next = isLightNow ? "night" : "day";
+      applyTheme(next);
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+      }
+    }
+
+    function currentDraftKey() {
+      return `${state.stage}|${state.tier}`;
+    }
+
+    function currentQtyMap() {
+      const key = currentDraftKey();
+      if (!state.drafts[key]) {
+        state.drafts[key] = {};
+      }
+      return state.drafts[key];
+    }
+
+    function formatNum(n, digits = 2) {
+      return Number(n || 0).toLocaleString("zh-CN", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      });
+    }
+
+    function getStageLabel(stageId) {
+      const f = STAGE_META.find((s) => s.id === stageId);
+      return f ? f.label : stageId;
+    }
+
+    function getCurrentMaterials() {
+      const raw = DATA.stages[state.stage] || [];
+      const tierIndex = DATA.tiers.indexOf(Number(state.tier));
+      return raw.map((item, idx) => {
+        const [name, values] = item;
+        const unit = values[tierIndex];
+        return {
+          key: `m${idx}`,
+          name,
+          unit,
+          available: unit !== null && unit !== undefined
+        };
+      });
+    }
+
+    function recommendation(ratio, total) {
+      if (total <= 0) {
+        return {
+          level: "",
+          label: "\u7b49\u5f85\u8f93\u5165\u6750\u6599\u6570\u91cf",
+          desc: "\u8f93\u5165\u793c\u5305\u6750\u6599\u540e\uff0c\u7cfb\u7edf\u5c06\u6309\u5f53\u524d\u9636\u6bb5\u548c\u6863\u4f4d\u81ea\u52a8\u8bc4\u4f30\u3002"
+        };
+      }
+      if (ratio >= 4) {
+        return { level: "good", label: "\u6027\u4ef7\u6bd4 > 4: \u51b2", desc: "\u8fdc\u8d85\u5e38\u89c4\u793c\u5305\uff0c\u9664\u96f6\u6c2a\u5916\u57fa\u672c\u90fd\u503c\u5f97\u62ff\u3002" };
+      }
+      if (ratio >= 3) {
+        return { level: "good", label: "\u6027\u4ef7\u6bd4 > 3: \u5fae\u6c2a\u5efa\u8bae\u6c2a", desc: "\u6027\u4ef7\u6bd4\u975e\u5e38\u9ad8\uff0c\u5fae\u6c2a\u548c\u4e2d\u6c2a\u90fd\u53ef\u91cd\u70b9\u8003\u8651\u3002" };
+      }
+      if (ratio >= 2) {
+        return { level: "good", label: "\u6027\u4ef7\u6bd4 > 2: \u9ad8\u6027\u4ef7\u6bd4", desc: "\u5c5e\u4e8e\u9ad8\u4ef7\u503c\u793c\u5305\uff0c\u5efa\u8bae\u4f18\u5148\u3002" };
+      }
+      if (ratio >= 1.5) {
+        return { level: "mid", label: "\u6027\u4ef7\u6bd4 > 1.5: \u8f83\u9ad8", desc: "\u660e\u663e\u4f18\u4e8e\u5e38\u89c4\uff0c\u53ef\u6839\u636e\u9884\u7b97\u7a33\u5b9a\u8865\u5165\u3002" };
+      }
+      if (ratio >= 1.2) {
+        return { level: "mid", label: "\u6027\u4ef7\u6bd4\u22481.3: \u8282\u65e5\u793c\u5305\u533a\u95f4", desc: "\u901a\u5e38\u89c1\u4e8e\u6d3b\u52a8\u793c\u5305\uff0c\u9002\u5408\u6309\u9700\u6c42\u62ff\u5173\u952e\u6863\u3002" };
+      }
+      if (ratio >= 0.95) {
+        return { level: "warn", label: "\u6027\u4ef7\u6bd4\u22481: \u5e38\u89c4\u793c\u5305", desc: "\u63a5\u8fd1\u65e5\u5e38\u57fa\u51c6\u4ef7\u503c\uff0c\u6309\u4e2a\u4eba\u521a\u9700\u51b3\u5b9a\u3002" };
+      }
+      return { level: "bad", label: "\u6027\u4ef7\u6bd4 < 1: \u4e0d\u5212\u7b97", desc: "\u4f4e\u4e8e\u5e38\u89c4\u4ef7\u503c\uff0c\u9664\u51b2\u8fdb\u5ea6\u5916\u4e0d\u5efa\u8bae\u3002" };
+    }
+
+    function renderSelectors() {
+      stageSelect.innerHTML = STAGE_META.map((s) => `<option value="${s.id}">${s.label}</option>`).join("");
+      tierSelect.innerHTML = DATA.tiers.map((t) => `<option value="${t}">${TIER_LABELS[t] || t}</option>`).join("");
+      stageSelect.value = state.stage;
+      tierSelect.value = String(state.tier);
+    }
+
+    function renderTable() {
+      const qtyMap = currentQtyMap();
+      const allRows = getCurrentMaterials();
+      state.rowModels = allRows;
+
+      const f = state.filter.trim().toLowerCase();
+      const rows = f
+        ? allRows.filter((r) => r.name.toLowerCase().includes(f))
+        : allRows;
+
+      const total = allRows.length;
+      const available = allRows.filter((r) => r.available).length;
+
+      statTotalMaterials.textContent = String(total);
+      statAvailableMaterials.textContent = String(available);
+      statTierPrice.textContent = Number(state.tier).toLocaleString("zh-CN");
+      tableMeta.textContent = `${getStageLabel(state.stage)} | ${TIER_LABELS[state.tier]} | 当前显示 ${rows.length} 项`;
+
+      materialBody.innerHTML = rows.map((row) => {
+        const qty = Number(qtyMap[row.key] || 0);
+        const subtotal = row.available ? qty * Number(row.unit) : 0;
+        return `
+          <tr data-key="${row.key}">
+            <td class="name">${row.name}</td>
+            <td class="unit">${row.available ? formatNum(row.unit, 6) : '<span class="na">?</span>'}</td>
+            <td>
+              <input
+                class="qty-input"
+                type="number"
+                min="0"
+                step="1"
+                inputmode="decimal"
+                data-key="${row.key}"
+                value="${qty || ''}"
+                ${row.available ? "" : "disabled"}
+                placeholder="\u6570\u91cf"
+              />
+            </td>
+            <td class="subtotal" data-subtotal="${row.key}">${row.available ? formatNum(subtotal, 2) : '-'}</td>
+          </tr>
+        `;
+      }).join("");
+
+      recalc();
+    }
+
+    function recalc() {
+      const qtyMap = currentQtyMap();
+      const tierPrice = Number(state.tier);
+      let total = 0;
+      const contributions = [];
+
+      state.rowModels.forEach((row) => {
+        const qty = Number(qtyMap[row.key] || 0);
+        if (!row.available) {
+          return;
+        }
+        const subtotal = qty * Number(row.unit);
+        if (subtotal > 0) {
+          contributions.push({ name: row.name, qty, subtotal, unit: row.unit });
+        }
+        total += subtotal;
+      });
+
+      const ratio = tierPrice > 0 ? total / tierPrice : 0;
+      const rec = recommendation(ratio, total);
+
+      totalValueEl.textContent = formatNum(total, 2);
+      ratioValueEl.textContent = formatNum(ratio, 2);
+      ratioBadgeEl.textContent = rec.label;
+      ratioBadgeEl.className = `ratio-badge ${rec.level}`;
+      adviceTextEl.textContent = rec.desc;
+
+      renderTop(contributions, total);
+      updateVisibleSubtotals();
+    }
+
+    function updateVisibleSubtotals() {
+      const qtyMap = currentQtyMap();
+      const modelMap = Object.fromEntries(state.rowModels.map((m) => [m.key, m]));
+      document.querySelectorAll("[data-subtotal]").forEach((el) => {
+        const key = el.getAttribute("data-subtotal");
+        const row = modelMap[key];
+        if (!row || !row.available) {
+          el.textContent = "-";
+          return;
+        }
+        const qty = Number(qtyMap[key] || 0);
+        el.textContent = formatNum(qty * Number(row.unit), 2);
+      });
+    }
+
+    function renderTop(contributions, total) {
+      if (!contributions.length || total <= 0) {
+        topListEl.innerHTML = '<div class="na">\u6682\u65e0\u6709\u6548\u8d21\u732e\u9879</div>';
+        return;
+      }
+
+      const top = contributions
+        .sort((a, b) => b.subtotal - a.subtotal)
+        .slice(0, 5);
+
+      topListEl.innerHTML = top.map((item) => {
+        const pct = (item.subtotal / total) * 100;
+        return `
+          <div class="top-item">
+            <div class="row"><span>${item.name}</span><b>${formatNum(item.subtotal, 2)}</b></div>
+            <div class="row"><span>\u6570\u91cf ${formatNum(item.qty, 2)} \u00d7 \u5355\u4ef7 ${formatNum(item.unit, 6)}</span><span>${formatNum(pct, 1)}%</span></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function bindEvents() {
+      stageSelect.addEventListener("change", () => {
+        state.stage = stageSelect.value;
+        renderTable();
+      });
+
+      tierSelect.addEventListener("change", () => {
+        state.tier = Number(tierSelect.value);
+        renderTable();
+      });
+
+      searchInput.addEventListener("input", () => {
+        state.filter = searchInput.value || "";
+        renderTable();
+      });
+
+      materialBody.addEventListener("input", (event) => {
+        const target = event.target;
+        if (!(target instanceof HTMLInputElement) || !target.classList.contains("qty-input")) {
+          return;
+        }
+        const key = target.dataset.key;
+        if (!key) return;
+
+        let value = Number(target.value);
+        if (!Number.isFinite(value) || value < 0) {
+          value = 0;
+        }
+
+        const qtyMap = currentQtyMap();
+        if (value === 0) {
+          delete qtyMap[key];
+        } else {
+          qtyMap[key] = value;
+        }
+
+        saveDrafts();
+        recalc();
+      });
+
+      document.getElementById("resetCurrentBtn").addEventListener("click", () => {
+        state.drafts[currentDraftKey()] = {};
+        saveDrafts();
+        renderTable();
+      });
+
+      document.getElementById("clearAllBtn").addEventListener("click", () => {
+        state.drafts = {};
+        saveDrafts();
+        renderTable();
+      });
+
+      document.getElementById("copyReportBtn").addEventListener("click", async () => {
+        const qtyMap = currentQtyMap();
+        const tierPrice = Number(state.tier);
+
+        const items = state.rowModels
+          .map((row) => {
+            const qty = Number(qtyMap[row.key] || 0);
+            if (!row.available || qty <= 0) {
+              return null;
+            }
+            const unit = Number(row.unit);
+            const subtotal = qty * unit;
+            return { name: row.name, qty, unit, subtotal };
+          })
+          .filter(Boolean)
+          .sort((a, b) => b.subtotal - a.subtotal);
+
+        const totalNumeric = items.reduce((sum, item) => sum + item.subtotal, 0);
+        const ratioNumeric = tierPrice > 0 ? totalNumeric / tierPrice : 0;
+        const rec = recommendation(ratioNumeric, totalNumeric);
+
+        const detailLines = items.map((item, index) =>
+          `${index + 1}. ${item.name} | \u6570\u91cf ${formatNum(item.qty, 2)} | \u5c0f\u8ba1 ${formatNum(item.subtotal, 2)} `
+        );
+
+        const report = [
+          "\u3010\u793c\u5305\u6027\u4ef7\u6bd4\u8be6\u7ec6\u62a5\u544a\u3011",
+          `\u9636\u6bb5: ${getStageLabel(state.stage)}`,
+          `\u6863\u4f4d: ${TIER_LABELS[state.tier]}`,
+          `\u793c\u5305\u603b\u4ef7\u503c: ${formatNum(totalNumeric, 2)}`,
+          `\u6027\u4ef7\u6bd4: ${formatNum(ratioNumeric, 2)}`,
+          `\u7ed3\u8bba: ${rec.label}`,
+          `\u5efa\u8bae: ${rec.desc}`,
+          "\u3010\u975e\u96f6\u6750\u6599\u660e\u7ec6\u3011",
+          ...(detailLines.length ? detailLines : ["(\u65e0)"])
+        ].join("\n");
+
+        try {
+          await navigator.clipboard.writeText(report);
+          ratioBadgeEl.textContent = "\u8be6\u7ec6\u62a5\u544a\u5df2\u590d\u5236\u5230\u526a\u8d34\u677f";
+          setTimeout(recalc, 1200);
+        } catch {
+          alert(report);
+        }
+      });
+
+    }
+
+    function init() {
+      renderSelectors();
+      bindEvents();
+      renderTable();
+    }
+
+    init();
+  </script>
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>英雄数据</title>
+  <style>
+    :root{
+      --bg:#edf2f7;
+      --card:#ffffff;
+      --card-2:#f8fafc;
+      --border:#d1d9e6;
+      --text:#0f172a;
+      --muted:#64748b;
+      --accent:#2563eb;
+      --accent-2:#1d4ed8;
+      --focus-ring:rgba(59,130,246,.14);
+      --tag-border:#bfdbfe;
+      --tag-bg:#eff6ff;
+      --tag-muted-border:#cbd5e1;
+      --tag-muted-bg:#f8fafc;
+    }
+    html[data-theme="night"]{
+      --bg:#0b1220;
+      --card:rgba(15,23,42,.92);
+      --card-2:rgba(15,23,42,.78);
+      --border:rgba(148,163,184,.22);
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --accent:#60a5fa;
+      --accent-2:#93c5fd;
+      --focus-ring:rgba(59,130,246,.22);
+      --tag-border:rgba(147,197,253,.42);
+      --tag-bg:rgba(96,165,250,.14);
+      --tag-muted-border:rgba(148,163,184,.28);
+      --tag-muted-bg:rgba(148,163,184,.10);
+      color-scheme:dark;
+    }
+    html[data-theme="day"]{color-scheme:light;}
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 30px;
+    }
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+    h1{
+      margin:0;
+      font-size:28px;
+      font-weight:900;
+    }
+    .back{
+      text-decoration:none;
+      color:var(--text);
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:8px;
+      padding:8px 12px;
+      font-size:14px;
+      font-weight:700;
+    }
+    .search-bar{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin:0 0 8px;
+    }
+    .search-input{
+      flex:1;
+      min-width:0;
+      border:1px solid var(--border);
+      background:var(--card);
+      color:var(--text);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:14px;
+      line-height:1.2;
+      outline:none;
+    }
+    .search-input:focus{
+      border-color:var(--accent-2);
+      box-shadow:0 0 0 3px var(--focus-ring);
+    }
+    .search-clear{
+      border:1px solid var(--border);
+      background:var(--card-2);
+      color:var(--text);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .search-meta{
+      margin:0 0 12px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.4;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(250px, 1fr));
+      gap:12px;
+    }
+    .card{
+      display:block;
+      text-decoration:none;
+      color:inherit;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px;
+      transition:transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      border-color:var(--accent-2);
+      box-shadow:0 12px 28px rgba(37,99,235,.12);
+    }
+    .title{
+      font-size:20px;
+      font-weight:900;
+      margin:0 0 8px;
+      color:var(--accent);
+    }
+    .desc{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
+    .tag{
+      display:inline-block;
+      margin-top:10px;
+      font-size:12px;
+      font-weight:700;
+      color:var(--accent);
+      border:1px solid var(--tag-border);
+      background:var(--tag-bg);
+      border-radius:999px;
+      padding:4px 9px;
+    }
+    .tag.pending{
+      color:var(--muted);
+      border-color:var(--tag-muted-border);
+      background:var(--tag-muted-bg);
+    }
+    .empty-state{
+      display:none;
+      padding:18px 12px;
+      border:1px dashed var(--border);
+      border-radius:12px;
+      color:var(--muted);
+      text-align:center;
+      background:var(--card-2);
+      font-size:14px;
+      font-weight:700;
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <h1>英雄数据</h1>
+      <a class="back" href="../../rukou.html">返回首页</a>
+    </div>
+    <div class="search-bar">
+      <input id="searchInput" class="search-input" type="search" placeholder="搜索代数或英雄名" />
+      <button id="clearSearchBtn" class="search-clear" type="button">清空</button>
+    </div>
+    <p id="searchMeta" class="search-meta"></p>
+    <section class="grid" id="heroGrid">
+      <a class="card" href="first-generation-heroes.html">
+        <h2 class="title">第一代</h2>
+        <p class="desc">查看第一代英雄完整数据：赫罗尼莫、娜塔莉亚、茉莉、津曼。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="second-generation-heroes.html">
+        <h2 class="title">第二代(开服45天)</h2>
+        <p class="desc">查看第二代英雄完整数据：弗林特、菲兰德、阿隆索。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="third-generation-heroes.html">
+        <h2 class="title">第三代(开服120天)</h2>
+        <p class="desc">查看第三代英雄完整数据：罗根、米娅、格雷格。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="fourth-generation-heroes.html">
+        <h2 class="title">第四代(开服190天)</h2>
+        <p class="desc">查看第四代英雄完整数据：阿赫莫斯、玲奈、琳恩。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="fifth-generation-heroes.html">
+        <h2 class="title">第五代(开服270天)</h2>
+        <p class="desc">查看第五代英雄完整数据：赫克托、诺拉、格温。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="sixth-generation-heroes.html">
+        <h2 class="title">第六代(开服350天)</h2>
+        <p class="desc">查看第六代英雄完整数据：无名、芮妮、韦恩。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="seventh-generation-heroes.html">
+        <h2 class="title">第七代(开服430天)</h2>
+        <p class="desc">查看第七代英雄完整数据：艾迪丝、哥顿、布拉德利。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="eighth-generation-heroes.html">
+        <h2 class="title">第八代(开服510天)</h2>
+        <p class="desc">查看第八代英雄完整数据：亨德里克、加托、索尼娅。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="ninth-generation-heroes.html">
+        <h2 class="title">第九代(开服580天)</h2>
+        <p class="desc">查看第九代英雄完整数据：马格努斯、弗雷德、修拉。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="tenth-generation-heroes.html">
+        <h2 class="title">十代英雄（开服664天）</h2>
+        <p class="desc">查看十代英雄完整数据：格里高利、布兰琪、芙蕾雅。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="eleventh-generation-heroes.html">
+        <h2 class="title">十一代英雄（开服748天）</h2>
+        <p class="desc">查看十一代英雄完整数据：埃莱奥诺拉、劳埃德、鲁弗斯。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="twelfth-generation-heroes.html">
+        <h2 class="title">十二代英雄（开服832天）</h2>
+        <p class="desc">查看十二代英雄完整数据：赫尔薇尔、加罗尔、丽姬娅。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="thirteenth-generation-heroes.html">
+        <h2 class="title">十三代英雄（开服916天）</h2>
+        <p class="desc">查看十三代英雄完整数据：吉塞拉、弗洛拉、乌尔卡努斯。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="fourteenth-generation-heroes.html">
+        <h2 class="title">十四代英雄（开服1000天）</h2>
+        <p class="desc">查看十四代英雄完整数据：艾丽芙、多米尼克、卡拉。</p>
+        <span class="tag">已上线</span>
+      </a>
+      <a class="card" href="fifteenth-generation-heroes.html">
+        <h2 class="title">十五代英雄（开服1084天）</h2>
+        <p class="desc">查看十五代英雄完整数据：汉克、艾丝黛拉、维薇卡。</p>
+        <span class="tag">已上线</span>
+      </a>
+    </section>
+    <div id="emptyState" class="empty-state">未找到匹配内容</div>
+  </main>
+  <script>
+    (function(){
+      const input = document.getElementById("searchInput");
+      const clearBtn = document.getElementById("clearSearchBtn");
+      const meta = document.getElementById("searchMeta");
+      const empty = document.getElementById("emptyState");
+      const cards = Array.from(document.querySelectorAll("#heroGrid .card"));
+
+      function normalize(text){
+        return (text || "").toLowerCase().trim();
+      }
+
+      function updateFilter(){
+        const keyword = normalize(input.value);
+        let visible = 0;
+
+        cards.forEach((card) => {
+          const content = normalize(card.textContent);
+          const show = !keyword || content.includes(keyword);
+          card.style.display = show ? "block" : "none";
+          if (show) visible += 1;
+        });
+
+        meta.textContent = keyword ? `匹配到 ${visible} 项` : `共 ${cards.length} 项`;
+        empty.style.display = visible > 0 ? "none" : "block";
+      }
+
+      input.addEventListener("input", updateFilter);
+      clearBtn.addEventListener("click", function(){
+        input.value = "";
+        input.focus();
+        updateFilter();
+      });
+
+      updateFilter();
+    })();
+  </script>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>
+

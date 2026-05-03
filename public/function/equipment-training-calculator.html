@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>练兵计算站</title>
+  <style>
+:root {
+      --bg1: #0a1426;
+      --bg2: #13253b;
+      --card: rgba(15, 23, 42, 0.8);
+      --card2: rgba(15, 23, 42, 0.92);
+      --line: rgba(148, 163, 184, 0.28);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --a1: #06b6d4;
+      --a2: #f97316;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+    }
+    :root[data-theme="day"] {
+      --bg1: #eef6ff;
+      --bg2: #fff5ea;
+      --card: rgba(255, 255, 255, 0.82);
+      --card2: rgba(255, 255, 255, 0.94);
+      --line: rgba(15, 23, 42, 0.15);
+      --text: #0f172a;
+      --muted: #475569;
+      --a1: #0284c7;
+      --a2: #ea580c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Bahnschrift", "DIN Alternate", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 620px at 10% -12%, rgba(6, 182, 212, 0.24), transparent 58%),
+        radial-gradient(900px 540px at 92% 0%, rgba(249, 115, 22, 0.22), transparent 56%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      padding: 16px 12px 28px;
+    }
+    .top-btn {
+      position: fixed;
+      top: 9px;
+      z-index: 1000;
+      border: 1px solid var(--line);
+      background: var(--card2);
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 11px;
+      backdrop-filter: blur(8px);
+    }
+    #homeBtn { left: 10px; }
+    #themeBtn { right: 10px; cursor: pointer; }
+    .wrap { max-width: 1220px; margin: 0 auto; display: grid; gap: 12px; padding-top: 40px; }
+    .hero, .panel {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 20px 46px rgba(2, 6, 23, 0.36);
+      backdrop-filter: blur(8px);
+    }
+    .hero { padding: 22px 18px; }
+    .hero h1 { font-size: clamp(24px, 4vw, 38px); margin-bottom: 10px; line-height: 1.1; }
+    .hero p { color: var(--muted); line-height: 1.62; font-size: 14px; max-width: 900px; }
+    .chips { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--line); background: var(--card2); border-radius: 999px; font-size: 12px; font-weight: 700; padding: 4px 10px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 9px 13px;
+      cursor: pointer;
+    }
+    .tab.active { background: linear-gradient(105deg, var(--a1), #0ea5e9); color: #fff; border-color: transparent; }
+    .panel { display: none; padding: 12px; gap: 10px; }
+    .panel.active { display: grid; animation: rise .25s ease both; }
+    .box { border: 1px solid var(--line); border-radius: 12px; background: var(--card2); padding: 11px; display: grid; gap: 8px; }
+    .box h3 { font-size: 15px; }
+    .hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; align-items: end; }
+    .f { grid-column: span 3; display: grid; gap: 5px; }
+    .f2 { grid-column: span 2; display: grid; gap: 5px; }
+    .f label, .f2 label { font-size: 12px; color: var(--muted); font-weight: 800; }
+    .f input, .f2 input, .f select, .f2 select {
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.24);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 8px 9px;
+      font-size: 14px;
+      outline: none;
+    }
+    :root[data-theme="day"] .f input,
+    :root[data-theme="day"] .f2 input,
+    :root[data-theme="day"] .f select,
+    :root[data-theme="day"] .f2 select { background: rgba(255, 255, 255, 0.9); }
+    .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+    .stat { border: 1px solid var(--line); border-radius: 10px; padding: 9px; background: rgba(15, 23, 42, 0.3); }
+    :root[data-theme="day"] .stat { background: rgba(255, 255, 255, 0.9); }
+    .k { color: var(--muted); font-size: 12px; }
+    .v { font-size: 21px; font-weight: 900; font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid var(--line); padding: 7px; text-align: left; }
+    th { background: rgba(15, 23, 42, 0.54); }
+    :root[data-theme="day"] th { background: rgba(241, 245, 249, 0.96); }
+    .res-name { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
+    .res-name img { width: 16px; height: 16px; object-fit: contain; border-radius: 3px; }
+    .status { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font-size: 13px; font-weight: 800; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 1024px) {
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .f { grid-column: span 4; }
+      .f2 { grid-column: span 3; }
+    }
+    @media (max-width: 760px) {
+      .row2 { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .f, .f2 { grid-column: span 6; }
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a id="homeBtn" class="top-btn" href="../rukou.html">返回主页</a>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>练兵计算站</h1>
+      <p>计算练兵耗时、得分与资源消耗，支持训练速度、加速换算与 T11/T12 减免。</p>
+      <div class="chips">
+        <span class="chip">练兵时间与得分</span>
+        <span class="chip">练兵资源</span>
+        <span class="chip">T11/T12 减免</span>
+      </div>
+    </section>
+
+    <section class="tabs">
+      <button class="tab active" data-tab="train">练兵时间与得分</button>
+      <button class="tab" data-tab="resource">练兵资源</button>
+    </section>
+
+<section class="panel active" data-panel="train">
+      <div class="box">
+        <h3>训练速度与区间</h3>
+        <div class="grid">
+          <div class="f2">
+            <label>模式</label>
+            <select id="timeMode">
+              <option value="train">练兵</option>
+              <option value="promote">晋升士兵</option>
+            </select>
+          </div>
+          <div class="f2"><label>训练速度 (%)</label><input id="trainSpeed" type="number" min="0" step="0.1" value="0"></div>
+          <div class="f" id="timeFromWrap"><label>起始兵阶</label><select id="timeFrom"></select></div>
+          <div class="f"><label>目标兵阶</label><select id="timeTo"></select></div>
+          <div class="f2"><label>输入数量 (万)</label><input id="countWan" type="number" min="0" step="0.1" value="0"></div>
+          <div class="f2"><label>输入加速 (天)</label><input id="accDays" type="number" min="0" step="0.1" value="0"></div>
+        </div>
+        <div class="hint">按训练速度与区间，计算加速消耗与可练数量。</div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">消耗加速 (天)</div><div class="v" id="needDays">0</div></div>
+        <div class="stat"><div class="k">备战分数 (万)</div><div class="v" id="prepByCount">0</div></div>
+        <div class="stat"><div class="k">冻土分数 (万)</div><div class="v" id="frostByCount">0</div></div>
+        <div class="stat"><div class="k">可练兵数量 (万)</div><div class="v" id="canTrain">0</div></div>
+        <div class="stat"><div class="k">加速对应备战</div><div class="v" id="prepByAcc">0</div></div>
+        <div class="stat"><div class="k">加速对应冻土</div><div class="v" id="frostByAcc">0</div></div>
+      </div>
+      <div class="status" id="trainStatus">就绪</div>
+    </section>
+
+<section class="panel" data-panel="resource">
+      <div class="box">
+        <h3>练兵资源计算</h3>
+        <div class="grid">
+          <div class="f2">
+            <label>模式</label>
+            <select id="resMode">
+              <option value="train">练兵</option>
+              <option value="promote">晋升士兵</option>
+            </select>
+          </div>
+          <div class="f" id="resFromWrap"><label>起始兵阶</label><select id="resFrom"></select></div>
+          <div class="f"><label>目标兵阶</label><select id="resTo"></select></div>
+          <div class="f2"><label>盾数量 (万)</label><input id="shieldWan" type="number" min="0" step="0.1" value="0"></div>
+          <div class="f2"><label>矛数量 (万)</label><input id="spearWan" type="number" min="0" step="0.1" value="0"></div>
+          <div class="f2"><label>弓数量 (万)</label><input id="bowWan" type="number" min="0" step="0.1" value="0"></div>
+          <div class="f2"><label>盾减免 (%)</label><input id="shieldR" type="number" min="0" max="100" step="0.1" value="0"></div>
+          <div class="f2"><label>矛减免 (%)</label><input id="spearR" type="number" min="0" max="100" step="0.1" value="0"></div>
+          <div class="f2"><label>弓减免 (%)</label><input id="bowR" type="number" min="0" max="100" step="0.1" value="0"></div>
+        </div>
+        <div class="hint">结果自动换算单位：≥1亿显示“亿”，<1亿显示“万”。目标为 T11/T12 时减免生效。</div>
+      </div>
+      <div class="row2">
+        <div class="box">
+          <h3>资源消耗</h3>
+          <table>
+            <thead><tr><th>项目</th><th>结果（自动：亿/万）</th></tr></thead>
+            <tbody>
+              <tr><td><span class="res-name"><img src="../Scores/rou.png" alt="肉">肉</span></td><td id="rA">0</td></tr>
+              <tr><td><span class="res-name"><img src="../Scores/mutou.png" alt="木头">木头</span></td><td id="rB">0</td></tr>
+              <tr><td><span class="res-name"><img src="../Scores/mei.png" alt="煤">煤</span></td><td id="rC">0</td></tr>
+              <tr><td><span class="res-name"><img src="../Scores/tie.png" alt="铁">铁</span></td><td id="rD">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="status" id="resourceStatus">就绪（单位自动：亿/万）</div>
+    </section>
+  </main>
+
+  <script>
+    const TROOP = [
+          ["0，直接练",0,0,0,[0,0,0,0],[0,0,0,0],[0,0,0,0]],
+          ["T1",12,3,1,[36,27,7,2],[32,30,7,2],[23,34,6,2]],
+          ["T2",17,4,2,[58,44,10,3],[51,48,10,3],[36,54,9,4]],
+          ["T3",24,5,3,[92,69,17,4],[81,76,16,4],[58,86,15,5]],
+          ["T4",32,8,5,[120,90,21,5],[105,99,21,5],[75,111,19,6]],
+          ["T5",44,12,7,[156,117,27,6],[136,129,27,7],[97,144,24,8]],
+          ["T6",60,18,11,[186,140,33,7],[163,154,32,8],[117,173,29,10]],
+          ["T7",83,25,16,[279,210,49,11],[244,231,48,11],[175,258,44,14]],
+          ["T8",113,35,23,[558,419,98,21],[488,461,95,22],[349,516,87,28]],
+          ["T9",131,45,30,[1394,1046,244,51],[1220,1151,237,55],[872,1290,217,70]],
+          ["T10",152,60,39,[2788,2091,488,102],[2440,2301,474,109],[1743,2579,433,140]],
+          ["T11",180,75,49,[6970,5228,1220,253],[6099,5751,1185,271],[4357,6448,1081,349]],
+          ["T12",215,"待定","待定",[10376,7753,1824,380],["待定","待定","待定","待定"],["待定","待定","待定","待定"]]
+        ].map((x)=>({lv:x[0],time:x[1],prep:x[2],frost:x[3],s:x[4],p:x[5],b:x[6]}));
+
+    const troopMap = new Map(TROOP.map((x) => [x.lv, x]));
+
+
+
+    const N = (v)=>{ const n = Number(v); return Number.isFinite(n) ? n : null; };
+        const F = (v,d=2)=>Number.isFinite(v) ? v.toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d}) : "--";
+        const I = (v)=>Number.isFinite(v) ? v.toLocaleString("zh-CN") : "--";
+        const YW = (yiVal)=>{
+          if(!Number.isFinite(yiVal)) return "--";
+          if(yiVal >= 1) return `${yiVal.toFixed(1)}亿`;
+          return `${(yiVal * 10000).toFixed(1)}万`;
+        };
+        const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+        const txt = (id,v)=>{ const el = document.getElementById(id); if(el) el.textContent = String(v); };
+        const sumRange = (s,e,fn)=>{ let t=0; if(e<=s) return 0; for(let i=s+1;i<=e;i++) t+=fn(i); return t; };
+
+
+
+    function initSelect(el, opts, def){ el.innerHTML = opts.map(o=>`<option value="${o.v}">${o.l}</option>`).join(""); el.value = String(def); }
+        function hideZeroDirectOption(selectId){
+          const sel = document.getElementById(selectId);
+          if(!sel) return;
+          const opt = [...sel.options].find((o)=>o.value === "0，直接练");
+          if(!opt) return;
+          opt.hidden = true;
+          opt.style.display = "none";
+        }
+        function applyMode(modeId, fromWrapId, fromId){
+          const modeEl = document.getElementById(modeId);
+          const fromWrap = document.getElementById(fromWrapId);
+          const fromEl = document.getElementById(fromId);
+          if(!modeEl || !fromWrap || !fromEl) return;
+          const isTrain = modeEl.value === "train";
+          if(isTrain){
+            fromEl.value = "0，直接练";
+            fromEl.disabled = true;
+            fromWrap.style.display = "none";
+          } else {
+            fromEl.disabled = false;
+            fromWrap.style.display = "grid";
+          }
+        }
+
+
+
+    function recalcTrain(){
+          const from = troopMap.get(document.getElementById("timeFrom").value);
+          const to = troopMap.get(document.getElementById("timeTo").value);
+          const speed = Math.max(0, N(document.getElementById("trainSpeed").value) ?? 0);
+          const countWan = Math.max(0, N(document.getElementById("countWan").value) ?? 0);
+          const accDays = Math.max(0, N(document.getElementById("accDays").value) ?? 0);
+          if(!from || !to || to.time <= from.time){
+            ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc"].forEach((id)=>txt(id,"--"));
+            txt("trainStatus","目标兵阶必须高于起始兵阶");
+            document.getElementById("trainStatus").className = "status bad";
+            return;
+          }
+          const dt = to.time - from.time;
+          const rate = 1 + speed/100;
+          const needDays = (dt / rate / 86400) * countWan * 10000;
+          const canTrain = accDays * 86400 / dt * rate / 10000;
+          const prepD = (N(to.prep) ?? NaN) - (N(from.prep) ?? NaN);
+          const frostD = (N(to.frost) ?? NaN) - (N(from.frost) ?? NaN);
+          txt("needDays", F(needDays,4));
+          txt("prepByCount", F(countWan * prepD,4));
+          txt("frostByCount", F(countWan * frostD,4));
+          txt("canTrain", F(canTrain,6));
+          txt("prepByAcc", F(canTrain * prepD,4));
+          txt("frostByAcc", F(canTrain * frostD,4));
+          txt("trainStatus", `训练速度 ${F(speed,1)}%，区间 ${from.lv} -> ${to.lv}`);
+          document.getElementById("trainStatus").className = "status ok";
+        }
+
+
+
+    function recalcResource(){
+          const from = troopMap.get(document.getElementById("resFrom").value);
+          const to = troopMap.get(document.getElementById("resTo").value);
+          const qS = Math.max(0, N(document.getElementById("shieldWan").value) ?? 0);
+          const qP = Math.max(0, N(document.getElementById("spearWan").value) ?? 0);
+          const qB = Math.max(0, N(document.getElementById("bowWan").value) ?? 0);
+          const rS = clamp(Math.max(0, N(document.getElementById("shieldR").value) ?? 0), 0, 100) / 100;
+          const rP = clamp(Math.max(0, N(document.getElementById("spearR").value) ?? 0), 0, 100) / 100;
+          const rB = clamp(Math.max(0, N(document.getElementById("bowR").value) ?? 0), 0, 100) / 100;
+          if(!from || !to || to.time <= from.time){
+            ["rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+            txt("resourceStatus","目标兵阶必须高于起始兵阶");
+            document.getElementById("resourceStatus").className = "status bad";
+            return;
+          }
+          const t11 = to.lv === "T11" || to.lv === "T12";
+          const fS = t11 ? 1-rS : 1, fP = t11 ? 1-rP : 1, fB = t11 ? 1-rB : 1;
+          const calc = (i)=>{
+            const ds = (N(to.s[i]) ?? NaN) - (N(from.s[i]) ?? NaN);
+            const dp = (N(to.p[i]) ?? NaN) - (N(from.p[i]) ?? NaN);
+            const db = (N(to.b[i]) ?? NaN) - (N(from.b[i]) ?? NaN);
+            return Number.isFinite(ds)&&Number.isFinite(dp)&&Number.isFinite(db) ? (ds*qS*fS + dp*qP*fP + db*qB*fB)/10000 : NaN;
+          };
+          const a = calc(0), b = calc(1), c = calc(2), d = calc(3);
+          txt("rA", YW(a)); txt("rB", YW(b)); txt("rC", YW(c)); txt("rD", YW(d));
+          txt("resourceStatus", t11 ? "已应用 T11/T12 减免参数（单位自动：亿/万）" : "目标非 T11/T12，减免参数不生效（单位自动：亿/万）");
+          document.getElementById("resourceStatus").className = t11 ? "status ok" : "status warn";
+        }
+
+
+
+    function init(){
+      const tabs = [...document.querySelectorAll(".tab")];
+      const panels = [...document.querySelectorAll(".panel")];
+      tabs.forEach((b)=>b.addEventListener("click",()=>{
+        tabs.forEach((x)=>x.classList.toggle("active", x===b));
+        panels.forEach((p)=>p.classList.toggle("active", p.dataset.panel===b.dataset.tab));
+      }));
+
+      const troopOpts = TROOP.map((x)=>({v:x.lv,l:x.lv}));
+      initSelect(document.getElementById("timeFrom"), troopOpts, "T1");
+      initSelect(document.getElementById("timeTo"), troopOpts, "T2");
+      initSelect(document.getElementById("resFrom"), troopOpts, "0????");
+      initSelect(document.getElementById("resTo"), troopOpts, "T11");
+      hideZeroDirectOption("timeFrom");
+      hideZeroDirectOption("timeTo");
+      hideZeroDirectOption("resFrom");
+      hideZeroDirectOption("resTo");
+      document.getElementById("timeMode").value = "promote";
+      document.getElementById("resMode").value = "train";
+      applyMode("timeMode", "timeFromWrap", "timeFrom");
+      applyMode("resMode", "resFromWrap", "resFrom");
+
+      ["trainSpeed","timeFrom","timeTo","countWan","accDays"].forEach((id)=>document.getElementById(id).addEventListener("input", recalcTrain));
+      ["resFrom","resTo","shieldWan","spearWan","bowWan","shieldR","spearR","bowR"].forEach((id)=>document.getElementById(id).addEventListener("input", recalcResource));
+      document.getElementById("timeMode").addEventListener("change", ()=>{ applyMode("timeMode", "timeFromWrap", "timeFrom"); recalcTrain(); });
+      document.getElementById("resMode").addEventListener("change", ()=>{ applyMode("resMode", "resFromWrap", "resFrom"); recalcResource(); });
+
+      recalcTrain();
+      recalcResource();
+    }
+    init();
+  </script>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>

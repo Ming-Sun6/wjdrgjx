@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>领主装备与宝石计算器</title>
+  <style>
+:root {
+      --bg1: #0a1426;
+      --bg2: #13253b;
+      --card: rgba(15, 23, 42, 0.8);
+      --card2: rgba(15, 23, 42, 0.92);
+      --line: rgba(148, 163, 184, 0.28);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --a1: #06b6d4;
+      --a2: #f97316;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+    }
+    :root[data-theme="day"] {
+      --bg1: #eef6ff;
+      --bg2: #fff5ea;
+      --card: rgba(255, 255, 255, 0.82);
+      --card2: rgba(255, 255, 255, 0.94);
+      --line: rgba(15, 23, 42, 0.15);
+      --text: #0f172a;
+      --muted: #475569;
+      --a1: #0284c7;
+      --a2: #ea580c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Bahnschrift", "DIN Alternate", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 620px at 10% -12%, rgba(6, 182, 212, 0.24), transparent 58%),
+        radial-gradient(900px 540px at 92% 0%, rgba(249, 115, 22, 0.22), transparent 56%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      padding: 16px 12px 28px;
+    }
+    .top-btn {
+      position: fixed;
+      top: 9px;
+      z-index: 1000;
+      border: 1px solid var(--line);
+      background: var(--card2);
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 11px;
+      backdrop-filter: blur(8px);
+    }
+    #homeBtn { left: 10px; }
+    #themeBtn { right: 10px; cursor: pointer; }
+    .wrap { max-width: 1220px; margin: 0 auto; display: grid; gap: 12px; padding-top: 40px; }
+    .hero, .panel {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 20px 46px rgba(2, 6, 23, 0.36);
+      backdrop-filter: blur(8px);
+    }
+    .hero { padding: 22px 18px; }
+    .hero h1 { font-size: clamp(24px, 4vw, 38px); margin-bottom: 10px; line-height: 1.1; }
+    .hero p { color: var(--muted); line-height: 1.62; font-size: 14px; max-width: 900px; }
+    .chips { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { border: 1px solid var(--line); background: var(--card2); border-radius: 999px; font-size: 12px; font-weight: 700; padding: 4px 10px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab {
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 9px 13px;
+      cursor: pointer;
+    }
+    .tab.active { background: linear-gradient(105deg, var(--a1), #0ea5e9); color: #fff; border-color: transparent; }
+    .panel { display: none; padding: 12px; gap: 10px; }
+    .panel.active { display: grid; animation: rise .25s ease both; }
+    .box { border: 1px solid var(--line); border-radius: 12px; background: var(--card2); padding: 11px; display: grid; gap: 8px; }
+    .box h3 { font-size: 15px; }
+    .hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; align-items: end; }
+    .f { grid-column: span 3; display: grid; gap: 5px; }
+    .f2 { grid-column: span 2; display: grid; gap: 5px; }
+    .f label, .f2 label { font-size: 12px; color: var(--muted); font-weight: 800; }
+    .f input, .f2 input, .f select, .f2 select {
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.24);
+      color: var(--text);
+      border-radius: 9px;
+      padding: 8px 9px;
+      font-size: 14px;
+      outline: none;
+    }
+    :root[data-theme="day"] .f input,
+    :root[data-theme="day"] .f2 input,
+    :root[data-theme="day"] .f select,
+    :root[data-theme="day"] .f2 select { background: rgba(255, 255, 255, 0.9); }
+    .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+    .stat { border: 1px solid var(--line); border-radius: 10px; padding: 9px; background: rgba(15, 23, 42, 0.3); }
+    :root[data-theme="day"] .stat { background: rgba(255, 255, 255, 0.9); }
+    .k { color: var(--muted); font-size: 12px; }
+    .v { font-size: 21px; font-weight: 900; font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { border: 1px solid var(--line); padding: 7px; text-align: left; }
+    th { background: rgba(15, 23, 42, 0.54); }
+    :root[data-theme="day"] th { background: rgba(241, 245, 249, 0.96); }
+    .res-name { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
+    .res-name img { width: 16px; height: 16px; object-fit: contain; border-radius: 3px; }
+    .status { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font-size: 13px; font-weight: 800; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 1024px) {
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .f { grid-column: span 4; }
+      .f2 { grid-column: span 3; }
+    }
+    @media (max-width: 760px) {
+      .row2 { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .f, .f2 { grid-column: span 6; }
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a id="homeBtn" class="top-btn" href="../rukou.html">返回主页</a>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>领主装备与宝石计算器</h1>
+      <p>独立承接领主装备升级与宝石升级计算，保留原四合一页面里的阶段数据、属性增量与评分换算。</p>
+      <div class="chips">
+        <span class="chip">领主装备升级</span>
+        <span class="chip">宝石升级</span>
+        <span class="chip">属性增量</span>
+      </div>
+    </section>
+
+    <section class="panel active" data-panel="equip">
+      <div class="row2">
+        <div class="box">
+          <h3>领主装备升级</h3>
+          <div class="grid">
+            <div class="f"><label>当前阶段</label><select id="eqFrom"></select></div>
+            <div class="f"><label>目标阶段</label><select id="eqTo"></select></div>
+            <div class="f2"><label>件数</label><input id="eqPieces" type="number" min="1" max="8" step="1" value="1"></div>
+          </div>
+          <table>
+            <thead><tr><th>材料</th><th>消耗</th></tr></thead>
+            <tbody>
+              <tr><td>强韧合金</td><td id="eqAlloy">0</td></tr>
+              <tr><td>抛光液</td><td id="eqPolish">0</td></tr>
+              <tr><td>设计图纸</td><td id="eqPlan">0</td></tr>
+              <tr><td>月光琥珀</td><td id="eqAmber">0</td></tr>
+            </tbody>
+          </table>
+          <div class="hint" id="eqMeta"></div>
+        </div>
+        <div class="box">
+          <h3>领主宝石升级</h3>
+          <div class="grid">
+            <div class="f"><label>当前等级</label><select id="gemFrom"></select></div>
+            <div class="f"><label>目标等级</label><select id="gemTo"></select></div>
+          </div>
+          <table>
+            <thead><tr><th>材料</th><th>消耗</th></tr></thead>
+            <tbody>
+              <tr><td>宝石材料A</td><td id="g1">0</td></tr>
+              <tr><td>宝石材料B</td><td id="g2">0</td></tr>
+              <tr><td>宝石材料C</td><td id="g3">0</td></tr>
+              <tr><td>属性提升</td><td id="gAttr">0</td></tr>
+            </tbody>
+          </table>
+          <div class="hint" id="gemMeta"></div>
+        </div>
+      </div>
+      <div class="status" id="equipStatus">就绪</div>
+    </section>
+  </main>
+
+  <script>
+    const EQUIP_CSV = `
+    1,良好,1500,15,0,0,224400,0.0935,0,1250|2,良好1星,3800,40,0,0,306000,0.1275,0,3125|3,稀有,7000,70,0,0,408000,0.17,0,8750|4,稀有1星,9700,95,0,0,510000,0.2125,0,11250|5,稀有2星,0,0,45,0,612000,0.255,0,12500|6,稀有3星,0,0,50,0,714000,0.2975,0,12500|7,史诗,0,0,60,0,816000,0.34,0,13000|8,史诗1星,0,0,70,0,885360,0.3689,0,14000|9,史诗2星,6500,65,40,0,954720,0.3978,0,15000|10,史诗3星,8000,80,50,0,1024080,0.4267,0,16000|11,史诗T1,10000,95,60,0,1093440,0.4556,0,17000|12,史诗T1-1星,11000,110,70,0,1162800,0.4845,0,18000|13,史诗T1-2星,13000,130,85,0,1232160,0.5134,0,19000|14,史诗T1-3星,15000,160,100,0,1301520,0.5423,0,20000|15,传说,22000,220,40,0,1362720,0.5678,0,21000|16,传说1星,23000,230,40,0,1423920,0.5933,0,0|17,传说2星,25000,250,45,0,1485120,0.6188,0,0|18,传说3星,26000,260,45,0,1546320,0.6443,0,0|19,传说T1,28000,280,45,0,1607520,0.6698,0,0|20,传说T1-1星,30000,300,55,0,1668720,0.6953,0,0|21,传说T1-2星,32000,320,55,0,1729920,0.7208,0,0|22,传说T1-3星,35000,340,55,0,1791120,0.7463,0,0|23,传说T2,38000,360,55,0,1852320,0.7718,0,0|24,传说T2-1星,43000,430,75,0,1913520,0.7973,0,0|25,传说T2-2星,45000,460,80,0,1978800,0.8228,0,0|26,传说T2-3星,48000,500,85,0,2040000,0.85,0,0|27,神话,50000,530,85,10,2142000,0.8925,40,0|28,神话1星,52000,560,90,10,2244000,0.935,80,0|29,神話2星,54000,590,95,10,2346000,0.9775,120,0|30,神话3星,56000,620,100,10,2448000,1.02,160,0|31,神话T1,59000,670,110,15,2550000,1.0625,290,0|32,神话T1-1星,61000,700,115,15,2652000,1.105,330,0|33,神话T1-2星,63000,730,120,15,2754000,1.1475,370,0|34,神话T1-3星,65000,760,125,15,2856000,1.19,410,0|35,神话T2,68000,810,135,20,2958000,1.2325,540,0|36,神话T2-1星,70000,840,140,20,3060000,1.275,580,0|37,神话T2-2星,72000,870,145,20,3162000,1.3175,620,0|38,神话T2-3星,74000,900,150,20,3264000,1.36,660,0|39,神话T3,77000,950,160,25,3366000,1.4025,790,0|40,神话T3-1星,80000,990,165,25,3468000,1.445,830,0|41,神话T3-2星,83000,1030,170,25,3570000,1.4875,870,0|42,神话T3-3星,86000,1070,180,25,3672000,1.53,910,0|43,神话T3-3星1段,24000,300,50,8,3712000,1.547,1010,0|44,神话T3-3星2段,24000,300,50,8,3753000,1.564,1020,0|45,神话T3-3星3段,24000,300,50,8,3794000,1.581,1030,0|46,神话T3-3星4段,24000,300,50,8,3835000,1.598,1040,0|47,神话T4,24000,300,50,8,3876000,1.615,1050,0|48,神话T4-1段,28000,330,55,8,3916000,1.632,1060,0|49,神话T4-2段,28000,330,55,8,3957000,1.649,1070,0|50,神话T4-3段,28000,330,55,8,3998000,1.666,1080,0|51,神话T4-4段,28000,330,55,8,4039000,1.683,1090,0|52,神话T4-1星,28000,330,55,8,4080000,1.7,1100,0|53,神话T4-1星1段,32000,360,60,8,4120000,1.717,1110,0|54,神话T4-1星2段,32000,360,60,8,4161000,1.734,1120,0|55,神话T4-1星3段,32000,360,60,8,4202000,1.751,1130,0|56,神话T4-1星4段,32000,360,60,8,4243000,1.768,1140,0|57,神话T4-2星,32000,360,60,8,4284000,1.785,1150,0|58,神话T4-2星1段,36000,390,65,8,4324000,1.802,1160,0|59,神话T4-2星2段,36000,390,65,8,4365000,1.819,1170,0|60,神话T4-2星3段,36000,390,65,8,4406000,1.836,1180,0|61,神话T4-2星4段,36000,390,65,8,4447000,1.853,1190,0|62,神话T4-3星,36000,390,65,8,4488000,1.87,1200,0
+        `.trim();
+
+        const GEM_CSV = `1,5,5,0,0.09,625|2,40,15,0,0.12,1250|3,60,40,0,0.16,3125|4,80,100,0,0.19,8750|5,100,200,0,0.25,11250|6,120,300,0,0.3,12500|7,140,400,0,0.35,12500|8,200,400,0,0.4,13000|9,300,400,0,0.45,14000|10,420,420,0,0.5,15000|11,560,420,0,0.55,16000|12,580,450,15,0.64,17000|13,580,450,30,0.73,18000|14,600,500,45,0.82,19000|15,600,500,70,0.91,20000|16,650,550,100,1,21000`;
+
+        const EQUIP = EQUIP_CSV.split("|").map((r) => {
+          const x = r.split(",");
+          return { seq:+x[0], st:x[1], alloy:+x[2], polish:+x[3], plan:+x[4], amber:+x[5], power:+x[6], attr:+x[7], march:+x[8], score:+x[9] };
+        });
+        const GEMS = GEM_CSV.split("|").map((r) => {
+          const x = r.split(",");
+          return { lv:+x[0], a:+x[1], b:+x[2], c:+x[3], attr:+x[4], score:+x[5] };
+        });
+
+    const equipMap = new Map(EQUIP.map((x) => [x.st, x]));
+    const gemMap = new Map(GEMS.map((x) => [x.lv, x]));
+
+
+
+    const N = (v)=>{ const n = Number(v); return Number.isFinite(n) ? n : null; };
+        const F = (v,d=2)=>Number.isFinite(v) ? v.toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d}) : "--";
+        const I = (v)=>Number.isFinite(v) ? v.toLocaleString("zh-CN") : "--";
+        const YW = (yiVal)=>{
+          if(!Number.isFinite(yiVal)) return "--";
+          if(yiVal >= 1) return `${yiVal.toFixed(1)}亿`;
+          return `${(yiVal * 10000).toFixed(1)}万`;
+        };
+        const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+        const txt = (id,v)=>{ const el = document.getElementById(id); if(el) el.textContent = String(v); };
+        const sumRange = (s,e,fn)=>{ let t=0; if(e<=s) return 0; for(let i=s+1;i<=e;i++) t+=fn(i); return t; };
+
+        function initSelect(el, opts, def){
+          if(!el) return;
+          el.innerHTML = opts.map((o)=>`<option value="${o.v}">${o.l}</option>`).join("");
+          el.value = String(def);
+        }
+
+
+    function recalcEquipGem(){
+          const from = equipMap.get(document.getElementById("eqFrom").value);
+          const to = equipMap.get(document.getElementById("eqTo").value);
+          const pieces = Math.max(1, Math.round(N(document.getElementById("eqPieces").value) ?? 1));
+          let alloy=0, polish=0, plan=0, amber=0;
+          if(from && to && to.seq > from.seq){
+            EQUIP.forEach((r)=>{ if(r.seq > from.seq && r.seq <= to.seq){ alloy+=r.alloy; polish+=r.polish; plan+=r.plan; amber+=r.amber; } });
+          }
+          txt("eqAlloy", I(alloy*pieces)); txt("eqPolish", I(polish*pieces)); txt("eqPlan", I(plan*pieces)); txt("eqAmber", I(amber*pieces));
+          if(from && to){
+            txt("eqMeta", `属性 ${F(from.attr*100,2)}% -> ${F(to.attr*100,2)}% (Δ${F((to.attr-from.attr)*100,2)}%) | 战力 Δ${I(to.power-from.power)} | 容量 Δ${I(to.march-from.march)} | 件数 ${pieces}`);
+          } else txt("eqMeta","--");
+
+          const gf = N(document.getElementById("gemFrom").value) ?? 1;
+          const gt = N(document.getElementById("gemTo").value) ?? 1;
+          const gFrom = gemMap.get(gf), gTo = gemMap.get(gt);
+          let m1=0,m2=0,m3=0;
+          if(gt > gf){ GEMS.forEach((g)=>{ if(g.lv>gf && g.lv<=gt){ m1+=g.a; m2+=g.b; m3+=g.c; } }); }
+          txt("g1", I(m1)); txt("g2", I(m2)); txt("g3", I(m3)); txt("gAttr", gFrom&&gTo ? `${F((gTo.attr-gFrom.attr)*100,2)}%` : "--");
+          txt("gemMeta", gFrom&&gTo ? `属性 ${F(gFrom.attr*100,2)}% -> ${F(gTo.attr*100,2)}%，评分 ${I(gFrom.score)} -> ${I(gTo.score)}` : "--");
+
+          if(!from||!to){ txt("equipStatus","装备数据缺失"); document.getElementById("equipStatus").className = "status bad"; }
+          else if(to.seq <= from.seq){ txt("equipStatus","目标阶段未高于当前阶段，材料为 0"); document.getElementById("equipStatus").className = "status warn"; }
+          else { txt("equipStatus","装备与宝石计算已更新"); document.getElementById("equipStatus").className = "status ok"; }
+        }
+
+
+
+    function init(){
+      const eqOpts = EQUIP.map((x)=>({v:x.st,l:x.st}));
+      initSelect(document.getElementById("eqFrom"), eqOpts, "??");
+      initSelect(document.getElementById("eqTo"), eqOpts, "??");
+
+      const gemOpts = GEMS.map((x)=>({v:x.lv,l:`Lv.${x.lv}`}));
+      initSelect(document.getElementById("gemFrom"), gemOpts, 1);
+      initSelect(document.getElementById("gemTo"), gemOpts, 1);
+
+      ["eqFrom","eqTo","eqPieces","gemFrom","gemTo"].forEach((id)=>document.getElementById(id).addEventListener("input", recalcEquipGem));
+      recalcEquipGem();
+    }
+    init();
+  </script>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>

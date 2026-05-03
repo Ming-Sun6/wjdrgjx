@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>说明</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      min-height:100vh;
+      background:#0b1220;
+      color:#e5e7eb;
+    }
+    .toolbar{
+      position:sticky;
+      top:0;
+      z-index:2;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px 14px;
+      background:rgba(11,18,32,.92);
+      border-bottom:1px solid rgba(255,255,255,.1);
+      backdrop-filter:blur(8px);
+    }
+    .toolbar a{
+      color:#93c5fd;
+      text-decoration:none;
+      font-size:.9rem;
+    }
+    .toolbar a:hover{text-decoration:underline}
+    .notice{
+      max-width:900px;
+      margin:0 auto;
+      padding:16px 14px 0;
+      font-size:.9rem;
+      line-height:1.6;
+      color:#cbd5e1;
+    }
+    .notice strong{color:#e5e7eb;font-weight:600}
+    .figure{
+      max-width:900px;
+      margin:0 auto;
+      padding:0 0 32px;
+    }
+    .figure img{
+      display:block;
+      width:100%;
+      height:auto;
+      vertical-align:top;
+    }
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <a href="/">返回首页</a>
+  </header>
+  <p class="notice"><strong>保证金说明：</strong>该广告主已向平台缴纳保证金。若发生跑单、炸单等情况，可联系平台管理员进行申诉。</p>
+  <div class="figure">
+    <img src="/public/wjdr-home/_20260502211718_23_5895.png" alt="图示说明" decoding="async" />
+  </div>
+</body>
+</html>

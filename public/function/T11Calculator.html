@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>T11 科技计算器</title>
+  <style>
+    :root {
+      --bg0: #07111f;
+      --bg1: #0d1830;
+      --line: rgba(148, 163, 184, 0.24);
+      --txt: #e2e8f0;
+      --muted: #94a3b8;
+      --panel: rgba(9, 17, 32, 0.78);
+      --surface: rgba(15, 23, 42, 0.8);
+      --surface-strong: rgba(8, 15, 29, 0.94);
+      --surface-soft: rgba(15, 23, 42, 0.56);
+      --acc1: #f59e0b;
+      --acc2: #22d3ee;
+      --acc3: #4ade80;
+      --shadow: 0 24px 56px rgba(2, 6, 23, 0.34);
+      --radius-xl: 26px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }
+
+    body.theme-day {
+      --bg0: #eef5ff;
+      --bg1: #f8fbff;
+      --line: rgba(15, 23, 42, 0.12);
+      --txt: #0f172a;
+      --muted: #475569;
+      --panel: rgba(255, 255, 255, 0.92);
+      --surface: rgba(255, 255, 255, 0.96);
+      --surface-strong: rgba(255, 255, 255, 0.98);
+      --surface-soft: rgba(241, 245, 249, 0.94);
+      --acc1: #d97706;
+      --acc2: #0284c7;
+      --acc3: #16a34a;
+      --shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Source Han Sans SC", "HarmonyOS Sans SC", "Microsoft YaHei", sans-serif;
+      color: var(--txt);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(960px 520px at -10% -10%, rgba(245,158,11,.22), transparent 62%),
+        radial-gradient(820px 460px at 110% 0%, rgba(34,211,238,.18), transparent 64%),
+        linear-gradient(145deg, var(--bg0), var(--bg1));
+      padding: 16px;
+      transition: background .2s ease, color .2s ease;
+    }
+
+    .home-btn,
+    .theme-toggle {
+      position: fixed;
+      top: 12px;
+      z-index: 20;
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+      color: var(--txt);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+
+    .home-btn {
+      left: 12px;
+      text-decoration: none;
+    }
+
+    .theme-toggle {
+      right: 12px;
+      cursor: pointer;
+    }
+
+    .app-shell {
+      width: min(1280px, calc(100vw - 32px));
+      margin: 68px auto 28px;
+      display: grid;
+      gap: clamp(14px, 2vw, 24px);
+    }
+
+    .shell-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-shell {
+      padding: clamp(20px, 3vw, 34px);
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, .9fr);
+      gap: clamp(18px, 3vw, 32px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(34, 211, 238, 0.12);
+      color: var(--acc2);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .hero-title {
+      font-size: clamp(30px, 4.8vw, 52px);
+      line-height: 1.02;
+      letter-spacing: -.03em;
+      margin-bottom: 12px;
+    }
+
+    .hero-copy {
+      color: var(--muted);
+      font-size: clamp(14px, 1.8vw, 17px);
+      line-height: 1.7;
+      max-width: 62ch;
+    }
+
+    .hero-notes {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .note-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      background: var(--surface-soft);
+    }
+
+    .note-label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+
+    .note-value {
+      font-size: 15px;
+      line-height: 1.6;
+      font-weight: 600;
+    }
+
+    .controls-shell {
+      display: grid;
+      grid-template-columns: minmax(260px, .9fr) minmax(0, 1.1fr);
+      gap: clamp(14px, 2vw, 20px);
+    }
+
+    .control-card,
+    .tech-card,
+    .stat,
+    .result-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+    }
+
+    .control-card { padding: 18px; }
+
+    .control-card h3,
+    .section-head h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .section-copy,
+    .control-card p,
+    .hint {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .input-stack,
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+      color: var(--txt);
+      border-radius: var(--radius-sm);
+      padding: 11px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: rgba(34, 211, 238, 0.72);
+      box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.12);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: var(--surface-strong);
+      color: var(--txt);
+      cursor: pointer;
+      font-weight: 700;
+      min-height: 42px;
+    }
+
+    .btn.primary {
+      border: none;
+      color: #062136;
+      background: linear-gradient(120deg, rgba(245,158,11,.95), rgba(34,211,238,.95));
+    }
+
+    .setup-shell,
+    .summary-shell,
+    .results-shell {
+      padding: clamp(18px, 2.4vw, 26px);
+    }
+
+    .section-head {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: clamp(10px, 1.6vw, 16px);
+    }
+
+    .tech-card {
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .tech-card h3 {
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(10px, 1.6vw, 16px);
+    }
+
+    .stat {
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .value {
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -.03em;
+    }
+
+    .v1 { color: var(--acc1); }
+    .v2 { color: var(--acc2); }
+    .v3 { color: var(--acc3); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: clamp(12px, 1.8vw, 18px);
+    }
+
+    .result-card {
+      padding: 18px;
+      display: grid;
+      gap: 16px;
+      min-width: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent 40%),
+        var(--surface);
+    }
+
+    .result-card-head {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .result-card-head h3 {
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .result-progress {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .result-kpis {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .result-kpi,
+    .resource-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      background: var(--surface-soft);
+    }
+
+    .result-kpi span,
+    .resource-item span {
+      color: var(--muted);
+      font-size: 12px;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .result-kpi strong,
+    .resource-item strong {
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .resource-item { min-width: 0; }
+
+    .resource-sub {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 1082px) {
+      body { padding: 12px; }
+      .home-btn,
+      .theme-toggle { top: 10px; padding: 8px 12px; }
+      .app-shell {
+        width: min(100%, calc(100vw - 24px));
+        margin-top: 64px;
+        gap: 14px;
+      }
+      .hero-shell {
+        grid-template-columns: 1fr;
+        padding: 18px;
+      }
+      .controls-shell { grid-template-columns: 1fr; }
+      .setup-shell,
+      .summary-shell,
+      .results-shell { padding: 18px; }
+      .tech-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stats .stat:last-child { grid-column: 1 / -1; }
+      .row { grid-template-columns: 1fr; }
+      .field { justify-items: start; }
+      .field select { width: 88px; max-width: 100%; }
+      .btn-row .btn { flex: 1 1 100%; width: 100%; }
+      .results-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="/rukou.html">返回主页</a>
+
+  <main class="app-shell">
+    <section class="shell-card hero-shell">
+      <div>
+        <div class="eyebrow">T11 Research Planner</div>
+        <h1 class="hero-title">T11 科技计算器</h1>
+        <p class="hero-copy">
+          根据当前研究等级与目标等级，实时计算加速时间、火晶颗粒和五类资源消耗。
+          页面采用卡片式结果重构，手机和电脑都不再依赖横向大表格。
+        </p>
+      </div>
+      <div class="hero-notes">
+        <div class="note-card">
+          <div class="note-label">数据来源</div>
+          <div class="note-value"><code>帮助/火10T11计算器.xlsx</code></div>
+        </div>
+        <div class="note-card">
+          <div class="note-label">计算规则</div>
+          <div class="note-value">按“已研究等级 &lt; 等级 &lt;= 目标等级”累计加速、颗粒和资源。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls-shell">
+      <article class="control-card shell-card">
+        <h3>研究速度</h3>
+        <div class="input-stack">
+          <label for="speed">研究速度百分比（Excel 默认 78.7%）</label>
+          <input id="speed" type="number" step="0.1" value="0" />
+        </div>
+        <p style="margin-top: 10px;">折算后天数 = 原始天数 / (1 + 研究速度 / 100)</p>
+      </article>
+
+      <article class="control-card shell-card">
+        <h3>预设方案</h3>
+        <div class="btn-row">
+          <button class="btn" id="presetUnlock">解锁单条 T11</button>
+          <button class="btn primary" id="presetFull">单条 T11 全满</button>
+          <button class="btn" id="presetEmpty">清空</button>
+        </div>
+        <p style="margin-top: 10px;">先用预设，再按需手动微调每个科技的起止等级。</p>
+      </article>
+    </section>
+
+    <section class="setup-shell shell-card">
+      <div class="section-head">
+        <h2>科技设置</h2>
+        <p class="section-copy">每项科技都是独立设置卡，直接调整已研究等级和目标等级。</p>
+      </div>
+      <div id="cards" class="tech-grid"></div>
+    </section>
+
+    <section class="summary-shell shell-card">
+      <div class="section-head">
+        <h2>总览结果</h2>
+        <p class="section-copy">先看整体时间和颗粒，再往下查看每项科技的详细资源消耗。</p>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <div class="label">原始天数</div>
+          <div id="rawDays" class="value v1">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">折算后天数</div>
+          <div id="adjDays" class="value v2">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">火晶颗粒</div>
+          <div id="particle" class="value v3">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">钢总和</div>
+          <div id="totalSteel" class="value">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">肉总和</div>
+          <div id="totalMeat" class="value">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">木总和</div>
+          <div id="totalWood" class="value">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">煤总和</div>
+          <div id="totalCoal" class="value">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">铁总和</div>
+          <div id="totalIron" class="value">0</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="results-shell shell-card">
+      <div class="section-head">
+        <h2>科技详情</h2>
+        <p class="section-copy">所有科技结果全部铺开显示，不再使用横向大表格。</p>
+      </div>
+      <div id="results" class="results-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+    const t11Data = [{"name":"\u70c8\u7130\u6218\u961f","level":1,"days":0.333333333333333,"particle":16.0,"steel":5000.0,"meat":300000.0,"wood":300000.0,"coal":60000.0,"iron":15000.0},{"name":"\u70c8\u7130\u6218\u961f","level":2,"days":0.533333333333333,"particle":25.0,"steel":8000.0,"meat":480000.0,"wood":480000.0,"coal":96000.0,"iron":24000.0},{"name":"\u70c8\u7130\u6218\u961f","level":3,"days":0.866666666666667,"particle":41.0,"steel":13000.0,"meat":780000.0,"wood":780000.0,"coal":150000.0,"iron":39000.0},{"name":"\u70c8\u7130\u6218\u961f","level":4,"days":1.43333333333333,"particle":68.0,"steel":21000.0,"meat":1200000.0,"wood":1200000.0,"coal":250000.0,"iron":64000.0},{"name":"\u70c8\u7130\u6218\u961f","level":5,"days":2.25,"particle":108.0,"steel":33000.0,"meat":2000000.0,"wood":2000000.0,"coal":400000.0,"iron":100000.0},{"name":"\u6012\u7130\u731b\u51fb","level":1,"days":0.833333333333333,"particle":40.0,"steel":10000.0,"meat":800000.0,"wood":800000.0,"coal":160000.0,"iron":40000.0},{"name":"\u6012\u7130\u731b\u51fb","level":2,"days":1.16666666666667,"particle":56.0,"steel":14000.0,"meat":1100000.0,"wood":1100000.0,"coal":220000.0,"iron":56000.0},{"name":"\u6012\u7130\u731b\u51fb","level":3,"days":1.54166666666667,"particle":74.0,"steel":18000.0,"meat":1400000.0,"wood":1400000.0,"coal":290000.0,"iron":74000.0},{"name":"\u6012\u7130\u731b\u51fb","level":4,"days":2.125,"particle":102.0,"steel":25000.0,"meat":2000000.0,"wood":2000000.0,"coal":400000.0,"iron":100000.0},{"name":"\u6012\u7130\u731b\u51fb","level":5,"days":2.83333333333333,"particle":136.0,"steel":34000.0,"meat":2700000.0,"wood":2700000.0,"coal":540000.0,"iron":130000.0},{"name":"\u6012\u7130\u731b\u51fb","level":6,"days":3.83333333333333,"particle":184.0,"steel":46000.0,"meat":3600000.0,"wood":3600000.0,"coal":730000.0,"iron":180000.0},{"name":"\u6012\u7130\u731b\u51fb","level":7,"days":5.16666666666667,"particle":248.0,"steel":62000.0,"meat":4900000.0,"wood":4900000.0,"coal":990000.0,"iron":240000.0},{"name":"\u6012\u7130\u731b\u51fb","level":8,"days":6.95833333333333,"particle":334.0,"steel":83000.0,"meat":6600000.0,"wood":6600000.0,"coal":1300000.0,"iron":330000.0},{"name":"\u6012\u7130\u575a\u76fe","level":1,"days":0.833333333333333,"particle":40.0,"steel":10000.0,"meat":800000.0,"wood":800000.0,"coal":160000.0,"iron":40000.0},{"name":"\u6012\u7130\u575a\u76fe","level":2,"days":1.16666666666667,"particle":56.0,"steel":14000.0,"meat":1100000.0,"wood":1100000.0,"coal":220000.0,"iron":56000.0},{"name":"\u6012\u7130\u575a\u76fe","level":3,"days":1.54166666666667,"particle":74.0,"steel":18000.0,"meat":1400000.0,"wood":1400000.0,"coal":290000.0,"iron":74000.0},{"name":"\u6012\u7130\u575a\u76fe","level":4,"days":2.125,"particle":102.0,"steel":25000.0,"meat":2000000.0,"wood":2000000.0,"coal":400000.0,"iron":100000.0},{"name":"\u6012\u7130\u575a\u76fe","level":5,"days":2.83333333333333,"particle":136.0,"steel":34000.0,"meat":2700000.0,"wood":2700000.0,"coal":540000.0,"iron":130000.0},{"name":"\u6012\u7130\u575a\u76fe","level":6,"days":3.83333333333333,"particle":184.0,"steel":46000.0,"meat":3600000.0,"wood":3600000.0,"coal":730000.0,"iron":180000.0},{"name":"\u6012\u7130\u575a\u76fe","level":7,"days":5.16666666666667,"particle":248.0,"steel":62000.0,"meat":4900000.0,"wood":4900000.0,"coal":990000.0,"iron":240000.0},{"name":"\u6012\u7130\u575a\u76fe","level":8,"days":6.95833333333333,"particle":334.0,"steel":83000.0,"meat":6600000.0,"wood":6600000.0,"coal":1300000.0,"iron":330000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":1,"days":1.22241898148148,"particle":83.0,"steel":23000.0,"meat":1000000.0,"wood":1000000.0,"coal":210000.0,"iron":54000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":2,"days":1.50356481481481,"particle":102.0,"steel":28000.0,"meat":1300000.0,"wood":1300000.0,"coal":260000.0,"iron":66000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":3,"days":1.83362268518519,"particle":125.0,"steel":34000.0,"meat":1600000.0,"wood":1600000.0,"coal":320000.0,"iron":81000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":4,"days":2.20034722222222,"particle":150.0,"steel":41000.0,"meat":1900000.0,"wood":1900000.0,"coal":390000.0,"iron":97000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":5,"days":2.68931712962963,"particle":184.0,"steel":51000.0,"meat":2300000.0,"wood":2300000.0,"coal":470000.0,"iron":110000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":6,"days":3.30052083333333,"particle":225.0,"steel":62000.0,"meat":2900000.0,"wood":2900000.0,"coal":580000.0,"iron":140000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":7,"days":4.03398148148148,"particle":276.0,"steel":76000.0,"meat":3500000.0,"wood":3500000.0,"coal":710000.0,"iron":170000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":8,"days":4.88967592592593,"particle":334.0,"steel":83000.0,"meat":4300000.0,"wood":4300000.0,"coal":860000.0,"iron":210000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":9,"days":6.11209490740741,"particle":418.0,"steel":110000.0,"meat":5400000.0,"wood":5400000.0,"coal":1000000.0,"iron":270000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":10,"days":7.33451388888889,"particle":502.0,"steel":130000.0,"meat":6500000.0,"wood":6500000.0,"coal":1300000.0,"iron":320000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":11,"days":8.80141203703704,"particle":602.0,"steel":160000.0,"meat":7800000.0,"wood":7800000.0,"coal":1500000.0,"iron":390000.0},{"name":"\u70c8\u7130\u519b\u56e2","level":12,"days":10.879525462963,"particle":744.0,"steel":200000.0,"meat":9600000.0,"wood":9600000.0,"coal":1900000.0,"iron":480000.0},{"name":"\u6012\u7130\u6218\u65a7","level":1,"days":0.788657407407407,"particle":54.0,"steel":15000.0,"meat":700000.0,"wood":700000.0,"coal":140000.0,"iron":35000.0},{"name":"\u6012\u7130\u6218\u65a7","level":2,"days":0.970046296296296,"particle":66.0,"steel":18000.0,"meat":860000.0,"wood":860000.0,"coal":170000.0,"iron":43000.0},{"name":"\u6012\u7130\u6218\u65a7","level":3,"days":1.18298611111111,"particle":81.0,"steel":22000.0,"meat":1000000.0,"wood":1000000.0,"coal":210000.0,"iron":52000.0},{"name":"\u6012\u7130\u6218\u65a7","level":4,"days":1.41958333333333,"particle":97.0,"steel":27000.0,"meat":1200000.0,"wood":1200000.0,"coal":250000.0,"iron":63000.0},{"name":"\u6012\u7130\u6218\u65a7","level":5,"days":1.7350462962963,"particle":118.0,"steel":33000.0,"meat":1500000.0,"wood":1500000.0,"coal":300000.0,"iron":77000.0},{"name":"\u6012\u7130\u6218\u65a7","level":6,"days":2.129375,"particle":145.0,"steel":40000.0,"meat":1800000.0,"wood":1800000.0,"coal":370000.0,"iron":94000.0},{"name":"\u6012\u7130\u6218\u65a7","level":7,"days":2.60256944444444,"particle":178.0,"steel":49000.0,"meat":2300000.0,"wood":2300000.0,"coal":460000.0,"iron":110000.0},{"name":"\u6012\u7130\u6218\u65a7","level":8,"days":3.15462962962963,"particle":216.0,"steel":60000.0,"meat":2800000.0,"wood":2800000.0,"coal":560000.0,"iron":140000.0},{"name":"\u6012\u7130\u6218\u65a7","level":9,"days":3.94328703703704,"particle":270.0,"steel":75000.0,"meat":3500000.0,"wood":3500000.0,"coal":700000.0,"iron":170000.0},{"name":"\u6012\u7130\u6218\u65a7","level":10,"days":4.73194444444444,"particle":324.0,"steel":90000.0,"meat":4200000.0,"wood":4200000.0,"coal":840000.0,"iron":210000.0},{"name":"\u6012\u7130\u6218\u65a7","level":11,"days":5.67833333333333,"particle":388.0,"steel":100000.0,"meat":5000000.0,"wood":5000000.0,"coal":1000000.0,"iron":250000.0},{"name":"\u6012\u7130\u6218\u65a7","level":12,"days":7.01905092592593,"particle":480.0,"steel":130000.0,"meat":6200000.0,"wood":6200000.0,"coal":1200000.0,"iron":310000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":1,"days":0.788657407407407,"particle":54.0,"steel":15000.0,"meat":700000.0,"wood":700000.0,"coal":140000.0,"iron":35000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":2,"days":0.970046296296296,"particle":66.0,"steel":18000.0,"meat":860000.0,"wood":860000.0,"coal":170000.0,"iron":43000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":3,"days":1.18298611111111,"particle":81.0,"steel":22000.0,"meat":1000000.0,"wood":1000000.0,"coal":210000.0,"iron":52000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":4,"days":1.41958333333333,"particle":97.0,"steel":27000.0,"meat":1200000.0,"wood":1200000.0,"coal":250000.0,"iron":63000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":5,"days":1.7350462962963,"particle":118.0,"steel":33000.0,"meat":1500000.0,"wood":1500000.0,"coal":300000.0,"iron":77000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":6,"days":2.129375,"particle":145.0,"steel":40000.0,"meat":1800000.0,"wood":1800000.0,"coal":370000.0,"iron":94000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":7,"days":2.60256944444444,"particle":178.0,"steel":49000.0,"meat":2300000.0,"wood":2300000.0,"coal":460000.0,"iron":110000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":8,"days":3.15462962962963,"particle":216.0,"steel":60000.0,"meat":2800000.0,"wood":2800000.0,"coal":560000.0,"iron":140000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":9,"days":3.94328703703704,"particle":270.0,"steel":75000.0,"meat":3500000.0,"wood":3500000.0,"coal":700000.0,"iron":170000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":10,"days":4.73194444444444,"particle":324.0,"steel":90000.0,"meat":4200000.0,"wood":4200000.0,"coal":840000.0,"iron":210000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":11,"days":5.67833333333333,"particle":388.0,"steel":100000.0,"meat":5000000.0,"wood":5000000.0,"coal":1000000.0,"iron":250000.0},{"name":"\u6012\u7130\u62a4\u4f51","level":12,"days":7.01905092592593,"particle":480.0,"steel":130000.0,"meat":6200000.0,"wood":6200000.0,"coal":1200000.0,"iron":310000.0},{"name":"\u70c8\u65e5\u5175","level":1,"days":91.34375,"particle":2236.0,"steel":1000000.0,"meat":85000000.0,"wood":85000000.0,"coal":17000000.0,"iron":4200000.0},{"name":"T11\u6025\u6551","level":1,"days":1.04166666666667,"particle":51.0,"steel":15000.0,"meat":1200000.0,"wood":1200000.0,"coal":250000.0,"iron":62000.0},{"name":"T11\u6025\u6551","level":2,"days":1.40625,"particle":68.0,"steel":20000.0,"meat":1600000.0,"wood":1600000.0,"coal":330000.0,"iron":84000.0},{"name":"T11\u6025\u6551","level":3,"days":1.92708333333333,"particle":94.0,"steel":27000.0,"meat":2300000.0,"wood":2300000.0,"coal":460000.0,"iron":110000.0},{"name":"T11\u6025\u6551","level":4,"days":2.60416666666667,"particle":127.0,"steel":37000.0,"meat":3100000.0,"wood":3100000.0,"coal":620000.0,"iron":150000.0},{"name":"T11\u6025\u6551","level":5,"days":3.48958333333333,"particle":170.0,"steel":50000.0,"meat":4100000.0,"wood":4100000.0,"coal":830000.0,"iron":200000.0},{"name":"T11\u6025\u6551","level":6,"days":4.6875,"particle":229.0,"steel":67000.0,"meat":5600000.0,"wood":5600000.0,"coal":1100000.0,"iron":280000.0},{"name":"T11\u6025\u6551","level":7,"days":6.25,"particle":306.0,"steel":90000.0,"meat":7500000.0,"wood":7500000.0,"coal":1500000.0,"iron":370000.0},{"name":"T11\u6025\u6551","level":8,"days":8.54166666666667,"particle":418.0,"steel":120000.0,"meat":10000000.0,"wood":10000000.0,"coal":2000000.0,"iron":510000.0},{"name":"T11\u6025\u6551","level":9,"days":11.4583333333333,"particle":561.0,"steel":160000.0,"meat":13000000.0,"wood":13000000.0,"coal":2700000.0,"iron":680000.0},{"name":"T11\u6025\u6551","level":10,"days":15.625,"particle":765.0,"steel":220000.0,"meat":18000000.0,"wood":18000000.0,"coal":3700000.0,"iron":930000.0},{"name":"T11\u6cbb\u7597","level":1,"days":2.08333333333333,"particle":102.0,"steel":30000.0,"meat":2500000.0,"wood":2500000.0,"coal":500000.0,"iron":120000.0},{"name":"T11\u6cbb\u7597","level":2,"days":2.8125,"particle":137.0,"steel":40000.0,"meat":3300000.0,"wood":3300000.0,"coal":670000.0,"iron":160000.0},{"name":"T11\u6cbb\u7597","level":3,"days":3.85416666666667,"particle":188.0,"steel":55000.0,"meat":4600000.0,"wood":4600000.0,"coal":920000.0,"iron":230000.0},{"name":"T11\u6cbb\u7597","level":4,"days":5.20833333333333,"particle":255.0,"steel":75000.0,"meat":6200000.0,"wood":6200000.0,"coal":1200000.0,"iron":310000.0},{"name":"T11\u6cbb\u7597","level":5,"days":6.97916666666667,"particle":341.0,"steel":100000.0,"meat":8300000.0,"wood":8300000.0,"coal":1600000.0,"iron":410000.0},{"name":"T11\u6cbb\u7597","level":6,"days":9.375,"particle":459.0,"steel":130000.0,"meat":11000000.0,"wood":11000000.0,"coal":2200000.0,"iron":560000.0},{"name":"T11\u6cbb\u7597","level":7,"days":12.5,"particle":612.0,"steel":180000.0,"meat":15000000.0,"wood":15000000.0,"coal":3000000.0,"iron":750000.0},{"name":"T11\u6cbb\u7597","level":8,"days":17.0833333333333,"particle":836.0,"steel":240000.0,"meat":20000000.0,"wood":20000000.0,"coal":4100000.0,"iron":1000000.0},{"name":"T11\u6cbb\u7597","level":9,"days":22.9166666666667,"particle":1122.0,"steel":330000.0,"meat":27000000.0,"wood":27000000.0,"coal":5500000.0,"iron":1300000.0},{"name":"T11\u6cbb\u7597","level":10,"days":31.25,"particle":1530.0,"steel":450000.0,"meat":37000000.0,"wood":37000000.0,"coal":7500000.0,"iron":1800000.0},{"name":"T11\u8bad\u7ec3","level":1,"days":2.08333333333333,"particle":102.0,"steel":30000.0,"meat":2500000.0,"wood":2500000.0,"coal":500000.0,"iron":120000.0},{"name":"T11\u8bad\u7ec3","level":2,"days":2.8125,"particle":137.0,"steel":40000.0,"meat":3300000.0,"wood":3300000.0,"coal":670000.0,"iron":160000.0},{"name":"T11\u8bad\u7ec3","level":3,"days":3.85416666666667,"particle":188.0,"steel":55000.0,"meat":4600000.0,"wood":4600000.0,"coal":920000.0,"iron":230000.0},{"name":"T11\u8bad\u7ec3","level":4,"days":5.20833333333333,"particle":255.0,"steel":75000.0,"meat":6200000.0,"wood":6200000.0,"coal":1200000.0,"iron":310000.0},{"name":"T11\u8bad\u7ec3","level":5,"days":6.97916666666667,"particle":341.0,"steel":100000.0,"meat":8300000.0,"wood":8300000.0,"coal":1600000.0,"iron":410000.0},{"name":"T11\u8bad\u7ec3","level":6,"days":9.375,"particle":459.0,"steel":130000.0,"meat":11000000.0,"wood":11000000.0,"coal":2200000.0,"iron":560000.0},{"name":"T11\u8bad\u7ec3","level":7,"days":12.5,"particle":612.0,"steel":180000.0,"meat":15000000.0,"wood":15000000.0,"coal":3000000.0,"iron":750000.0},{"name":"T11\u8bad\u7ec3","level":8,"days":17.0833333333333,"particle":836.0,"steel":240000.0,"meat":20000000.0,"wood":20000000.0,"coal":4100000.0,"iron":1000000.0},{"name":"T11\u8bad\u7ec3","level":9,"days":22.9166666666667,"particle":1122.0,"steel":330000.0,"meat":27000000.0,"wood":27000000.0,"coal":5500000.0,"iron":1300000.0},{"name":"T11\u8bad\u7ec3","level":10,"days":31.25,"particle":1530.0,"steel":450000.0,"meat":37000000.0,"wood":37000000.0,"coal":7500000.0,"iron":1800000.0}];
+    const techGroups = [{"name":"\u70c8\u7130\u6218\u961f","max":5},{"name":"\u6012\u7130\u731b\u51fb","max":8},{"name":"\u6012\u7130\u575a\u76fe","max":8},{"name":"\u70c8\u7130\u519b\u56e2","max":12},{"name":"\u6012\u7130\u6218\u65a7","max":12},{"name":"\u6012\u7130\u62a4\u4f51","max":12},{"name":"\u70c8\u65e5\u5175","max":1},{"name":"T11\u6025\u6551","max":10},{"name":"T11\u6cbb\u7597","max":10},{"name":"T11\u8bad\u7ec3","max":10}];
+
+    const rowsByName = new Map();
+    t11Data.forEach(item => {
+      if (!rowsByName.has(item.name)) rowsByName.set(item.name, []);
+      rowsByName.get(item.name).push(item);
+    });
+    rowsByName.forEach(list => list.sort((a, b) => a.level - b.level));
+
+    const state = {};
+
+    function fmt(n, d = 0) {
+      return Number(n).toLocaleString("zh-CN", { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+
+    function fmtSmart(n) {
+      return Number(n).toLocaleString("zh-CN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    function optionHtmlNum(start, end, selected) {
+      let html = "";
+      for (let i = start; i <= end; i += 1) {
+        html += `<option value="${i}" ${i === selected ? "selected" : ""}>${i}</option>`;
+      }
+      return html;
+    }
+
+    function fmtWan(n) {
+      return `${fmtSmart(n / 10000)} 万`;
+    }
+
+    function resourceMarkup(label, value) {
+      return `
+        <div class="resource-item">
+          <span>${label}</span>
+          <strong>${fmt(value)}</strong>
+          <div class="resource-sub">${fmtWan(value)}</div>
+        </div>
+      `;
+    }
+
+    function renderCards() {
+      const container = document.getElementById("cards");
+      container.innerHTML = "";
+
+      techGroups.forEach(group => {
+        state[group.name] = { current: 0, target: 0, max: group.max };
+        const card = document.createElement("article");
+        card.className = "tech-card";
+        card.innerHTML = `
+          <h3>${group.name}</h3>
+          <div class="row">
+            <div class="field">
+              <label>已研究等级</label>
+              <select id="current-${group.name}">${optionHtmlNum(0, group.max, 0)}</select>
+            </div>
+            <div class="field">
+              <label>目标等级</label>
+              <select id="target-${group.name}">${optionHtmlNum(0, group.max, 0)}</select>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+
+        ["current", "target"].forEach(type => {
+          document.getElementById(`${type}-${group.name}`).addEventListener("change", event => {
+            state[group.name][type] = Number(event.target.value);
+            if (state[group.name].target < state[group.name].current) {
+              state[group.name].target = state[group.name].current;
+              document.getElementById(`target-${group.name}`).value = state[group.name].target;
+            }
+            calc();
+          });
+        });
+      });
+    }
+
+    function renderResults(items) {
+      const results = document.getElementById("results");
+      results.innerHTML = items.map(item => `
+        <article class="result-card">
+          <div class="result-card-head">
+            <div>
+              <h3>${item.name}</h3>
+              <div class="result-progress">Lv.${item.current} -> Lv.${item.target}</div>
+            </div>
+            <div class="result-progress">${item.target > item.current ? "进行中" : "已完成"}</div>
+          </div>
+          <div class="result-kpis">
+            <div class="result-kpi">
+              <span>加速天数</span>
+              <strong>${fmtSmart(item.days)}</strong>
+            </div>
+            <div class="result-kpi">
+              <span>火晶颗粒</span>
+              <strong>${fmt(item.particle)}</strong>
+            </div>
+          </div>
+          <div class="resource-grid">
+            ${resourceMarkup("钢", item.steel)}
+            ${resourceMarkup("肉", item.meat)}
+            ${resourceMarkup("木", item.wood)}
+            ${resourceMarkup("煤", item.coal)}
+            ${resourceMarkup("铁", item.iron)}
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function calc() {
+      const speed = Number(document.getElementById("speed").value) || 0;
+      const ratio = 1 + speed / 100;
+      const totals = { days: 0, particle: 0, steel: 0, meat: 0, wood: 0, coal: 0, iron: 0 };
+      const resultItems = [];
+
+      techGroups.forEach(group => {
+        const st = state[group.name];
+        const rows = rowsByName.get(group.name) || [];
+        const sum = { days: 0, particle: 0, steel: 0, meat: 0, wood: 0, coal: 0, iron: 0 };
+
+        rows.forEach(item => {
+          if (item.level > st.current && item.level <= st.target) {
+            sum.days += item.days;
+            sum.particle += item.particle;
+            sum.steel += item.steel;
+            sum.meat += item.meat;
+            sum.wood += item.wood;
+            sum.coal += item.coal;
+            sum.iron += item.iron;
+          }
+        });
+
+        totals.days += sum.days;
+        totals.particle += sum.particle;
+        totals.steel += sum.steel;
+        totals.meat += sum.meat;
+        totals.wood += sum.wood;
+        totals.coal += sum.coal;
+        totals.iron += sum.iron;
+        resultItems.push({
+          name: group.name,
+          current: st.current,
+          target: st.target,
+          days: sum.days,
+          particle: sum.particle,
+          steel: sum.steel,
+          meat: sum.meat,
+          wood: sum.wood,
+          coal: sum.coal,
+          iron: sum.iron
+        });
+      });
+
+      renderResults(resultItems);
+      document.getElementById("rawDays").textContent = fmtSmart(totals.days);
+      document.getElementById("adjDays").textContent = fmtSmart(totals.days / ratio);
+      document.getElementById("particle").textContent = fmt(totals.particle);
+      document.getElementById("totalSteel").textContent = fmt(totals.steel);
+      document.getElementById("totalMeat").textContent = fmt(totals.meat);
+      document.getElementById("totalWood").textContent = fmt(totals.wood);
+      document.getElementById("totalCoal").textContent = fmt(totals.coal);
+      document.getElementById("totalIron").textContent = fmt(totals.iron);
+    }
+
+    function applyPreset(type) {
+      if (type === "empty") {
+        techGroups.forEach(group => {
+          state[group.name].current = 0;
+          state[group.name].target = 0;
+        });
+      }
+
+      if (type === "unlock" || type === "full") {
+        techGroups.forEach(group => {
+          state[group.name].current = 0;
+          state[group.name].target = 0;
+        });
+
+        const targetRule = {
+          "烈焰战队": 5,
+          "怒焰猛击": 8,
+          "怒焰坚盾": 8,
+          "烈焰军团": 12,
+          "怒焰战斧": 12,
+          "怒焰护佑": 12,
+          "烈日兵": 1,
+          "T11急救": 0,
+          "T11治疗": 0,
+          "T11训练": 0
+        };
+
+        Object.keys(targetRule).forEach(name => {
+          if (!state[name]) return;
+          state[name].current = 0;
+          state[name].target = targetRule[name];
+        });
+
+        if (type === "full") {
+          ["T11急救", "T11治疗", "T11训练"].forEach(name => {
+            if (!state[name]) return;
+            state[name].current = 0;
+            state[name].target = 10;
+          });
+        }
+      }
+
+      techGroups.forEach(group => {
+        document.getElementById(`current-${group.name}`).value = state[group.name].current;
+        document.getElementById(`target-${group.name}`).value = state[group.name].target;
+      });
+
+      calc();
+    }
+
+    function init() {
+      renderCards();
+      document.getElementById("speed").addEventListener("input", calc);
+      document.getElementById("presetUnlock").addEventListener("click", () => applyPreset("unlock"));
+      document.getElementById("presetFull").addEventListener("click", () => applyPreset("full"));
+      document.getElementById("presetEmpty").addEventListener("click", () => applyPreset("empty"));
+      applyPreset("empty");
+    }
+
+    init();
+  </script>
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>
+

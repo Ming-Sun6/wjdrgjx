@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>礼包参考总览</title>
+  <style>
+    :root {
+      --bg-a: #f4efe4;
+      --bg-b: #d8e7f6;
+      --panel: rgba(255, 255, 255, 0.82);
+      --panel-strong: rgba(255, 255, 255, 0.94);
+      --text: #18212f;
+      --muted: #5b6778;
+      --line: rgba(24, 33, 47, 0.12);
+      --accent: #166534;
+      --accent-2: #ea580c;
+      --shadow: 0 20px 48px rgba(15, 23, 42, 0.14);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 8% -10%, rgba(22, 101, 52, 0.18), transparent 58%),
+        radial-gradient(900px 500px at 92% 0%, rgba(234, 88, 12, 0.15), transparent 56%),
+        linear-gradient(135deg, var(--bg-a), var(--bg-b));
+      padding: 16px 12px 28px;
+    }
+
+    .home-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 20;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-strong);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .layout {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding-top: 42px;
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      gap: 14px;
+    }
+
+    #giftNav,
+    #giftWorkspace {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    #giftNav {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      min-height: 70vh;
+    }
+
+    .gift-nav-shell {
+      display: grid;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .gift-nav-tools {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .gift-nav-search {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: var(--panel-strong);
+      color: var(--text);
+      outline: none;
+    }
+
+    .gift-nav-search:focus {
+      border-color: rgba(22, 101, 52, 0.45);
+      box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.12);
+    }
+
+    .gift-nav-search-clear {
+      flex-shrink: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      background: var(--panel-strong);
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .gift-nav-meta {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .gift-nav-mobile-select {
+      display: none;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      background: var(--panel-strong);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .gift-nav-desktop-list {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+
+    #giftWorkspace {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .nav-item {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: var(--panel-strong);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, rgba(22, 101, 52, 0.94), rgba(21, 128, 61, 0.82));
+      color: #fff;
+      border-color: transparent;
+    }
+
+    .nav-meta {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: inherit;
+      opacity: 0.78;
+    }
+
+    .workspace-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .workspace-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: var(--panel-strong);
+    }
+
+    .workspace-title {
+      font-size: clamp(24px, 4vw, 36px);
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .workspace-summary {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .stat-label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .section-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .section-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .section-card h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .kasha-overview-table,
+    .kasha-block-table,
+    .kasha-bundle-table,
+    .kasha-target-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+      font-size: 13px;
+    }
+
+    .kasha-overview-table th,
+    .kasha-overview-table td,
+    .kasha-block-table th,
+    .kasha-block-table td,
+    .kasha-bundle-table th,
+    .kasha-bundle-table td,
+    .kasha-target-table th,
+    .kasha-target-table td {
+      border: 1px solid rgba(24, 33, 47, 0.14);
+      padding: 8px 10px;
+      text-align: center;
+      vertical-align: middle;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .kasha-band-row th,
+    .kasha-title-cell,
+    .kasha-author-cell,
+    .kasha-points-row th,
+    .kasha-points-row td,
+    .kasha-total-row th,
+    .kasha-total-row td {
+      background: #2f78b8;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .kasha-overview-table .kasha-progress-label,
+    .kasha-block-table .kasha-progress-label,
+    .kasha-target-table .kasha-target-label {
+      min-width: 86px;
+      font-weight: 800;
+    }
+
+    .kasha-bundle-wrap {
+      display: grid;
+      gap: 12px;
+    }
+
+    .note-section {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 14px 16px;
+    }
+
+    .note-section summary {
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 800;
+      list-style: none;
+    }
+
+    .note-section summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .note-meta {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .note-content {
+      margin-top: 12px;
+      color: var(--text);
+      line-height: 1.7;
+      white-space: pre-wrap;
+      font-size: 14px;
+    }
+
+    .section-table-wrap {
+      overflow-x: auto;
+      border: 1px solid rgba(24, 33, 47, 0.08);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.88);
+    }
+
+    .section-table,
+    .detail-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 720px;
+      font-size: 13px;
+    }
+
+    .section-table th,
+    .section-table td,
+    .detail-table th,
+    .detail-table td {
+      border: 1px solid rgba(24, 33, 47, 0.1);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .section-table thead th,
+    .detail-table thead th {
+      position: sticky;
+      top: 0;
+      background: #eef3f9;
+      color: var(--text);
+      font-weight: 800;
+      z-index: 1;
+    }
+
+    .cell-image {
+      display: block;
+      max-width: 72px;
+      max-height: 72px;
+      object-fit: contain;
+      margin: 0 auto;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .image-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.72);
+      display: grid;
+      gap: 8px;
+    }
+
+    .image-card img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      border-radius: 12px;
+      background: rgba(216, 231, 246, 0.55);
+    }
+
+    #giftFullDetail[hidden] {
+      display: none;
+    }
+
+    #giftImages[hidden] {
+      display: none;
+    }
+
+    .placeholder {
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      color: var(--muted);
+      background: var(--panel-strong);
+    }
+
+    #detailToggleBtn {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 30;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: linear-gradient(110deg, var(--accent-2), #f97316);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 14px 30px rgba(234, 88, 12, 0.25);
+      cursor: pointer;
+    }
+
+    #detailToggleBtn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-width: 920px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      #giftNav {
+        min-height: auto;
+      }
+
+      .gift-nav-mobile-select {
+        display: block;
+      }
+
+      .gift-nav-desktop-list {
+        display: none;
+      }
+
+      #giftWorkspace {
+        scroll-margin-top: 12px;
+      }
+
+      .nav-item {
+        min-width: unset;
+      }
+
+      .stats-grid,
+      .image-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-table,
+      .detail-table,
+      .kasha-overview-table,
+      .kasha-block-table,
+      .kasha-bundle-table,
+      .kasha-target-table {
+        min-width: 520px;
+      }
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../../rukou.html">返回首页</a>
+
+  <div class="layout">
+    <aside id="giftNav">
+      <div class="placeholder">礼包目录加载中...</div>
+    </aside>
+
+    <main id="giftWorkspace">
+      <div class="workspace-grid">
+        <section id="giftHero" class="workspace-card placeholder">礼包内容工作台加载中...</section>
+        <section id="giftStats" class="stats-grid"></section>
+        <section id="giftSections" class="section-grid"></section>
+        <section id="giftImages" class="image-grid" hidden></section>
+        <section id="giftFullDetail" class="workspace-card" hidden></section>
+      </div>
+    </main>
+  </div>
+
+  <button id="detailToggleBtn" type="button">查看礼包内容</button>
+
+  <script src="./gift-reference-hub.data.js"></script>
+  <script>
+    const workbookData = window.GIFT_REFERENCE_HUB_DATA || [];
+    const giftNav = document.getElementById("giftNav");
+    const detailToggleBtn = document.getElementById("detailToggleBtn");
+    const giftHero = document.getElementById("giftHero");
+    const giftStats = document.getElementById("giftStats");
+    const giftSections = document.getElementById("giftSections");
+    const giftImages = document.getElementById("giftImages");
+    const giftFullDetail = document.getElementById("giftFullDetail");
+    let activeIndex = 0;
+    let detailOpen = false;
+    let navFilter = '';
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function normalizeNavQuery(q) {
+      return String(q || '').trim().toLowerCase();
+    }
+
+    function itemMatchesNavFilter(item, q) {
+      const t = normalizeNavQuery(q);
+      if (!t) {
+        return true;
+      }
+      const hay = [
+        item.name,
+        item.category,
+        item.summary,
+        item.sourceSheet,
+      ].filter(Boolean).join('\n').toLowerCase();
+      return hay.includes(t);
+    }
+
+    function getFilteredNavEntries() {
+      return workbookData.map((item, index) => ({ item: item, index: index }))
+        .filter((entry) => itemMatchesNavFilter(entry.item, navFilter));
+    }
+
+    function isNarrowGiftNav() {
+      return typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 920px)').matches;
+    }
+
+    function scrollWorkspaceIntoViewMobile() {
+      if (!isNarrowGiftNav()) {
+        return;
+      }
+      const main = document.getElementById('giftWorkspace');
+      if (main && typeof main.scrollIntoView === 'function') {
+        main.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    function attachNavControls() {
+      const searchEl = document.getElementById('giftNavSearch');
+      const clearEl = document.getElementById('giftNavSearchClear');
+      const mobileSelect = document.getElementById('giftNavMobileSelect');
+
+      if (searchEl) {
+        searchEl.value = navFilter;
+        searchEl.addEventListener('input', () => {
+          navFilter = searchEl.value;
+          detailOpen = false;
+          renderActiveSheet();
+        });
+      }
+      if (clearEl) {
+        clearEl.addEventListener('click', () => {
+          navFilter = '';
+          if (searchEl) {
+            searchEl.value = '';
+            searchEl.focus();
+          }
+          detailOpen = false;
+          renderActiveSheet();
+        });
+      }
+      if (mobileSelect) {
+        mobileSelect.value = String(activeIndex);
+        mobileSelect.addEventListener('change', () => {
+          activeIndex = Number(mobileSelect.value);
+          detailOpen = false;
+          renderActiveSheet();
+          scrollWorkspaceIntoViewMobile();
+        });
+      }
+
+      Array.from(giftNav.querySelectorAll('.nav-item')).forEach((button) => {
+        button.addEventListener('click', () => {
+          activeIndex = Number(button.dataset.index);
+          detailOpen = false;
+          renderActiveSheet();
+        });
+      });
+    }
+
+    function renderNav() {
+      const entries = getFilteredNavEntries();
+      const total = workbookData.length;
+
+      if (entries.length && !entries.some((e) => e.index === activeIndex)) {
+        activeIndex = entries[0].index;
+      }
+
+      const metaText = normalizeNavQuery(navFilter)
+        ? ('显示 ' + entries.length + ' / ' + total + ' 个礼包')
+        : ('共 ' + total + ' 个礼包');
+
+      const tools =
+        '<div class="gift-nav-tools">' +
+          '<input id="giftNavSearch" class="gift-nav-search" type="search" autocomplete="off" placeholder="搜索礼包名称、分类或摘要" />' +
+          '<button id="giftNavSearchClear" class="gift-nav-search-clear" type="button">清空</button>' +
+        '</div>' +
+        '<p class="gift-nav-meta" id="giftNavMeta">' + escapeHtml(metaText) + '</p>';
+
+      let selectPart = '';
+      if (entries.length) {
+        selectPart =
+          '<label class="visually-mobile-select">' +
+            '<span class="sr-only">选择礼包</span>' +
+            '<select id="giftNavMobileSelect" class="gift-nav-mobile-select" aria-label="选择礼包">' +
+              entries.map((entry) => (
+                '<option value="' + entry.index + '"' + (entry.index === activeIndex ? ' selected' : '') + '>' +
+                  escapeHtml(entry.item.name + ' · ' + (entry.item.category || '未分类')) +
+                '</option>'
+              )).join('') +
+            '</select>' +
+          '</label>';
+      }
+
+      let listPart = '';
+      if (entries.length) {
+        listPart =
+          '<div class="gift-nav-desktop-list" id="giftNavDesktopList">' +
+            entries.map((entry) => (
+              '<button class="nav-item' + (entry.index === activeIndex ? ' active' : '') + '" type="button" data-index="' + entry.index + '">' +
+                '<strong>' + escapeHtml(entry.item.name) + '</strong>' +
+                '<span class="nav-meta">' + escapeHtml(entry.item.category || '未分类') + '</span>' +
+              '</button>'
+            )).join('') +
+          '</div>';
+      } else {
+        listPart =
+          '<div class="placeholder" id="giftNavEmpty">' +
+            escapeHtml(normalizeNavQuery(navFilter) ? '未找到匹配礼包，请尝试其他关键词' : '暂无礼包目录') +
+          '</div>';
+      }
+
+      const prevFocus = document.activeElement;
+      const keepSearchFocus = prevFocus && prevFocus.id === 'giftNavSearch';
+      let selStart;
+      let selEnd;
+      if (keepSearchFocus && typeof prevFocus.selectionStart === 'number') {
+        selStart = prevFocus.selectionStart;
+        selEnd = prevFocus.selectionEnd;
+      }
+
+      giftNav.innerHTML =
+        '<div class="gift-nav-shell">' +
+          tools +
+          selectPart +
+          listPart +
+        '</div>';
+
+      attachNavControls();
+
+      if (keepSearchFocus) {
+        const nextSearch = document.getElementById('giftNavSearch');
+        if (nextSearch) {
+          nextSearch.focus();
+          if (typeof selStart === 'number' && typeof nextSearch.setSelectionRange === 'function') {
+            try {
+              nextSearch.setSelectionRange(selStart, selEnd);
+            } catch (eIgnore) {}
+          }
+        }
+      }
+    }
+
+    function renderStats(stats) {
+      giftStats.innerHTML = (stats || []).map((stat) => (
+        '<article class="stat-card">' +
+          '<span class="stat-label">' + escapeHtml(stat.label) + '</span>' +
+          '<strong class="stat-value">' + escapeHtml(stat.value) + '</strong>' +
+        '</article>'
+      )).join('');
+    }
+
+    function renderCellContent(cell) {
+      if (cell && typeof cell === "object" && cell.type === "image") {
+        return '<img class="cell-image" src="' + escapeHtml(cell.src) + '" alt="' + escapeHtml(cell.alt || cell.title || "表格图片") + '">';
+      }
+      return escapeHtml(cell == null ? "" : cell);
+    }
+
+    function buildMergeMaps(mergeRefs, startRow, startCol) {
+      const leadMap = new Map();
+      const covered = new Set();
+
+      (mergeRefs || []).forEach((ref) => {
+        const parts = String(ref).split(':');
+        if (parts.length !== 2) {
+          return;
+        }
+        const [startRef, endRef] = parts;
+        const start = parseCellRef(startRef);
+        const end = parseCellRef(endRef);
+        const row = start.row - startRow;
+        const col = start.col - startCol;
+        leadMap.set(row + ':' + col, {
+          rowspan: end.row - start.row + 1,
+          colspan: end.col - start.col + 1,
+        });
+        for (let r = start.row; r <= end.row; r += 1) {
+          for (let c = start.col; c <= end.col; c += 1) {
+            if (r === start.row && c === start.col) continue;
+            covered.add((r - startRow) + ':' + (c - startCol));
+          }
+        }
+      });
+
+      return { leadMap, covered };
+    }
+
+    function parseCellRef(ref) {
+      const match = String(ref).match(/^([A-Z]+)(\d+)$/);
+      if (!match) {
+        return { row: 1, col: 1 };
+      }
+      const [, letters, rowText] = match;
+      let col = 0;
+      for (const ch of letters) {
+        col = col * 26 + (ch.charCodeAt(0) - 64);
+      }
+      return { row: Number(rowText), col };
+    }
+
+    function cellIsEmpty(cell) {
+      if (cell == null || cell === '') {
+        return true;
+      }
+      if (typeof cell === 'object' && cell.type === 'image') {
+        return false;
+      }
+      return String(cell).trim() === '';
+    }
+
+    function splitWorkbookGridIntoTables(sheet) {
+      const grid = sheet.sheetGrid;
+      if (!grid || !Array.isArray(grid.rows) || !grid.rows.length) {
+        return [];
+      }
+
+      const rows = grid.rows;
+      const merges = grid.merges || sheet.merges || [];
+      const startRow = grid.startRow || 1;
+      const startCol = grid.startCol || 1;
+      const groups = [];
+      let currentRows = [];
+      let currentStart = 0;
+
+      function isBoundaryRow(rowIndex) {
+        const absRow = startRow + rowIndex;
+        return merges.some((ref) => {
+          const parts = String(ref).split(':');
+          if (parts.length !== 2) return false;
+          const from = parseCellRef(parts[0]);
+          const to = parseCellRef(parts[1]);
+          const colspan = to.col - from.col + 1;
+          return from.row === absRow && from.col === startCol && colspan >= 4;
+        });
+      }
+
+      function flush(endIndex) {
+        if (!currentRows.length) return;
+        const absStart = startRow + currentStart;
+        const absEnd = startRow + endIndex - 1;
+        groups.push({
+          startRow: absStart,
+          startCol,
+          rows: currentRows.slice(),
+          merges: merges.filter((ref) => {
+            const parts = String(ref).split(':');
+            if (parts.length !== 2) return false;
+            const from = parseCellRef(parts[0]);
+            const to = parseCellRef(parts[1]);
+            return from.row >= absStart && to.row <= absEnd;
+          }),
+        });
+        currentRows = [];
+      }
+
+      rows.forEach((row, rowIndex) => {
+        const hasContent = row.some((cell) => !cellIsEmpty(cell));
+        if (!hasContent) {
+          flush(rowIndex);
+          return;
+        }
+        if (!currentRows.length) {
+          currentStart = rowIndex;
+          currentRows.push(row);
+          return;
+        }
+        if (isBoundaryRow(rowIndex)) {
+          flush(rowIndex);
+          currentStart = rowIndex;
+          currentRows.push(row);
+          return;
+        }
+        currentRows.push(row);
+      });
+
+      flush(rows.length);
+      return groups;
+    }
+
+    function renderWorkbookGrid(gridSource, sheet) {
+      const grid = gridSource.sheetGrid || gridSource;
+      if (!grid || !Array.isArray(grid.rows) || !grid.rows.length) {
+        return '';
+      }
+
+      const startRow = grid.startRow || 1;
+      const startCol = grid.startCol || 1;
+      const { leadMap, covered } = buildMergeMaps(grid.merges || sheet.merges || [], startRow, startCol);
+
+      return (
+        '<article class="section-card">' +
+          '<h3>' + escapeHtml(sheet.name) + '</h3>' +
+          '<div class="section-table-wrap">' +
+            '<table class="section-table">' +
+              '<tbody>' +
+                grid.rows.map((row, rowIndex) => (
+                  '<tr>' + row.map((cell, colIndex) => {
+                    const key = rowIndex + ':' + colIndex;
+                    if (covered.has(key)) {
+                      return '';
+                    }
+                    const merge = leadMap.get(key);
+                    const attrs = [
+                      merge && merge.rowspan > 1 ? ' rowspan="' + merge.rowspan + '"' : '',
+                      merge && merge.colspan > 1 ? ' colspan="' + merge.colspan + '"' : '',
+                    ].join('');
+                    return '<td' + attrs + '>' + renderCellContent(cell) + '</td>';
+                  }).join('') + '</tr>'
+                )).join('') +
+              '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</article>'
+      );
+    }
+
+    function renderWorkbookGridSections(sheet) {
+      return splitWorkbookGridIntoTables(sheet).map((grid) => renderWorkbookGrid(grid, sheet)).join('');
+    }
+
+    function renderNoteSection(section) {
+      return (
+        '<details class="note-section">' +
+          '<summary>' + escapeHtml(section.title || '说明') + '</summary>' +
+          (section.meta ? '<div class="note-meta">' + escapeHtml(section.meta) + '</div>' : '') +
+          '<div class="note-content">' + escapeHtml(section.content || '') + '</div>' +
+        '</details>'
+      );
+    }
+
+    function renderTableSection(section, tableClassName) {
+      const rows = Array.isArray(section.rows) ? section.rows : [];
+      if (!rows.length) {
+        return '<article class="section-card"><h3>' + escapeHtml(section.title || '内容区块') + '</h3><div class="placeholder">暂无表格数据</div></article>';
+      }
+
+      const header = rows[0];
+      const bodyRows = rows.slice(1);
+      return (
+        '<article class="section-card">' +
+          '<h3>' + escapeHtml(section.title || '内容区块') + '</h3>' +
+          '<div class="section-table-wrap">' +
+            '<table class="' + tableClassName + '">' +
+              '<thead><tr>' + header.map((cell) => '<th>' + renderCellContent(cell) + '</th>').join('') + '</tr></thead>' +
+              '<tbody>' +
+                bodyRows.map((row) => '<tr>' + row.map((cell) => '<td>' + renderCellContent(cell) + '</td>').join('') + '</tr>').join('') +
+              '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</article>'
+      );
+    }
+
+    function renderKashaWishHouseOverview(sections) {
+      const firstSection = sections[0];
+      const author = sections[0].meta || '制作:甜甜';
+      const titleColspan = firstSection.rows[0].length;
+
+      return (
+        '<article class="section-card">' +
+          '<div class="section-table-wrap">' +
+            '<table class="kasha-overview-table">' +
+              '<thead><tr class="kasha-band-row"><th colspan="' + titleColspan + '">喀莎的许愿屋</th><th class="kasha-author-cell">制作:甜甜</th></tr></thead>' +
+              '<tbody>' +
+                sections.map((section) => {
+                  const headerRow = section.rows[0];
+                  const valueRow = section.rows[1];
+                  return (
+                    '<tr>' +
+                      '<th class="kasha-progress-label" rowspan="2">' + renderCellContent(headerRow[0]) + '</th>' +
+                      headerRow.slice(1).map((cell) => '<th>' + renderCellContent(cell) + '</th>').join('') +
+                    '</tr>' +
+                    '<tr>' +
+                      valueRow.map((cell, index) => (index === 0 ? '<th>' + renderCellContent(cell) + '</th>' : '<td>' + renderCellContent(cell) + '</td>')).join('') +
+                    '</tr>'
+                  );
+                }).join('') +
+              '</tbody>' +
+            '</table>' +
+          '</div>' +
+        '</article>'
+      );
+    }
+
+    function renderKashaCompletionTable(rows) {
+      const label = rows[0][0];
+      const detailRows = rows.slice(1);
+      const rowspan = detailRows.length;
+      return (
+        '<table class="kasha-target-table">' +
+          '<tbody>' +
+            detailRows.map((row, index) => (
+              '<tr>' +
+                (index === 0 ? '<th class="kasha-target-label" rowspan="' + rowspan + '">' + renderCellContent(label) + '</th>' : '') +
+                row.map((cell, cellIndex) => ((cellIndex === 0 && index < 2) ? '<th>' + renderCellContent(cell) + '</th>' : '<td>' + renderCellContent(cell) + '</td>')).join('') +
+              '</tr>'
+            )).join('') +
+          '</tbody>' +
+        '</table>'
+      );
+    }
+
+    function renderKashaShopBundleBlock(shopSection, bundleSection) {
+      const shopRows = shopSection.rows || [];
+      const shopHeader = shopRows[0] || [];
+      const shopBody = shopRows.slice(1, -1);
+      const pointsRow = shopRows[shopRows.length - 1] || [];
+      const bundleRows = bundleSection.rows || [];
+      const bundleHeader = bundleRows[0] || [];
+      const bundleBaseRows = bundleRows.slice(1, 9);
+
+      const targetBlocks = [];
+      let start = 9;
+      while (start < bundleRows.length) {
+        const nextHeader = bundleRows.slice(start).findIndex((row, idx) => idx > 0 && String(row[0] || '').includes('完'));
+        if (nextHeader === -1) {
+          targetBlocks.push(bundleRows.slice(start));
+          break;
+        }
+        targetBlocks.push(bundleRows.slice(start, start + nextHeader));
+        start = start + nextHeader;
+      }
+
+      return (
+        '<article class="section-card">' +
+          '<div class="section-table-wrap">' +
+            '<table class="kasha-block-table">' +
+              '<thead><tr class="kasha-band-row"><th colspan="' + shopHeader.length + '">' + escapeHtml(shopSection.title) + '</th><th class="kasha-author-cell">' + escapeHtml(shopSection.meta || '制作:甜甜') + '</th></tr></thead>' +
+              '<tbody>' +
+                '<tr><th class="kasha-progress-label" rowspan="' + (shopBody.length + 1) + '">' + renderCellContent(shopHeader[0]) + '</th>' + shopHeader.slice(1).map((cell) => '<th>' + renderCellContent(cell) + '</th>').join('') + '</tr>' +
+                shopBody.map((row) => '<tr>' + row.map((cell) => '<td>' + renderCellContent(cell) + '</td>').join('') + '</tr>').join('') +
+                '<tr class="kasha-points-row"><th>' + renderCellContent(pointsRow[0] || '') + '</th><td colspan="' + Math.max(shopHeader.length - 2, 1) + '">' + renderCellContent(pointsRow[1] || '') + '</td></tr>' +
+              '</tbody>' +
+            '</table>' +
+          '</div>' +
+          '<div class="kasha-bundle-wrap">' +
+            '<div class="section-table-wrap">' +
+              '<table class="kasha-bundle-table">' +
+                '<thead><tr class="kasha-band-row"><th colspan="' + bundleHeader.length + '">' + escapeHtml(bundleSection.title) + '</th><th class="kasha-author-cell">' + escapeHtml(bundleSection.meta || '制作:甜甜') + '</th></tr></thead>' +
+                '<tbody>' +
+                  '<tr>' + bundleHeader.map((cell) => '<th>' + renderCellContent(cell) + '</th>').join('') + '</tr>' +
+                  bundleBaseRows.map((row) => '<tr class="' + (String(row[0] || '').includes('合计') ? 'kasha-total-row' : '') + '">' + row.map((cell) => '<td>' + renderCellContent(cell) + '</td>').join('') + '</tr>').join('') +
+                '</tbody>' +
+              '</table>' +
+            '</div>' +
+            targetBlocks.map((rows) => '<div class="section-table-wrap">' + renderKashaCompletionTable(rows) + '</div>').join('') +
+          '</div>' +
+        '</article>'
+      );
+    }
+
+    function renderSections(sheet) {
+      const sections = sheet.sections || [];
+
+      if (sheet.name === '喀莎许愿屋') {
+        const overview = renderKashaWishHouseOverview(sections.slice(0, 4));
+        const progress = renderKashaShopBundleBlock(sections[4], sections[5]);
+        const preEmpower = renderKashaShopBundleBlock(sections[6], sections[7]);
+        const preNoEmpower = renderKashaShopBundleBlock(sections[8], sections[9]);
+        giftSections.innerHTML = overview + progress + preEmpower + preNoEmpower;
+        return;
+      }
+
+      giftSections.innerHTML = sections.map((section) => {
+        if (section.type === 'note') {
+          return renderNoteSection(section);
+        }
+        return renderTableSection(section, 'section-table');
+      }).join('');
+    }
+
+    function renderImages(images) {
+      const galleryImages = (images || []).filter((image) => image && image.scope === "gallery");
+      if (!galleryImages.length) {
+        giftImages.hidden = true;
+        giftImages.innerHTML = '<article class="workspace-card placeholder">暂无截图</article>';
+        return;
+      }
+
+      giftImages.hidden = false;
+      giftImages.innerHTML = galleryImages.map((image) => (
+        '<article class="image-card">' +
+          '<img src="' + escapeHtml(image.src) + '" alt="' + escapeHtml(image.alt || image.title || "礼包截图") + '">' +
+          '<strong>' + escapeHtml(image.title || '礼包截图') + '</strong>' +
+        '</article>'
+      )).join('');
+    }
+
+    function renderFullDetailTable(section) {
+      return renderTableSection(section, 'detail-table');
+    }
+
+    function renderFullDetail(sheet) {
+      if (!detailOpen) {
+        giftFullDetail.hidden = true;
+        return;
+      }
+
+      giftFullDetail.hidden = false;
+      giftFullDetail.innerHTML =
+        '<h3 style="margin-bottom:10px;">完整明细</h3>' +
+        (sheet.fullDetail.sections || []).map((section) => renderFullDetailTable(section)).join('');
+    }
+
+    function renderActiveSheet() {
+      if (!workbookData.length) {
+        giftNav.innerHTML = '<div class="placeholder">礼包目录加载失败</div>';
+        giftHero.textContent = '礼包内容工作台加载失败';
+        giftStats.innerHTML = '';
+        giftSections.innerHTML = '';
+        giftImages.hidden = true;
+        giftImages.innerHTML = '<article class="workspace-card placeholder">暂无截图</article>';
+        giftFullDetail.hidden = true;
+        detailToggleBtn.disabled = true;
+        return;
+      }
+
+      renderNav();
+
+      const filteredEntries = getFilteredNavEntries();
+      if (!filteredEntries.length) {
+        giftHero.innerHTML =
+          '<div class="workspace-title">未找到匹配的礼包</div>' +
+          '<div class="workspace-summary">请在上方礼包栏清空或更换搜索关键词后重试。</div>';
+        giftStats.innerHTML = '';
+        giftSections.innerHTML = '';
+        giftImages.hidden = true;
+        giftImages.innerHTML = '<article class="workspace-card placeholder">暂无截图</article>';
+        giftFullDetail.hidden = true;
+        detailToggleBtn.textContent = '查看礼包内容';
+        detailToggleBtn.disabled = true;
+        return;
+      }
+
+      detailToggleBtn.disabled = false;
+
+      const sheet = workbookData[activeIndex];
+      if (!sheet) {
+        giftNav.innerHTML = '<div class="placeholder">未找到可展示的工作表</div>';
+        giftHero.textContent = '暂无可展示数据';
+        giftStats.innerHTML = '';
+        giftSections.innerHTML = '';
+        giftImages.hidden = true;
+        giftImages.innerHTML = '<article class="workspace-card placeholder">暂无截图</article>';
+        giftFullDetail.hidden = true;
+        detailToggleBtn.disabled = true;
+        return;
+      }
+
+      giftHero.innerHTML =
+        '<div class="workspace-title">' + escapeHtml(sheet.name) + '</div>' +
+        '<div class="workspace-summary">' + escapeHtml(sheet.summary || '参考表内容总览') + '</div>';
+      renderStats(sheet.stats || []);
+      renderSections(sheet);
+      renderImages(sheet.images || []);
+      renderFullDetail(sheet);
+      detailToggleBtn.textContent = detailOpen ? '收起礼包内容' : '查看礼包内容';
+    }
+
+    detailToggleBtn.addEventListener("click", () => {
+      if (detailToggleBtn.disabled) return;
+      detailOpen = !detailOpen;
+      renderActiveSheet();
+    });
+
+    renderActiveSheet();
+  </script>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的信息 - 无尽冬日工具箱</title>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+  <style>
+    :root{--bg1:#0b1220;--bg2:#0f172a;--surface:rgba(30,41,59,.92);--border:rgba(255,255,255,.12);--text:#e5e7eb;--muted:#94a3b8;--blue:#3b82f6;--danger:#ef4444;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh;color:var(--text);
+      background:radial-gradient(900px 600px at 18% 0%, rgba(59,130,246,.22), transparent 60%),
+               radial-gradient(700px 520px at 92% 8%, rgba(139,92,246,.18), transparent 60%),
+               linear-gradient(135deg,var(--bg1),var(--bg2));
+      padding:16px;
+    }
+    .wrap{max-width:980px;margin:0 auto;display:grid;gap:12px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    .back{color:var(--text);text-decoration:none;border:1px solid var(--border);background:rgba(15,23,42,.55);padding:8px 12px;border-radius:10px;}
+    .back:hover{background:rgba(59,130,246,.18);}
+    .pill{border:1px solid var(--border);background:rgba(15,23,42,.55);padding:8px 12px;border-radius:999px;color:var(--muted);font-size:.9rem;}
+    .card{border:1px solid var(--border);background:var(--surface);border-radius:14px;box-shadow:0 16px 32px rgba(0,0,0,.35);padding:14px;}
+    .title{font-size:1.25rem;font-weight:800;letter-spacing:.2px;}
+    .sub{margin-top:6px;color:var(--muted);line-height:1.5;}
+    .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px;}
+    .btn{border:1px solid var(--border);background:rgba(59,130,246,.18);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700;}
+    .btn:hover{background:rgba(59,130,246,.28);}
+    .btn.danger{background:rgba(239,68,68,.16);}
+    .btn.danger:hover{background:rgba(239,68,68,.26);}
+    .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px;}
+    .kpi{padding:12px;border-radius:14px;border:1px solid var(--border);background:rgba(15,23,42,.45);text-align:left;}
+    .kpi .k{color:var(--muted);font-size:.85rem;}
+    .kpi .v{margin-top:6px;font-size:1.4rem;font-weight:900;}
+    .kpi button{width:100%;text-align:left;background:transparent;border:none;color:inherit;cursor:pointer}
+    .list{margin-top:10px;display:grid;gap:8px;}
+    .item{border:1px solid var(--border);background:rgba(15,23,42,.45);border-radius:12px;padding:10px;}
+    .item .t{font-weight:800;line-height:1.35;}
+    .item .m{margin-top:6px;color:var(--muted);font-size:.85rem;}
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);padding:16px;z-index:10010;}
+    .modal.open{display:flex;}
+    .panel{width:min(860px,95vw);max-height:86vh;overflow:auto;border-radius:14px;border:1px solid var(--border);background:rgba(30,41,59,.96);box-shadow:0 18px 48px rgba(0,0,0,.45);padding:14px;}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+    .panel-head h3{margin:0;font-size:1.05rem;color:#60a5fa;}
+    .close{border:none;background:rgba(239,68,68,.2);color:#fecaca;width:34px;height:34px;border-radius:10px;cursor:pointer;font-size:16px;}
+    .search{width:100%;margin-top:8px;border:1px solid var(--border);background:rgba(15,23,42,.6);color:var(--text);padding:10px 12px;border-radius:12px;outline:none;}
+    .hint{color:var(--muted);font-size:.9rem;line-height:1.6;}
+    @media (max-width:820px){.grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="back" href="/?tab=my">← 返回首页</a>
+      <div class="pill" id="authPill">检查登录中…</div>
+    </div>
+
+    <section class="card">
+      <div class="title">我的信息</div>
+      <div class="sub" id="profileSub">用于查看个人资料、收藏、点赞与快捷入口。</div>
+      <div class="row">
+        <button class="btn" id="btnLogin" type="button">登录/注册</button>
+        <button class="btn danger" id="btnLogout" type="button" style="display:none;">退出登录</button>
+      </div>
+      <div class="grid">
+        <div class="kpi"><button id="openProfileBtn" type="button"><div class="k">个人资料</div><div class="v" id="kpiProfile">—</div></button></div>
+        <div class="kpi"><button id="openFavoritesBtn" type="button"><div class="k">我的收藏</div><div class="v" id="kpiFavorites">0</div></button></div>
+        <div class="kpi"><button id="openLikesBtn" type="button"><div class="k">我的点赞</div><div class="v" id="kpiLikes">0</div></button></div>
+      </div>
+      <div class="list">
+        <div class="item">
+          <div class="t">交流论坛</div>
+          <div class="m">发布文章、查看攻略与讨论。</div>
+          <div class="row"><a class="btn" href="/function/forum.html">前往论坛</a></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- 登录弹窗（轻量） -->
+  <div class="modal" id="authModal" aria-hidden="true">
+    <div class="panel" role="dialog" aria-modal="true" aria-label="登录/注册">
+      <div class="panel-head">
+        <h3>登录 / 注册</h3>
+        <button class="close" id="authClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <p class="hint">提示：账号 ID 与用户名是两套概念；此处输入的是登录 ID/用户名（与你后端规则一致）。</p>
+      <input class="search" id="authUsername" autocomplete="username" placeholder="请输入用户名/ID" />
+      <input class="search" id="authPassword" type="password" autocomplete="current-password" placeholder="请输入密码" />
+      <div class="row">
+        <button class="btn" id="authDoLogin" type="button">登录</button>
+        <button class="btn" id="authDoRegister" type="button">注册并登录</button>
+      </div>
+      <p class="hint" id="authError" style="color:#fecaca;min-height:20px;"></p>
+    </div>
+  </div>
+
+  <!-- 列表弹窗 -->
+  <div class="modal" id="listModal" aria-hidden="true">
+    <div class="panel" role="dialog" aria-modal="true" aria-label="详情">
+      <div class="panel-head">
+        <h3 id="listTitle">详情</h3>
+        <button class="close" id="listClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <input class="search" id="listSearch" type="search" placeholder="搜索标题/分区…" />
+      <div class="list" id="listBody"></div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      function apiFetch(url, opts){
+        opts = opts || {};
+        return fetch(url, {
+          credentials:'include',
+          headers: Object.assign({'Content-Type':'application/json'}, opts.headers || {}),
+          method: opts.method || 'GET',
+          body: opts.body
+        });
+      }
+      function $(id){ return document.getElementById(id); }
+      function esc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+      var authUser = null;
+      var authChecked = false;
+      var favorites = [];
+      var likes = [];
+
+      function setAuthUI(){
+        var pill = $('authPill');
+        var btnLogin = $('btnLogin');
+        var btnLogout = $('btnLogout');
+        if (authUser){
+          pill.textContent = (authUser.username || authUser.loginId || '');
+          btnLogin.style.display = 'none';
+          btnLogout.textContent = '退出登录';
+          btnLogout.style.display = '';
+          $('kpiProfile').textContent = '查看';
+        } else {
+          pill.textContent = '未登录';
+          btnLogin.style.display = '';
+          btnLogout.style.display = 'none';
+          $('kpiProfile').textContent = '请登录';
+        }
+      }
+
+      function openAuth(){ $('authModal').classList.add('open'); $('authModal').setAttribute('aria-hidden','false'); setTimeout(()=>$('authUsername').focus(),0); }
+      function closeAuth(){ $('authModal').classList.remove('open'); $('authModal').setAttribute('aria-hidden','true'); }
+      function openList(title, rows){
+        $('listTitle').textContent = title;
+        $('listSearch').value = '';
+        renderList(rows);
+        $('listModal').classList.add('open');
+        $('listModal').setAttribute('aria-hidden','false');
+        setTimeout(()=>$('listSearch').focus(),0);
+      }
+      function closeList(){ $('listModal').classList.remove('open'); $('listModal').setAttribute('aria-hidden','true'); }
+
+      function renderList(rows){
+        var q = String($('listSearch').value || '').trim().toLowerCase();
+        var body = $('listBody');
+        var filtered = (rows||[]).filter(r => {
+          var t = (r.title || '').toLowerCase();
+          var s = (r.section || '').toLowerCase();
+          return !q || t.includes(q) || s.includes(q);
+        });
+        if (!filtered.length){
+          body.innerHTML = '<p class="hint">暂无数据。</p>';
+          return;
+        }
+        body.innerHTML = filtered.map(r => {
+          var title = esc(r.title || '(无标题)');
+          var section = esc(r.section || '');
+          var meta = '分区：' + section + (r.createdAt ? ' · ' + esc(String(r.createdAt)) : '');
+          return '<div class="item"><div class="t">' + title + '</div><div class="m">' + meta + '</div></div>';
+        }).join('');
+      }
+
+      function refreshMe(){
+        return apiFetch('/api/auth/me',{method:'GET'}).then(r=>r.json().catch(()=>({}))).then(d=>{
+          authUser = d && d.authenticated ? d.user : null;
+          authChecked = true;
+          setAuthUI();
+          return authUser;
+        }).catch(()=>{
+          authUser = null;
+          authChecked = true;
+          setAuthUI();
+          return null;
+        });
+      }
+
+      function loadCounts(){
+        if (!authUser){
+          $('kpiFavorites').textContent = '0';
+          $('kpiLikes').textContent = '0';
+          favorites = [];
+          likes = [];
+          return Promise.resolve();
+        }
+        return Promise.all([
+          apiFetch('/api/me/favorites',{method:'GET'}).then(r=>r.json().catch(()=>({}))).then(d=>{ favorites = (d && d.posts) ? d.posts : []; $('kpiFavorites').textContent = String(favorites.length||0); }).catch(()=>{ favorites=[]; $('kpiFavorites').textContent='0'; }),
+          apiFetch('/api/me/likes',{method:'GET'}).then(r=>r.json().catch(()=>({}))).then(d=>{ likes = (d && d.posts) ? d.posts : []; $('kpiLikes').textContent = String(likes.length||0); }).catch(()=>{ likes=[]; $('kpiLikes').textContent='0'; })
+        ]).then(()=>{});
+      }
+
+      function doAuth(mode){
+        $('authError').textContent='';
+        var u = String($('authUsername').value||'').trim();
+        var p = String($('authPassword').value||'').trim();
+        if (!u || !p){ $('authError').textContent='请输入用户名和密码。'; return; }
+        apiFetch(mode==='register'?'/api/auth/register':'/api/auth/login',{method:'POST',body:JSON.stringify({username:u,password:p})})
+          .then(async r=>{
+            var j = await r.json().catch(()=>({}));
+            if (!r.ok) throw new Error(j && j.error ? j.error : 'AUTH_FAILED');
+            return j;
+          })
+          .then(()=>refreshMe())
+          .then(()=>loadCounts())
+          .then(()=>closeAuth())
+          .catch(e=>{ $('authError').textContent = String(e && e.message || '登录失败'); });
+      }
+
+      function logout(){
+        apiFetch('/api/auth/logout',{method:'POST',body:'{}'}).catch(()=>{});
+        authUser=null;authChecked=true;
+        setAuthUI();
+        loadCounts();
+      }
+
+      $('btnLogin').addEventListener('click', openAuth);
+      $('btnLogout').addEventListener('click', logout);
+      $('authClose').addEventListener('click', closeAuth);
+      $('authModal').addEventListener('click', e=>{ if (e.target === $('authModal')) closeAuth(); });
+      $('authDoLogin').addEventListener('click', ()=>doAuth('login'));
+      $('authDoRegister').addEventListener('click', ()=>doAuth('register'));
+      document.addEventListener('keydown', e=>{ if (e.key === 'Escape') { closeAuth(); closeList(); } });
+
+      $('openFavoritesBtn').addEventListener('click', ()=>{ if (!authUser) return openAuth(); openList('我的收藏', favorites); });
+      $('openLikesBtn').addEventListener('click', ()=>{ if (!authUser) return openAuth(); openList('我的点赞', likes); });
+      $('openProfileBtn').addEventListener('click', ()=>{ if (!authUser) return openAuth(); openList('个人资料', [{ title: authUser.username || authUser.loginId || '用户', section: 'ID: ' + (authUser.loginId || authUser.id || '') }]); });
+      $('listClose').addEventListener('click', closeList);
+      $('listModal').addEventListener('click', e=>{ if (e.target === $('listModal')) closeList(); });
+      $('listSearch').addEventListener('input', ()=>{ renderList(($('listTitle').textContent.includes('收藏'))?favorites:likes); });
+
+      refreshMe().then(loadCounts);
+    })();
+  </script>
+</body>
+</html>
+

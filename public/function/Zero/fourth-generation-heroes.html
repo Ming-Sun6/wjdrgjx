@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>第四代英雄数据</title>
+  <style>
+    :root{
+      --bg1:#0b1220;
+      --bg2:#111827;
+      --glow1:rgba(59,130,246,.24);
+      --glow2:rgba(14,165,233,.18);
+      --card:rgba(15,23,42,.75);
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --border:rgba(255,255,255,.12);
+      --blue:#60a5fa;
+      --blue-strong:#3b82f6;
+      --hero-red:#fb7185;
+      --back-bg:rgba(15,23,42,.8);
+      --back-text:#e5e7eb;
+      --card-shadow:0 16px 40px rgba(2,6,23,.38);
+      --tab-muted:#9ca3af;
+      --image-bg:rgba(148,163,184,.14);
+    }
+    html[data-theme="night"]{
+      color-scheme:dark;
+    }
+    html[data-theme="day"]{
+      --bg1:#eef4ff;
+      --bg2:#f8fbff;
+      --glow1:rgba(59,130,246,.20);
+      --glow2:rgba(16,185,129,.14);
+      --card:rgba(255,255,255,.88);
+      --text:#0f172a;
+      --muted:#475569;
+      --border:rgba(15,23,42,.14);
+      --blue:#2563eb;
+      --blue-strong:#1d4ed8;
+      --hero-red:#e11d48;
+      --back-bg:#1f2937;
+      --back-text:#f8fafc;
+      --card-shadow:0 12px 28px rgba(15,23,42,.12);
+      --tab-muted:#6b7280;
+      --image-bg:rgba(148,163,184,.18);
+      color-scheme:light;
+    }
+    *{box-sizing:border-box}
+    html.theme-switching,
+    html.theme-switching body,
+    html.theme-switching *{
+      transition:background-color .28s ease,color .28s ease,border-color .28s ease,box-shadow .28s ease !important;
+    }
+    body{
+      margin:0;
+      font-family:"HarmonyOS Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      min-height:100vh;
+      background:
+        radial-gradient(1200px 650px at 18% 8%, var(--glow1), transparent 55%),
+        radial-gradient(1000px 620px at 88% 12%, var(--glow2), transparent 56%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      color:var(--text);
+      overflow-x:hidden;
+    }
+    .page{
+      max-width:980px;
+      margin:0 auto;
+      padding:16px 12px 30px;
+    }
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:10px;
+    }
+    .title{
+      font-size:clamp(1.3rem, 2.4vw, 1.9rem);
+      font-weight:900;
+      letter-spacing:.02em;
+      text-shadow:0 2px 8px rgba(2,6,23,.2);
+      margin:0;
+    }
+    .back{
+      text-decoration:none;
+      color:var(--back-text);
+      background:var(--back-bg);
+      border:1px solid var(--border);
+      padding:8px 12px;
+      border-radius:8px;
+      font-size:14px;
+      font-weight:700;
+    }
+    .small{
+      color:var(--muted);
+      font-size:.86rem;
+      margin:0 0 14px;
+      line-height:1.6;
+      padding:8px 10px;
+      border:1px dashed var(--border);
+      border-radius:10px;
+      background:rgba(148,163,184,.08);
+    }
+    .hero-list{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px;
+      box-shadow:var(--card-shadow);
+      backdrop-filter:blur(8px);
+    }
+    .hero-head{
+      display:flex;
+      align-items:baseline;
+      flex-wrap:wrap;
+      gap:8px 18px;
+      margin-bottom:10px;
+    }
+    .hero-intro{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 280px;
+      gap:12px;
+      align-items:stretch;
+      margin-bottom:4px;
+    }
+    .hero-main{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+    }
+    .hero-name{
+      color:var(--hero-red);
+      font-size:clamp(1.9rem, 4vw, 2.8rem);
+      line-height:1.05;
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+    .hero-attr{
+      color:var(--blue);
+      font-size:clamp(1rem, 2.2vw, 1.4rem);
+      font-weight:800;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(96,165,250,.45);
+      background:rgba(96,165,250,.12);
+      border:1px solid color-mix(in srgb, var(--blue) 45%, transparent);
+      background:color-mix(in srgb, var(--blue) 12%, transparent);
+    }
+    .recommend{
+      font-size:clamp(1.05rem, 2.1vw, 1.45rem);
+      font-weight:700;
+      margin:8px 0 14px;
+      line-height:1.6;
+      color:var(--text);
+      color:color-mix(in srgb, var(--text) 92%, var(--blue) 8%);
+    }
+    .hero-image-wrap{
+      background:var(--image-bg);
+      border:1px solid var(--border);
+      border-radius:12px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      min-height:210px;
+      overflow:hidden;
+    }
+    .hero-image{
+      width:100%;
+      max-width:260px;
+      height:auto;
+      display:block;
+      object-fit:contain;
+      filter:drop-shadow(0 14px 18px rgba(2,6,23,.22));
+    }
+    .hero-image-missing{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      user-select:none;
+    }
+    .info{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:2px;
+    }
+    .info-col{
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:rgba(148,163,184,.08);
+    }
+    .info-col-obtain{
+      grid-column:1 / -1;
+    }
+    .info h3{
+      margin:0 0 8px;
+      font-size:clamp(1.2rem, 2.2vw, 1.55rem);
+      font-weight:800;
+      letter-spacing:.04em;
+      color:var(--blue);
+      white-space:nowrap;
+    }
+    .line{
+      font-size:clamp(1.12rem, 2.15vw, 1.38rem);
+      font-weight:760;
+      line-height:1.58;
+      margin:0;
+      letter-spacing:.01em;
+      white-space:nowrap;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    .line + .line{
+      margin-top:2px;
+    }
+    .line-obtain{
+      font-size:clamp(1.08rem, 2vw, 1.28rem);
+      font-weight:700;
+      color:var(--text);
+      color:color-mix(in srgb, var(--text) 90%, var(--blue) 10%);
+      white-space:nowrap;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    .obtain-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:2px 14px;
+      align-items:start;
+    }
+    .skill-tabs{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+      margin-bottom:10px;
+      border-top:1px solid var(--border);
+      padding-top:10px;
+    }
+    .skill-tab{
+      position:relative;
+      background:transparent;
+      border:none;
+      color:var(--tab-muted);
+      font-size:clamp(1rem, 1.9vw, 1.35rem);
+      font-weight:500;
+      cursor:pointer;
+      padding:0 2px 8px;
+      text-align:center;
+      white-space:nowrap;
+    }
+    .skill-tab.active{
+      color:var(--text);
+      font-weight:700;
+    }
+    .skill-tab.active::after{
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      height:6px;
+      border-radius:999px;
+      background:var(--blue-strong);
+    }
+    .skill-panel{
+      display:none;
+    }
+    .skill-panel.active{
+      display:block;
+    }
+    .skill-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .skill-item h4{
+      margin:0 0 8px;
+      font-size:clamp(1.15rem, 2.2vw, 1.5rem);
+      line-height:1.2;
+      font-weight:900;
+      color:var(--text);
+      color:color-mix(in srgb, var(--text) 86%, var(--blue) 14%);
+    }
+    .skill-line{
+      margin:0;
+      font-size:clamp(1.08rem, 1.95vw, 1.25rem);
+      line-height:1.65;
+      font-weight:650;
+      color:var(--text);
+      color:color-mix(in srgb, var(--text) 95%, var(--muted) 5%);
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    .skill-line + .skill-line{ margin-top:2px; }
+    .theme-toggle-btn{
+      position:fixed;
+      right:14px;
+      bottom:14px;
+      z-index:10060;
+      width:40px;
+      height:40px;
+      margin:0;
+      padding:0;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--back-bg);
+      color:var(--back-text);
+      box-shadow:0 10px 22px rgba(2,6,23,.28);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:transform .18s ease, box-shadow .22s ease, background-color .22s ease;
+    }
+    .theme-toggle-btn:hover{
+      transform:translateY(-2px) scale(1.04);
+      box-shadow:0 14px 30px rgba(37,99,235,.28);
+    }
+    .theme-toggle-btn:active{
+      transform:translateY(0) scale(.96);
+    }
+    .theme-icon{
+      width:20px;
+      height:20px;
+      display:block;
+      fill:currentColor;
+      pointer-events:none;
+    }
+    @media (max-width: 860px){
+      .hero-intro{grid-template-columns:minmax(0,1fr) 220px;}
+      .hero-image-wrap{min-height:170px;}
+      .hero-image{max-width:205px;}
+      .info h3{font-size:clamp(1.1rem, 2.9vw, 1.35rem);}
+      .skill-tab{font-size:clamp(.95rem, 2.6vw, 1.15rem);}
+    }
+    @media (max-width: 680px){
+      .top{flex-wrap:wrap;align-items:flex-start;}
+      .page{padding:12px 8px 24px;}
+      .hero-intro{grid-template-columns:minmax(0,1fr) 168px;}
+      .hero-image-wrap{min-height:140px;}
+      .hero-image{max-width:150px;}
+      .info{gap:6px;}
+      .info-col{padding:8px 8px;}
+      .info h3{font-size:1rem;letter-spacing:0;}
+      .line{font-size:.9rem;letter-spacing:0;}
+      .line-obtain{font-size:.86rem;letter-spacing:0;}
+      .obtain-grid{gap:2px 8px;}
+      .skill-tabs{gap:6px;}
+      .skill-tab{font-size:.92rem;padding-bottom:6px;}
+      .back{font-size:13px;}
+    }
+    @media (max-width: 420px){
+      .hero-intro{grid-template-columns:minmax(0,1fr) 136px;gap:10px;}
+      .hero-image-wrap{min-height:120px;}
+      .hero-image{max-width:118px;}
+      .info h3{font-size:.92rem;}
+      .line{font-size:.82rem;}
+      .line-obtain{font-size:.78rem;}
+      .skill-tab{font-size:.82rem;}
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="top">
+      <h1 class="title">第四代英雄数据</h1>
+      <a class="back" href="hero-data.html">返回英雄数据</a>
+    </div>
+    <div class="hero-list" id="heroList"></div>
+  </main>
+  <script>
+    const heroes = [
+      {
+        name: "阿赫莫斯",
+        image: "../../Scores/yx/ahemosi.png",
+        attr: "属性: 盾",
+        advice: "培养建议：四代最强盾",
+        exploreStats: ["攻击3150", "防御4106", "生命61604"],
+        expeditionStats: ["兵种攻击力", "370.29%", "兵种防御力", "370.29%"],
+        obtainWays: ["冻土之王", "最强王国", "每日特惠", "传说通用英雄信物"],
+        skills: {
+          explore: [
+            {
+              name: "克图格亚之佑",
+              lines: [
+                "自身受到伤害进入无敌状态,",
+                "友军受到伤害降低30%/40%/50%/60%/70%的伤害,持续2回合"
+              ]
+            },
+            {
+              name: "破日之锋",
+              lines: [
+                "造成攻击力*98%的伤害并使敌方受到的伤害",
+                "提升70%/240%/260%/280%/300%持续2秒"
+              ]
+            },
+            {
+              name: "先祖的祝福",
+              lines: ["每秒回复攻击力的30%/33%/36%/39%/42%生命值,持续5秒"]
+            }
+          ],
+          expedition: [
+            {
+              name: "腹蛇方阵",
+              lines: [
+                "盾兵每4次攻击后将放弃下次攻击,",
+                "使矛兵射手的受到的伤害降低10%/15%/20%/25%/30%,",
+                "盾兵受到的伤害降低10%/25%/40%/55%/70%,持续1回合"
+              ]
+            },
+            {
+              name: "火之祝祷",
+              lines: ["盾兵的战斗伤害提升6%/12%/18%/24%/30%"]
+            },
+            {
+              name: "光铸之刃",
+              lines: ["升盾兵的30%伤害,使目标受到的伤害提升10%/10%/20%/30%/30%"]
+            }
+          ],
+          weapon: [
+            {
+              name: "不屈信念",
+              lines: ["友军攻击力提升42%,持续2.5秒"]
+            },
+            {
+              name: "守护者之誓",
+              lines: ["使守城部队生命值提升15%"]
+            }
+          ]
+        }
+      },
+      {
+        name: "玲奈",
+        image: "../../Scores/yx/lingnai.png",
+        attr: "属性: 矛",
+        advice: "培养建议：竞技场强势",
+        exploreStats: ["攻击4106", "防御4106", "生命41070"],
+        expeditionStats: ["兵种攻击力", "370.29%", "兵种防御力", "370.29%"],
+        obtainWays: ["英雄殿堂", "传说通用英雄信物"],
+        skills: {
+          explore: [
+            {
+              name: "幻影突袭",
+              lines: [
+                "瞬移到敌人身后造成当前攻击力*300%/330%/360%/390%/420%的伤害"
+              ]
+            },
+            {
+              name: "影遁秘术",
+              lines: ["受到普通攻击有5%/10%/15%/20%/25%的几率躲过,免于受到伤害"]
+            },
+            {
+              name: "魅魔之术",
+              lines: [
+                "造成攻击力*100%/110%/120%/130%/140%的伤害",
+                "并使其1.5秒内无法行动"
+              ]
+            }
+          ],
+          expedition: [
+            {
+              name: "刺客本能",
+              lines: ["使我军全体军队普通攻击伤害提升10%/15%/20%/25%/30%"]
+            },
+            {
+              name: "迅影舞步",
+              lines: ["使矛兵受到普通攻击时有10%/15%/20%/25%/30%几率躲避"]
+            },
+            {
+              name: "影刃",
+              lines: [
+                "使矛兵有25%的几率额外攻击一次",
+                "造成120%/140%/160%/180%/200%的伤害"
+              ]
+            }
+          ],
+          weapon: [
+            {
+              name: "残影一击",
+              lines: ["普通攻击时有40%几率造成额外45%伤害"]
+            },
+            {
+              name: "侵略之火",
+              lines: ["使集结部队穿透力提升15%"]
+            }
+          ]
+        }
+      },
+      {
+        name: "琳恩",
+        image: "../../Scores/yx/linen.png",
+        attr: "属性: 弓",
+        advice: "培养建议：顶级辅助,无敌",
+        exploreStats: ["攻击4989", "防御4106", "生命30802"],
+        expeditionStats: ["兵种攻击力", "370.29%", "兵种防御力", "370.29%"],
+        obtainWays: ["心愿小筑", "传说通用英雄信物"],
+        skills: {
+          explore: [
+            {
+              name: "锡德拉克战歌",
+              lines: [
+                "使我方全体脱离异常状态,并提升攻击力3%/4%/5%/6%/7%",
+                "持续3/3.5/4/4.5/5秒,期间不受异常状态"
+              ]
+            },
+            {
+              name: "夺命终曲",
+              lines: ["对治愈敌人造成攻击220%/240%/260%/280%/300%的伤害"]
+            },
+            {
+              name: "不协和音",
+              lines: [
+                "使敌方全体攻击速度降低1%/1.5%/2%/2.5%/3%",
+                "并使其治疗效果降低40%/45%/50%/55%/60%"
+              ]
+            }
+          ],
+          expedition: [
+            {
+              name: "雄狮之歌",
+              lines: ["有40%几率使我军全体军队穿透力提升10%/20%/30%/40%/50%"]
+            },
+            {
+              name: "悲戚之音",
+              lines: ["使敌军全体部队穿透力降低4%/8%/12%/16%/20%"]
+            },
+            {
+              name: "欧纳伊华",
+              lines: [
+                "射手每3次普通攻击可使自身攻击力提升1%/2%/3%/4%/5%",
+                "可叠加,持续至战斗结束"
+              ]
+            }
+          ],
+          weapon: [
+            {
+              name: "艾拉的挽歌",
+              lines: ["释放战歌后,自身攻击力提升15%,直至战斗结束"]
+            },
+            {
+              name: "伊拉衣的执念",
+              lines: ["使守城部队穿透力提升15%"]
+            }
+          ]
+        }
+      }
+    ];
+
+    const heroListEl = document.getElementById("heroList");
+    const skillTypes = [
+      { key: "explore", label: "探险技能" },
+      { key: "expedition", label: "远征技能" },
+      { key: "weapon", label: "专属武器" }
+    ];
+
+    function renderLines(list, lineClass){
+      const cls = lineClass || "line";
+      return list.map((text) => `<p class="${cls}">${text}</p>`).join("");
+    }
+
+    function renderExpeditionStats(list){
+      const source = Array.isArray(list) ? list : [];
+      if(source.length >= 2 && source.length % 2 === 0){
+        let html = "";
+        for(let i=0;i<source.length;i+=2){
+          html += `<p class="line">${source[i]}</p>`;
+          html += `<p class="line">${source[i+1]}</p>`;
+        }
+        return html;
+      }
+      return renderLines(source);
+    }
+
+    function renderSkillItems(list){
+      return list.map((item) => {
+        const lines = item.lines.map((line) => `<p class="skill-line">${line}</p>`).join("");
+        return `<article class="skill-item"><h4>${item.name}</h4>${lines}</article>`;
+      }).join("");
+    }
+
+    function renderObtainWays(list){
+      const linesHtml = renderLines(list, "line line-obtain");
+      if ((list || []).length >= 5){
+        return `<div class="obtain-grid">${linesHtml}</div>`;
+      }
+      return linesHtml;
+    }
+
+    function renderHero(hero, heroIndex){
+      const tabs = skillTypes.map((type, idx) => {
+        return `<button class="skill-tab${idx===0 ? " active" : ""}" type="button" data-hero-index="${heroIndex}" data-skill-type="${type.key}">${type.label}</button>`;
+      }).join("");
+      const panels = skillTypes.map((type, idx) => {
+        const list = hero.skills[type.key] || [];
+        return `
+          <section class="skill-panel${idx===0 ? " active" : ""}" data-hero-index="${heroIndex}" data-skill-type="${type.key}">
+            <div class="skill-list">${renderSkillItems(list)}</div>
+          </section>
+        `;
+      }).join("");
+      const imageHtml = hero.image
+        ? `<img class="hero-image" src="${hero.image}" alt="${hero.name}" loading="lazy" />`
+        : `<div class="hero-image-missing">待补图</div>`;
+
+      return `
+        <section class="card">
+          <div class="hero-intro">
+            <div class="hero-main">
+              <div class="hero-head">
+                <div class="hero-name">${hero.name}</div>
+                <div class="hero-attr">${hero.attr}</div>
+              </div>
+              <div class="recommend">${hero.advice}</div>
+              <div class="info">
+                <div class="info-col">
+                  <h3>探险</h3>
+                  ${renderLines(hero.exploreStats)}
+                </div>
+                <div class="info-col">
+                  <h3>远征</h3>
+                  ${renderExpeditionStats(hero.expeditionStats)}
+                </div>
+                <div class="info-col info-col-obtain">
+                  <h3>获取方式</h3>
+                  ${renderObtainWays(hero.obtainWays)}
+                </div>
+              </div>
+            </div>
+            <div class="hero-image-wrap">
+              ${imageHtml}
+            </div>
+          </div>
+          <div class="skill-tabs">${tabs}</div>
+          ${panels}
+        </section>
+      `;
+    }
+
+    heroListEl.innerHTML = heroes.map((hero, index) => renderHero(hero, index)).join("");
+
+    heroListEl.addEventListener("click", (event) => {
+      const btn = event.target.closest(".skill-tab");
+      if (!btn) return;
+      const card = btn.closest(".card");
+      if (!card) return;
+      const targetType = btn.getAttribute("data-skill-type");
+      const heroIndex = btn.getAttribute("data-hero-index");
+      if (!targetType || heroIndex === null) return;
+
+      card.querySelectorAll(".skill-tab").forEach((tab) => {
+        tab.classList.toggle(
+          "active",
+          tab.getAttribute("data-skill-type") === targetType &&
+          tab.getAttribute("data-hero-index") === heroIndex
+        );
+      });
+      card.querySelectorAll(".skill-panel").forEach((panel) => {
+        panel.classList.toggle(
+          "active",
+          panel.getAttribute("data-skill-type") === targetType &&
+          panel.getAttribute("data-hero-index") === heroIndex
+        );
+      });
+    });
+  </script>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>
+
+

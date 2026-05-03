@@ -1,0 +1,3316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无尽冬日熊坑排布工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        :root {
+            --bg-night-1:#0b1220;
+            --bg-night-2:#0f172a;
+            --bg-day-1:#f1f5ff;
+            --bg-day-2:#fefce8;
+            --glow-night-1:rgba(59,130,246,.25);
+            --glow-night-2:rgba(139,92,246,.22);
+            --glow-day-1:rgba(56,189,248,.22);
+            --glow-day-2:rgba(251,191,36,.18);
+            --surface-night:rgba(15,23,42,.75);
+            --surface-strong-night:rgba(30,41,59,.75);
+            --surface-day:rgba(255,255,255,.78);
+            --surface-strong-day:rgba(255,255,255,.9);
+            --border-night:rgba(255,255,255,.12);
+            --border-day:rgba(15,23,42,.12);
+            --text-night:#e2e8f0;
+            --text-day:#0f172a;
+            --muted-night:#94a3b8;
+            --muted-day:#475569;
+            --accent:#3b82f6;
+            --accent-2:#6366f1;
+            --shadow:0 14px 35px rgba(0,0,0,.35);
+            --shadow-soft:0 10px 24px rgba(15,23,42,.16);
+            --danger-soft-night:rgba(239,68,68,.15);
+            --danger-soft-day:rgba(239,68,68,.12);
+            --danger-border-night:rgba(239,68,68,.35);
+            --danger-border-day:rgba(239,68,68,.3);
+            --danger-text-night:#fecaca;
+            --danger-text-day:#b91c1c;
+            --info-soft-night:rgba(59,130,246,.12);
+            --info-soft-day:rgba(59,130,246,.1);
+            --info-border-night:rgba(59,130,246,.28);
+            --info-border-day:rgba(59,130,246,.24);
+            --info-text-night:#dbeafe;
+            --info-text-day:#1d4ed8;
+        }
+        html[data-theme="night"]{
+            --bg1:var(--bg-night-1);
+            --bg2:var(--bg-night-2);
+            --glow-1:var(--glow-night-1);
+            --glow-2:var(--glow-night-2);
+            --surface:var(--surface-night);
+            --surface-strong:var(--surface-strong-night);
+            --border:var(--border-night);
+            --text:var(--text-night);
+            --muted:var(--muted-night);
+            --danger-soft:var(--danger-soft-night);
+            --danger-border:var(--danger-border-night);
+            --danger-text:var(--danger-text-night);
+            --info-soft:var(--info-soft-night);
+            --info-border:var(--info-border-night);
+            --info-text:var(--info-text-night);
+            color-scheme: dark;
+        }
+        html[data-theme="day"]{
+            --bg1:var(--bg-day-1);
+            --bg2:var(--bg-day-2);
+            --glow-1:var(--glow-day-1);
+            --glow-2:var(--glow-day-2);
+            --surface:var(--surface-day);
+            --surface-strong:var(--surface-strong-day);
+            --border:var(--border-day);
+            --text:var(--text-day);
+            --muted:var(--muted-day);
+            --danger-soft:var(--danger-soft-day);
+            --danger-border:var(--danger-border-day);
+            --danger-text:var(--danger-text-day);
+            --info-soft:var(--info-soft-day);
+            --info-border:var(--info-border-day);
+            --info-text:var(--info-text-day);
+            color-scheme: light;
+        }
+        body {
+            background: radial-gradient(1200px 700px at 20% 10%, var(--glow-1), transparent 55%),
+                radial-gradient(900px 600px at 85% 20%, var(--glow-2), transparent 55%),
+                linear-gradient(135deg, var(--bg1), var(--bg2));
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            transition: background .4s ease, color .25s ease;
+        }
+
+        /* 返回主页按钮 */
+        .home-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10000;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: var(--text);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(8px);
+        }
+        .home-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(0,0,0,0.14);
+        }
+
+        /* 右上角登录/注册 */
+        .auth-bar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+        .auth-bar .auth-pill {
+            margin: 0;
+            color: var(--text);
+            background: transparent;
+            border: none;
+            font-size: 0.78rem;
+        }
+        .auth-bar .auth-pill .muted { color: var(--muted); }
+        .auth-btn {
+            background: rgba(59, 130, 246, 0.18);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .auth-btn:hover { background: rgba(59, 130, 246, 0.28); }
+
+        .muted { color: var(--muted) !important; }
+        .theme-toggle {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 10010;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: transform .15s ease, background .2s ease, color .2s ease;
+        }
+        .theme-toggle:hover { transform: translateY(-1px); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        html[data-motion="on"] #woam-editor-wrap,
+        html[data-motion="on"] #woam-toolbar,
+        html[data-motion="on"] #woam-sidebar,
+        html[data-motion="on"] .woam-panel,
+        html[data-motion="on"] .woam-card {
+            animation: fadeUp .5s ease both;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 2px 8px rgba(96, 165, 250, 0.4));
+        }
+
+        /* 参考 woam：整体编辑器布局 */
+        #woam-editor-wrap {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #woam-toolbar {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--surface-strong);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+            flex-wrap: wrap;
+        }
+
+        #woam-password {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+        }
+        #woam-password:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64,158,255,0.18);
+        }
+
+        #woam-status {
+            margin-left: auto;
+            font-weight: 700;
+            color: var(--muted);
+            min-height: 18px;
+        }
+        #woam-status.ok { color: #16a34a; }
+        #woam-status.err { color: #dc2626; }
+
+        #woam-sidebar {
+            width: 100%;
+            height: 110px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 10px 12px;
+            display: flex;
+            gap: 10px;
+            background: var(--surface-strong);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .woam-sidebar-exit,
+        .woam-sidebar-item {
+            flex: 0 0 auto;
+            width: 84px;
+            padding: 6px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface);
+            transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+            user-select: none;
+        }
+        .woam-sidebar-exit:hover,
+        .woam-sidebar-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+        }
+        .woam-sidebar-item.active {
+            border-color: #409eff;
+            box-shadow: 0 0 0 2px rgba(64,158,255,0.18);
+            background: rgba(59, 130, 246, 0.12);
+        }
+        .woam-sidebar-thumb {
+            width: 64px;
+            height: 64px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.08);
+        }
+        .woam-sidebar-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        .woam-sidebar-label {
+            font-size: 12px;
+            color: var(--text);
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        #woam-coords-table {
+            width: 100%;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 10px 12px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .coords-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            color: #111827;
+        }
+        .coords-table th, .coords-table td {
+            border: 1px solid rgba(0,0,0,0.12);
+            padding: 6px 8px;
+            white-space: nowrap;
+            text-align: left;
+        }
+        .coords-table th {
+            background: #f3f4f6;
+            font-weight: 700;
+        }
+        /* 操作栏：物品选择 */
+        .tool-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px 25px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+        .item-template {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 500;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        /* 选中物品的高亮样式 */
+        .item-template.active {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            border: 2px solid #fff;
+        }
+        .item-template:hover {
+            transform: scale(1.05);
+        }
+        /* 注意：这些 item-* 仅用于上方“模板按钮”的显示大小 */
+        .tool-bar .item-1-1 {
+            width: 40px;
+            height: 40px;
+            background: #409eff;
+        }
+        .tool-bar .item-2-2 {
+            width: 80px;
+            height: 80px;
+            background: #67c23a;
+        }
+        .tool-bar .item-3-3 {
+            width: 120px;
+            height: 120px;
+            background: #e6a23c;
+        }
+        /* 可视框架：固定大小，拖拽缩放容器 */
+        .view-frame {
+            position: relative;
+            width: 1200px;
+            height: 800px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: radial-gradient(1200px 800px at 50% 40%, #ffffff 0%, #f3f6fb 65%, #eef2f7 100%);
+            overflow: hidden;
+            cursor: grab;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        /* 网格容器：核心旋转层，支持拖拽和缩放 */
+        .grid-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: calc(14px * 100);
+            height: calc(14px * 100);
+            transform-origin: 0 0;
+            transform: translate(0px, 0px) scale(1) rotate(45deg);
+            transition: transform 0.1s ease-out;
+        }
+        /* 100*100网格容器 */
+        .grid-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: calc(14px * 100);
+            height: calc(14px * 100);
+            display: grid;
+            grid-template-columns: repeat(100, 14px);
+            grid-auto-rows: 14px;
+        }
+        /* 网格单元格 */
+        .grid-cell {
+            width: 14px;
+            height: 14px;
+            border: 1px solid #CCCCDD;
+            transition: background 0.1s;
+            background: #EEF2F5;
+        }
+        .grid-cell.cell-a { background: #EEF2F5; }
+        .grid-cell.cell-b { background: #DDE6EE; }
+        .grid-cell.hover-ok { background: #e6f7ff; }
+        .grid-cell.hover-bad { background: #ffe4e6; }
+        .grid-cell.occupied {
+            background: #fef0f0;
+        }
+        /* 已摆放的物品层 */
+        .placed-items {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* 1×1 的 7×7 浅蓝半透明显示区域（仅展示，不占用） */
+        .influence-7x7 {
+            position: absolute;
+            border-radius: 0;
+            background: rgba(64, 158, 255, 0.14);
+            border: 1px solid rgba(64, 158, 255, 0.28);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.35) inset;
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* 联盟总部 3×3：以建筑中心为基准 15×15 浅蓝范围（仅展示，不占用格子） */
+        .influence-15x15 {
+            position: absolute;
+            border-radius: 0;
+            background: rgba(64, 158, 255, 0.14);
+            border: 1px solid rgba(64, 158, 255, 0.28);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.35) inset;
+            pointer-events: none;
+            z-index: 1;
+        }
+        /* 堡垒/要塞 6×6：浅蓝范围与占格一致（仅展示，不额外占格） */
+        .influence-6x6-range {
+            position: absolute;
+            border-radius: 0;
+            background: rgba(64, 158, 255, 0.14);
+            border: 1px solid rgba(64, 158, 255, 0.28);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.35) inset;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .placed-item {
+            position: absolute;
+            cursor: pointer;
+            border-radius: 0;
+            /* 更“立体”的阴影（等距向右下） */
+            box-shadow:
+                0 1px 0 rgba(255,255,255,0.35) inset,
+                0 0 0 1px rgba(0,0,0,0.10),
+                6px 10px 12px rgba(0,0,0,0.18);
+            pointer-events: auto;
+            transform: rotate(0);
+            /* 背景图放到内部 sprite 上，方便单独旋转 */
+            background: transparent;
+            z-index: 5;
+        }
+
+        /* 给放置物加一层轻微“地面投影”，更有深度感 */
+        .placed-item::after {
+            content: '';
+            position: absolute;
+            left: 8%;
+            top: 60%;
+            width: 84%;
+            height: 40%;
+            background: rgba(0,0,0,0.16);
+            filter: blur(8px);
+            transform: skewX(-18deg);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .placed-item .placed-sprite {
+            position: absolute;
+            inset: 0;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 100% 100%;
+            /* 让图“站起来”（不跟着地面倾斜/旋转躺着）：
+               - 抵消父层的 rotate(45deg)
+               - 抵消父层的 scaleY(TILT_Y=0.5) 造成的压扁
+               说明：父层 transform 为 scaleY(0.5) rotate(45deg)，这里做逆变换 rotate(-45deg) + scaleY(2)
+             */
+            left: 50%;
+            top: 50%;
+            width: 100%;
+            height: 100%;
+            transform: translate(-54%, -58%) rotate(-45deg) scaleY(2) scale(0.92);
+            transform-origin: center;
+            pointer-events: none;
+            /* 立体感：边缘阴影 + 轻微提亮 */
+            filter:
+                drop-shadow(2px 3px 2px rgba(0,0,0,0.25))
+                drop-shadow(-1px -1px 0 rgba(255,255,255,0.45));
+            z-index: 1;
+        }
+
+        /* 3×3 / 6×6 大图：向左上微调贴图重心 */
+        .placed-item.size-3 .placed-sprite,
+        .placed-item.size-6 .placed-sprite {
+            transform: translate(-57%, -61%) rotate(-45deg) scaleY(2) scale(0.92);
+        }
+        /* 已摆放物品的中心文字/命名框 */
+        .placed-item .item-center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 92%;
+            /* 默认不吃点击，避免放置时误点到命名框 */
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* XYZ 坐标轴（右上角） */
+        .axis-widget {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 110px;
+            height: 90px;
+            background: rgba(255,255,255,0.75);
+            border: 1px solid rgba(0,0,0,0.12);
+            border-radius: 8px;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            pointer-events: none;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .axis-widget svg {
+            width: 96px;
+            height: 72px;
+            display: block;
+        }
+        .placed-item .item-name-input {
+            width: 100%;
+            height: 12px;
+            padding: 0 1px;
+            border-radius: 0;
+            border: none;
+            background: transparent;
+            font-size: 5px;
+            font-weight: 700;
+            font-style: normal;
+            color: #ff4da6;
+            line-height: 12px;
+            text-align: center;
+            outline: none;
+            transform: none;
+            transform-origin: center;
+            pointer-events: none;
+        }
+        .placed-item .item-name-input::placeholder {
+            color: rgba(255, 77, 166, 0.75);
+        }
+        /* 让 2×2 命名框“正对着我”：抵消地面的 rotate(45deg) + scaleY(0.5) */
+        .placed-item.size-2 .item-center {
+            width: 130%;
+            z-index: 3;
+        }
+        .placed-item.size-2 .item-name-input {
+            transform: rotate(-45deg) scaleY(2);
+            transform-origin: center;
+        }
+        /* 2×2 编辑时显示的格式工具栏 */
+        .placed-item .item-format-bar {
+            display: none;
+            flex-wrap: wrap;
+            gap: 2px;
+            margin-top: 2px;
+            justify-content: center;
+            align-items: center;
+        }
+        .placed-item.size-2.editing .item-format-bar {
+            display: flex;
+        }
+        .placed-item .item-format-bar {
+            pointer-events: auto;
+        }
+        .placed-item .item-format-bar input[type="color"] {
+            width: 14px;
+            height: 10px;
+            padding: 0;
+            border: 1px solid rgba(0,0,0,0.2);
+            cursor: pointer;
+            background: transparent;
+        }
+        .placed-item .item-format-bar .fmt-btn {
+            width: 14px;
+            height: 10px;
+            padding: 0;
+            font-size: 8px;
+            font-weight: 700;
+            line-height: 1;
+            border: 1px solid rgba(0,0,0,0.2);
+            border-radius: 1px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.8);
+        }
+        .placed-item .item-format-bar .fmt-btn:hover {
+            background: rgba(255,255,255,1);
+        }
+        .placed-item .item-format-bar .fmt-btn.active {
+            background: rgba(64,158,255,0.4);
+        }
+
+        /* 编辑模式：双击 2×2 才能编辑命名 */
+        .placed-item.size-2.editing .item-center,
+        .placed-item.size-2.editing .item-name-input {
+            pointer-events: auto;
+        }
+        .placed-item .item-name-input:focus {
+            box-shadow: none;
+        }
+        .placed-item .item-center-text {
+            width: 100%;
+            padding: 2px 4px;
+            border-radius: 0;
+            background: rgba(255,255,255,0.75);
+            color: #111827;
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            user-select: none;
+            transform: rotate(-45deg);
+            transform-origin: center;
+        }
+        .view-frame:active {
+            cursor: grabbing;
+        }
+
+        @media (max-width: 900px) {
+            body { padding-top: 48px; }
+            .view-frame { width: 100%; max-width: 100%; height: min(70vh, 53.33vw); min-height: 260px; }
+            #woam-editor-wrap { padding: 0 10px; }
+        }
+        @media (max-width: 600px) {
+            body { padding: 48px 12px 12px 12px; }
+            .title { font-size: 1.1rem; }
+            #woam-toolbar, #woam-sidebar, #woam-coords-table { padding: 8px 10px; }
+            .tool-bar { padding: 10px 12px; }
+            .tool-bar .item-3-3 { width: 64px; height: 64px; }
+            .tool-bar .item-2-2 { width: 56px; height: 56px; }
+            .axis-widget { width: 80px; height: 70px; right: 4px; top: 4px; }
+            .axis-widget svg { width: 70px; height: 52px; }
+        }
+        @media (max-width: 480px) {
+            .axis-widget { display: none; }
+            .view-frame { min-height: 220px; }
+        }
+
+        .landscape-only {
+            display: none !important;
+        }
+        #woam-bottomTray {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #woam-bottomActions {
+            width: 100%;
+            margin: 0;
+        }
+        #btnLandscapeMode {
+            margin-left: auto;
+        }
+        .coords-table-overlay {
+            width: 100%;
+        }
+        .coords-table-panel {
+            width: 100%;
+        }
+        .coords-table-overlay-head {
+            display: none;
+        }
+
+        body.beapit-landscape-mode {
+            padding: 0;
+            overflow: hidden;
+        }
+        body.beapit-landscape-mode .title,
+        body.beapit-landscape-mode .auth-bar,
+        body.beapit-landscape-mode .theme-toggle {
+            display: none !important;
+        }
+        body.beapit-landscape-mode .home-btn {
+            top: 12px;
+            left: 12px;
+            z-index: 10110;
+            padding: 7px 10px;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.88);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+        body.beapit-landscape-mode #woam-editor-wrap {
+            width: 100vw;
+            max-width: none;
+            height: 100vh;
+            padding: 0;
+            gap: 0;
+            align-items: stretch;
+        }
+        body.beapit-landscape-mode #woam-toolbar {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 10120;
+            width: min(46vw, 440px);
+            max-width: calc(100vw - 78px);
+            padding: 10px;
+            border-radius: 18px;
+            background: rgba(15, 23, 42, 0.86);
+            border-color: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(14px);
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            align-items: stretch;
+        }
+        body.beapit-landscape-mode #woam-toolbar .actions {
+            display: none;
+        }
+        body.beapit-landscape-mode #woam-password,
+        body.beapit-landscape-mode #woam-status {
+            grid-column: 1 / -1;
+        }
+        body.beapit-landscape-mode #btnLandscapeMode {
+            display: none !important;
+        }
+        body.beapit-landscape-mode .landscape-only {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+        body.beapit-landscape-mode .select-tip {
+            position: fixed;
+            top: 12px;
+            left: 84px;
+            right: min(48vw, 468px);
+            margin: 0;
+            max-width: none;
+            padding: 10px 12px;
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.82);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            z-index: 10100;
+        }
+        body.beapit-landscape-mode .view-frame {
+            width: 100vw;
+            max-width: none;
+            height: 100vh;
+            min-height: 0;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            touch-action: none;
+        }
+        body.beapit-landscape-mode #woam-bottomTray {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10115;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: end;
+            padding: 12px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0), rgba(15, 23, 42, 0.42) 30%, rgba(15, 23, 42, 0.78));
+        }
+        body.beapit-landscape-mode #woam-sidebar,
+        body.beapit-landscape-mode #woam-bottomActions {
+            background: rgba(15, 23, 42, 0.88);
+            border-color: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(14px);
+        }
+        body.beapit-landscape-mode #woam-sidebar {
+            width: 100%;
+            height: auto;
+            min-height: 92px;
+            padding: 10px;
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+        }
+        body.beapit-landscape-mode #woam-bottomActions {
+            width: auto;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            box-shadow: var(--shadow);
+            display: flex !important;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+        body.beapit-landscape-mode #woam-bottomActions .btn {
+            white-space: nowrap;
+        }
+        body.beapit-landscape-mode #coordsTableOverlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(2, 6, 23, 0.62);
+            z-index: 10130;
+        }
+        body.beapit-landscape-mode.coords-table-open #coordsTableOverlay {
+            display: flex;
+        }
+        body.beapit-landscape-mode .coords-table-panel {
+            width: min(760px, 100%);
+            max-height: min(80vh, 100%);
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(15, 23, 42, 0.96);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        body.beapit-landscape-mode .coords-table-overlay-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        body.beapit-landscape-mode #woam-coords-table {
+            margin: 0;
+            flex: 1;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            background: transparent;
+        }
+
+        @media (orientation: landscape) and (max-height: 600px) {
+            body.beapit-landscape-mode #woam-toolbar {
+                width: min(50vw, 460px);
+            }
+            body.beapit-landscape-mode .select-tip {
+                font-size: 12px;
+                line-height: 1.35;
+            }
+            body.beapit-landscape-mode #woam-sidebar {
+                min-height: 84px;
+            }
+            body.beapit-landscape-mode .woam-sidebar-item,
+            body.beapit-landscape-mode .woam-sidebar-exit {
+                width: 76px;
+                padding: 5px;
+            }
+            body.beapit-landscape-mode .woam-sidebar-thumb {
+                width: 56px;
+                height: 56px;
+            }
+        }
+
+        /* 选中提示文字 */
+        .select-tip {
+            margin-top: 10px;
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.5;
+            max-width: 1200px;
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
+            font-weight: 500;
+        }
+
+        /* 操作按钮 */
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            appearance: none;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #409eff;
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.16);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+        .btn.danger { background: #ef4444; }
+        .btn.active {
+            box-shadow: 0 0 0 2px rgba(64,158,255,0.25), 0 4px 10px rgba(0,0,0,0.16);
+            transform: translateY(-1px);
+        }
+
+        /* 登录弹窗（共享） */
+        .auth-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-weight: 700;
+            font-size: 12px;
+            user-select: none;
+        }
+        .auth-pill .muted { color: var(--muted); font-weight: 600; }
+
+        .auth-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.55);
+            z-index: 20000;
+            padding: 16px;
+        }
+        .auth-modal.open { display: flex; }
+        .auth-panel {
+            width: 420px;
+            max-width: 96vw;
+            background: linear-gradient(145deg, var(--surface-strong), var(--surface));
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .auth-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: linear-gradient(90deg, rgba(64,158,255,0.14), rgba(139,92,246,0.12));
+        }
+        .auth-head h3 { margin: 0; font-size: 15px; color:var(--text); }
+        .auth-close {
+            border: none;
+            background: rgba(0,0,0,0.08);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .auth-body { padding: 14px; }
+        .auth-row { margin-bottom: 10px; }
+        .auth-row label { display:block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+        .auth-row input {
+            width: 100%;
+            padding: 10px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+        }
+        .auth-row input:focus {
+            border-color: rgba(64,158,255,0.7);
+            box-shadow: 0 0 0 3px rgba(64,158,255,0.16);
+        }
+        .auth-actions {
+            display:flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .auth-hint {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+        .auth-error {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #dc2626;
+            min-height: 16px;
+        }
+        .auth-legal-note {
+            margin: 12px 0 0;
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.55;
+            text-align: center;
+        }
+        .auth-legal-note a {
+            color: inherit;
+            text-decoration: none;
+            border-bottom: 1px dotted currentColor;
+            font-weight: 600;
+        }
+
+        /* 导入/导出/确认弹窗 */
+        .import-modal, .export-modal, .confirm-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10003;
+            padding: 16px;
+        }
+        .import-modal.open, .export-modal.open, .confirm-modal.open { display: flex; }
+        .import-panel, .export-panel, .confirm-panel {
+            width: 560px;
+            max-width: 96vw;
+            max-height: 88vh;
+            overflow: hidden;
+            background: linear-gradient(145deg, var(--surface-strong), var(--surface));
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            color: var(--text);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+        .confirm-panel { width: 520px; }
+        .import-title, .export-title, .confirm-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 14px 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .import-title h3, .export-title h3, .confirm-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
+        .import-close, .export-close, .confirm-close {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1rem;
+        }
+        .import-body, .export-body, .confirm-body { padding: 12px 14px; overflow: auto; }
+        .import-hint, .export-hint { margin: 0 0 10px; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+        .import-textarea, .export-textarea {
+            width: 100%;
+            min-height: 180px;
+            max-height: 50vh;
+            resize: vertical;
+            padding: 10px 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.85rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+        .import-textarea:focus, .export-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .import-status, .export-status {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            display: none;
+        }
+        .import-status.show, .export-status.show { display: block; }
+        .import-status.error, .export-status.error {
+            background: var(--danger-soft);
+            border: 1px solid var(--danger-border);
+            color: var(--danger-text);
+        }
+        .import-status.info, .export-status.info {
+            background: var(--info-soft);
+            border: 1px solid var(--info-border);
+            color: var(--info-text);
+        }
+        .import-actions, .export-actions {
+            padding: 12px 14px 14px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .confirm-actions {
+            padding: 12px 14px 14px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+    </style>
+<!-- theme toggle moved to /function/theme.js -->
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+    <a class="home-btn" href="../rukou.html">← 返回主页</a>
+    <div class="auth-bar" id="authBar">
+        <span class="auth-pill" id="authPill"><span class="muted">未登录</span></span>
+        <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
+        <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
+    </div>
+    <h1 class="title">无尽冬日熊坑排布工具| 100*100菱形网格</h1>
+    <div id="woam-editor-wrap">
+        <div id="woam-toolbar">
+            <input id="woam-password" type="password" placeholder="编辑密码（用于保存/加载）">
+            <button class="btn" id="woam-save" type="button">💾 保存/更新</button>
+            <button class="btn secondary" id="woam-load" type="button">📥 加载</button>
+            <button class="btn secondary" id="btnExportConfig" type="button">导出配置</button>
+            <button class="btn secondary" id="btnImportConfig" type="button">导入配置</button>
+            <div class="actions">
+                <button class="btn secondary" id="btnUndo" type="button" disabled>撤销（Ctrl+Z）</button>
+                <button class="btn danger" id="btnClear" type="button" disabled>清空</button>
+                <button class="btn secondary" id="btnDeletePick" type="button" disabled>🗑 指定删除</button>
+                <button class="btn" id="btnDownload" type="button">⬇ 下载图片</button>
+            </div>
+            <button class="btn secondary" id="btnLandscapeMode" type="button">横屏模式</button>
+            <button class="btn secondary landscape-only" id="btnCoordsTableToggle" type="button">坐标表</button>
+            <button class="btn secondary landscape-only" id="btnExitLandscapeMode" type="button">退出横屏</button>
+            <span id="woam-status"></span>
+        </div>
+
+        <div id="woam-bottomTray">
+        <div id="woam-sidebar">
+            <div class="woam-sidebar-exit" data-action="exit">
+                <div style="font-size:22px; line-height: 1;">🚫</div>
+                <div class="woam-sidebar-label">退出建造</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="1" data-color="#409eff" data-img="../Scores/建筑图标/野外/联盟/联盟旗帜/worldfield_allianceterritory_009.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/联盟/联盟旗帜/worldfield_allianceterritory_009.png" alt="联盟旗帜"></div>
+                <div class="woam-sidebar-label">联盟旗帜</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="1" data-color="#57534e" data-img="../Scores/建筑图标/野外/野外地形/world_icon_fmapertile.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/野外地形/world_icon_fmapertile.png" alt="山"></div>
+                <div class="woam-sidebar-label">山</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="1" data-color="#0284c7" data-img="../Scores/建筑图标/野外/野外地形/world_icon_mapsnow.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/野外地形/world_icon_mapsnow.png" alt="湖"></div>
+                <div class="woam-sidebar-label">湖</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="2" data-color="#67c23a" data-img="../Scores/castle.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/castle.png" alt="炉子"></div>
+                <div class="woam-sidebar-label">炉子</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="3" data-color="#e6a23c" data-img="../Scores/beartrap-1.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/beartrap-1.png" alt="熊坑"></div>
+                <div class="woam-sidebar-label">熊坑</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="3" data-color="#409eff" data-img="../Scores/建筑图标/野外/联盟/worldfield_allianceterritory_008.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/联盟/worldfield_allianceterritory_008.png" alt="联盟总部"></div>
+                <div class="woam-sidebar-label">联盟总部</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="2" data-color="#67c23a" data-img="../Scores/online6.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/online6.png" alt="炉子2"></div>
+                <div class="woam-sidebar-label">炉子2</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="2" data-color="#67c23a" data-img="../Scores/活动图标/jump_icon_40083.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/活动图标/jump_icon_40083.png" alt="联盟矿"></div>
+                <div class="woam-sidebar-label">联盟矿</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="6" data-color="#64748b" data-img="../Scores/建筑图标/野外/堡垒/worldfield_tronghold_bg_006.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/堡垒/worldfield_tronghold_bg_006.png" alt="堡垒"></div>
+                <div class="woam-sidebar-label">堡垒</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="6" data-color="#64748b" data-img="../Scores/建筑图标/野外/堡垒/worldfield_tronghold_bg_005.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/堡垒/worldfield_tronghold_bg_005.png" alt="要塞"></div>
+                <div class="woam-sidebar-label">要塞</div>
+            </div>
+        </div>
+        <div class="actions landscape-only" id="woam-bottomActions">
+            <button class="btn secondary" id="btnUndoLandscape" type="button" disabled>撤销</button>
+            <button class="btn danger" id="btnClearLandscape" type="button" disabled>清空</button>
+            <button class="btn secondary" id="btnDeletePickLandscape" type="button" disabled>指定删除</button>
+        </div>
+        </div>
+
+        <!-- 选中物品的提示 -->
+        <div class="select-tip" id="selectTip">请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。右键已摆放物品可删除。</div>
+
+        <!-- 可视框架 -->
+        <div class="view-frame" id="viewFrame">
+            <div class="axis-widget" aria-hidden="true">
+                <svg viewBox="0 0 96 72">
+                    <defs>
+                        <marker id="arrowX" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <path d="M0,0 L6,3 L0,6 Z" fill="#ef4444"></path>
+                        </marker>
+                        <marker id="arrowY" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <path d="M0,0 L6,3 L0,6 Z" fill="#22c55e"></path>
+                        </marker>
+                        <marker id="arrowZ" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                            <path d="M0,0 L6,3 L0,6 Z" fill="#3b82f6"></path>
+                        </marker>
+                    </defs>
+
+                    <!-- 原点 -->
+                    <circle cx="34" cy="44" r="2.6" fill="#111827"></circle>
+
+                    <!-- X：向右 -->
+                    <line x1="34" y1="44" x2="82" y2="44" stroke="#ef4444" stroke-width="2.2" marker-end="url(#arrowX)"></line>
+                    <text x="86" y="48" font-size="12" font-weight="700" fill="#ef4444">X</text>
+
+                    <!-- Y：向左下（等距平面另一个轴） -->
+                    <line x1="34" y1="44" x2="10" y2="64" stroke="#22c55e" stroke-width="2.2" marker-end="url(#arrowY)"></line>
+                    <text x="4" y="70" font-size="12" font-weight="700" fill="#22c55e">Y</text>
+
+                    <!-- Z：向上 -->
+                    <line x1="34" y1="44" x2="34" y2="10" stroke="#3b82f6" stroke-width="2.2" marker-end="url(#arrowZ)"></line>
+                    <text x="38" y="14" font-size="12" font-weight="700" fill="#3b82f6">Z</text>
+                </svg>
+            </div>
+            <div class="grid-container" id="gridContainer">
+                <div class="grid-wrapper" id="gridWrapper"></div>
+                <div class="placed-items" id="placedItems"></div>
+            </div>
+        </div>
+
+        <div id="coordsTableOverlay" class="coords-table-overlay">
+            <div class="coords-table-panel">
+                <div class="coords-table-overlay-head">
+                    <strong>放置物坐标表</strong>
+                    <button class="btn secondary" id="btnCloseCoordsTable" type="button">关闭</button>
+                </div>
+        <div id="woam-coords-table">
+            <p style="color:var(--muted); padding:6px 2px;">放置物坐标表（2×2 可命名）。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导入配置弹窗 -->
+    <div class="import-modal" id="importBeaPitModal" aria-hidden="true">
+        <div class="import-panel" role="dialog" aria-modal="true" aria-label="导入配置">
+            <div class="import-title">
+                <h3>导入配置</h3>
+                <button class="import-close" id="closeImportBeaPit" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="import-body">
+                <p class="import-hint">
+                    请把「导出配置」得到的序列码粘贴到下面输入框。导入会覆盖当前所有摆放。
+                </p>
+                <textarea class="import-textarea" id="importBeaPitInput" placeholder="在此粘贴配置序列码..."></textarea>
+                <div class="import-status" id="importBeaPitStatus"></div>
+            </div>
+            <div class="import-actions">
+                <button class="btn secondary" id="cancelImportBeaPit" type="button">取消</button>
+                <button class="btn" id="doImportBeaPit" type="button">解析并继续</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导出配置弹窗 -->
+    <div class="export-modal" id="exportBeaPitModal" aria-hidden="true">
+        <div class="export-panel" role="dialog" aria-modal="true" aria-label="导出配置">
+            <div class="export-title">
+                <h3>导出配置</h3>
+                <button class="export-close" id="closeExportBeaPit" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="export-body">
+                <p class="export-hint">
+                    下方为导出的配置序列码。可复制分享给他人，他人通过「导入配置」粘贴即可还原排布。
+                </p>
+                <textarea class="export-textarea" id="exportBeaPitOutput" readonly></textarea>
+                <div class="export-status" id="exportBeaPitStatus"></div>
+            </div>
+            <div class="export-actions">
+                <button class="btn secondary" id="cancelExportBeaPit" type="button">关闭</button>
+                <button class="btn" id="copyExportBeaPit" type="button">复制</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 清空二次确认弹窗 -->
+    <div class="confirm-modal" id="confirmClearModal" aria-hidden="true">
+        <div class="confirm-panel" role="dialog" aria-modal="true" aria-label="确认清空">
+            <div class="confirm-title">
+                <h3>确认清空</h3>
+                <button class="confirm-close" id="confirmClearClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="confirm-body">
+                <p class="import-hint" style="margin:0;">
+                    这会删除当前所有已摆放的物品，且无法撤销。确定要清空吗？
+                </p>
+            </div>
+            <div class="confirm-actions">
+                <button class="btn secondary" id="confirmClearCancel" type="button">取消</button>
+                <button class="btn danger" id="confirmClearDo" type="button">确认清空</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录/注册弹窗 -->
+    <div class="auth-modal" id="authModal" aria-hidden="true">
+        <div class="auth-panel" role="dialog" aria-modal="true" aria-label="登录/注册">
+            <div class="auth-head">
+                <h3 id="authTitle">登录 / 注册</h3>
+                <button class="auth-close" id="authClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="auth-body">
+                <div class="auth-row">
+                    <label for="authUsername">用户名（字母/数字/下划线，3-32位）</label>
+                    <input id="authUsername" autocomplete="username" placeholder="例如: player_01" />
+                </div>
+                <div class="auth-row">
+                    <label for="authPassword">密码（6-72位）</label>
+                    <input id="authPassword" type="password" autocomplete="current-password" placeholder="请输入密码" />
+                </div>
+                <div class="auth-actions">
+                    <button class="btn" id="authDoLogin" type="button">登录</button>
+                    <button class="btn secondary" id="authDoRegister" type="button">注册并登录</button>
+                </div>
+                <p class="auth-legal-note">使用本站的登录或注册功能，即表示你已阅读并同意<a href="/legal/user-agreement" target="_blank" rel="noopener noreferrer">《用户协议》</a>与<a href="/legal/privacy" target="_blank" rel="noopener noreferrer">《隐私声明》</a>。</p>
+                <div class="auth-error" id="authError"></div>
+                <div class="auth-hint">提示：登录状态通过 Cookie 保持；同一账号在不同设备登录可同步数据。</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局配置
+        const CONFIG = {
+            cellSize: 14,
+            gridSize: 100,
+            frame: document.getElementById('viewFrame'),
+            container: document.getElementById('gridContainer'),
+            wrapper: document.getElementById('gridWrapper'),
+            placedArea: document.getElementById('placedItems'),
+            selectTip: document.getElementById('selectTip'),
+            btnUndo: document.getElementById('btnUndo'),
+            btnClear: document.getElementById('btnClear'),
+            btnDeletePick: document.getElementById('btnDeletePick'),
+            btnDownload: document.getElementById('btnDownload'),
+            sidebar: document.getElementById('woam-sidebar'),
+            password: document.getElementById('woam-password'),
+            btnSave: document.getElementById('woam-save'),
+            btnLoad: document.getElementById('woam-load'),
+            status: document.getElementById('woam-status'),
+            coordsWrap: document.getElementById('woam-coords-table'),
+            coordsOverlay: document.getElementById('coordsTableOverlay'),
+            btnCloseCoordsTable: document.getElementById('btnCloseCoordsTable'),
+            btnCoordsTableToggle: document.getElementById('btnCoordsTableToggle'),
+            btnLandscapeMode: document.getElementById('btnLandscapeMode'),
+            btnExitLandscapeMode: document.getElementById('btnExitLandscapeMode'),
+            btnUndoLandscape: document.getElementById('btnUndoLandscape'),
+            btnClearLandscape: document.getElementById('btnClearLandscape'),
+            btnDeletePickLandscape: document.getElementById('btnDeletePickLandscape'),
+            occupiedCells: new Set(),
+            // 拖拽与缩放配置
+            isDragging: false,
+            didDrag: false,
+            lastX: 0,
+            lastY: 0,
+            dragStartX: 0,
+            dragStartY: 0,
+            scale: 1,
+            minScale: 0.5,
+            maxScale: 4,
+            translateX: 0,
+            translateY: 0,
+            touchMode: null,
+            touchPanStartX: 0,
+            touchPanStartY: 0,
+            touchInitialTranslateX: 0,
+            touchInitialTranslateY: 0,
+            pinchStartDistance: 0,
+            pinchStartScale: 1,
+            pinchAnchorLocal: null,
+            landscapeMode: false,
+            // 选中物品的配置
+            selectedItem: null, // 选中的物品信息 {size, color}
+            // 历史记录（撤销/删除）
+            placedList: [], // { el, occupyKeys:Array<string> }
+            historyStack: [],
+            restoring: false,
+            // hover缓存
+            hoverKeys: [],
+
+            // 指定删除模式
+            deleteMode: false,
+        };
+
+        const ALLIANCE_MINE_DEFAULT_NAME = '联盟矿';
+        const ALLIANCE_MINE_NAME_COLOR = '#eab308';
+        function isAllianceMineSpritePath(src) {
+            return String(src || '').includes('jump_icon_40083');
+        }
+        function isAllianceHqSpritePath(src) {
+            return String(src || '').includes('worldfield_allianceterritory_008');
+        }
+        /** 堡垒(006)、要塞(005)：6×6 占格 + 同范围浅蓝示意 */
+        function isFortressSixRangePath(src) {
+            const s = String(src || '');
+            return s.includes('worldfield_tronghold_bg_006') || s.includes('worldfield_tronghold_bg_005');
+        }
+        const BEAPIT_TERRAIN_LAKE_MARKER = '__beapit_terrain_lake__';
+        const BEAPIT_TERRAIN_MOUNTAIN_MARKER = '__beapit_terrain_mountain__';
+        const BEAPIT_TERRAIN_MOUNTAIN_IMG = '../Scores/建筑图标/野外/野外地形/world_icon_fmapertile.png';
+        const BEAPIT_TERRAIN_LAKE_IMG = '../Scores/建筑图标/野外/野外地形/world_icon_mapsnow.png';
+        /** 山/湖 1×1：不画联盟旗帜式 7×7 浅蓝示意；旧标记与旧图仍识别 */
+        function isPlainTerrain1x1NoAllianceRange(src) {
+            const s = String(src || '');
+            return s.includes('world_icon_fmapertile') || s.includes('world_icon_mapsnow')
+                || s === BEAPIT_TERRAIN_LAKE_MARKER || s === BEAPIT_TERRAIN_MOUNTAIN_MARKER
+                || s.includes('worldfield_icon_004') || s.includes('worldfield_icon_005');
+        }
+        function normalizeTerrain1x1Img(src) {
+            const s = String(src || '').trim();
+            if (!s) return '';
+            if (s === BEAPIT_TERRAIN_LAKE_MARKER || s.includes('worldfield_icon_004') || s.includes('world_icon_mapsnow')) {
+                return BEAPIT_TERRAIN_LAKE_IMG;
+            }
+            if (s === BEAPIT_TERRAIN_MOUNTAIN_MARKER || s.includes('worldfield_icon_005') || s.includes('world_icon_fmapertile')) {
+                return BEAPIT_TERRAIN_MOUNTAIN_IMG;
+            }
+            return s;
+        }
+
+        const BEAPIT_COLOR_BY_SIZE = { 1: '#409eff', 2: '#67c23a', 3: '#e6a23c', 6: '#64748b' };
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, (s) => (
+                { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]
+            ));
+        }
+
+        function setCoordsTableOpen(open) {
+            document.body.classList.toggle('coords-table-open', !!open && CONFIG.landscapeMode);
+        }
+
+        function setLandscapeMode(active) {
+            CONFIG.landscapeMode = !!active;
+            document.body.classList.toggle('beapit-landscape-mode', CONFIG.landscapeMode);
+            if (!CONFIG.landscapeMode) setCoordsTableOpen(false);
+            requestAnimationFrame(() => {
+                centerView();
+                clampToFrame();
+            });
+        }
+
+        async function requestLandscapePresentation() {
+            try {
+                if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                    await document.documentElement.requestFullscreen();
+                }
+            } catch (e) {
+                console.warn('requestFullscreen failed:', e);
+            }
+            try {
+                if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                    await screen.orientation.lock('landscape');
+                }
+            } catch (e) {
+                console.warn('orientation lock failed:', e);
+            }
+        }
+
+        async function exitLandscapePresentation() {
+            try {
+                if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+                    screen.orientation.unlock();
+                }
+            } catch (e) {
+                console.warn('orientation unlock failed:', e);
+            }
+            try {
+                if (document.fullscreenElement && document.exitFullscreen) {
+                    await document.exitFullscreen();
+                }
+            } catch (e) {
+                console.warn('exitFullscreen failed:', e);
+            }
+        }
+
+        function getTouchDistance(t1, t2) {
+            const dx = t2.clientX - t1.clientX;
+            const dy = t2.clientY - t1.clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        function getTouchCenter(t1, t2) {
+            return {
+                x: (t1.clientX + t2.clientX) / 2,
+                y: (t1.clientY + t2.clientY) / 2,
+            };
+        }
+
+        function resetTouchGesture() {
+            CONFIG.touchMode = null;
+            CONFIG.isDragging = false;
+            CONFIG.touchPanStartX = 0;
+            CONFIG.touchPanStartY = 0;
+            CONFIG.touchInitialTranslateX = 0;
+            CONFIG.touchInitialTranslateY = 0;
+            CONFIG.pinchStartDistance = 0;
+            CONFIG.pinchStartScale = CONFIG.scale;
+            CONFIG.pinchAnchorLocal = null;
+        }
+
+        const ROTATION_DEG = 45;
+        // “俯视45度”效果：在旋转45°后，对Y轴做压缩（越小越“俯视”）
+        // 0.5 会更接近常见等距菱形（2:1），视觉更像“俯视”
+        const TILT_Y = 0.5;
+
+        // 用矩阵统一做正/逆变换，确保旋转+俯视压缩后，鼠标定位仍然准确
+        function getBaseMatrix(scale = CONFIG.scale) {
+            // 不含平移：B = S(scale) * Sy(TILT_Y) * R(45)
+            // 注意：CSS transform 的函数是“从右往左”应用，因此这里与 updateTransform 保持一致
+            const m = new DOMMatrix();
+            m.scaleSelf(scale, scale);
+            m.scaleSelf(1, TILT_Y);
+            m.rotateSelf(ROTATION_DEG);
+            return m;
+        }
+
+        function getFullMatrix(scale = CONFIG.scale, tx = CONFIG.translateX, ty = CONFIG.translateY) {
+            // M = T(tx,ty) * B
+            const m = new DOMMatrix();
+            m.translateSelf(tx, ty);
+            m.multiplySelf(getBaseMatrix(scale));
+            return m;
+        }
+
+        // 生成100*100网格
+        function createGrid() {
+            let html = '';
+            for (let row = 0; row < CONFIG.gridSize; row++) {
+                for (let col = 0; col < CONFIG.gridSize; col++) {
+                    const checker = (row + col) % 2 === 0 ? 'cell-a' : 'cell-b';
+                    html += `<div class="grid-cell ${checker}" data-row="${row}" data-col="${col}"></div>`;
+                }
+            }
+            CONFIG.wrapper.innerHTML = html;
+        }
+
+        function getCellEl(row, col) {
+            const idx = row * CONFIG.gridSize + col;
+            return CONFIG.wrapper.children[idx] || null;
+        }
+
+        function setTip(text) {
+            CONFIG.selectTip.innerText = text;
+        }
+
+        function setStatus(text, type) {
+            if (!CONFIG.status) return;
+            CONFIG.status.className = '';
+            if (type === 'ok') CONFIG.status.classList.add('ok');
+            if (type === 'err') CONFIG.status.classList.add('err');
+            CONFIG.status.textContent = text || '';
+        }
+
+        function deselectBuildItem() {
+            if (CONFIG.sidebar) {
+                CONFIG.sidebar.querySelectorAll('.woam-sidebar-item.active').forEach(el => el.classList.remove('active'));
+            }
+            CONFIG.selectedItem = null;
+            clearHover();
+        }
+
+        function updateActionButtons() {
+            CONFIG.btnUndo.disabled = CONFIG.placedList.length === 0;
+            CONFIG.btnClear.disabled = CONFIG.placedList.length === 0;
+            CONFIG.btnDeletePick.disabled = CONFIG.placedList.length === 0;
+            if (CONFIG.btnUndoLandscape) CONFIG.btnUndoLandscape.disabled = CONFIG.btnUndo.disabled;
+            if (CONFIG.btnClearLandscape) CONFIG.btnClearLandscape.disabled = CONFIG.btnClear.disabled;
+            if (CONFIG.btnDeletePickLandscape) CONFIG.btnDeletePickLandscape.disabled = CONFIG.btnDeletePick.disabled;
+
+            // 如果没有物品了，自动退出删除模式
+            if (CONFIG.placedList.length === 0 && CONFIG.deleteMode) {
+                CONFIG.deleteMode = false;
+                CONFIG.btnDeletePick.classList.remove('active');
+                if (CONFIG.btnDeletePickLandscape) CONFIG.btnDeletePickLandscape.classList.remove('active');
+                setStatus('就绪', 'ok');
+            }
+            renderCoordsTable();
+        }
+
+        // 绑定网格悬浮高亮
+        function bindGridHover() {
+            CONFIG.frame.addEventListener('mousemove', (e) => {
+                if (!CONFIG.selectedItem || CONFIG.isDragging) {
+                    clearHover();
+                    return;
+                }
+                const local = screenToLocal(e.clientX, e.clientY);
+                if (!local) {
+                    clearHover();
+                    return;
+                }
+                const startCol = Math.floor(local.x / CONFIG.cellSize);
+                const startRow = Math.floor(local.y / CONFIG.cellSize);
+                previewPlacement(startRow, startCol, CONFIG.selectedItem.size);
+            });
+            CONFIG.frame.addEventListener('mouseleave', () => {
+                clearHover();
+            });
+        }
+
+        function clearHover() {
+            if (!CONFIG.hoverKeys.length) return;
+            for (const key of CONFIG.hoverKeys) {
+                const [r, c] = key.split('-').map(Number);
+                const el = getCellEl(r, c);
+                if (el) {
+                    el.classList.remove('hover-ok');
+                    el.classList.remove('hover-bad');
+                }
+            }
+            CONFIG.hoverKeys = [];
+        }
+
+        function previewPlacement(startRow, startCol, size) {
+            const endRow = startRow + size - 1;
+            const endCol = startCol + size - 1;
+
+            // 超出边界：只清理高亮
+            if (startRow < 0 || startCol < 0 || endRow >= CONFIG.gridSize || endCol >= CONFIG.gridSize) {
+                clearHover();
+                return;
+            }
+
+            const nextKeys = [];
+            let conflict = false;
+            for (let r = startRow; r <= endRow; r++) {
+                for (let c = startCol; c <= endCol; c++) {
+                    const key = `${r}-${c}`;
+                    nextKeys.push(key);
+                    if (CONFIG.occupiedCells.has(key)) conflict = true;
+                }
+            }
+
+            // 若与上一次相同，不重复刷
+            if (nextKeys.length === CONFIG.hoverKeys.length) {
+                let same = true;
+                for (let i = 0; i < nextKeys.length; i++) {
+                    if (nextKeys[i] !== CONFIG.hoverKeys[i]) { same = false; break; }
+                }
+                if (same) return;
+            }
+
+            clearHover();
+            CONFIG.hoverKeys = nextKeys;
+            for (const key of nextKeys) {
+                const [r, c] = key.split('-').map(Number);
+                const el = getCellEl(r, c);
+                if (!el) continue;
+                el.classList.add(conflict ? 'hover-bad' : 'hover-ok');
+            }
+        }
+
+        // 绑定物品点击选择功能
+        function bindItemSelect() {
+            if (!CONFIG.sidebar) return;
+            CONFIG.sidebar.addEventListener('click', (e) => {
+                const exit = e.target.closest('[data-action="exit"]');
+                if (exit) {
+                    deselectBuildItem();
+                    setTip('已退出建造模式。请点击侧栏选择需要摆放的物品。');
+                    return;
+                }
+
+                const item = e.target.closest('.woam-sidebar-item');
+                if (!item) return;
+
+                const isActive = item.classList.contains('active');
+                deselectBuildItem();
+
+                if (isActive) {
+                    setTip('已取消选择。请点击侧栏选择需要摆放的物品。');
+                    return;
+                }
+
+                item.classList.add('active');
+                const size = parseInt(item.dataset.size, 10);
+                const color = item.dataset.color;
+                const img = item.dataset.img;
+                CONFIG.selectedItem = { size, color, img };
+                setTip(`已选中【${size}×${size}】物品：移动鼠标预览，左键摆放。拖拽移动视图，滚轮缩放。`);
+            });
+
+            // 点击空白处取消选择
+            document.body.addEventListener('click', (e) => {
+                if (
+                    !e.target.closest('#woam-sidebar') &&
+                    !e.target.closest('#woam-toolbar') &&
+                    !e.target.closest('#woam-bottomActions') &&
+                    !e.target.closest('.view-frame')
+                ) {
+                    deselectBuildItem();
+                    setTip('请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。右键已摆放物品可删除。');
+                }
+            });
+        }
+
+        // 绑定网格点击摆放物品
+        function bindGridClickPlace() {
+            CONFIG.frame.addEventListener('click', (e) => {
+                const clickedPlaced = e.target && e.target.closest && e.target.closest('.placed-item');
+
+                // 指定删除模式：点击某个放置物直接删除
+                if (CONFIG.deleteMode) {
+                    if (clickedPlaced) {
+                        removePlacedItem(clickedPlaced);
+                        setTip('已删除一个放置物。继续点击可删除其它；再点“指定删除”可退出。');
+                    }
+                    return;
+                }
+
+                // 非删除模式：点击已摆放物品（例如编辑命名）不触发“摆放新物品”
+                if (clickedPlaced) return;
+                // 拖拽过则不摆放（修复：拖拽结束会触发 click 的误摆放）
+                if (CONFIG.didDrag) {
+                    CONFIG.didDrag = false;
+                    return;
+                }
+                // 未选中物品，直接返回
+                if (!CONFIG.selectedItem) {
+                    setTip('请先点击侧栏选择需要摆放的物品。');
+                    return;
+                }
+                // 拖拽状态下，不触发摆放
+                if (CONFIG.isDragging) return;
+                const { size, color, img } = CONFIG.selectedItem;
+                placeItem(e, size, color, img);
+            });
+        }
+
+        // 摆放物品核心逻辑
+        function placeItem(e, size, color, img) {
+            const local = screenToLocal(e.clientX, e.clientY);
+            if (!local) return;
+            const startCol = Math.floor(local.x / CONFIG.cellSize);
+            const startRow = Math.floor(local.y / CONFIG.cellSize);
+            const endRow = startRow + size - 1;
+            const endCol = startCol + size - 1;
+
+            // 边界检测
+            if (endRow >= CONFIG.gridSize || endCol >= CONFIG.gridSize || startRow < 0 || startCol < 0) {
+                setTip('物品超出网格边界，无法摆放。');
+                return;
+            }
+
+            // 重叠冲突检测
+            const needOccupy = new Set();
+            let isConflict = false;
+            for (let row = startRow; row <= endRow; row++) {
+                for (let col = startCol; col <= endCol; col++) {
+                    const key = `${row}-${col}`;
+                    if (CONFIG.occupiedCells.has(key)) {
+                        isConflict = true;
+                        break;
+                    }
+                    needOccupy.add(key);
+                }
+                if (isConflict) break;
+            }
+            if (isConflict) {
+                setTip('该区域已有物品，无法重叠摆放。');
+                return;
+            }
+
+            // 手动放置也要写入撤销快照（修复：账号加载后撤销会误回滚到加载过程中的中间状态）
+            pushHistorySnapshot();
+
+            // 标记占用网格
+            needOccupy.forEach(key => {
+                CONFIG.occupiedCells.add(key);
+                const [row, col] = key.split('-');
+                const cell = getCellEl(parseInt(row, 10), parseInt(col, 10));
+                cell && cell.classList.add('occupied');
+            });
+            // 创建摆放的物品
+            createPlacedItem(startRow, startCol, size, color, Array.from(needOccupy), null, img);
+            updateActionButtons();
+        }
+
+        function applyNameFormat(inputEl, itemEl) {
+            if (!inputEl || !itemEl) return;
+            inputEl.style.color = itemEl.dataset.nameColor || '#ff4da6';
+            inputEl.style.fontWeight = itemEl.dataset.nameBold === '1' ? '700' : '400';
+            inputEl.style.fontStyle = itemEl.dataset.nameItalic === '1' ? 'italic' : 'normal';
+        }
+        function syncNameFormat(itemEl) {
+            const idx = CONFIG.placedList.findIndex(x => x.el === itemEl);
+            if (idx >= 0) {
+                CONFIG.placedList[idx].nameColor = itemEl.dataset.nameColor;
+                CONFIG.placedList[idx].nameBold = itemEl.dataset.nameBold === '1';
+                CONFIG.placedList[idx].nameItalic = itemEl.dataset.nameItalic === '1';
+            }
+        }
+
+        // 创建已摆放的物品元素（nameColor/nameBold/nameItalic 仅对 2×2 命名生效）
+        function createPlacedItem(startRow, startCol, size, color, occupyKeys, initialName, spriteImg, nameColor, nameBold, nameItalic) {
+            const item = document.createElement('div');
+            // 已摆放物品的宽高必须严格按网格尺寸计算，否则会出现 1×1 看起来占 3×3 的问题
+            item.className = `placed-item`;
+            item.classList.add(`size-${size}`);
+            item.style.left = `${startCol * CONFIG.cellSize}px`;
+            item.style.top = `${startRow * CONFIG.cellSize}px`;
+            item.style.width = `${size * CONFIG.cellSize}px`;
+            item.style.height = `${size * CONFIG.cellSize}px`;
+            item.title = '右键删除';
+            item.dataset.startRow = String(startRow);
+            item.dataset.startCol = String(startCol);
+            item.dataset.size = String(size);
+
+            const imageBySize = {
+                1: '../Scores/建筑图标/野外/联盟/联盟旗帜/worldfield_allianceterritory_009.png',
+                2: '../Scores/castle.png',
+                3: '../Scores/beartrap-1.png'
+            };
+            const rawPick = (spriteImg && String(spriteImg).trim()) ? String(spriteImg).trim() : imageBySize[size];
+            const finalImg = (size === 1) ? (normalizeTerrain1x1Img(rawPick) || rawPick) : rawPick;
+
+            // 1×1：7×7 浅蓝范围；联盟总部（3×3）：以 3×3 中心对齐 15×15 浅蓝范围（仅展示，不占用格子）
+            let influenceEl = null;
+            if (size === 1 && !isPlainTerrain1x1NoAllianceRange(rawPick)) {
+                const offset = 3 * CONFIG.cellSize;
+                const dim = 7 * CONFIG.cellSize;
+                influenceEl = document.createElement('div');
+                influenceEl.className = 'influence-7x7';
+                influenceEl.style.left = `${startCol * CONFIG.cellSize - offset}px`;
+                influenceEl.style.top = `${startRow * CONFIG.cellSize - offset}px`;
+                influenceEl.style.width = `${dim}px`;
+                influenceEl.style.height = `${dim}px`;
+                influenceEl.dataset.ownerRow = String(startRow);
+                influenceEl.dataset.ownerCol = String(startCol);
+                CONFIG.placedArea.appendChild(influenceEl);
+            } else if (size === 3 && isAllianceHqSpritePath(finalImg)) {
+                const offset = 6 * CONFIG.cellSize;
+                const dim = 15 * CONFIG.cellSize;
+                influenceEl = document.createElement('div');
+                influenceEl.className = 'influence-15x15';
+                influenceEl.style.left = `${startCol * CONFIG.cellSize - offset}px`;
+                influenceEl.style.top = `${startRow * CONFIG.cellSize - offset}px`;
+                influenceEl.style.width = `${dim}px`;
+                influenceEl.style.height = `${dim}px`;
+                influenceEl.dataset.ownerRow = String(startRow);
+                influenceEl.dataset.ownerCol = String(startCol);
+                CONFIG.placedArea.appendChild(influenceEl);
+            } else if (size === 6 && isFortressSixRangePath(finalImg)) {
+                const dim = 6 * CONFIG.cellSize;
+                influenceEl = document.createElement('div');
+                influenceEl.className = 'influence-6x6-range';
+                influenceEl.style.left = `${startCol * CONFIG.cellSize}px`;
+                influenceEl.style.top = `${startRow * CONFIG.cellSize}px`;
+                influenceEl.style.width = `${dim}px`;
+                influenceEl.style.height = `${dim}px`;
+                influenceEl.dataset.ownerRow = String(startRow);
+                influenceEl.dataset.ownerCol = String(startCol);
+                CONFIG.placedArea.appendChild(influenceEl);
+            }
+
+            // 内部 sprite：承载颜色/图片，并统一旋转 -45°
+            const sprite = document.createElement('div');
+            sprite.className = 'placed-sprite';
+            sprite.style.backgroundColor = color;
+            if (finalImg && String(finalImg).trim()) {
+                sprite.style.backgroundColor = 'transparent';
+                sprite.style.backgroundImage = `url("${String(finalImg).trim()}")`;
+            }
+            item.appendChild(sprite);
+
+            // 中心显示：
+            // - 2×2：命名框（可编辑，可自定义颜色/加粗/倾斜）
+            // - 3×3：改为图片展示（不再显示文字）
+            const defColor = '#ff4da6';
+            const defBold = true;
+            const defItalic = false;
+            if (size === 2) {
+                const isAllianceMine = isAllianceMineSpritePath(finalImg);
+                const effectiveNameColor = (nameColor && /^#[0-9a-fA-F]{6}$/.test(String(nameColor).trim()))
+                    ? String(nameColor).trim()
+                    : (isAllianceMine ? ALLIANCE_MINE_NAME_COLOR : defColor);
+                item.dataset.nameColor = effectiveNameColor;
+                item.dataset.nameBold = (nameBold === undefined || nameBold === null) ? (defBold ? '1' : '0') : (nameBold ? '1' : '0');
+                item.dataset.nameItalic = (nameItalic === undefined || nameItalic === null) ? (defItalic ? '1' : '0') : (nameItalic ? '1' : '0');
+
+                const center = document.createElement('div');
+                center.className = 'item-center';
+
+                const input = document.createElement('input');
+                input.className = 'item-name-input';
+                input.type = 'text';
+                item.dataset.name = (initialName && String(initialName).trim())
+                    ? String(initialName).trim()
+                    : (isAllianceMine ? ALLIANCE_MINE_DEFAULT_NAME : '命名');
+                input.value = item.dataset.name;
+                input.maxLength = 20;
+                input.spellcheck = false;
+                applyNameFormat(input, item);
+
+                // 格式工具栏
+                const formatBar = document.createElement('div');
+                formatBar.className = 'item-format-bar';
+                const colorInput = document.createElement('input');
+                colorInput.type = 'color';
+                colorInput.value = item.dataset.nameColor || defColor;
+                colorInput.title = '字体颜色';
+                colorInput.addEventListener('input', () => {
+                    item.dataset.nameColor = colorInput.value;
+                    applyNameFormat(input, item);
+                    syncNameFormat(item);
+                });
+                const btnB = document.createElement('button');
+                btnB.type = 'button';
+                btnB.className = 'fmt-btn' + (item.dataset.nameBold === '1' ? ' active' : '');
+                btnB.textContent = 'B';
+                btnB.title = '加粗';
+                btnB.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    item.dataset.nameBold = item.dataset.nameBold === '1' ? '0' : '1';
+                    applyNameFormat(input, item);
+                    btnB.classList.toggle('active', item.dataset.nameBold === '1');
+                    syncNameFormat(item);
+                });
+                const btnI = document.createElement('button');
+                btnI.type = 'button';
+                btnI.className = 'fmt-btn' + (item.dataset.nameItalic === '1' ? ' active' : '');
+                btnI.textContent = 'I';
+                btnI.title = '倾斜';
+                btnI.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    item.dataset.nameItalic = item.dataset.nameItalic === '1' ? '0' : '1';
+                    applyNameFormat(input, item);
+                    btnI.classList.toggle('active', item.dataset.nameItalic === '1');
+                    syncNameFormat(item);
+                });
+                formatBar.appendChild(colorInput);
+                formatBar.appendChild(btnB);
+                formatBar.appendChild(btnI);
+                formatBar.addEventListener('mousedown', (e) => e.stopPropagation());
+
+                center.appendChild(input);
+                center.appendChild(formatBar);
+
+                // 双击 2×2 才进入编辑，避免放置时误点到输入框
+                item.addEventListener('dblclick', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    item.classList.add('editing');
+                    // 下一帧再 focus，保证样式已切到可点击
+                    setTimeout(() => {
+                        input.focus();
+                        input.select();
+                    }, 0);
+                });
+                input.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        const active = document.activeElement;
+                        if (item.contains(active) && active !== input) return; // 焦点在格式栏时不退出编辑
+                        item.classList.remove('editing');
+                    }, 0);
+                });
+
+                // 防止点击输入框触发“摆放/拖拽/右键删除”
+                input.addEventListener('mousedown', (e) => e.stopPropagation());
+                input.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    input.focus();
+                    input.select();
+                });
+                input.addEventListener('keydown', (e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter') input.blur();
+                    if (e.key === 'Escape') input.blur();
+                });
+                input.addEventListener('contextmenu', (e) => {
+                    e.stopPropagation();
+                });
+                input.addEventListener('input', () => {
+                    item.dataset.name = input.value;
+                    // 同步到 placedList 记录，方便坐标表/保存
+                    const idx = CONFIG.placedList.findIndex(x => x.el === item);
+                    if (idx >= 0) CONFIG.placedList[idx].name = input.value;
+                    renderCoordsTable();
+                });
+
+                item.appendChild(center);
+            }
+
+            // 右键删除物品
+            item.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                removePlacedItem(item);
+            });
+            CONFIG.placedArea.appendChild(item);
+            CONFIG.placedList.push({
+                el: item,
+                influenceEl,
+                occupyKeys,
+                startRow,
+                startCol,
+                size,
+                name: item.dataset.name || '',
+                img: (finalImg && String(finalImg).trim()) ? String(finalImg).trim() : '',
+                nameColor: item.dataset.nameColor || '#ff4da6',
+                nameBold: item.dataset.nameBold === '1',
+                nameItalic: item.dataset.nameItalic === '1'
+            });
+        }
+
+        function removePlacedItem(itemEl, opts = {}) {
+            const idx = CONFIG.placedList.findIndex(x => x.el === itemEl);
+            const record = idx >= 0 ? CONFIG.placedList[idx] : null;
+            const keys = record ? record.occupyKeys : null;
+
+            if (!opts.skipHistory) pushHistorySnapshot();
+            if (keys) {
+                for (const key of keys) {
+                    CONFIG.occupiedCells.delete(key);
+                    const [row, col] = key.split('-').map(Number);
+                    const cell = getCellEl(row, col);
+                    cell && cell.classList.remove('occupied');
+                }
+            }
+
+            if (itemEl && itemEl.parentNode === CONFIG.placedArea) {
+                CONFIG.placedArea.removeChild(itemEl);
+            }
+
+            // 删除 1×1 的 7×7 显示区域
+            if (record && record.influenceEl && record.influenceEl.parentNode === CONFIG.placedArea) {
+                CONFIG.placedArea.removeChild(record.influenceEl);
+            }
+
+            if (idx >= 0) CONFIG.placedList.splice(idx, 1);
+            updateActionButtons();
+        }
+
+        function undoLast() {
+            const snap = CONFIG.historyStack.pop();
+            if (snap) {
+                restoreFromSnapshot(snap);
+                setStatus('已撤销', 'ok');
+                return;
+            }
+            const last = CONFIG.placedList[CONFIG.placedList.length - 1];
+            if (!last) return;
+            removePlacedItem(last.el, { skipHistory: true });
+        }
+
+        function clearAll(opts = {}) {
+            if (!opts.skipHistory) pushHistorySnapshot();
+            // 清理占用
+            for (const key of CONFIG.occupiedCells) {
+                const [row, col] = key.split('-').map(Number);
+                const cell = getCellEl(row, col);
+                cell && cell.classList.remove('occupied');
+            }
+            CONFIG.occupiedCells.clear();
+
+            // 清理物品
+            CONFIG.placedList.forEach(x => {
+                if (x.el && x.el.parentNode === CONFIG.placedArea) CONFIG.placedArea.removeChild(x.el);
+                if (x.influenceEl && x.influenceEl.parentNode === CONFIG.placedArea) CONFIG.placedArea.removeChild(x.influenceEl);
+            });
+            CONFIG.placedList = [];
+            updateActionButtons();
+            if (!opts.silentTip) setTip('已清空。请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。');
+        }
+
+        function renderCoordsTable() {
+            if (!CONFIG.coordsWrap) return;
+            if (CONFIG.placedList.length === 0) {
+                CONFIG.coordsWrap.innerHTML = `<p style="color:var(--muted); padding:6px 2px;">暂无放置物。</p>`;
+                return;
+            }
+
+            const rows = CONFIG.placedList.map((it, i) => {
+                const name = it.size === 2 ? (it.name || it.el?.dataset?.name || '') : '';
+                const safeName = escapeHtml(name);
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${it.size}×${it.size}</td>
+                        <td>${it.startRow}</td>
+                        <td>${it.startCol}</td>
+                        <td>${safeName}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            CONFIG.coordsWrap.innerHTML = `
+                <table class="coords-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>类型</th>
+                            <th>Row</th>
+                            <th>Col</th>
+                            <th>命名(仅2×2)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function getSaveKey() {
+            const pwd = (CONFIG.password?.value || '').trim();
+            return `woam_map_${pwd || 'default'}`;
+        }
+
+        function serializeLayout() {
+            return {
+                v: 1,
+                savedAt: new Date().toISOString(),
+                items: CONFIG.placedList.map(it => ({
+                    r: it.startRow,
+                    c: it.startCol,
+                    s: it.size,
+                    n: it.size === 2 ? (it.name || it.el?.dataset?.name || '') : '',
+                    i: it.img || '',
+                    nc: it.size === 2 ? (it.nameColor || it.el?.dataset?.nameColor || '#ff4da6') : undefined,
+                    nb: it.size === 2 ? (it.nameBold !== false && it.el?.dataset?.nameBold !== '0') : undefined,
+                    ni: it.size === 2 ? (!!it.nameItalic || it.el?.dataset?.nameItalic === '1') : undefined
+                }))
+            };
+        }
+
+        function cloneLayoutSnapshot(data) {
+            try { return JSON.parse(JSON.stringify(data)); } catch { return data; }
+        }
+
+        function pushHistorySnapshot() {
+            if (CONFIG.restoring) return;
+            const snap = cloneLayoutSnapshot(serializeLayout());
+            CONFIG.historyStack.push(snap);
+            if (CONFIG.historyStack.length > 80) CONFIG.historyStack.splice(0, CONFIG.historyStack.length - 80);
+        }
+
+        function restoreFromSnapshot(snapshot) {
+            if (!snapshot || !Array.isArray(snapshot.items)) return;
+            CONFIG.restoring = true;
+            try {
+                clearAll({ skipHistory: true, silentTip: true });
+                const colorBySize = BEAPIT_COLOR_BY_SIZE;
+                snapshot.items.forEach(it => {
+                    const r = parseInt(it.r, 10);
+                    const c = parseInt(it.c, 10);
+                    const s = parseInt(it.s, 10);
+                    if (!Number.isFinite(r) || !Number.isFinite(c) || !Number.isFinite(s)) return;
+                    placeItemAt(
+                        r, c, s,
+                        colorBySize[s] || '#409eff',
+                        it.n, it.i,
+                        it.nc, it.nb, it.ni,
+                        { skipHistory: true }
+                    );
+                });
+                updateActionButtons();
+                renderCoordsTable();
+            } finally {
+                CONFIG.restoring = false;
+            }
+        }
+
+        // 紧凑导出格式 v2：数组替代对象，省略尾部默认值，减少字符数
+        function serializeLayoutCompact() {
+            const defC = '#ff4da6';
+            const defs = ['', '', 0, 1, 0]; // n,i,nc,b,t 的默认值
+            const rows = CONFIG.placedList.map(it => {
+                const nc = (it.size === 2 ? (it.nameColor || it.el?.dataset?.nameColor || defC) : defC);
+                const nb = it.size === 2 ? (it.nameBold !== false && it.el?.dataset?.nameBold !== '0') : true;
+                const ni = it.size === 2 ? (!!it.nameItalic || it.el?.dataset?.nameItalic === '1') : false;
+                let arr = [
+                    it.startRow, it.startCol, it.size,
+                    it.size === 2 ? (it.name || it.el?.dataset?.name || '') : '',
+                    it.img || '',
+                    (nc === defC || !nc) ? 0 : nc.replace(/^#/, ''), // 省 # 且默认用 0
+                    nb ? 1 : 0,
+                    ni ? 1 : 0
+                ];
+                while (arr.length > 3 && arr[arr.length - 1] === defs[arr.length - 4]) arr.pop();
+                return arr;
+            });
+            return { v: 2, i: rows };
+        }
+
+        function placeItemAt(startRow, startCol, size, color, name, img, nameColor, nameBold, nameItalic, opts = {}) {
+            const endRow = startRow + size - 1;
+            const endCol = startCol + size - 1;
+            if (endRow >= CONFIG.gridSize || endCol >= CONFIG.gridSize || startRow < 0 || startCol < 0) return false;
+
+            const needOccupy = [];
+            for (let row = startRow; row <= endRow; row++) {
+                for (let col = startCol; col <= endCol; col++) {
+                    const key = `${row}-${col}`;
+                    if (CONFIG.occupiedCells.has(key)) return false;
+                    needOccupy.push(key);
+                }
+            }
+
+            needOccupy.forEach(key => {
+                CONFIG.occupiedCells.add(key);
+                const [row, col] = key.split('-');
+                const cell = getCellEl(parseInt(row, 10), parseInt(col, 10));
+                cell && cell.classList.add('occupied');
+            });
+
+            if (!opts.skipHistory) pushHistorySnapshot();
+            createPlacedItem(startRow, startCol, size, color, needOccupy, name, img, nameColor, nameBold, nameItalic);
+            return true;
+        }
+
+        function saveLayout(opts = {}) {
+            const silent = !!opts.silent;
+            try {
+                const key = getSaveKey();
+                const data = serializeLayout();
+                localStorage.setItem(key, JSON.stringify(data));
+                if (!silent) setStatus('已保存', 'ok');
+                return true;
+            } catch (e) {
+                const msg = (e && (e.message || e.name)) ? String(e.message || e.name) : '';
+                if (!silent) setStatus('保存失败' + (msg ? `：${msg}` : ''), 'err');
+                console.warn(e);
+                return false;
+            }
+        }
+
+        // 导出配置为序列码（可分享，使用紧凑格式减少字符）
+        function exportConfigBeaPit() {
+            if (CONFIG.placedList.length === 0) {
+                setStatus('当前没有摆放物品可导出', 'err');
+                return;
+            }
+            const data = serializeLayoutCompact();
+            const configString = JSON.stringify(data);
+            const modal = document.getElementById('exportBeaPitModal');
+            const output = document.getElementById('exportBeaPitOutput');
+            const status = document.getElementById('exportBeaPitStatus');
+            if (!modal || !output || !status) return;
+            output.value = configString;
+            status.className = 'export-status show info';
+            status.textContent = `已生成配置（${CONFIG.placedList.length} 个放置物）。可复制分享，他人通过「导入配置」粘贴即可还原。`;
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => { output.focus(); output.select(); }, 0);
+        }
+
+        // 导入配置（打开弹窗）
+        function importConfigBeaPit() {
+            const modal = document.getElementById('importBeaPitModal');
+            const inputEl = document.getElementById('importBeaPitInput');
+            const statusEl = document.getElementById('importBeaPitStatus');
+            const doBtn = document.getElementById('doImportBeaPit');
+            if (!modal || !inputEl || !statusEl || !doBtn) return;
+            doBtn.dataset.stage = 'parse';
+            doBtn.textContent = '解析并继续';
+            statusEl.className = 'import-status';
+            statusEl.textContent = '';
+            inputEl.value = '';
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => inputEl.focus(), 0);
+        }
+
+        function loadLayout() {
+            try {
+                const key = getSaveKey();
+                const raw = localStorage.getItem(key);
+                if (!raw) {
+                    setStatus('没有找到存档', 'err');
+                    return;
+                }
+                const data = JSON.parse(raw);
+                if (!data || !Array.isArray(data.items)) {
+                    setStatus('存档格式错误', 'err');
+                    return;
+                }
+
+                CONFIG.restoring = true;
+                clearAll({ skipHistory: true, silentTip: true });
+
+                const colorBySize = BEAPIT_COLOR_BY_SIZE;
+                let okCount = 0;
+                data.items.forEach(it => {
+                    const r = parseInt(it.r, 10);
+                    const c = parseInt(it.c, 10);
+                    const s = parseInt(it.s, 10);
+                    const n = it.n;
+                    const img = it.i;
+                    const nc = it.nc;
+                    const nb = it.nb;
+                    const ni = it.ni;
+                    if (!Number.isFinite(r) || !Number.isFinite(c) || !Number.isFinite(s)) return;
+                    const ok = placeItemAt(r, c, s, colorBySize[s] || '#409eff', n, img, nc, nb, ni, { skipHistory: true });
+                    if (ok) okCount++;
+                });
+
+                CONFIG.historyStack = [];
+                pushHistorySnapshot();
+                CONFIG.restoring = false;
+                updateActionButtons();
+                setStatus(`已加载：${okCount} 个`, 'ok');
+            } catch (e) {
+                setStatus('加载失败', 'err');
+                console.warn(e);
+                CONFIG.restoring = false;
+            }
+        }
+
+        function toggleDeleteMode() {
+            if (CONFIG.placedList.length === 0) return;
+            CONFIG.deleteMode = !CONFIG.deleteMode;
+            if (CONFIG.deleteMode) {
+                CONFIG.btnDeletePick.classList.add('active');
+                if (CONFIG.btnDeletePickLandscape) CONFIG.btnDeletePickLandscape.classList.add('active');
+                setStatus('删除模式', 'err');
+                setTip('删除模式：点击任意放置物即可删除；再点“指定删除”或按 ESC 退出。');
+            } else {
+                CONFIG.btnDeletePick.classList.remove('active');
+                if (CONFIG.btnDeletePickLandscape) CONFIG.btnDeletePickLandscape.classList.remove('active');
+                setStatus('就绪', 'ok');
+                setTip('请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。右键已摆放物品可删除。');
+            }
+        }
+
+        function pad2(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        // ---- 登录/注册（JWT HttpOnly Cookie）
+        let authUser = null;
+        let authChecked = false;
+
+        async function apiFetch(url, opts = {}) {
+            return await fetch(url, {
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) },
+                ...opts
+            });
+        }
+
+        function setAuthPill() {
+            const pill = document.getElementById('authPill');
+            const btnLogin = document.getElementById('btnLogin');
+            const btnLogout = document.getElementById('btnLogout');
+            if (!pill || !btnLogin || !btnLogout) return;
+
+            if (authUser) {
+                pill.textContent = '已登录：';
+                const strong = document.createElement('strong');
+                strong.textContent = authUser.username || '';
+                pill.appendChild(strong);
+                btnLogin.style.display = 'none';
+                btnLogout.style.display = '';
+            } else {
+                pill.innerHTML = `<span class="muted">未登录</span>`;
+                btnLogin.style.display = '';
+                btnLogout.style.display = 'none';
+            }
+        }
+
+        function openAuthModal() {
+            const m = document.getElementById('authModal');
+            const err = document.getElementById('authError');
+            if (err) err.textContent = '';
+            if (m) {
+                m.classList.add('open');
+                m.setAttribute('aria-hidden', 'false');
+                setTimeout(() => document.getElementById('authUsername')?.focus(), 0);
+            }
+        }
+
+        function closeAuthModal() {
+            const m = document.getElementById('authModal');
+            if (m) {
+                m.classList.remove('open');
+                m.setAttribute('aria-hidden', 'true');
+            }
+        }
+
+        async function refreshMe() {
+            try {
+                const res = await apiFetch('/api/auth/me', { method: 'GET', headers: {} });
+                const data = await res.json();
+                authUser = data && data.authenticated ? data.user : null;
+                authChecked = true;
+                setAuthPill();
+            } catch {
+                authUser = null;
+                authChecked = true;
+                setAuthPill();
+            }
+        }
+        function mapAuthApiError(msg) {
+            const v = String(msg || '');
+            if (v === 'INVALID_CREDENTIALS') return '用户名或密码错误';
+            if (v === 'USERNAME_TAKEN') return '用户名已被占用';
+            if (v === 'PASSWORD_RULE') return '密码格式不符合要求';
+            if (v === 'PASSWORD_WEAK') return '密码过于简单，请更换';
+            if (v === 'BANNED') return '账号已被拉黑';
+            if (v === 'CAPTCHA_REQUIRED') return '请先完成验证码';
+            if (v === 'CAPTCHA_INVALID') return '验证码参数无效，请重试';
+            if (v === 'CAPTCHA_RETRY' || v === 'CAPTCHA_FAILED') return '验证码未通过，请重试';
+            if (v === 'CAPTCHA_VERIFY_ERROR') return '验证码服务繁忙，请稍后重试';
+            if (v === 'CAPTCHA_NOT_CONFIGURED') return '验证码服务未配置';
+            return v || '登录/注册失败';
+        }
+
+        async function doLoginOrRegister(mode) {
+            const u = (document.getElementById('authUsername')?.value || '').trim();
+            const p = (document.getElementById('authPassword')?.value || '').trim();
+            const err = document.getElementById('authError');
+            if (err) err.textContent = '';
+            if (!u || !p) {
+                if (err) err.textContent = '请输入用户名和密码。';
+                return false;
+            }
+            try {
+                const payload = { username: u, password: p };
+                const res = await apiFetch(mode === 'register' ? '/api/auth/register' : '/api/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    if (err) err.textContent = mapAuthApiError(data.error || '');
+                    return false;
+                }
+                await refreshMe();
+                closeAuthModal();
+                await migrateLocalIfNeeded();
+                return true;
+            } catch (e) {
+                if (err) err.textContent = '网络错误，请稍后重试。';
+                return false;
+            }
+        }
+
+        async function logout() {
+            try {
+                await apiFetch('/api/auth/logout', { method: 'POST', body: '{}' });
+            } catch {}
+            authUser = null;
+            setAuthPill();
+        }
+
+        async function migrateLocalIfNeeded() {
+            if (!authUser) return;
+            // 迁移：把本机 localStorage 的 woam_map_*（当前密码槽）导入（仅当库中为空时服务端会写入）
+            try {
+                const key = getSaveKey();
+                const raw = localStorage.getItem(key);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (!parsed) return;
+                await apiFetch('/api/migrate', {
+                    method: 'POST',
+                    body: JSON.stringify({ bearpit: parsed })
+                });
+            } catch {}
+        }
+
+        async function saveLayoutToServer() {
+            const data = serializeLayout();
+            const res = await apiFetch('/api/bearpit/layout', {
+                method: 'POST',
+                body: JSON.stringify({ data })
+            });
+            if (!res.ok) {
+                let detail = '';
+                try {
+                    const ct = res.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) {
+                        const j = await res.json().catch(() => null);
+                        if (j && (j.error || j.message)) detail = String(j.error || j.message);
+                        else if (j) detail = JSON.stringify(j).slice(0, 240);
+                    } else {
+                        detail = (await res.text().catch(() => '')).slice(0, 240);
+                    }
+                } catch {}
+                throw new Error(`SAVE_FAILED_HTTP_${res.status}${detail ? `:${detail}` : ''}`);
+            }
+        }
+
+        async function loadLayoutFromServer() {
+            const res = await apiFetch('/api/bearpit/layout', { method: 'GET', headers: {} });
+            const data = await res.json();
+            return data?.data || null;
+        }
+
+        async function downloadAsImage() {
+            if (!CONFIG.frame) return;
+
+            try {
+                CONFIG.btnDownload.disabled = true;
+                setStatus('生成图片中…', 'ok');
+
+                const w = CONFIG.frame.clientWidth;
+                const h = CONFIG.frame.clientHeight;
+                const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
+
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(w * dpr);
+                canvas.height = Math.round(h * dpr);
+                const ctx = canvas.getContext('2d');
+                if (!ctx) throw new Error('无法创建 Canvas');
+
+                // 背景（尽量贴近 view-frame 的渐变）
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(dpr, dpr);
+                const g = ctx.createRadialGradient(w * 0.5, h * 0.4, 0, w * 0.5, h * 0.4, Math.max(w, h));
+                g.addColorStop(0, '#ffffff');
+                g.addColorStop(0.65, '#f3f6fb');
+                g.addColorStop(1, '#eef2f7');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, w, h);
+
+                // 预加载图片（用于绘制放置物）
+                const srcSet = new Set();
+                for (const it of CONFIG.placedList) {
+                    if (it && it.img) srcSet.add(it.img);
+                }
+                // 兜底：如果某些旧数据没有 img，就按 size 给默认
+                const fallbackBySize = { 1: '../Scores/建筑图标/野外/联盟/联盟旗帜/worldfield_allianceterritory_009.png', 2: '../Scores/castle.png', 3: '../Scores/beartrap-1.png' };
+                for (const it of CONFIG.placedList) {
+                    if (it && !it.img && fallbackBySize[it.size]) srcSet.add(fallbackBySize[it.size]);
+                }
+
+                const imgCache = new Map();
+                await Promise.all(Array.from(srcSet).map(src => new Promise(resolve => {
+                    const im = new Image();
+                    // 尝试避免跨域/本地文件导致 canvas 导出被阻止（部分浏览器对 file:// 很严格）
+                    im.crossOrigin = 'anonymous';
+                    im.onload = () => { imgCache.set(src, im); resolve(); };
+                    im.onerror = () => resolve();
+                    im.src = src;
+                })));
+
+                // 应用网格容器的变换：把“本地坐标系”画到屏幕
+                const m = getFullMatrix();
+                ctx.save();
+                ctx.transform(m.a, m.b, m.c, m.d, m.e, m.f);
+
+                // 网格底色 + 线框（本地坐标）
+                const cs = CONFIG.cellSize;
+                const gs = CONFIG.gridSize;
+                for (let row = 0; row < gs; row++) {
+                    for (let col = 0; col < gs; col++) {
+                        ctx.fillStyle = ((row + col) % 2 === 0) ? '#EEF2F5' : '#DDE6EE';
+                        ctx.fillRect(col * cs, row * cs, cs, cs);
+                        ctx.strokeStyle = '#CCCCDD';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(col * cs, row * cs, cs, cs);
+                    }
+                }
+
+                // 1×1 的 7×7 半透明区域（联盟旗帜类；湖/山不画）
+                for (const it of CONFIG.placedList) {
+                    if (!it || it.size !== 1 || isPlainTerrain1x1NoAllianceRange(it.img)) continue;
+                    const x = it.startCol * cs - 3 * cs;
+                    const y = it.startRow * cs - 3 * cs;
+                    const dim = 7 * cs;
+                    ctx.fillStyle = 'rgba(64, 158, 255, 0.14)';
+                    ctx.fillRect(x, y, dim, dim);
+                    ctx.strokeStyle = 'rgba(64, 158, 255, 0.28)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, dim, dim);
+                }
+
+                // 联盟总部 3×3 的 15×15 半透明区域（与旗帜同色系）
+                for (const it of CONFIG.placedList) {
+                    if (!it || it.size !== 3 || !isAllianceHqSpritePath(it.img)) continue;
+                    const x = it.startCol * cs - 6 * cs;
+                    const y = it.startRow * cs - 6 * cs;
+                    const dim = 15 * cs;
+                    ctx.fillStyle = 'rgba(64, 158, 255, 0.14)';
+                    ctx.fillRect(x, y, dim, dim);
+                    ctx.strokeStyle = 'rgba(64, 158, 255, 0.28)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, dim, dim);
+                }
+
+                // 堡垒/要塞 6×6 半透明区域
+                for (const it of CONFIG.placedList) {
+                    if (!it || it.size !== 6 || !isFortressSixRangePath(it.img)) continue;
+                    const x = it.startCol * cs;
+                    const y = it.startRow * cs;
+                    const dim = 6 * cs;
+                    ctx.fillStyle = 'rgba(64, 158, 255, 0.14)';
+                    ctx.fillRect(x, y, dim, dim);
+                    ctx.strokeStyle = 'rgba(64, 158, 255, 0.28)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, dim, dim);
+                }
+
+                // 放置物图片（本地坐标，近似复刻“站立”的 sprite 变换）
+                const deg = Math.PI / 180;
+                for (const it of CONFIG.placedList) {
+                    if (!it) continue;
+                    const x = it.startCol * cs;
+                    const y = it.startRow * cs;
+                    const w0 = it.size * cs;
+                    const h0 = it.size * cs;
+                    const src = it.img || fallbackBySize[it.size] || '';
+                    const im = src ? imgCache.get(src) : null;
+
+                    // 先画一个轻微阴影底（更立体）
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+                    ctx.fillRect(x, y, w0, h0);
+                    ctx.restore();
+
+                    if (im) {
+                        ctx.save();
+                        ctx.translate(x + w0 / 2, y + h0 / 2);
+                        // 抵消地面 rotate(45) + scaleY(0.5)
+                        ctx.rotate(-45 * deg);
+                        ctx.scale(1, 2);
+                        // 缩放与偏移（贴近当前 CSS）
+                        const baseScale = 0.92;
+                        ctx.scale(baseScale, baseScale);
+                        const isLargeFootprint = it.size >= 3;
+                        const dx = isLargeFootprint ? (-0.07 * w0) : (-0.04 * w0);
+                        const dy = isLargeFootprint ? (-0.11 * h0) : (-0.08 * h0);
+                        ctx.translate(dx, dy);
+                        ctx.drawImage(im, -w0 / 2, -h0 / 2, w0, h0);
+                        ctx.restore();
+                    } else {
+                        // 图片加载失败：用色块兜底
+                        ctx.save();
+                        ctx.fillStyle = it.size === 1 ? 'rgba(64,158,255,0.6)' : it.size === 2 ? 'rgba(103,194,58,0.6)' : it.size === 6 ? 'rgba(100,116,139,0.65)' : 'rgba(230,162,60,0.6)';
+                        ctx.fillRect(x, y, w0, h0);
+                        ctx.restore();
+                    }
+                }
+
+                ctx.restore(); // 结束本地坐标绘制
+
+                // 2×2 命名文字：直接画在屏幕坐标，让它“正对着我”
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.scale(dpr, dpr);
+                ctx.font = '700 11px "Microsoft YaHei", sans-serif';
+                ctx.fillStyle = '#ff4da6';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                for (const it of CONFIG.placedList) {
+                    if (!it || it.size !== 2) continue;
+                    const name = (it.name || it.el?.dataset?.name || '').trim();
+                    if (!name) continue;
+                    const p = m.transformPoint({ x: it.startCol * cs + cs, y: it.startRow * cs + cs }); // 2×2 中心
+                    const nc = it.nameColor || it.el?.dataset?.nameColor || '#ff4da6';
+                    const bold = it.nameBold !== false && it.el?.dataset?.nameBold !== '0';
+                    const italic = !!it.nameItalic || it.el?.dataset?.nameItalic === '1';
+                    ctx.fillStyle = nc;
+                    ctx.font = `${bold ? '700' : '400'} ${italic ? 'italic ' : ''}11px "Microsoft YaHei", sans-serif`;
+                    ctx.fillText(name, p.x, p.y);
+                }
+                ctx.restore();
+
+                // 导出下载
+                const now = new Date();
+                const filename = `熊坑排布_${now.getFullYear()}${pad2(now.getMonth() + 1)}${pad2(now.getDate())}_${pad2(now.getHours())}${pad2(now.getMinutes())}${pad2(now.getSeconds())}.png`;
+
+                const doDownloadUrl = (url) => {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                };
+
+                canvas.toBlob((blob) => {
+                    try {
+                        if (blob) {
+                            const url = URL.createObjectURL(blob);
+                            doDownloadUrl(url);
+                            URL.revokeObjectURL(url);
+                            setStatus('已下载', 'ok');
+                            CONFIG.btnDownload.disabled = false;
+                            return;
+                        }
+
+                        // blob 为 null：常见于 canvas 被安全策略污染（tainted）或浏览器不支持 toBlob
+                        try {
+                            const dataUrl = canvas.toDataURL('image/png');
+                            doDownloadUrl(dataUrl);
+                            setStatus('已下载', 'ok');
+                        } catch (e2) {
+                            setStatus('导出失败：浏览器安全限制（建议用 http:// 方式打开页面）', 'err');
+                            console.warn('toDataURL failed:', e2);
+                        } finally {
+                            CONFIG.btnDownload.disabled = false;
+                        }
+                    } catch (e3) {
+                        console.warn(e3);
+                        setStatus('导出失败', 'err');
+                        CONFIG.btnDownload.disabled = false;
+                    }
+                }, 'image/png');
+            } catch (e) {
+                console.warn(e);
+                setStatus(`导出失败：${e && e.message ? e.message : e}`, 'err');
+                if (CONFIG.btnDownload) CONFIG.btnDownload.disabled = false;
+            }
+        }
+
+        // 拖拽平移功能
+        function bindDrag() {
+            CONFIG.frame.addEventListener('mousedown', (e) => {
+                // 点击已摆放物品（含其内部命名框/文字）不触发拖拽
+                if (e.target && e.target.closest && e.target.closest('.placed-item')) return;
+                CONFIG.isDragging = true;
+                CONFIG.didDrag = false;
+                CONFIG.dragStartX = e.clientX;
+                CONFIG.dragStartY = e.clientY;
+                CONFIG.lastX = e.clientX - CONFIG.translateX;
+                CONFIG.lastY = e.clientY - CONFIG.translateY;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!CONFIG.isDragging) return;
+                if (Math.abs(e.clientX - CONFIG.dragStartX) + Math.abs(e.clientY - CONFIG.dragStartY) > 4) {
+                    CONFIG.didDrag = true;
+                }
+                CONFIG.translateX = e.clientX - CONFIG.lastX;
+                CONFIG.translateY = e.clientY - CONFIG.lastY;
+                updateTransform();
+                clampToFrame();
+            });
+
+            document.addEventListener('mouseup', () => {
+                CONFIG.isDragging = false;
+            });
+        }
+
+        // 鼠标滚轮缩放功能
+        function bindZoom() {
+            CONFIG.frame.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomSpeed = 0.1;
+                const rect = CONFIG.frame.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const local = screenToLocal(e.clientX, e.clientY);
+                if (!local) return;
+
+                const nextScale = clamp(CONFIG.scale + (e.deltaY > 0 ? -zoomSpeed : zoomSpeed), CONFIG.minScale, CONFIG.maxScale);
+                if (nextScale === CONFIG.scale) return;
+                CONFIG.scale = nextScale;
+
+                // 保证缩放前后的“鼠标指向的局部点”保持在同一屏幕位置
+                const base = getBaseMatrix(CONFIG.scale);
+                const p = base.transformPoint({ x: local.x, y: local.y });
+                CONFIG.translateX = mouseX - p.x;
+                CONFIG.translateY = mouseY - p.y;
+
+                updateTransform();
+                clampToFrame();
+            });
+        }
+
+        function bindTouchGestures() {
+            CONFIG.frame.addEventListener('touchstart', (e) => {
+                if (e.target && e.target.closest && e.target.closest('.placed-item')) return;
+
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    CONFIG.touchMode = 'pan';
+                    CONFIG.didDrag = false;
+                    CONFIG.touchPanStartX = touch.clientX;
+                    CONFIG.touchPanStartY = touch.clientY;
+                    CONFIG.touchInitialTranslateX = CONFIG.translateX;
+                    CONFIG.touchInitialTranslateY = CONFIG.translateY;
+                    return;
+                }
+
+                if (e.touches.length === 2) {
+                    const first = e.touches[0];
+                    const second = e.touches[1];
+                    const center = getTouchCenter(first, second);
+                    const anchor = screenToLocal(center.x, center.y);
+                    if (!anchor) return;
+                    CONFIG.touchMode = 'pinch';
+                    CONFIG.isDragging = true;
+                    CONFIG.didDrag = true;
+                    CONFIG.pinchStartDistance = getTouchDistance(first, second);
+                    CONFIG.pinchStartScale = CONFIG.scale;
+                    CONFIG.pinchAnchorLocal = anchor;
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            CONFIG.frame.addEventListener('touchmove', (e) => {
+                if (CONFIG.touchMode === 'pan' && e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    const dx = touch.clientX - CONFIG.touchPanStartX;
+                    const dy = touch.clientY - CONFIG.touchPanStartY;
+                    if (Math.abs(dx) + Math.abs(dy) > 4) {
+                        CONFIG.didDrag = true;
+                        CONFIG.isDragging = true;
+                        e.preventDefault();
+                    }
+                    CONFIG.translateX = CONFIG.touchInitialTranslateX + dx;
+                    CONFIG.translateY = CONFIG.touchInitialTranslateY + dy;
+                    updateTransform();
+                    clampToFrame();
+                    return;
+                }
+
+                if (e.touches.length === 2) {
+                    const first = e.touches[0];
+                    const second = e.touches[1];
+                    const center = getTouchCenter(first, second);
+                    const nextDistance = getTouchDistance(first, second);
+                    const ratio = CONFIG.pinchStartDistance ? (nextDistance / CONFIG.pinchStartDistance) : 1;
+                    const nextScale = clamp(CONFIG.pinchStartScale * ratio, CONFIG.minScale, CONFIG.maxScale);
+                    const frameRect = CONFIG.frame.getBoundingClientRect();
+                    const base = getBaseMatrix(nextScale);
+                    const point = base.transformPoint(CONFIG.pinchAnchorLocal || { x: 0, y: 0 });
+                    CONFIG.scale = nextScale;
+                    CONFIG.translateX = center.x - frameRect.left - point.x;
+                    CONFIG.translateY = center.y - frameRect.top - point.y;
+                    CONFIG.isDragging = true;
+                    CONFIG.didDrag = true;
+                    updateTransform();
+                    clampToFrame();
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            const finishTouch = () => {
+                if (CONFIG.touchMode === 'pan' && CONFIG.didDrag) {
+                    requestAnimationFrame(() => {
+                        CONFIG.isDragging = false;
+                    });
+                } else {
+                    CONFIG.isDragging = false;
+                }
+                resetTouchGesture();
+            };
+
+            CONFIG.frame.addEventListener('touchend', finishTouch);
+            CONFIG.frame.addEventListener('touchcancel', finishTouch);
+        }
+
+        // 更新容器变换（平移+缩放+旋转）
+        function updateTransform() {
+            // 顺序很重要（CSS从右往左应用）：
+            // 先 rotate(45deg)，再 scaleY(俯视压扁)，再整体 scale(缩放)，最后 translate(平移)
+            // 这样视觉上就是“俯视45°”的等距菱形，而不是单纯旋转45°
+            CONFIG.container.style.transform = `translate(${CONFIG.translateX}px, ${CONFIG.translateY}px) scale(${CONFIG.scale}) scaleY(${TILT_Y}) rotate(${ROTATION_DEG}deg)`;
+        }
+
+        function clamp(v, min, max) {
+            return Math.max(min, Math.min(max, v));
+        }
+
+        function screenToLocal(clientX, clientY) {
+            const frameRect = CONFIG.frame.getBoundingClientRect();
+            const px = clientX - frameRect.left;
+            const py = clientY - frameRect.top;
+
+            const m = getFullMatrix();
+            const inv = m.inverse();
+            const p = inv.transformPoint({ x: px, y: py });
+            return { x: p.x, y: p.y };
+        }
+
+        function clampToFrame() {
+            // 让内容不要完全飞出视口：保证至少留出一定可见边距
+            const margin = 80;
+            const frameRect = CONFIG.frame.getBoundingClientRect();
+            const contRect = CONFIG.container.getBoundingClientRect();
+
+            let dx = 0;
+            let dy = 0;
+
+            if (contRect.right < frameRect.left + margin) dx = (frameRect.left + margin) - contRect.right;
+            if (contRect.left > frameRect.right - margin) dx = (frameRect.right - margin) - contRect.left;
+            if (contRect.bottom < frameRect.top + margin) dy = (frameRect.top + margin) - contRect.bottom;
+            if (contRect.top > frameRect.bottom - margin) dy = (frameRect.bottom - margin) - contRect.top;
+
+            if (dx !== 0 || dy !== 0) {
+                CONFIG.translateX += dx;
+                CONFIG.translateY += dy;
+                updateTransform();
+            }
+        }
+
+        // 让视图默认居中显示（避免一进来就看到表格下方/右侧）
+        // 用“本地网格中心点”反推平移，更稳定（不依赖 getBoundingClientRect 的时序/图片加载）
+        function centerView() {
+            const frameRect = CONFIG.frame.getBoundingClientRect();
+            const frameCenterX = frameRect.width / 2;
+            const frameCenterY = frameRect.height / 2;
+
+            const localW = CONFIG.gridSize * CONFIG.cellSize;
+            const localH = CONFIG.gridSize * CONFIG.cellSize;
+            const base = getBaseMatrix(CONFIG.scale);
+            const p = base.transformPoint({ x: localW / 2, y: localH / 2 });
+
+            CONFIG.translateX = frameCenterX - p.x;
+            CONFIG.translateY = frameCenterY - p.y;
+            updateTransform();
+        }
+
+        // 初始化所有功能
+        window.onload = function() {
+            createGrid();
+            bindGridHover();     // 网格悬浮预览（优化性能 + 适配旋转）
+            bindItemSelect();   // 物品点击选择
+            bindGridClickPlace();// 网格点击摆放
+            bindDrag();         // 网格拖拽平移
+            bindZoom();         // 网格滚轮缩放
+            bindTouchGestures();// 触摸拖拽与双指缩放
+            // 阻止框架内的右键菜单
+            CONFIG.frame.addEventListener('contextmenu', e => e.preventDefault());
+
+            // 清空确认弹窗
+            (function() {
+                const modal = document.getElementById('confirmClearModal');
+                const btnClose = document.getElementById('confirmClearClose');
+                const btnCancel = document.getElementById('confirmClearCancel');
+                const btnDo = document.getElementById('confirmClearDo');
+
+                function open() {
+                    if (!modal) return;
+                    modal.classList.add('open');
+                    modal.setAttribute('aria-hidden', 'false');
+                    setTimeout(() => btnDo?.focus(), 0);
+                }
+
+                function close() {
+                    if (!modal) return;
+                    modal.classList.remove('open');
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+
+                window.__beapitConfirmClear = { open, close };
+                [btnClose, btnCancel].forEach(b => b?.addEventListener('click', close));
+                modal?.addEventListener('click', e => { if (e.target === modal) close(); });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal?.classList.contains('open')) close(); });
+                btnDo?.addEventListener('click', () => {
+                    close();
+                    clearAll();
+                });
+            })();
+
+            // 操作按钮
+            CONFIG.btnUndo.addEventListener('click', undoLast);
+            CONFIG.btnClear.addEventListener('click', () => window.__beapitConfirmClear?.open?.());
+            CONFIG.btnDeletePick.addEventListener('click', toggleDeleteMode);
+            CONFIG.btnDownload.addEventListener('click', downloadAsImage);
+            CONFIG.btnUndoLandscape?.addEventListener('click', undoLast);
+            CONFIG.btnClearLandscape?.addEventListener('click', () => window.__beapitConfirmClear?.open?.());
+            CONFIG.btnDeletePickLandscape?.addEventListener('click', toggleDeleteMode);
+            CONFIG.btnCoordsTableToggle?.addEventListener('click', () => setCoordsTableOpen(true));
+            CONFIG.btnCloseCoordsTable?.addEventListener('click', () => setCoordsTableOpen(false));
+            CONFIG.coordsOverlay?.addEventListener('click', (e) => {
+                if (e.target === CONFIG.coordsOverlay) setCoordsTableOpen(false);
+            });
+            CONFIG.btnLandscapeMode?.addEventListener('click', async () => {
+                setLandscapeMode(true);
+                await requestLandscapePresentation();
+            });
+            CONFIG.btnExitLandscapeMode?.addEventListener('click', async () => {
+                setLandscapeMode(false);
+                await exitLandscapePresentation();
+            });
+            document.getElementById('btnExportConfig')?.addEventListener('click', exportConfigBeaPit);
+            document.getElementById('btnImportConfig')?.addEventListener('click', importConfigBeaPit);
+            updateActionButtons();
+            window.addEventListener('resize', () => {
+                if (CONFIG.landscapeMode) clampToFrame();
+            });
+
+            // 导出配置弹窗
+            (function() {
+                const modal = document.getElementById('exportBeaPitModal');
+                const output = document.getElementById('exportBeaPitOutput');
+                const status = document.getElementById('exportBeaPitStatus');
+                const closeBtns = [document.getElementById('closeExportBeaPit'), document.getElementById('cancelExportBeaPit')];
+                const copyBtn = document.getElementById('copyExportBeaPit');
+                function closeExport() {
+                    if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+                    if (status) { status.className = 'export-status'; status.textContent = ''; }
+                }
+                async function copyExportText() {
+                    const text = (output && output.value || '').trim();
+                    if (!text) { if (status) { status.className = 'export-status show error'; status.textContent = '没有可复制的内容。'; } return; }
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        if (status) { status.className = 'export-status show info'; status.textContent = '已复制到剪贴板。'; }
+                    } catch (e) {
+                        output.focus(); output.select();
+                        if (status) { status.className = 'export-status show error'; status.textContent = '自动复制可能被限制：已全选，请按 Ctrl+C 手动复制。'; }
+                    }
+                }
+                closeBtns.forEach(b => b?.addEventListener('click', closeExport));
+                copyBtn?.addEventListener('click', copyExportText);
+                modal?.addEventListener('click', e => { if (e.target === modal) closeExport(); });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal?.classList.contains('open')) closeExport(); });
+            })();
+
+            // 导入配置弹窗（解析 -> 确认 -> 导入）
+            (function() {
+                const modal = document.getElementById('importBeaPitModal');
+                const inputEl = document.getElementById('importBeaPitInput');
+                const statusEl = document.getElementById('importBeaPitStatus');
+                const doBtn = document.getElementById('doImportBeaPit');
+                const colorBySize = BEAPIT_COLOR_BY_SIZE;
+                let pendingImported = null;
+                function setStatus(type, text) {
+                    if (statusEl) { statusEl.className = `import-status show ${type}`; statusEl.textContent = text; }
+                }
+                function closeImport() {
+                    if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+                    if (doBtn) { doBtn.dataset.stage = 'parse'; doBtn.textContent = '解析并继续'; }
+                    pendingImported = null;
+                    if (statusEl) { statusEl.className = 'import-status'; statusEl.textContent = ''; }
+                }
+                function parseConfig(rawText) {
+                    const config = JSON.parse(rawText);
+                    if (!config) throw new Error('配置格式错误');
+                    const defC = '#ff4da6';
+                    if (config.v === 2 && Array.isArray(config.i)) {
+                        return config.i.filter(row => Array.isArray(row) && row.length >= 3 && Number.isFinite(row[0]) && Number.isFinite(row[1]) && Number.isFinite(row[2])).map(row => {
+                            const r = parseInt(row[0], 10), c = parseInt(row[1], 10), s = parseInt(row[2], 10);
+                            const n = (row[3] != null && row[3] !== '') ? String(row[3]) : '';
+                            const i = (row[4] != null && row[4] !== '') ? String(row[4]) : '';
+                            let nc = row[5];
+                            if (nc === 0 || nc === '' || nc == null) nc = defC;
+                            else if (typeof nc === 'string' && nc.length === 6) nc = '#' + nc;
+                            else if (typeof nc === 'string') nc = nc[0] === '#' ? nc : '#' + nc;
+                            const nb = row[6] !== 0;
+                            const ni = row[7] === 1;
+                            const isAllianceMine = s === 2 && isAllianceMineSpritePath(i);
+                            if (isAllianceMine) {
+                                if (row[5] === 0 || row[5] === '' || row[5] == null) nc = ALLIANCE_MINE_NAME_COLOR;
+                                if (!n) n = ALLIANCE_MINE_DEFAULT_NAME;
+                            }
+                            return { r, c, s, n, i, nc, nb, ni };
+                        });
+                    }
+                    if (Array.isArray(config.items)) {
+                        return config.items.filter(it => it && Number.isFinite(it.r) && Number.isFinite(it.c) && Number.isFinite(it.s)).map(it => ({
+                            r: parseInt(it.r, 10), c: parseInt(it.c, 10), s: parseInt(it.s, 10),
+                            n: it.n || '', i: it.i || '', nc: it.nc, nb: it.nb, ni: it.ni
+                        }));
+                    }
+                    throw new Error('配置格式错误：缺少 items 或 i 数组');
+                }
+                function applyImported(items) {
+                    CONFIG.restoring = true;
+                    clearAll({ skipHistory: true, silentTip: true });
+                    let okCount = 0;
+                    items.forEach(it => {
+                        const color = colorBySize[it.s] || '#409eff';
+                        if (placeItemAt(it.r, it.c, it.s, color, it.n || '', it.i || '', it.nc, it.nb, it.ni, { skipHistory: true })) okCount++;
+                    });
+                    CONFIG.historyStack = [];
+                    pushHistorySnapshot();
+                    CONFIG.restoring = false;
+                    updateActionButtons();
+                    renderCoordsTable();
+                    setStatus('info', '导入成功：已加载 ' + okCount + ' 个放置物。');
+                }
+                [document.getElementById('closeImportBeaPit'), document.getElementById('cancelImportBeaPit')].forEach(b => b?.addEventListener('click', closeImport));
+                modal?.addEventListener('click', e => { if (e.target === modal) closeImport(); });
+                document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal?.classList.contains('open')) closeImport(); });
+                doBtn?.addEventListener('click', function() {
+                    const stage = doBtn.dataset.stage || 'parse';
+                    const text = (inputEl?.value || '').trim();
+                    if (stage === 'parse') {
+                        if (!text) { setStatus('error', '请先粘贴配置序列码。'); return; }
+                        try {
+                            const items = parseConfig(text);
+                            if (!items.length) { setStatus('error', '配置中没有可导入的放置物。'); return; }
+                            pendingImported = items;
+                            doBtn.dataset.stage = 'confirm';
+                            doBtn.textContent = '确认覆盖并导入';
+                            setStatus('info', `已解析到 ${items.length} 个放置物。点击「确认覆盖并导入」将覆盖当前所有摆放。`);
+                        } catch (err) {
+                            pendingImported = null;
+                            setStatus('error', '配置格式错误：' + (err?.message || '请检查 JSON 格式'));
+                        }
+                        return;
+                    }
+                    if (!pendingImported) { doBtn.dataset.stage = 'parse'; doBtn.textContent = '解析并继续'; setStatus('error', '未找到待导入数据。'); return; }
+                    applyImported(pendingImported);
+                    setTimeout(closeImport, 1200);
+                });
+            })();
+
+            // 登录相关按钮
+            document.getElementById('btnLogin')?.addEventListener('click', openAuthModal);
+            document.getElementById('btnLogout')?.addEventListener('click', logout);
+            document.getElementById('authClose')?.addEventListener('click', closeAuthModal);
+            document.getElementById('authModal')?.addEventListener('click', (e) => {
+                if (e.target && e.target.id === 'authModal') closeAuthModal();
+            });
+            document.getElementById('authDoLogin')?.addEventListener('click', () => doLoginOrRegister('login'));
+            document.getElementById('authDoRegister')?.addEventListener('click', () => doLoginOrRegister('register'));
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeAuthModal();
+            });
+
+            // 覆盖保存/加载：登录后走服务器；未登录仍允许本机保存/加载
+            CONFIG.btnSave?.addEventListener('click', async () => {
+                if (!authChecked) await refreshMe();
+                if (!authUser) {
+                    // 未登录：保留本机保存能力，避免“保存/更新”不可用
+                    const ok = saveLayout({ silent: true });
+                    if (ok) setStatus('已保存到本机（可登录后同步）', 'ok');
+                    else saveLayout(); // 显示详细失败原因
+                    return;
+                }
+                try {
+                    await saveLayoutToServer();
+                    setStatus('已保存到账号', 'ok');
+                } catch (e) {
+                    console.warn(e);
+                    // 账号保存失败时，兜底写入本机，避免数据丢失
+                    const okLocal = saveLayout({ silent: true });
+                    const em = (e && e.message) ? String(e.message) : '';
+                    const suffix = em ? `（${em}）` : '';
+                    setStatus(okLocal ? `账号保存失败，已兜底保存到本机${suffix}` : `账号保存失败，且本机保存也失败（请看控制台报错）${suffix}`, 'err');
+                    if (!okLocal) saveLayout(); // 显示本机保存的详细失败原因
+                }
+            });
+
+            CONFIG.btnLoad?.addEventListener('click', async () => {
+                if (!authChecked) await refreshMe();
+                if (authUser) {
+                    try {
+                        const remote = await loadLayoutFromServer();
+                        if (!remote || !Array.isArray(remote.items)) {
+                            setStatus('账号暂无存档', 'err');
+                            return;
+                        }
+                        CONFIG.restoring = true;
+                        clearAll({ skipHistory: true, silentTip: true });
+                        const colorBySize = BEAPIT_COLOR_BY_SIZE;
+                        let okCount = 0;
+                        remote.items.forEach(it => {
+                            const r = parseInt(it.r, 10);
+                            const c = parseInt(it.c, 10);
+                            const s = parseInt(it.s, 10);
+                            const n = it.n;
+                            const img = it.i;
+                            if (!Number.isFinite(r) || !Number.isFinite(c) || !Number.isFinite(s)) return;
+                            const ok = placeItemAt(r, c, s, colorBySize[s] || '#409eff', n, img, undefined, undefined, undefined, { skipHistory: true });
+                            if (ok) okCount++;
+                        });
+                        CONFIG.historyStack = [];
+                        pushHistorySnapshot();
+                        CONFIG.restoring = false;
+                        updateActionButtons();
+                        setStatus(`已从账号加载：${okCount} 个`, 'ok');
+                    } catch (e) {
+                        console.warn(e);
+                        CONFIG.restoring = false;
+                        setStatus('账号加载失败', 'err');
+                    }
+                } else {
+                    // 未登录仍保留本地加载
+                    loadLayout();
+                }
+            });
+
+            // 进入页面先检查登录状态
+            refreshMe();
+
+            // 快捷键
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+                    e.preventDefault();
+                    undoLast();
+                    return;
+                }
+                if (e.key === 'Escape') {
+                    if (CONFIG.landscapeMode && document.body.classList.contains('coords-table-open')) {
+                        setCoordsTableOpen(false);
+                        return;
+                    }
+                    if (CONFIG.deleteMode) {
+                        CONFIG.deleteMode = false;
+                        CONFIG.btnDeletePick.classList.remove('active');
+                        if (CONFIG.btnDeletePickLandscape) CONFIG.btnDeletePickLandscape.classList.remove('active');
+                        setStatus('就绪', 'ok');
+                        setTip('已退出删除模式。请点击侧栏选择需要摆放的物品。');
+                        return;
+                    }
+                    deselectBuildItem();
+                    setTip('已取消选择。请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。右键已摆放物品可删除。');
+                }
+            });
+
+            // 保存/加载：由“账号逻辑”接管（未登录：仅允许本地加载；保存必须登录）
+            setStatus('就绪', 'ok');
+
+            // 初始视图：默认居中
+            CONFIG.translateX = 0;
+            CONFIG.translateY = 0;
+            updateTransform();
+            // 下一帧再居中，避免初次布局未稳定导致偏移不准
+            requestAnimationFrame(() => {
+                centerView();
+                clampToFrame();
+            });
+        };
+    </script>
+    <!-- theme toggle moved to /function/theme.js -->
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>
+
+
+
+

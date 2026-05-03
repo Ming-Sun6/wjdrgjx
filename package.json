@@ -1,0 +1,19 @@
+{
+  "type": "commonjs",
+  "scripts": {
+    "migrate:inline-avatars": "node scripts/migrate-inline-avatars.js",
+    "regenerate:t12": "node scripts/regenerate-t12-html.js"
+  },
+  "devDependencies": {
+    "xlsx": "^0.18.5"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.22.3",
+    "node-windows": "^1.0.0-beta.8",
+    "pg": "^8.20.0",
+    "sanitize-html": "^2.17.0",
+    "sharp": "^0.34.4"
+  }
+}

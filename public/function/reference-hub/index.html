@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>礼包参考总览</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Microsoft YaHei", sans-serif; min-height: 100vh; background: #edf3fb; color: #16324f; padding: 56px 16px 16px; }
+    .home-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 20;
+      border: 1px solid #c6d8ef;
+      border-radius: 12px;
+      background: #fff;
+      color: #16324f;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 8px 12px;
+      box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+    }
+    .layout { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 14px; }
+    #sheetNav, .viewer { background: #fff; border: 1px solid #c6d8ef; border-radius: 18px; box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08); }
+    #sheetNav {
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      min-height: 70vh;
+    }
+    .ref-nav-shell { display: grid; gap: 10px; width: 100%; }
+    .ref-nav-tools {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .ref-nav-tools-label {
+      width: 100%;
+      font-size: 12px;
+      font-weight: 800;
+      color: #47607a;
+      margin-bottom: -4px;
+    }
+    #refHubSearchInput {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #c6d8ef;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      background: #f8fbff;
+      color: #16324f;
+      outline: none;
+    }
+    #refHubSearchInput:focus {
+      border-color: #2f78b8;
+      box-shadow: 0 0 0 3px rgba(47, 120, 184, 0.15);
+    }
+    #refHubSearchClear {
+      flex-shrink: 0;
+      border: 1px solid #c6d8ef;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #fff;
+      color: #16324f;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .ref-nav-meta {
+      margin: 0;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5b7594;
+    }
+    #sheetNavMobileSelect {
+      display: none;
+      width: 100%;
+      border: 1px solid #c6d8ef;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      background: #f8fbff;
+      color: #16324f;
+      cursor: pointer;
+    }
+    .nav-desktop-wrap {
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .nav-item {
+      width: 100%; border: 1px solid #c6d8ef; background: #f8fbff;
+      border-radius: 12px; padding: 10px 12px;
+      text-align: left; cursor: pointer;
+      font-weight: 700; color: #16324f; font-family: inherit; font-size: 14px;
+    }
+    .nav-item.active { background: #2f78b8; border-color: #2f78b8; color: #fff; }
+    .viewer { overflow: hidden; display: grid; grid-template-rows: auto 1fr; min-height: 85vh; }
+    #sheetHeader { padding: 14px 18px; border-bottom: 1px solid #d7e3f3; font-size: 20px; font-weight: 800; }
+    #sheetFrame { width: 100%; height: 100%; min-height: 78vh; border: 0; background: #fff; }
+    .ref-nav-placeholder {
+      border: 1px dashed #c6d8ef;
+      border-radius: 12px;
+      padding: 16px;
+      color: #5b7594;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      background: #f8fbff;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      #sheetNav { min-height: auto; }
+      #sheetNavMobileSelect { display: block; }
+      .nav-desktop-wrap { display: none; }
+      .viewer, #sheetFrame { scroll-margin-top: 8px; }
+    }
+  </style>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../../rukou.html">返回首页</a>
+  <div class="layout">
+    <aside id="sheetNav" aria-label="礼包与工作表切换">
+      <div class="ref-nav-placeholder">目录加载中…</div>
+    </aside>
+    <main class="viewer">
+      <div id="sheetHeader">秘宝猎人</div>
+      <iframe id="sheetFrame" src="./pages/treasure-hunter.html" title="Workbook reference"></iframe>
+    </main>
+  </div>
+  <script src="./data/sheets.js"></script>
+  <script>
+    const SHEETS = window.REFERENCE_HUB_SHEETS || [];
+    const sheetNav = document.getElementById("sheetNav");
+    const sheetFrame = document.getElementById("sheetFrame");
+    const sheetHeader = document.getElementById("sheetHeader");
+    let navFilter = "";
+    let currentPath = (SHEETS[0] && SHEETS[0].path) || "./pages/treasure-hunter.html";
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function normalize(q) {
+      return String(q || "").trim().toLowerCase();
+    }
+
+    function sheetMatchesFilter(sheet, q) {
+      const t = normalize(q);
+      if (!t) return true;
+      const hay = ((sheet.name || "") + " " + (sheet.slug || "")).toLowerCase();
+      return hay.includes(t);
+    }
+
+    function filteredSheets() {
+      return SHEETS.filter(function (s) { return sheetMatchesFilter(s, navFilter); });
+    }
+
+    function narrowNav() {
+      return typeof window.matchMedia === "function" && window.matchMedia("(max-width: 920px)").matches;
+    }
+
+    function scrollViewerIntoView() {
+      if (!narrowNav()) return;
+      const el = document.querySelector(".viewer");
+      if (el && typeof el.scrollIntoView === "function") {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function currentSheet(list) {
+      return list.filter(function (s) { return s.path === currentPath; })[0] || list[0];
+    }
+
+    function switchSheet(path, label) {
+      currentPath = path;
+      sheetFrame.src = path;
+      sheetHeader.textContent = label || path;
+      renderNav();
+      scrollViewerIntoView();
+    }
+
+    function attachNavHandlers() {
+      var searchEl = document.getElementById("refHubSearchInput");
+      var clearEl = document.getElementById("refHubSearchClear");
+      var mobileSel = document.getElementById("sheetNavMobileSelect");
+
+      if (searchEl) {
+        searchEl.value = navFilter;
+        searchEl.addEventListener("input", function () {
+          navFilter = searchEl.value;
+          renderNav();
+        });
+      }
+      if (clearEl) {
+        clearEl.addEventListener("click", function () {
+          navFilter = "";
+          if (searchEl) {
+            searchEl.value = "";
+            searchEl.focus();
+          }
+          renderNav();
+        });
+      }
+      if (mobileSel) {
+        mobileSel.value = currentPath;
+        mobileSel.addEventListener("change", function () {
+          var path = mobileSel.value;
+          var label = SHEETS.filter(function (s) { return s.path === path; })[0];
+          switchSheet(path, label ? label.name : path);
+        });
+      }
+
+      sheetNav.querySelectorAll(".nav-item").forEach(function (button) {
+        button.addEventListener("click", function () {
+          switchSheet(button.dataset.path, button.textContent.trim());
+        });
+      });
+    }
+
+    function renderNav() {
+      var list = filteredSheets();
+      var total = SHEETS.length;
+
+      if (list.length && !list.some(function (s) { return s.path === currentPath; })) {
+        currentPath = list[0].path;
+        sheetFrame.src = currentPath;
+        sheetHeader.textContent = list[0].name;
+      }
+
+      var metaLine = normalize(navFilter)
+        ? ("显示 " + list.length + " / " + total + " 个")
+        : ("共 " + total + " 个礼包表");
+
+      var prevActive = document.activeElement;
+      var keepSearchFocus = prevActive && prevActive.id === "refHubSearchInput";
+      var selStart, selEnd;
+      if (keepSearchFocus && typeof prevActive.selectionStart === "number") {
+        selStart = prevActive.selectionStart;
+        selEnd = prevActive.selectionEnd;
+      }
+
+      function focusSearchRestore() {
+        if (!keepSearchFocus) return;
+        var nextSearch = document.getElementById("refHubSearchInput");
+        if (nextSearch) {
+          nextSearch.focus();
+          if (typeof selStart === "number" && typeof nextSearch.setSelectionRange === "function") {
+            try {
+              nextSearch.setSelectionRange(selStart, selEnd);
+            } catch (e) {}
+          }
+        }
+      }
+
+      var tools =
+        '<div class="ref-nav-shell">' +
+          '<span class="ref-nav-tools-label" id="refHubSearchBanner">搜索礼包 / 表格名称</span>' +
+          '<div class="ref-nav-tools">' +
+            '<input id="refHubSearchInput" type="search" inputmode="search" autocomplete="off" enterkeyhint="search" aria-describedby="refHubSearchBanner" placeholder="输入关键词筛选左侧目录，如：喀莎、周卡…" />' +
+            '<button id="refHubSearchClear" type="button">清空</button>' +
+          '</div>' +
+          '<p class="ref-nav-meta">' + escapeHtml(metaLine) + "</p>";
+
+      if (!list.length) {
+        sheetNav.innerHTML =
+          tools +
+          '<div class="ref-nav-placeholder">未找到匹配项，请更换关键词或点「清空」</div>' +
+          "</div>";
+        attachNavHandlers();
+        focusSearchRestore();
+        return;
+      }
+
+      var cs = currentSheet(list);
+      if (!cs) return;
+      sheetHeader.textContent = cs.name;
+
+      var selectHtml =
+        '<label>' +
+          '<span class="sr-only">下拉选择礼包表</span>' +
+          '<select id="sheetNavMobileSelect" aria-label="选择礼包表">';
+      list.forEach(function (s) {
+        selectHtml +=
+          '<option value="' + escapeHtml(s.path) + '"' + (s.path === currentPath ? " selected" : "") + ">" +
+          escapeHtml(s.name) +
+          "</option>";
+      });
+      selectHtml += "</select></label>";
+
+      var buttonsHtml =
+        '<div class="nav-desktop-wrap" id="sheetNavDesktopList">';
+      list.forEach(function (s) {
+        buttonsHtml +=
+          '<button class="nav-item' + (s.path === currentPath ? " active" : "") + '" type="button" data-path="' + escapeHtml(s.path) + '">' +
+          escapeHtml(s.name) +
+          "</button>";
+      });
+      buttonsHtml += "</div>";
+
+      sheetNav.innerHTML = tools + selectHtml + buttonsHtml + "</div>";
+      attachNavHandlers();
+      focusSearchRestore();
+    }
+
+    renderNav();
+  </script>
+</body>
+</html>

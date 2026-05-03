@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>礼包时间开启轮换表</title>
+  <style>
+    :root{
+      --bg:#eef3fa;
+      --card:#ffffff;
+      --line:#cfd8e6;
+      --text:#0f172a;
+      --muted:#64748b;
+      --head:#dbe4f3;
+      --accent:#2563eb;
+      --tag:#eaf1ff;
+      --btn-primary-bg:#1f2937;
+      --btn-primary-text:#ffffff;
+      --subhead-bg:#eef4df;
+      --col1-bg:#d7e4d0;
+    }
+    html[data-theme="night"],
+    body[data-theme="dark"]{
+      --bg:#0b1220;
+      --card:#111b2f;
+      --line:#2a3a57;
+      --text:#e6ecff;
+      --muted:#9fb1d6;
+      --head:#1a2742;
+      --accent:#7fb3ff;
+      --tag:#16233e;
+      --btn-primary-bg:rgba(127,179,255,.18);
+      --btn-primary-text:var(--text);
+      --subhead-bg:rgba(127,179,255,.10);
+      --col1-bg:rgba(127,179,255,.10);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:"Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:18px 12px 24px;
+    }
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+      flex-wrap:wrap;
+    }
+    h1{
+      margin:0;
+      font-size:28px;
+      font-weight:900;
+      letter-spacing:.5px;
+    }
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .btn{
+      text-decoration:none;
+      border:1px solid var(--line);
+      background:var(--card);
+      color:var(--text);
+      border-radius:10px;
+      padding:9px 12px;
+      font-size:13px;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:var(--btn-primary-bg);
+      color:var(--btn-primary-text);
+      border-color:var(--btn-primary-bg);
+    }
+    .search-row{
+      display:flex;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .search{
+      flex:1;
+      min-width:180px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:14px;
+      background:var(--card);
+      color:var(--text);
+      outline:none;
+    }
+    .search:focus{
+      border-color:#8fb8ff;
+      box-shadow:0 0 0 3px rgba(59,130,246,.18);
+    }
+    .meta{
+      margin:0 0 8px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    .table-wrap{
+      overflow:auto;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:860px;
+    }
+    thead th{
+      background:var(--head);
+      font-size:26px;
+      font-weight:900;
+      text-align:center;
+      padding:14px 10px;
+      border-bottom:1px solid var(--line);
+    }
+    .subhead th{
+      background:var(--subhead-bg);
+      font-size:30px;
+      font-weight:900;
+      padding:12px 10px;
+      border:1px solid var(--line);
+    }
+    tbody td{
+      border:1px solid var(--line);
+      padding:12px 10px;
+      text-align:center;
+      vertical-align:middle;
+      font-size:32px;
+      font-weight:800;
+      line-height:1.35;
+    }
+    tbody td:nth-child(1){
+      background:var(--col1-bg);
+      width:22%;
+    }
+    tbody td:nth-child(2){
+      width:22%;
+      white-space:nowrap;
+    }
+    tbody td:nth-child(3){
+      width:56%;
+    }
+    .empty{
+      text-align:center;
+      font-size:18px;
+      color:var(--muted);
+      padding:20px 10px;
+      font-weight:700;
+      background:var(--card) !important;
+    }
+    .tip{
+      margin:10px 2px 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+    }
+    @media (max-width: 800px){
+      thead th{font-size:20px}
+      .subhead th{font-size:22px}
+      tbody td{font-size:20px}
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <main class="wrap">
+    <div class="top">
+      <h1>礼包时间开启轮换表</h1>
+      <div class="actions">
+        <a class="btn primary" href="../../rukou.html">返回首页</a>
+      </div>
+    </div>
+    <div class="search-row">
+      <input id="searchInput" class="search" type="search" placeholder="搜索礼包名 / 周期 / 备注" />
+      <button id="clearBtn" class="btn" type="button">清空</button>
+    </div>
+    <p id="meta" class="meta"></p>
+
+    <section class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th colspan="3">礼包时间</th></tr>
+          </thead>
+          <tbody>
+            <tr class="subhead">
+              <th>礼包</th>
+              <th>周期</th>
+              <th>备注</th>
+            </tr>
+          </tbody>
+          <tbody id="bodyRows"></tbody>
+        </table>
+      </div>
+    </section>
+    <p class="tip">说明：表格数据按你提供的截图录入，后续可继续补充或修正。</p>
+  </main>
+
+  <script>
+    (function(){
+      const rows = [
+        { gift:"工匠的宝库领主", cycle:"7天（周五）", note:"合金、抛光液、设计图纸" },
+        { gift:"工匠的宝库宝石", cycle:"7天（周三）", note:"宝石图纸、宝石手册" },
+        { gift:"冰原征服者", cycle:"7天（周四）", note:"（前几期不定，第六期开始周四）跟随堡垒争夺出现堡垒争夺。" },
+        { gift:"冰原旅者", cycle:"14天（周四）", note:"" },
+        { gift:"武备自选", cycle:"7天（周四）", note:"英雄装备幸运箱、专精能源石自选" },
+        { gift:"萌宠定制礼包", cycle:"每周刷新", note:"每周刷新，内含口粮，宠物自选箱，普通野性印记，高级野性印记" },
+        { gift:"专属装备强化", cycle:"每周刷新", note:"每周刷新" },
+        { gift:"火晶能源", cycle:"14天（周一）", note:"持续3天" },
+        { gift:"城镇崛起", cycle:"14天（周一）", note:"最强领主、冻土之王、最强王国第一天" },
+        { gift:"领主体力", cycle:"随活动出现（周二）", note:"最强领主、冻土之王、最强王国第二天" },
+        { gift:"部队训练", cycle:"14天（周三）", note:"最强领主、冻土之王、最强王国第三天" },
+        { gift:"科技风暴", cycle:"14天（周四）", note:"最强领主、冻土之王、最强王国第四天" },
+        { gift:"最强领主礼包", cycle:"14天（周五）", note:"最强领主、冻土之王、最强王国第五天" },
+        { gift:"幸运币礼包", cycle:"14天（周二）", note:"心愿小筑活动礼包，跟随冻土之王，最强王国开放" },
+        { gift:"英勇之证礼包", cycle:"7天（周日）", note:"英雄殿堂出现活动礼包" },
+        { gift:"火晶余烬礼包", cycle:"14天（周五）", note:"火晶激活计划活动礼包" },
+        { gift:"奇货自选", cycle:"14天（周六）", note:"火晶、加速、钢材" },
+        { gift:"匠心自选", cycle:"14天（周日）", note:"" },
+        { gift:"宝石匠人", cycle:"14天（周三）", note:"宝石手册、宝石图纸" },
+        { gift:"领主装备特惠", cycle:"14天（周五）", note:"" },
+        { gift:"曙光集市", cycle:"14天（周五）", note:"（强化螺丝，英雄装备幸运箱）（火晶，通用加速）（专精石）（设计图纸抛光液合金）" },
+        { gift:"战地医生", cycle:"活动出现", note:"分为兵工厂和最强王国。兵工厂持续1天，最强王国持续3天" },
+        { gift:"辉煌历程通行证", cycle:"14天循环", note:"开服7天熔炉等级7开启" },
+        { gift:"领主体力礼包", cycle:"21天（周六）", note:"随佣兵荣耀出现" },
+        { gift:"许愿券礼包", cycle:"28天（周五）", note:"米娅小屋活动礼包" },
+        { gift:"黎明之晖", cycle:"仅一次", note:"破晓征程活动礼包" },
+        { gift:"故土与远方", cycle:"仅一次", note:"故土与远方活动礼包" },
+        { gift:"秘钥礼包", cycle:"不定期", note:"冰封宝藏礼包，每代英雄开启2次" },
+        { gift:"神秘藏宝室礼包", cycle:"不定期", note:"神秘藏宝室活动礼包" },
+        { gift:"万象杂货铺礼包", cycle:"不定期", note:"万象杂货铺活动礼包" }
+      ];
+
+      const searchInput = document.getElementById("searchInput");
+      const clearBtn = document.getElementById("clearBtn");
+      const bodyRows = document.getElementById("bodyRows");
+      const meta = document.getElementById("meta");
+      const themeBtn = document.getElementById("themeBtn");
+
+      function normalizeText(value){
+        return String(value || "")
+          .toLowerCase()
+          .replace(/[\s·•\-_.，。、；;：:（）()【】\[\]《》<>]/g, "");
+      }
+
+      function rowText(item){
+        return normalizeText(item.gift + " " + item.cycle + " " + (item.note || ""));
+      }
+
+      function render(list){
+        if (!list.length){
+          bodyRows.innerHTML = '<tr><td class="empty" colspan="3">未找到匹配礼包</td></tr>';
+          return;
+        }
+        bodyRows.innerHTML = list.map((item) => {
+          return "<tr>" +
+            "<td>" + item.gift + "</td>" +
+            "<td>" + item.cycle + "</td>" +
+            "<td>" + (item.note || "—") + "</td>" +
+          "</tr>";
+        }).join("");
+      }
+
+      function doFilter(){
+        const q = normalizeText(searchInput.value.trim());
+        const list = q ? rows.filter((item) => rowText(item).includes(q)) : rows.slice();
+        meta.textContent = q ? ("匹配到 " + list.length + " 条") : ("共 " + rows.length + " 条");
+        render(list);
+      }
+
+      function applyTheme(theme){
+        document.body.setAttribute("data-theme", theme);
+      }
+
+      // theme is managed globally by /function/theme.js
+
+      searchInput.addEventListener("input", doFilter);
+      clearBtn.addEventListener("click", function(){
+        searchInput.value = "";
+        searchInput.focus();
+        doFilter();
+      });
+
+      doFilter();
+    })();
+  </script>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body>
+</html>

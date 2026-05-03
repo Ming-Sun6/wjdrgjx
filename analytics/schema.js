@@ -1,0 +1,9 @@
+const { POSTGRES_SCHEMA_SQL } = require('../postgres-schema');
+
+const RAW_EVENTS_TABLE_SQL = POSTGRES_SCHEMA_SQL[0];
+const HOURLY_AGGREGATES_TABLE_SQL = POSTGRES_SCHEMA_SQL[4];
+
+module.exports = {
+  RAW_EVENTS_TABLE_SQL,
+  HOURLY_AGGREGATES_TABLE_SQL
+};

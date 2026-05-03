@@ -1,0 +1,2356 @@
+<!DOCTYPE html>
+<!-- saved from url=(0145)file:///D:/%E4%BF%9D%E7%95%99/wechat%E7%BC%93%E5%AD%98/xwechat_files/wxid_fgl450u43myg22_5c7e/msg/file/2026-01/deepseek_html_20260123_fd93ac.html -->
+<html lang="zh-CN"><head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《无尽冬日》工程站倒计时</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 10px;
+            transition: background .2s ease, color .2s ease;
+        }
+
+        /* 返回主页按钮 */
+        .home-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 10003;
+            margin: 0;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            text-decoration: none;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
+        }
+        .home-btn:hover {
+            background: rgba(59, 130, 246, 0.25);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 10px;
+            left: 112px;
+            z-index: 10003;
+            margin: 0;
+            width: 38px;
+            height: 38px;
+            padding: 0;
+            border-radius: 999px;
+            color: #e2e8f0;
+            background: rgba(30, 41, 59, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(59, 130, 246, 0.25);
+        }
+
+        .theme-icon {
+            width: 18px;
+            height: 18px;
+            display: block;
+            fill: currentColor;
+        }
+
+        body.theme-day {
+            background: linear-gradient(135deg, #eaf2ff 0%, #f8fbff 100%);
+            color: #0f172a;
+        }
+
+        body.theme-day .home-btn,
+        body.theme-day .theme-toggle {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.92);
+            border-color: rgba(15, 23, 42, 0.14);
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        body.theme-day .home-btn:hover,
+        body.theme-day .theme-toggle:hover {
+            background: rgba(37, 99, 235, 0.14);
+        }
+
+        body.theme-day .filter-btn {
+            background: rgba(255, 255, 255, 0.92);
+            color: #334155;
+            border-color: rgba(15, 23, 42, 0.14);
+        }
+
+        body.theme-day .filter-btn.active {
+            background: linear-gradient(90deg, #2563eb, #4f46e5);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        body.theme-day .filter-btn:hover {
+            background: rgba(37, 99, 235, 0.12);
+        }
+
+        body.theme-day .form-container,
+        body.theme-day .timer-card,
+        body.theme-day .import-panel,
+        body.theme-day .export-panel {
+            background: rgba(255, 255, 255, 0.94);
+            color: #0f172a;
+            border-color: rgba(15, 23, 42, 0.12);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+        }
+
+        body.theme-day .project-name {
+            color: #0f172a;
+        }
+
+        body.theme-day .subtitle,
+        body.theme-day .alliance-name,
+        body.theme-day .time-label,
+        body.theme-day .phase-text,
+        body.theme-day .phase-time,
+        body.theme-day .progress-percent,
+        body.theme-day .empty-state,
+        body.theme-day .footer-text,
+        body.theme-day .stats-item .label,
+        body.theme-day .import-hint,
+        body.theme-day .export-hint,
+        body.theme-day .import-title h3,
+        body.theme-day .export-title h3 {
+            color: #475569;
+        }
+
+        body.theme-day .cycle-info {
+            color: #92400e;
+            background: rgba(245, 158, 11, 0.16);
+        }
+
+        body.theme-day label {
+            color: #1d4ed8;
+        }
+
+        body.theme-day input,
+        body.theme-day .import-textarea,
+        body.theme-day .export-textarea {
+            background: #fff;
+            color: #0f172a;
+            border-color: rgba(15, 23, 42, 0.18);
+        }
+
+        body.theme-day .stats-bar {
+            background: rgba(15, 23, 42, 0.06);
+        }
+
+        body.theme-day .stats-item .value {
+            color: #1d4ed8;
+        }
+
+        body.theme-day .time-left {
+            background: linear-gradient(90deg, #1d4ed8, #7c3aed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        body.theme-day .progress-container {
+            background: rgba(15, 23, 42, 0.12);
+        }
+
+        body.theme-day .import-title,
+        body.theme-day .export-title {
+            border-bottom-color: rgba(15, 23, 42, 0.1);
+        }
+
+        body.theme-day .import-actions,
+        body.theme-day .export-actions {
+            border-top-color: rgba(15, 23, 42, 0.1);
+        }
+
+        body.theme-day .import-actions .secondary,
+        body.theme-day .export-actions .secondary {
+            background: rgba(255, 255, 255, 0.92);
+            border-color: rgba(15, 23, 42, 0.14);
+            color: #334155;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 8px;
+        }
+        
+        h1 {
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        
+        .cycle-info {
+            font-size: 0.75rem;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .filter-btn {
+            background: rgba(30, 41, 59, 0.7);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(90deg, #3b82f6, #6366f1);
+            color: white;
+            border-color: transparent;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+        
+        .form-container {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .input-item {
+            flex: 1;
+            min-width: 160px;
+        }
+        
+        .time-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .time-input-item {
+            flex: 1;
+        }
+        
+        .time-input-item input {
+            text-align: center;
+        }
+        
+        .time-separator {
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 3px;
+            color: #60a5fa;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+        
+        input {
+            width: 100%;
+            padding: 7px 9px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            color: white;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(90deg, #3b82f6, #6366f1);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 6px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+        }
+        
+        button.secondary {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+        
+        .timers-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+        
+        .timer-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9));
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .timer-card.phase-1 {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .timer-card.phase-2 {
+            border-left: 4px solid #10b981;
+        }
+        
+        .timer-card.hidden {
+            display: none;
+        }
+        
+        .timer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .timer-title-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
+        
+        .project-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .alliance-name {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+        
+        .phase-indicator {
+            background: rgba(239, 68, 68, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #ef4444;
+            white-space: nowrap;
+            margin-top: 2px;
+        }
+        
+        .phase-2 {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+            transform: scale(1.1);
+        }
+        
+        .timer-display {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .time-left {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .time-label {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+        
+        .integrated-progress {
+            margin: 15px 0 10px;
+        }
+        
+        .phase-progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            font-size: 0.7rem;
+        }
+        
+        .phase-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .phase-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ef4444;
+        }
+        
+        .phase-2 .phase-dot {
+            background: #10b981;
+        }
+        
+        .phase-text {
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+        
+        .phase-time {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+        
+        .progress-container {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            border-radius: 3px;
+            transition: width 1s ease;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .progress-percent {
+            position: absolute;
+            right: 4px;
+            top: -14px;
+            font-size: 0.65rem;
+            color: #94a3b8;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 25px 10px;
+            color: #94a3b8;
+            grid-column: 1 / -1;
+        }
+        
+        .empty-state h3 {
+            margin-bottom: 6px;
+            color: #60a5fa;
+            font-size: 1rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 768px) {
+            .timers-container {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+            
+            h1 {
+                font-size: 1.4rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-controls {
+                justify-content: center;
+            }
+            
+            .time-input-group {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .timers-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            margin: 6px 0;
+            padding: 5px;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+        
+        .stats-item {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stats-item .label {
+            display: block;
+            color: #94a3b8;
+            font-size: 0.65rem;
+            margin-bottom: 1px;
+        }
+        
+        .stats-item .value {
+            display: block;
+            color: #60a5fa;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .preset-times {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .preset-time {
+            background: rgba(59, 130, 246, 0.2);
+            border: none;
+            color: #60a5fa;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .preset-time:hover {
+            background: rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        /* 可争夺阶段按钮样式 */
+        .phase-action-container {
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .phase-action-btn {
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(90deg, #ef4444, #dc2626); /* 红色背景 */
+            color: white;
+        }
+        
+        .phase-action-btn.phase2 {
+            background: linear-gradient(90deg, #10b981, #059669); /* 绿色背景 */
+        }
+        
+        .phase-action-btn.hidden {
+            display: none;
+        }
+        
+        .phase-action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .import-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10003;
+            padding: 16px;
+        }
+
+        .import-modal.open {
+            display: flex;
+        }
+
+        .import-panel {
+            width: 760px;
+            max-width: 96vw;
+            max-height: 88vh;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+            color: #fff;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .import-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 14px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .import-title h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            color: #60a5fa;
+        }
+
+        .import-close {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .import-body {
+            padding: 12px 14px;
+            overflow: auto;
+        }
+
+        .import-hint {
+            margin: 0 0 10px;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .import-textarea {
+            width: 100%;
+            min-height: 220px;
+            max-height: 52vh;
+            resize: vertical;
+            padding: 10px 12px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .import-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .import-status {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .import-status.show {
+            display: block;
+        }
+
+        .import-status.error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #fecaca;
+        }
+
+        .import-status.info {
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.28);
+            color: #dbeafe;
+        }
+
+        .import-actions {
+            padding: 12px 14px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .import-actions button {
+            margin: 0;
+        }
+
+        .import-actions .secondary {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+        }
+
+        /* 导出配置弹窗（显示内容 + 复制按钮） */
+        .export-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10004;
+            padding: 16px;
+        }
+
+        .export-modal.open {
+            display: flex;
+        }
+
+        .export-panel {
+            width: 760px;
+            max-width: 96vw;
+            max-height: 88vh;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+            color: #fff;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .export-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 14px 14px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .export-title h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            color: #60a5fa;
+        }
+
+        .export-close {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 0;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .export-body {
+            padding: 12px 14px;
+            overflow: auto;
+        }
+
+        .export-hint {
+            margin: 0 0 10px;
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .export-textarea {
+            width: 100%;
+            min-height: 220px;
+            max-height: 52vh;
+            resize: vertical;
+            padding: 10px 12px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .export-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .export-status {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            display: none;
+        }
+
+        .export-status.show {
+            display: block;
+        }
+
+        .export-status.error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #fecaca;
+        }
+
+        .export-status.info {
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.28);
+            color: #dbeafe;
+        }
+
+        .export-actions {
+            padding: 12px 14px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .export-actions button {
+            margin: 0;
+        }
+
+        .export-actions .secondary {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+        }
+    </style>
+    
+    <!-- 飘雪效果样式 -->
+    <style>
+        .snowflake {
+            position: fixed;
+            top: -20px;
+            z-index: 9999;
+            user-select: none;
+            pointer-events: none;
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            animation-timing-function: linear;
+            animation-iteration-count: infinite;
+        }
+        
+        .footer-text {
+            text-align: center;
+            padding: 20px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 20px;
+        }
+    </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+    <a class="home-btn" href="../rukou.html">← 返回主页</a>
+    <div class="import-modal" id="importModal" aria-hidden="true">
+        <div class="import-panel" role="dialog" aria-modal="true" aria-label="导入配置">
+            <div class="import-title">
+                <h3>导入配置</h3>
+                <button class="import-close" id="closeImport" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="import-body">
+                <p class="import-hint">
+                    请把“导出配置”得到的内容粘贴到下面输入框（支持旧格式 `timers` 和新格式 `t`，长度基本不受限制）。<br>
+                    提示：导入会覆盖当前所有倒计时。
+                </p>
+                <textarea class="import-textarea" id="importInput" placeholder="在此粘贴配置 JSON..."></textarea>
+                <div class="import-status" id="importStatus"></div>
+            </div>
+            <div class="import-actions">
+                <button class="secondary" id="cancelImport" type="button">取消</button>
+                <button id="doImport" type="button">解析并继续</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导出配置弹窗（显示内容 + 复制按钮） -->
+    <div class="export-modal" id="exportModal" aria-hidden="true">
+        <div class="export-panel" role="dialog" aria-modal="true" aria-label="导出配置">
+            <div class="export-title">
+                <h3>导出配置</h3>
+                <button class="export-close" id="closeExport" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="export-body">
+                <p class="export-hint">
+                    下方为导出的配置内容。你可以自行选择复制，或点击“复制”按钮一键复制。
+                </p>
+                <textarea class="export-textarea" id="exportOutput" readonly></textarea>
+                <div class="export-status" id="exportStatus"></div>
+            </div>
+            <div class="export-actions">
+                <button class="secondary" id="cancelExport" type="button">关闭</button>
+                <button id="copyExport" type="button">复制</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <header>
+            <h1>《无尽冬日》工程站倒计时</h1>
+            <div class="subtitle">每个周期：可争夺阶段 (第一天) + 保护阶段 (后三天)</div>
+            <div class="cycle-info">总周期：4天 = 24小时(可争夺阶段) + 72小时(保护阶段)</div>
+            <div class="cycle-info">本地计算，自动保存到本地，下次登录可自动获取</div>
+        </header>
+        
+        <div class="controls">
+            <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">显示全部</button>
+                <button class="filter-btn" data-filter="phase1">可争夺阶段</button>
+                <button class="filter-btn" data-filter="phase2">保护阶段</button>
+            </div>
+            <div class="stats-bar">
+                <div class="stats-item">
+                    <span class="label">总数</span>
+                    <span class="value" id="totalCount">1</span>
+                </div>
+                <div class="stats-item">
+                    <span class="label">可争夺</span>
+                    <span class="value" id="phase1Count">0</span>
+                </div>
+                <div class="stats-item">
+                    <span class="label">保护</span>
+                    <span class="value" id="phase2Count">1</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <div class="input-group">
+                <div class="input-item">
+                    <label for="projectName">工程站名称</label>
+                    <input type="text" id="projectName" placeholder="例如：阿尔法站、贝塔站">
+                </div>
+                <div class="input-item">
+                    <label for="allianceName">所属联盟</label>
+                    <input type="text" id="allianceName" placeholder="例如：星辰联盟、光辉联盟">
+                </div>
+                <div class="input-item">
+                    <label>剩余时间 (天:时:分)</label>
+                    <div class="time-input-group">
+                        <div class="time-input-item">
+                            <input type="number" id="days" placeholder="天" min="0" max="4" value="0">
+                        </div>
+                        <div class="time-separator">:</div>
+                        <div class="time-input-item">
+                            <input type="number" id="hours" placeholder="时" min="0" max="23" value="0">
+                        </div>
+                        <div class="time-separator">:</div>
+                        <div class="time-input-item">
+                            <input type="number" id="minutes" placeholder="分" min="0" max="59" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="input-group">
+                <div class="input-item">
+                    <label for="phaseSelect">起始阶段</label>
+                    <select id="phaseSelect" style="width: 100%; padding: 7px 9px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white; font-size: 0.85rem; transition: all 0.3s ease;">
+                        <option value="1">可争夺阶段 (第一天)</option>
+                        <option value="2">保护阶段 (后三天)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="preset-times">
+                <button class="preset-time" data-days="0" data-hours="1" data-minutes="0">还剩1小时</button>
+                <button class="preset-time" data-days="0" data-hours="6" data-minutes="0">还剩6小时</button>
+                <button class="preset-time" data-days="0" data-hours="12" data-minutes="0">还剩12小时</button>
+                <button class="preset-time" data-days="1" data-hours="0" data-minutes="0">还剩1天</button>
+                <button class="preset-time" data-days="3" data-hours="0" data-minutes="0">还剩3天</button>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <button id="addTimer">添加倒计时</button>
+                <button class="secondary" id="resetAll">重置所有</button>
+                <button class="secondary" id="exportConfig">导出配置</button>
+                <button class="secondary" id="importConfig">导入配置</button>
+            </div>
+        </div>
+        
+        <div class="timers-container" id="timersContainer"><div class="empty-state" id="emptyState" style="display: none;">
+                <h3>暂无倒计时</h3>
+                <p>点击"添加倒计时"按钮创建第一个倒计时</p>
+            </div><div class="timer-card phase-2" id="timer-0">
+                <div class="timer-header">
+                    <div class="timer-title-container">
+                        <div class="project-name">1</div>
+                        <div class="alliance-name">1</div>
+                    </div>
+                    <div class="header-actions">
+                        <div class="phase-indicator phase-2">保护阶段</div>
+                        <button class="delete-btn" data-index="0">×</button>
+                    </div>
+                </div>
+                
+                <div class="timer-display">
+                    <div class="time-left">0天 23:59:29</div>
+                    <div class="time-label">当前周期剩余时间</div>
+                </div>
+                
+                <div class="integrated-progress">
+                    <div class="phase-progress-info">
+                        <div class="phase-label">
+                            <div class="phase-dot"></div>
+                            <div class="phase-text">保护阶段 (后三天)</div>
+                        </div>
+                        <div class="phase-time">23:59:29</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-fill" style="width: 66.6784%;"></div>
+                        <div class="progress-percent">66.7%</div>
+                    </div>
+                </div>
+            </div></div>
+    </div>
+    
+    <div class="footer-text">制作：小飞菇 优化：小茗同学</div>
+
+    <script>
+        // 存储所有倒计时的数组
+        let timers = [];
+        let timerElements = {}; // 存储DOM元素的引用
+        let currentFilter = 'all'; // 当前筛选状态
+        
+        // 从本地存储加载倒计时
+        function loadTimers() {
+            const saved = localStorage.getItem('phaseTimers');
+            if (saved) {
+                timers = JSON.parse(saved);
+                updateDisplay();
+            }
+        }
+        
+        // 从本地存储获取按钮状态
+        function getStoredPhaseStatus(timerId) {
+            const stored = localStorage.getItem('phaseButtonStatus');
+            if (stored) {
+                const statusMap = JSON.parse(stored);
+                return statusMap[timerId] || false;
+            }
+            return false;
+        }
+        
+        // 保存按钮状态到本地存储
+        function storePhaseStatus(timerId, clicked) {
+            let statusMap = {};
+            const stored = localStorage.getItem('phaseButtonStatus');
+            if (stored) {
+                statusMap = JSON.parse(stored);
+            }
+            statusMap[timerId] = clicked;
+            localStorage.setItem('phaseButtonStatus', JSON.stringify(statusMap));
+        }
+        
+        // 重置特定倒计时的按钮状态
+        function resetPhaseStatus(timerId) {
+            const stored = localStorage.getItem('phaseButtonStatus');
+            if (stored) {
+                const statusMap = JSON.parse(stored);
+                if (statusMap[timerId]) {
+                    delete statusMap[timerId];
+                    localStorage.setItem('phaseButtonStatus', JSON.stringify(statusMap));
+                }
+            }
+        }
+        
+        // 保存倒计时到本地存储
+        function saveTimers() {
+            localStorage.setItem('phaseTimers', JSON.stringify(timers));
+        }
+        
+        // 计算周期倒计时 (1天 + 3天模式)
+        function calculateRemainingTime(timerObj) {
+            const startDate = new Date(timerObj.startTime);
+            const now = new Date();
+            
+            // 计算从开始时间到现在经过的总毫秒数
+            const elapsedMs = now.getTime() - startDate.getTime();
+            const elapsedSec = elapsedMs / 1000;
+            
+            // 阶段1时长 (1天 = 24小时) - 可争夺阶段
+            const phase1Seconds = 24 * 60 * 60; // 86400秒
+            // 阶段2时长 (3天 = 72小时) - 保护阶段
+            const phase2Seconds = 72 * 60 * 60; // 259200秒
+            // 总周期时长 (4天)
+            const totalCycleSeconds = phase1Seconds + phase2Seconds; // 345600秒
+            
+            // 确定当前所处的周期和阶段
+            let currentCycle = Math.floor(elapsedSec / totalCycleSeconds);
+            let elapsedInCurrentCycle = elapsedSec % totalCycleSeconds;
+            
+            let currentPhase = 1;
+            let phaseRemaining = 0;
+            let totalRemaining = 0;
+            let phaseProgress = 0;
+            
+            // 始终按照标准周期顺序计算：阶段1 -> 阶段2
+            if (elapsedInCurrentCycle < phase1Seconds) {
+                currentPhase = 1;
+                phaseRemaining = phase1Seconds - elapsedInCurrentCycle;
+                phaseProgress = (elapsedInCurrentCycle / phase1Seconds) * 100;
+            } else {
+                currentPhase = 2;
+                const elapsedInPhase2 = elapsedInCurrentCycle - phase1Seconds;
+                phaseRemaining = phase2Seconds - elapsedInPhase2;
+                phaseProgress = (elapsedInPhase2 / phase2Seconds) * 100;
+            }
+            
+            // 计算当前周期剩余总时间
+            totalRemaining = totalCycleSeconds - elapsedInCurrentCycle;
+            
+            // 处理负数情况（如果周期已经完成，则进入下一个周期）
+            if (totalRemaining <= 0) {
+                totalRemaining = totalCycleSeconds + totalRemaining;
+            }
+            
+            // 转换为天、小时、分钟、秒
+            const days = Math.floor(totalRemaining / (24 * 60 * 60));
+            const hours = Math.floor((totalRemaining % (24 * 60 * 60)) / (60 * 60));
+            const minutes = Math.floor((totalRemaining % (60 * 60)) / 60);
+            const seconds = Math.floor(totalRemaining % 60);
+            
+            // 计算阶段剩余时间
+            const phaseHours = Math.floor(phaseRemaining / (60 * 60));
+            const phaseMinutes = Math.floor((phaseRemaining % (60 * 60)) / 60);
+            const phaseSeconds = Math.floor(phaseRemaining % 60);
+            
+            return {
+                days,
+                hours,
+                minutes,
+                seconds,
+                currentPhase,
+                phaseRemaining,
+                phaseHours,
+                phaseMinutes,
+                phaseSeconds,
+                phaseProgress,
+                totalRemaining,
+                totalCycleSeconds,
+                currentCycle,
+                elapsedInCurrentCycle,
+                formatted: `${days}天 ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`,
+                phaseFormatted: `${phaseHours.toString().padStart(2, '0')}:${phaseMinutes.toString().padStart(2, '0')}:${phaseSeconds.toString().padStart(2, '0')}`
+            };
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            const phase1Count = timers.filter(timer => {
+                const remaining = calculateRemainingTime(timer);
+                return remaining.currentPhase === 1;
+            }).length;
+            
+            const phase2Count = timers.filter(timer => {
+                const remaining = calculateRemainingTime(timer);
+                return remaining.currentPhase === 2;
+            }).length;
+            
+            document.getElementById('totalCount').textContent = timers.length;
+            document.getElementById('phase1Count').textContent = phase1Count;
+            document.getElementById('phase2Count').textContent = phase2Count;
+        }
+        
+        // 排序函数：按照可争夺状态在前，倒计时短的在前的顺序排序
+        function getSortedTimers() {
+            // 创建副本进行排序，不改变原数组
+            const timersCopy = [...timers];
+            
+            // 排序逻辑：
+            // 1. 首先按阶段排序：可争夺阶段(1)在前，保护阶段(2)在后
+            // 2. 同阶段内按剩余时间（totalRemaining）升序排序
+            timersCopy.sort((a, b) => {
+                const remainingA = calculateRemainingTime(a);
+                const remainingB = calculateRemainingTime(b);
+                
+                // 首先按阶段排序：阶段1（可争夺阶段）在前
+                if (remainingA.currentPhase !== remainingB.currentPhase) {
+                    return remainingA.currentPhase - remainingB.currentPhase;
+                }
+                
+                // 同阶段内，按剩余时间升序排序（剩余时间短的在前）
+                return remainingA.totalRemaining - remainingB.totalRemaining;
+            });
+            
+            return timersCopy;
+        }
+        
+        // 更新单个倒计时卡片
+        function updateTimerCard(timer, element, index) {
+            const remaining = calculateRemainingTime(timer);
+            
+            // 更新卡片阶段类
+            element.className = 'timer-card';
+            element.classList.add(`phase-${remaining.currentPhase}`);
+            
+            // 根据筛选条件显示/隐藏
+            if (currentFilter === 'phase1' && remaining.currentPhase !== 1) {
+                element.classList.add('hidden');
+            } else if (currentFilter === 'phase2' && remaining.currentPhase !== 2) {
+                element.classList.add('hidden');
+            }
+            
+            // 更新计时器显示
+            const timeLeft = element.querySelector('.time-left');
+            timeLeft.textContent = remaining.formatted;
+            
+            // 更新阶段指示器
+            const phaseIndicator = element.querySelector('.phase-indicator');
+            phaseIndicator.textContent = remaining.currentPhase === 1 ? '可争夺阶段' : '保护阶段';
+            phaseIndicator.className = `phase-indicator ${remaining.currentPhase === 1 ? '' : 'phase-2'}`;
+            
+            // 更新整合的进度条信息
+            const phaseText = element.querySelector('.phase-text');
+            const phaseTime = element.querySelector('.phase-time');
+            const progressFill = element.querySelector('.progress-fill');
+            const progressPercent = element.querySelector('.progress-percent');
+            
+            if (phaseText) {
+                phaseText.textContent = remaining.currentPhase === 1 ? '可争夺阶段 (第一天)' : '保护阶段 (后三天)';
+            }
+            
+            if (phaseTime) {
+                phaseTime.textContent = remaining.phaseFormatted;
+            }
+            
+            if (progressFill) {
+                progressFill.style.width = `${remaining.phaseProgress}%`;
+            }
+            
+            if (progressPercent) {
+                progressPercent.textContent = `${remaining.phaseProgress.toFixed(1)}%`;
+            }
+            
+            // 处理可争夺阶段按钮的显示/隐藏和状态
+            const phaseButton = element.querySelector('.phase-action-btn');
+            if (phaseButton) {
+                const timerId = timer.startTime; // 使用startTime作为唯一标识
+                
+                if (remaining.currentPhase === 1) { // 可争夺阶段
+                    phaseButton.classList.remove('hidden');
+                    
+                    // 检查当前周期是否发生了变化
+                    const currentCycle = remaining.currentCycle;
+                    const storedCycleKey = `lastCycle_${timerId}`;
+                    const lastStoredCycle = localStorage.getItem(storedCycleKey);
+                    
+                    // 如果当前周期与上次存储的不同，说明是新周期
+                    const isNewCycle = lastStoredCycle === null || parseInt(lastStoredCycle) !== currentCycle;
+                    
+                    if (isNewCycle) {
+                        // 新周期的可争夺阶段，重置按钮状态
+                        resetPhaseStatus(timerId);
+                        localStorage.setItem(storedCycleKey, currentCycle);
+                        
+                        phaseButton.classList.remove('phase2');
+                        phaseButton.classList.add('phase1');
+                        phaseButton.textContent = '点击标记占过了';
+                        phaseButton.dataset.clicked = 'false';
+                    } else {
+                        // 非新周期，根据本地存储的点击状态设置按钮颜色
+                        const storedStatus = getStoredPhaseStatus(timerId);
+                        if (storedStatus) {
+                            // 如果之前已点击，则保持绿色
+                            phaseButton.classList.remove('phase1');
+                            phaseButton.classList.add('phase2');
+                            phaseButton.textContent = '占领过啦';
+                            phaseButton.dataset.clicked = 'true';
+                        } else {
+                            // 否则显示红色状态
+                            phaseButton.classList.remove('phase2');
+                            phaseButton.classList.add('phase1');
+                            phaseButton.textContent = '点击标记占过了';
+                            phaseButton.dataset.clicked = 'false';
+                        }
+                    }
+                    phaseButton.disabled = false;
+                } else { // 保护阶段
+                    phaseButton.classList.add('hidden');
+                    // 进入保护阶段时，不立即重置按钮状态，保持之前的状态直到下次进入可争夺阶段
+                    // 在进入新的可争夺阶段时再重置状态
+                    phaseButton.disabled = false;
+                }
+            }
+        }
+        
+        // 创建倒计时卡片 (只在添加时创建一次)
+        function createTimerCard(timer, index) {
+            const remaining = calculateRemainingTime(timer);
+            
+            const card = document.createElement('div');
+            card.className = `timer-card phase-${remaining.currentPhase}`;
+            card.id = `timer-${index}`;
+            // 确定按钮的初始状态（根据是否为可争夺阶段）
+            const isPhase1 = remaining.currentPhase === 1;
+            const buttonClass = isPhase1 ? 'phase-action-btn phase1' : 'phase-action-btn hidden';
+            const buttonText = '可争夺';
+            
+            card.innerHTML = `
+                <div class="timer-header">
+                    <div class="timer-title-container">
+                        <div class="project-name">${timer.project}</div>
+                        <div class="alliance-name">${timer.alliance}</div>
+                    </div>
+                    <div class="header-actions">
+                        <div class="phase-indicator ${remaining.currentPhase === 1 ? '' : 'phase-2'}">${remaining.currentPhase === 1 ? '可争夺阶段' : '保护阶段'}</div>
+                        <button class="edit-btn" data-index="${index}" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; transition: all 0.3s ease; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; padding: 0; margin-right: 6px;">✎</button>
+                        <button class="delete-btn" data-index="${index}">×</button>
+                    </div>
+                </div>
+                
+                <div class="timer-display">
+                    <div class="time-left">${remaining.formatted}</div>
+                    <div class="time-label">当前周期剩余时间</div>
+                </div>
+                
+                <div class="integrated-progress">
+                    <div class="phase-progress-info">
+                        <div class="phase-label">
+                            <div class="phase-dot"></div>
+                            <div class="phase-text">${remaining.currentPhase === 1 ? '可争夺阶段 (第一天)' : '保护阶段 (后三天)'}</div>
+                        </div>
+                        <div class="phase-time">${remaining.phaseFormatted}</div>
+                    </div>
+                    <div class="progress-container">
+                        <div class="progress-fill" style="width: ${remaining.phaseProgress}%"></div>
+                        <div class="progress-percent">${remaining.phaseProgress.toFixed(1)}%</div>
+                    </div>
+                </div>
+                
+                <div class="phase-action-container">
+                    <button class="${buttonClass}" data-index="${index}">${buttonText}</button>
+                </div>
+            `;
+            
+            // 添加编辑功能
+            const editBtn = card.querySelector('.edit-btn');
+            editBtn.addEventListener('click', function() {
+                editTimer(index);
+            });
+            
+            // 添加删除功能
+            const deleteBtn = card.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', function() {
+                deleteTimer(index);
+            });
+            
+            // 添加阶段按钮点击事件
+            const phaseBtn = card.querySelector('.phase-action-btn');
+            if (phaseBtn) {
+                // 检查本地存储中是否有该按钮的点击状态
+                const timerId = timer.startTime; // 使用startTime作为唯一标识
+                const storedStatus = getStoredPhaseStatus(timerId);
+                if (storedStatus) {
+                    // 如果之前已点击，则设置为绿色状态
+                    phaseBtn.classList.remove('phase1');
+                    phaseBtn.classList.add('phase2');
+                    phaseBtn.textContent = '已操作';
+                    phaseBtn.dataset.clicked = 'true';
+                }
+                
+                phaseBtn.addEventListener('click', function() {
+                    // 点击后始终变为绿色状态，不再切换回红色
+                    phaseBtn.classList.remove('phase1');
+                    phaseBtn.classList.add('phase2');
+                    phaseBtn.textContent = '已操作';
+                    phaseBtn.dataset.clicked = 'true';
+                    
+                    // 将点击状态保存到本地存储
+                    storePhaseStatus(timerId, true);
+                });
+            }
+            
+            return card;
+        }
+        
+        // 更新显示 (按照排序顺序创建卡片)
+        function updateDisplay() {
+            const container = document.getElementById('timersContainer');
+            const emptyState = document.getElementById('emptyState');
+            
+            // 清空容器，但保留emptyState
+            container.innerHTML = '';
+            container.appendChild(emptyState);
+            
+            if (timers.length === 0) {
+                emptyState.style.display = 'block';
+                timerElements = {}; // 清空元素缓存
+                updateStats();
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            
+            // 按照排序顺序创建卡片
+            const sortedTimers = getSortedTimers();
+            sortedTimers.forEach((timer, sortedIndex) => {
+                // 找到原数组中的索引
+                const originalIndex = timers.findIndex(t => 
+                    t.project === timer.project && 
+                    t.alliance === timer.alliance && 
+                    t.startTime === timer.startTime
+                );
+                
+                if (originalIndex !== -1) {
+                    const card = createTimerCard(timer, originalIndex);
+                    container.appendChild(card);
+                    timerElements[originalIndex] = card; // 缓存DOM元素
+                }
+            });
+            
+            updateStats();
+        }
+        
+        // 只更新时间，不重新创建DOM，但重新排序DOM元素
+        function updateTimers() {
+            if (timers.length === 0) return;
+            
+            // 获取排序后的顺序
+            const sortedTimers = getSortedTimers();
+            
+            // 更新所有卡片内容
+            timers.forEach((timer, index) => {
+                const element = timerElements[index];
+                if (element) {
+                    updateTimerCard(timer, element, index);
+                }
+            });
+            
+            // 重新排序DOM元素：将元素按照排序顺序重新插入
+            // 创建一个文档片段，按照排序顺序添加元素
+            const container = document.getElementById('timersContainer');
+            const fragment = document.createDocumentFragment();
+            const emptyState = document.getElementById('emptyState');
+            
+            // 先移除空状态
+            emptyState.style.display = 'none';
+            
+            sortedTimers.forEach((timer) => {
+                // 找到原数组中的索引
+                const originalIndex = timers.findIndex(t => 
+                    t.project === timer.project && 
+                    t.alliance === timer.alliance && 
+                    t.startTime === timer.startTime
+                );
+                
+                if (originalIndex !== -1 && timerElements[originalIndex]) {
+                    fragment.appendChild(timerElements[originalIndex]);
+                }
+            });
+            
+            // 清空容器并添加重新排序的元素
+            container.innerHTML = '';
+            container.appendChild(emptyState);
+            container.appendChild(fragment);
+            
+            updateStats();
+        }
+        
+        // 根据输入的剩余时间和起始阶段计算开始时间
+        function calculateStartTimeFromRemainingTimeAndPhase(remainingDays, remainingHours, remainingMinutes, startPhase) {
+            const now = new Date();
+            
+            // 将输入的剩余时间转换为秒
+            const remainingSeconds = (remainingDays * 24 * 60 * 60) + 
+                                   (remainingHours * 60 * 60) + 
+                                   (remainingMinutes * 60);
+            
+            // 阶段时长
+            const phase1Seconds = 24 * 60 * 60; // 可争夺阶段 (24小时)
+            const phase2Seconds = 72 * 60 * 60; // 保护阶段 (72小时)
+            const totalCycleSeconds = phase1Seconds + phase2Seconds; // 总周期 (96小时)
+            
+            let startTime;
+            
+            if (startPhase === 1) { // 可争夺阶段
+                // 计算从现在往回推算的时间点
+                // 剩余时间是在当前阶段的剩余时间，所以 elapsed = phase1Total - remaining
+                const elapsedInCurrentPhase = phase1Seconds - remainingSeconds;
+                startTime = new Date(now.getTime() - (elapsedInCurrentPhase * 1000));
+            } else { // 保护阶段 (startPhase === 2)
+                // 对于阶段2，需要加上阶段1的全部时间再加上阶段2的已过时间
+                // 剩余时间是在阶段2的剩余时间，所以 elapsedInPhase2 = phase2Total - remaining
+                const elapsedInPhase2 = phase2Seconds - remainingSeconds;
+                const totalElapsed = phase1Seconds + elapsedInPhase2; // 阶段1全部 + 阶段2已过时间
+                startTime = new Date(now.getTime() - (totalElapsed * 1000));
+            }
+            
+            return startTime;
+        }
+
+        // 旧版本函数，为了兼容性保留
+        function calculateStartTimeFromRemainingTime(remainingDays, remainingHours, remainingMinutes) {
+            // 默认从阶段1开始计算
+            return calculateStartTimeFromRemainingTimeAndPhase(remainingDays, remainingHours, remainingMinutes, 1);
+        }
+        
+        // 添加新倒计时
+        function addTimer() {
+            const projectInput = document.getElementById('projectName');
+            const allianceInput = document.getElementById('allianceName');
+            const daysInput = document.getElementById('days');
+            const hoursInput = document.getElementById('hours');
+            const minutesInput = document.getElementById('minutes');
+            const phaseSelect = document.getElementById('phaseSelect');
+            
+            const project = projectInput.value.trim();
+            const alliance = allianceInput.value.trim();
+            const days = parseInt(daysInput.value) || 0;
+            const hours = parseInt(hoursInput.value) || 0;
+            const minutes = parseInt(minutesInput.value) || 0;
+            const startPhase = parseInt(phaseSelect.value); // 获取选择的起始阶段
+            
+            if (!project) {
+                alert('请输入工程站名称');
+                projectInput.focus();
+                return;
+            }
+            
+            if (!alliance) {
+                alert('请输入所属联盟');
+                allianceInput.focus();
+                return;
+            }
+            
+            // 检查输入的剩余时间是否合理
+            const totalRemainingSeconds = (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60);
+            const totalCycleSeconds = 24 * 60 * 60 + 72 * 60 * 60; // 345600秒
+            
+            if (totalRemainingSeconds > totalCycleSeconds) {
+                alert('剩余时间不能超过4天（96小时）');
+                return;
+            }
+            
+            // 检查是否已存在相同工程站名称的倒计时
+            const exists = timers.some(timer => timer.project === project);
+            if (exists) {
+                alert('已存在相同工程站名称的倒计时，请使用不同的名称');
+                return;
+            }
+            
+            // 计算开始时间（基于剩余时间和起始阶段）
+            const startTime = calculateStartTimeFromRemainingTimeAndPhase(days, hours, minutes, startPhase);
+            
+            // 添加到数组
+            timers.push({
+                project: project,
+                alliance: alliance,
+                startTime: startTime.toISOString(),
+                startPhase: startPhase, // 记录起始阶段
+                createdAt: new Date().toISOString()
+            });
+            
+            // 清空表单
+            projectInput.value = '';
+            allianceInput.value = '';
+            daysInput.value = '0';
+            hoursInput.value = '0';
+            minutesInput.value = '0';
+            phaseSelect.value = '1'; // 重置为默认值
+            
+            // 保存并更新显示
+            saveTimers();
+            updateDisplay();
+        }
+        
+        // 编辑倒计时
+        function editTimer(index) {
+            const timer = timers[index];
+            if (!timer) return;
+            
+            // 计算当前剩余时间
+            const remaining = calculateRemainingTime(timer);
+            const totalRemainingSeconds = remaining.totalRemaining;
+            
+            // 计算天、小时、分钟
+            const days = Math.floor(totalRemainingSeconds / (24 * 60 * 60));
+            const hours = Math.floor((totalRemainingSeconds % (24 * 60 * 60)) / (60 * 60));
+            const minutes = Math.floor((totalRemainingSeconds % (60 * 60)) / 60);
+            
+            // 显示模态框进行编辑
+            const editHtml = `
+                <div id="editModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+                    <div style="background: #1e293b; padding: 20px; border-radius: 8px; width: 400px; max-width: 90vw; color: white;">
+                        <h3 style="margin-top: 0; margin-bottom: 15px; color: #3b82f6;">编辑工程站</h3>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; margin-bottom: 5px; color: #60a5fa;">工程站名称</label>
+                            <input type="text" id="editProjectName" value="${timer.project}" style="width: 100%; padding: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white;">
+                        </div>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; margin-bottom: 5px; color: #60a5fa;">所属联盟</label>
+                            <input type="text" id="editAllianceName" value="${timer.alliance}" style="width: 100%; padding: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white;">
+                        </div>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; margin-bottom: 5px; color: #60a5fa;">剩余时间 (天:时:分)</label>
+                            <div style="display: flex; gap: 8px;">
+                                <input type="number" id="editDays" value="${days}" min="0" max="4" style="flex: 1; padding: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white; text-align: center;">
+                                <span style="display: flex; align-items: center; color: #94a3b8;">天</span>
+                                <input type="number" id="editHours" value="${hours}" min="0" max="23" style="flex: 1; padding: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white; text-align: center;">
+                                <span style="display: flex; align-items: center; color: #94a3b8;">时</span>
+                                <input type="number" id="editMinutes" value="${minutes}" min="0" max="59" style="flex: 1; padding: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white; text-align: center;">
+                                <span style="display: flex; align-items: center; color: #94a3b8;">分</span>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #60a5fa;">起始阶段</label>
+                            <select id="editPhaseSelect" style="width: 100%; padding: 8px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 4px; color: white;">
+                                <option value="1" ${timer.startPhase === 1 ? 'selected' : ''}>可争夺阶段 (第一天)</option>
+                                <option value="2" ${timer.startPhase === 2 ? 'selected' : ''}>保护阶段 (后三天)</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button id="cancelEdit" style="background: rgba(239, 68, 68, 0.2); color: #f87171; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">取消</button>
+                            <button id="saveEdit" style="background: linear-gradient(90deg, #3b82f6, #6366f1); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">保存</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 添加模态框到页面
+            document.body.insertAdjacentHTML('beforeend', editHtml);
+            
+            // 获取模态框元素
+            const modal = document.getElementById('editModal');
+            const cancelBtn = document.getElementById('cancelEdit');
+            const saveBtn = document.getElementById('saveEdit');
+            
+            // 取消编辑
+            cancelBtn.addEventListener('click', function() {
+                document.body.removeChild(modal);
+            });
+            
+            // 保存编辑
+            saveBtn.addEventListener('click', function() {
+                const newProject = document.getElementById('editProjectName').value.trim();
+                const newAlliance = document.getElementById('editAllianceName').value.trim();
+                const newDays = parseInt(document.getElementById('editDays').value) || 0;
+                const newHours = parseInt(document.getElementById('editHours').value) || 0;
+                const newMinutes = parseInt(document.getElementById('editMinutes').value) || 0;
+                const newStartPhase = parseInt(document.getElementById('editPhaseSelect').value);
+                
+                if (!newProject) {
+                    alert('请输入工程站名称');
+                    return;
+                }
+                
+                if (!newAlliance) {
+                    alert('请输入所属联盟');
+                    return;
+                }
+                
+                // 检查是否已存在相同工程站名称的倒计时（排除当前编辑的这一项）
+                const exists = timers.some((t, i) => t.project === newProject && i !== index);
+                if (exists) {
+                    alert('已存在相同工程站名称的倒计时，请使用不同的名称');
+                    return;
+                }
+                
+                // 检查输入的剩余时间是否合理
+                const totalRemainingSeconds = (newDays * 24 * 60 * 60) + (newHours * 60 * 60) + (newMinutes * 60);
+                const totalCycleSeconds = 24 * 60 * 60 + 72 * 60 * 60; // 345600秒
+                
+                if (totalRemainingSeconds > totalCycleSeconds) {
+                    alert('剩余时间不能超过4天（96小时）');
+                    return;
+                }
+                
+                // 计算新的开始时间
+                const newStartTime = calculateStartTimeFromRemainingTimeAndPhase(newDays, newHours, newMinutes, newStartPhase);
+                
+                // 更新定时器数据
+                timer.project = newProject;
+                timer.alliance = newAlliance;
+                timer.startTime = newStartTime.toISOString();
+                timer.startPhase = newStartPhase;
+                
+                // 移除模态框
+                document.body.removeChild(modal);
+                
+                // 保存并更新显示
+                saveTimers();
+                updateDisplay();
+            });
+        }
+
+        // 删除倒计时
+        function deleteTimer(index) {
+            if (confirm('确定要删除这个倒计时吗？')) {
+                timers.splice(index, 1);
+                
+                // 从DOM中移除对应卡片
+                const element = timerElements[index];
+                if (element) {
+                    element.remove();
+                    delete timerElements[index];
+                }
+                
+                // 重新索引缓存
+                const newTimerElements = {};
+                timers.forEach((timer, newIndex) => {
+                    if (timerElements[newIndex] !== undefined) {
+                        newTimerElements[newIndex] = timerElements[newIndex];
+                    }
+                });
+                timerElements = newTimerElements;
+                
+                // 更新删除按钮的索引
+                Object.keys(timerElements).forEach(key => {
+                    const btn = timerElements[key].querySelector('.delete-btn');
+                    if (btn) {
+                        btn.setAttribute('data-index', key);
+                    }
+                });
+                
+                updateDisplay();
+                saveTimers();
+            }
+        }
+        
+        // 重置所有倒计时
+        function resetAllTimers() {
+            if (timers.length === 0) {
+                alert('当前没有倒计时');
+                return;
+            }
+            
+            if (confirm('确定要删除所有倒计时吗？此操作不可撤销。')) {
+                timers = [];
+                timerElements = {};
+                saveTimers();
+                updateDisplay();
+            }
+        }
+        
+        // 导出配置
+        function exportConfig() {
+            if (timers.length === 0) {
+                alert('当前没有倒计时配置可导出');
+                return;
+            }
+            // 导出极简格式，尽量减少字符数，避免部分设备“文字溢出/换行”
+            // 格式：{"v":2,"t":[[工程站,联盟,开始时间毫秒,起始阶段],...]}
+            // 说明：开始时间使用毫秒时间戳，比 ISO 字符串更短；仍可被导入函数识别。
+            const compact = {
+                v: 2,
+                t: timers.map(t => {
+                    const startMs = Date.parse(t.startTime);
+                    const start = Number.isFinite(startMs) ? startMs : t.startTime;
+                    return [t.project, t.alliance, start, t.startPhase || 1];
+                })
+            };
+            
+            // 将配置转换为JSON字符串（无空格的最短形式）
+            const configString = JSON.stringify(compact);
+
+            // 改为弹窗显示导出内容，由用户自行复制或点击“复制”
+            const modal = document.getElementById('exportModal');
+            const output = document.getElementById('exportOutput');
+            const status = document.getElementById('exportStatus');
+
+            if (!modal || !output || !status) return;
+
+            output.value = configString;
+            status.className = 'export-status show info';
+            status.textContent = `已生成配置（${timers.length} 条）。可直接复制，或点击右下角“复制”。`;
+
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => {
+                output.focus();
+                output.select();
+            }, 0);
+        }
+        
+        // 备用复制到剪贴板的方法
+        function copyToClipboardFallback(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            
+            // 避免滚动到底部
+            textArea.style.top = '0';
+            textArea.style.left = '0';
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('配置已成功复制到剪贴板！');
+                } else {
+                    // 如果复制失败，提示用户手动复制
+                    const success = confirm('复制到剪贴板可能未成功，是否手动复制以下内容？\n\n' + text);
+                    if (success) {
+                        prompt('请复制以下内容：', text);
+                    }
+                }
+            } catch (err) {
+                console.error('复制失败:', err);
+                prompt('请复制以下内容：', text);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        // 导入配置
+        function importConfig() {
+            // 改为自定义弹窗输入，避免部分设备 prompt 字数上限/换行问题
+            const modal = document.getElementById('importModal');
+            const inputEl = document.getElementById('importInput');
+            const statusEl = document.getElementById('importStatus');
+            const doBtn = document.getElementById('doImport');
+
+            if (!modal || !inputEl || !statusEl || !doBtn) return;
+
+            // 重置状态
+            doBtn.dataset.stage = 'parse';
+            doBtn.textContent = '解析并继续';
+            statusEl.className = 'import-status';
+            statusEl.textContent = '';
+
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => inputEl.focus(), 0);
+        }
+        
+        // 应用筛选
+        function applyFilter(filter) {
+            currentFilter = filter;
+            
+            // 更新筛选按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // 更新所有卡片显示状态
+            timers.forEach((timer, index) => {
+                const element = timerElements[index];
+                if (element) {
+                    const remaining = calculateRemainingTime(timer);
+                    
+                    element.classList.remove('hidden');
+                    
+                    if (filter === 'phase1' && remaining.currentPhase !== 1) {
+                        element.classList.add('hidden');
+                    } else if (filter === 'phase2' && remaining.currentPhase !== 2) {
+                        element.classList.add('hidden');
+                    }
+                }
+            });
+        }
+        
+        // 初始化
+        function init() {
+            // 加载已有倒计时
+            loadTimers();
+            
+            // 绑定事件
+            document.getElementById('addTimer').addEventListener('click', addTimer);
+            document.getElementById('resetAll').addEventListener('click', resetAllTimers);
+            
+            // 绑定筛选按钮事件
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    applyFilter(filter);
+                });
+            });
+            
+            // 绑定预设时间按钮事件
+            document.querySelectorAll('.preset-time').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const days = this.getAttribute('data-days');
+                    const hours = this.getAttribute('data-hours');
+                    const minutes = this.getAttribute('data-minutes');
+                    
+                    document.getElementById('days').value = days;
+                    document.getElementById('hours').value = hours;
+                    document.getElementById('minutes').value = minutes;
+                });
+            });
+            
+            // 每秒更新一次倒计时
+            setInterval(updateTimers, 1000);
+            
+            // 允许按Enter键添加倒计时
+            document.getElementById('projectName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTimer();
+                }
+            });
+            
+            document.getElementById('allianceName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTimer();
+                }
+            });
+            
+            // 绑定导出配置按钮事件
+            document.getElementById('exportConfig').addEventListener('click', exportConfig);
+            
+            // 绑定导入配置按钮事件
+            document.getElementById('importConfig').addEventListener('click', importConfig);
+
+            // 导出配置弹窗逻辑（显示 -> 复制 -> 关闭）
+            const exportModal = document.getElementById('exportModal');
+            const exportOutput = document.getElementById('exportOutput');
+            const exportStatus = document.getElementById('exportStatus');
+            const closeExportBtn = document.getElementById('closeExport');
+            const cancelExportBtn = document.getElementById('cancelExport');
+            const copyExportBtn = document.getElementById('copyExport');
+
+            function setExportStatus(type, text) {
+                if (!exportStatus) return;
+                exportStatus.className = `export-status show ${type}`;
+                exportStatus.textContent = text;
+            }
+
+            function closeExportModal() {
+                if (!exportModal) return;
+                exportModal.classList.remove('open');
+                exportModal.setAttribute('aria-hidden', 'true');
+                if (exportStatus) {
+                    exportStatus.className = 'export-status';
+                    exportStatus.textContent = '';
+                }
+            }
+
+            async function copyExportText() {
+                if (!exportOutput) return;
+                const text = exportOutput.value || '';
+                if (!text.trim()) {
+                    setExportStatus('error', '没有可复制的内容。');
+                    return;
+                }
+
+                try {
+                    await navigator.clipboard.writeText(text);
+                    setExportStatus('info', '已复制到剪贴板。');
+                } catch (e) {
+                    // 受浏览器/权限影响时：自动全选，提示用户手动复制
+                    exportOutput.focus();
+                    exportOutput.select();
+                    setExportStatus('error', '自动复制可能被浏览器限制：已为你全选内容，请按 Ctrl+C 手动复制。');
+                }
+            }
+
+            if (closeExportBtn) closeExportBtn.addEventListener('click', closeExportModal);
+            if (cancelExportBtn) cancelExportBtn.addEventListener('click', closeExportModal);
+            if (copyExportBtn) copyExportBtn.addEventListener('click', copyExportText);
+
+            if (exportModal) {
+                exportModal.addEventListener('click', function(e) {
+                    if (e.target === exportModal) closeExportModal();
+                });
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && exportModal && exportModal.classList.contains('open')) {
+                    closeExportModal();
+                }
+            });
+
+            // 导入配置弹窗逻辑（解析 -> 二次确认 -> 导入）
+            const importModal = document.getElementById('importModal');
+            const importInput = document.getElementById('importInput');
+            const importStatus = document.getElementById('importStatus');
+            const closeImportBtn = document.getElementById('closeImport');
+            const cancelImportBtn = document.getElementById('cancelImport');
+            const doImportBtn = document.getElementById('doImport');
+            let pendingImported = null;
+
+            function setImportStatus(type, text) {
+                if (!importStatus) return;
+                importStatus.className = `import-status show ${type}`;
+                importStatus.textContent = text;
+            }
+
+            function closeImportModal() {
+                if (!importModal) return;
+                importModal.classList.remove('open');
+                importModal.setAttribute('aria-hidden', 'true');
+                if (doImportBtn) {
+                    doImportBtn.dataset.stage = 'parse';
+                    doImportBtn.textContent = '解析并继续';
+                }
+                pendingImported = null;
+                if (importStatus) {
+                    importStatus.className = 'import-status';
+                    importStatus.textContent = '';
+                }
+            }
+
+            function parseImportedConfig(rawText) {
+                const config = JSON.parse(rawText);
+
+                // 兼容两种格式：
+                // 旧：{ timers: [{project,alliance,startTime,startPhase,createdAt}, ...] }
+                // 新：{ v:2, t: [[project,alliance,startMsOrIso,startPhase], ...] }
+                let imported = [];
+                if (config && Array.isArray(config.timers)) {
+                    imported = config.timers
+                        .filter(t => t && t.hasOwnProperty('project') && t.hasOwnProperty('alliance') && t.hasOwnProperty('startTime'))
+                        .map(t => ({
+                            project: t.project,
+                            alliance: t.alliance,
+                            startTime: t.startTime,
+                            startPhase: t.startPhase || 1,
+                            createdAt: t.createdAt || new Date().toISOString()
+                        }));
+                } else if (config && Array.isArray(config.t)) {
+                    imported = config.t
+                        .filter(row => Array.isArray(row) && row.length >= 3)
+                        .map(row => {
+                            const project = row[0];
+                            const alliance = row[1];
+                            const startRaw = row[2];
+                            const startPhase = row[3];
+                            let startTime = '';
+                            if (typeof startRaw === 'number' && Number.isFinite(startRaw)) {
+                                startTime = new Date(startRaw).toISOString();
+                            } else if (typeof startRaw === 'string' && startRaw.trim()) {
+                                startTime = startRaw.trim();
+                            }
+                            return {
+                                project: String(project ?? '').trim(),
+                                alliance: String(alliance ?? '').trim(),
+                                startTime,
+                                startPhase: (parseInt(startPhase, 10) || 1),
+                                createdAt: new Date().toISOString()
+                            };
+                        })
+                        .filter(t => t.project && t.alliance && t.startTime);
+                } else {
+                    throw new Error('未识别到 timers（旧格式）或 t（新格式）');
+                }
+
+                return imported;
+            }
+
+            function applyImported(imported) {
+                timers = [];
+                timerElements = {};
+                timers = imported;
+                saveTimers();
+                updateDisplay();
+            }
+
+            if (closeImportBtn) closeImportBtn.addEventListener('click', closeImportModal);
+            if (cancelImportBtn) cancelImportBtn.addEventListener('click', closeImportModal);
+
+            if (importModal) {
+                importModal.addEventListener('click', function(e) {
+                    if (e.target === importModal) closeImportModal();
+                });
+            }
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && importModal && importModal.classList.contains('open')) {
+                    closeImportModal();
+                }
+            });
+
+            if (doImportBtn) {
+                doImportBtn.addEventListener('click', function() {
+                    const stage = doImportBtn.dataset.stage || 'parse';
+                    const text = (importInput ? importInput.value : '').trim();
+
+                    if (stage === 'parse') {
+                        if (!text) {
+                            setImportStatus('error', '请先粘贴配置内容。');
+                            return;
+                        }
+
+                        try {
+                            const imported = parseImportedConfig(text);
+                            if (!imported || imported.length === 0) {
+                                setImportStatus('error', '配置中没有可导入的倒计时数据。');
+                                return;
+                            }
+
+                            pendingImported = imported;
+                            doImportBtn.dataset.stage = 'confirm';
+                            doImportBtn.textContent = '确认覆盖并导入';
+                            setImportStatus('info', `已解析到 ${imported.length} 个倒计时。点击“确认覆盖并导入”将覆盖当前所有配置。`);
+                        } catch (err) {
+                            pendingImported = null;
+                            doImportBtn.dataset.stage = 'parse';
+                            doImportBtn.textContent = '解析并继续';
+                            setImportStatus('error', `配置格式错误：${err && err.message ? err.message : '请检查JSON格式是否正确'}`);
+                        }
+                        return;
+                    }
+
+                    // confirm stage
+                    if (!pendingImported) {
+                        doImportBtn.dataset.stage = 'parse';
+                        doImportBtn.textContent = '解析并继续';
+                        setImportStatus('error', '未找到待导入数据，请重新解析。');
+                        return;
+                    }
+
+                    applyImported(pendingImported);
+                    setImportStatus('info', `导入成功：已导入 ${pendingImported.length} 个倒计时。`);
+
+                    // 轻微延迟后关闭，保证用户看到成功提示
+                    setTimeout(() => closeImportModal(), 600);
+                });
+            }
+
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', init);
+        
+        // 飘雪效果
+        function createSnowflake() {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            // 飘雪文字：随机“小茗同学 / 小飞菇”
+            const names = ['小茗同学', '小飞菇'];
+            snowflake.textContent = names[Math.floor(Math.random() * names.length)];
+            
+            // 随机设置水平位置
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            
+            // 随机设置大小
+            const size = Math.random() * 10 + 10; // 字体大小在10-20px之间
+            snowflake.style.fontSize = size + 'px';
+            
+            // 随机设置透明度
+            snowflake.style.opacity = Math.random() * 0.5 + 0.3; // 透明度在0.3-0.8之间
+            
+            // 随机设置动画持续时间（下降速度）
+            const duration = Math.random() * 10 + 5; // 5-15秒
+            
+            // 动态设置动画
+            const animationName = `fall${Date.now()}`;
+            const offsetX = Math.random() > 0.5 ? '-' : '';
+            const offsetValue = Math.random() * 100;
+            const rotation = Math.random() * 360;
+            const initialOpacity = Math.random() * 0.5 + 0.3;
+            
+            // 创建关键帧动画
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes ${animationName} {
+                    0% {
+                        transform: translateY(0) translateX(0) rotate(0deg);
+                        opacity: ${initialOpacity};
+                    }
+                    100% {
+                        transform: translateY(100vh) translateX(${offsetX}${offsetValue}px) rotate(${rotation}deg);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // 应用动画
+            snowflake.style.animation = `${animationName} ${duration}s linear forwards`;
+            
+            document.body.appendChild(snowflake);
+            
+            // 设置飘落后移除
+            setTimeout(() => {
+                snowflake.remove();
+                style.remove();
+            }, duration * 1000);
+        }
+        
+        // 每隔一段时间创建一个雪花
+        setInterval(createSnowflake, 2000);
+    </script>
+
+
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子 飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
+</body></html>
+
+
+
+
+

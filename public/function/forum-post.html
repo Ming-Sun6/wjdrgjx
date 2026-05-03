@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>论坛阅读 - 无尽冬日工具箱</title>
+  <style>
+    :root{
+      --bg-night-1:#0b1220;
+      --bg-night-2:#0f172a;
+      --bg-day-1:#f1f5ff;
+      --bg-day-2:#fefce8;
+      --glow-night-1:rgba(59,130,246,.25);
+      --glow-night-2:rgba(139,92,246,.22);
+      --glow-day-1:rgba(56,189,248,.22);
+      --glow-day-2:rgba(251,191,36,.18);
+      --surface-night:rgba(15,23,42,.78);
+      --surface-day:rgba(255,255,255,.9);
+      --border-night:rgba(255,255,255,.12);
+      --border-day:rgba(15,23,42,.12);
+      --text-night:#e2e8f0;
+      --text-day:#0f172a;
+      --muted-night:#94a3b8;
+      --muted-day:#475569;
+      --accent:#3b82f6;
+      --shadow:0 14px 34px rgba(15,23,42,.18);
+      --radius:14px;
+    }
+    html[data-theme="night"]{
+      --bg1:var(--bg-night-1);
+      --bg2:var(--bg-night-2);
+      --glow-1:var(--glow-night-1);
+      --glow-2:var(--glow-night-2);
+      --surface:var(--surface-night);
+      --border:var(--border-night);
+      --text:var(--text-night);
+      --muted:var(--muted-night);
+      color-scheme:dark;
+    }
+    html[data-theme="day"]{
+      --bg1:var(--bg-day-1);
+      --bg2:var(--bg-day-2);
+      --glow-1:var(--glow-day-1);
+      --glow-2:var(--glow-day-2);
+      --surface:var(--surface-day);
+      --border:var(--border-day);
+      --text:var(--text-day);
+      --muted:var(--muted-day);
+      color-scheme:light;
+    }
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:"Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, var(--glow-1), transparent 55%),
+        radial-gradient(900px 600px at 85% 20%, var(--glow-2), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+    }
+    .wrap{max-width:860px;margin:0 auto;padding:18px 14px 42px;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
+    .topbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .whoami{color:var(--muted);font-size:.86rem;font-weight:800;white-space:nowrap;}
+    .btn{
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:.9rem;
+      font-weight:800;
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      backdrop-filter:blur(10px);
+    }
+    .btn.secondary{opacity:.92;}
+    .card{
+      border:1px solid var(--border);
+      background:var(--surface);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px 16px 18px;
+      backdrop-filter:blur(12px);
+    }
+    h1{margin:0 0 8px;font-size:1.25rem;line-height:1.35;}
+    .meta{color:var(--muted);font-size:.85rem;line-height:1.5;margin-bottom:14px;}
+    .forum-detail-meta-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:2px;}
+    .forum-detail-meta-rest{flex:1 1 auto;min-width:0;color:var(--muted);}
+    .forum-author-link{
+      border:none;background:transparent;color:var(--text);padding:0;margin:0;
+      display:inline-flex;align-items:center;gap:6px;cursor:pointer;font:inherit;text-align:left;
+      max-width:100%;
+    }
+    .forum-author-link:hover .forum-author-name{text-decoration:underline;}
+    #meta .forum-avatar,#meta .forum-avatar.fallback{width:40px;height:40px;font-size:1rem;}
+    .forum-follow-btn{
+      flex:0 0 auto;font-size:.78rem;font-weight:800;padding:5px 12px;border-radius:999px;cursor:pointer;line-height:1.2;
+      border:1px solid var(--border);
+      background:color-mix(in srgb,var(--surface) 86%,transparent);
+      color:var(--text);
+    }
+    .forum-follow-btn[disabled]{opacity:.55;cursor:not-allowed;}
+    .actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:8px 0 14px;}
+    /* 放在正文下方：先看文再点赞/收藏 */
+    .post-read-actions{margin:18px 0 16px;padding-top:14px;border-top:1px solid var(--border);}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.08);
+      background:color-mix(in srgb, var(--surface) 78%, transparent);
+      color:var(--text);
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:.88rem;
+      font-weight:800;
+      cursor:pointer;
+      user-select:none;
+    }
+    .pill[disabled]{opacity:.55;cursor:not-allowed;}
+    .pill.primary{border-color:color-mix(in srgb, var(--accent) 55%, var(--border));}
+    .pill .count{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:900;}
+    .pill .icon{display:inline-flex;align-items:center;justify-content:center;}
+    .pill .icon svg{width:18px;height:18px;display:block;}
+    /* 未点赞不要用纯白：日间主题浅色胶囊上会与背景糊成一片 */
+    .pill.is-like:not(.liked) .icon svg{color:#e11d48;}
+    .pill.is-like.liked .icon svg{color:#ef4444;}
+    .pill.is-like .icon svg path{fill:currentColor;}
+    .pill.is-view .icon svg{color:var(--muted);}
+    .pill.is-fav:not(.favorited) .icon svg{color:#ca8a04;}
+    .pill.is-fav.favorited .icon svg{color:#f59e0b;}
+
+    /* 阅读页浏览量：更轻量（小一些、无边框） */
+    #viewPill{
+      border:0;
+      background:transparent;
+      padding:2px 0;
+      box-shadow:none;
+      cursor:default;
+      font-size:.8rem;
+      gap:6px;
+      opacity:.9;
+    }
+    #viewPill .icon svg{width:16px;height:16px;}
+    #viewPill .count{font-size:.8rem;}
+    .content{font-size:.98rem;line-height:1.8;word-break:break-word;}
+    .content img{max-width:100%;height:auto;border-radius:10px;border:1px solid var(--border);display:block;margin:10px auto;}
+    .content a{color:var(--accent);text-decoration:none;border-bottom:1px dotted currentColor;}
+    .notice{color:var(--muted);font-size:.92rem;line-height:1.7;}
+    .comments{margin-top:16px;border-top:1px solid var(--border);padding-top:14px;}
+    .comments h2{margin:0 0 10px;font-size:1rem;}
+    .comments h2 .icon{display:inline-flex;align-items:center;justify-content:center;margin-right:8px;}
+    .comments h2 .icon svg{width:18px;height:18px;display:block;color:var(--muted);}
+    .comments h2 .icon svg path{fill:currentColor;}
+    .comment{border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin:10px 0;background:color-mix(in srgb, var(--surface) 92%, transparent);}
+    .comment-meta{color:var(--muted);font-size:.82rem;margin-bottom:6px;}
+    .comment-body{white-space:pre-wrap;line-height:1.65;font-size:.95rem;}
+
+    /* 作者身份（头像/头衔/VIP/名字颜色） */
+    .forum-meta-author{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;margin-right:4px;min-width:0;}
+    .forum-author-inline{display:inline-flex;align-items:center;gap:6px;min-width:0;}
+    .forum-author-name{font:inherit;color:inherit;line-height:1.2;min-width:0;word-break:break-word;}
+    .forum-author-name.is-vip{color:#fbbf24;text-shadow:0 0 10px rgba(245,158,11,.32);}
+    .forum-avatar{
+      width:24px;height:24px;border-radius:999px;object-fit:cover;vertical-align:middle;flex:0 0 auto;
+      border:1px solid rgba(148,163,184,.35);background:rgba(15,23,42,.35);
+    }
+    .forum-avatar.fallback{
+      display:inline-flex;align-items:center;justify-content:center;
+      color:#cbd5e1;font-size:.78rem;font-weight:800;
+    }
+    .user-name-with-badges{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;max-width:100%;}
+    .user-title-badge{
+      display:inline-flex;align-items:center;justify-content:center;
+      min-height:20px;padding:1px 8px;border-radius:999px;
+      border:1px solid rgba(148,163,184,.35);
+      background:rgba(15,23,42,.25);
+      color:var(--text);
+      font-size:.68rem;font-weight:900;letter-spacing:.3px;line-height:1.1;
+      white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis;
+    }
+    .user-title-badge.vip{
+      background:linear-gradient(135deg,#fde68a,#f59e0b);
+      border-color:rgba(251,191,36,.75);
+      color:#78350f;
+      box-shadow:0 0 0 1px rgba(251,191,36,.25);
+    }
+    .comment-form{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+    .comment-form textarea{
+      width:100%;
+      max-width:100%;
+      min-height:92px;
+      resize:vertical;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:color-mix(in srgb, var(--surface) 92%, transparent);
+      color:var(--text);
+      outline:none;
+      box-shadow:none;
+      font-size:.95rem;
+      line-height:1.55;
+      box-sizing:border-box;
+    }
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+    .admin-bar{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:6px 0 0;}
+    .admin-note{color:var(--muted);font-size:.82rem;font-weight:800;}
+    .input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:color-mix(in srgb, var(--surface) 92%, transparent);
+      color:var(--text);
+      outline:none;
+      font-size:.95rem;
+      line-height:1.55;
+      box-sizing:border-box;
+    }
+    .edit-panel{margin:12px 0 6px;display:none;gap:10px;flex-direction:column;}
+    .comment-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
+    .link-btn{background:transparent;border:0;padding:0;color:var(--accent);cursor:pointer;font-weight:800;font-size:.86rem;}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:.75rem;font-weight:900;}
+    .badge.pinned{border-color:color-mix(in srgb, var(--accent) 55%, var(--border));color:var(--text);}
+    .thread{margin:6px 0 0;padding-left:10px;border-left:2px solid color-mix(in srgb, var(--border) 70%, transparent);}
+    .thread .comment{margin:6px 0;padding:8px 10px;}
+    .thread-toggle{margin-top:8px;}
+    .thread-toggle .link-btn{font-size:.86rem;}
+    .lightbox{
+      position:fixed;inset:0;z-index:99999;
+      background:rgba(2,6,23,.82);
+      display:none;align-items:center;justify-content:center;
+      padding:18px;
+    }
+    .lightbox.open{display:flex;}
+    .lightbox img{
+      max-width:min(1100px, 96vw);
+      max-height:86vh;
+      width:auto;height:auto;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow:0 18px 60px rgba(0,0,0,.45);
+      background:rgba(0,0,0,.15);
+    }
+    .lightbox-close{
+      position:fixed;right:14px;top:14px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(15,23,42,.6);
+      color:#fff;
+      border-radius:999px;
+      padding:10px 12px;
+      font-weight:900;
+      cursor:pointer;
+      backdrop-filter:blur(10px);
+    }
+    .thanks-footer{
+      margin:18px auto 26px;
+      max-width:min(860px, calc(100vw - 28px));
+      padding:12px 14px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:color-mix(in srgb, var(--surface) 82%, transparent);
+      box-shadow:var(--shadow);
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.65;
+      white-space:pre-wrap;
+      box-sizing:border-box;
+    }
+    @media (max-width:520px){
+      .thanks-footer{font-size:11px;padding:10px 12px;}
+    }
+  </style>
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="btn secondary" id="backBtn" type="button">返回论坛</button>
+        <div class="whoami" id="whoami">检查登录中…</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h1 id="title">加载中…</h1>
+      <div class="meta" id="meta"></div>
+      <div class="admin-bar" id="postAdminBar" style="display:none;">
+        <span class="admin-note" id="postAdminNote"></span>
+        <button class="pill" id="pinPostBtn" type="button" style="display:none;">置顶</button>
+        <button class="pill" id="editPostBtn" type="button" style="display:none;">修改</button>
+        <button class="pill" id="deletePostBtn" type="button" style="display:none;">删除</button>
+      </div>
+      <div class="edit-panel" id="editPanel">
+        <input class="input" id="editTitle" placeholder="标题" />
+        <textarea class="input" id="editContent" placeholder="内容（HTML）" style="min-height:160px;resize:vertical;"></textarea>
+        <div class="row">
+          <div class="notice" id="editHint" style="display:none;"></div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="btn secondary" id="cancelEditBtn" type="button">取消</button>
+            <button class="btn" id="saveEditBtn" type="button">保存修改</button>
+          </div>
+        </div>
+      </div>
+      <div class="content" id="content"></div>
+      <div class="actions post-read-actions" id="actions" style="display:none;">
+        <button class="pill is-view" id="viewPill" type="button" disabled aria-label="浏览量">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 5c5.5 0 9.7 4.3 10.9 6.1.2.3.2.6 0 .9C21.7 13.7 17.5 18 12 18S2.3 13.7 1.1 12c-.2-.3-.2-.6 0-.9C2.3 9.3 6.5 5 12 5zm0 2C8.1 7 4.8 10 3.3 11.6 4.8 13.2 8.1 16 12 16s7.2-2.8 8.7-4.4C19.2 10 15.9 7 12 7zm0 2.2A2.8 2.8 0 1 1 12 15a2.8 2.8 0 0 1 0-5.8z"/></svg>
+          </span>
+          <span class="count" id="viewCount">0</span>
+        </button>
+        <button class="pill is-like" id="likeBtn" type="button" aria-label="点赞">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 3.9 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.09 4.81 13.76 4 15.5 4 18.1 4 20 6 20 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </span>
+          <span class="count" id="likeCount">0</span>
+        </button>
+        <button class="pill is-fav" id="favBtn" type="button" aria-label="收藏">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 17.3l-6.2 3.6 1.6-7-5.4-4.7 7.1-.6L12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7z"/></svg>
+          </span>
+          <span class="count" id="favCount">0</span>
+        </button>
+      </div>
+      <div class="comments" id="comments" style="display:none;">
+        <h2>
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M21 6.5a4.5 4.5 0 0 0-4.5-4.5h-9A4.5 4.5 0 0 0 3 6.5v6A4.5 4.5 0 0 0 7.5 17H8v3.1c0 .6.7.9 1.1.5L12 17h4.5A4.5 4.5 0 0 0 21 12.5v-6z"/></svg>
+          </span>
+          <span class="count" id="commentCount">0</span>
+        </h2>
+        <div id="commentList"></div>
+        <div class="comment-form">
+          <div class="notice" id="replyHint" style="display:none;"></div>
+          <textarea id="commentInput" placeholder="写下你的评论（需要登录）"></textarea>
+          <div class="row">
+            <div class="notice" id="commentHint" style="display:none;"></div>
+            <button class="btn" id="commentSubmit" type="button">发布评论</button>
+          </div>
+        </div>
+      </div>
+      <div class="notice" id="hint" style="margin-top:14px;display:none;"></div>
+    </div>
+  </div>
+
+  <div class="lightbox" id="imgLightbox" aria-hidden="true">
+    <button class="lightbox-close" id="imgLightboxClose" type="button">关闭</button>
+    <img id="imgLightboxImg" alt="图片预览" />
+  </div>
+
+  <div class="thanks-footer">
+制作：2041茗子 飞菇
+数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子
+测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球
+
+宣传大使：懒羊羊
+
+感谢以上所有人对本攻略站的付出
+  </div>
+
+  <script>
+    function qs(name){
+      var p=new URLSearchParams(location.search||'');
+      return p.get(name);
+    }
+
+    function escapeHtml(text){
+      return String(text||'').replace(/[&<>"']/g,function(ch){
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]||ch);
+      });
+    }
+
+    function escapeAttr(text){
+      return escapeHtml(text).replace(/"/g,'&quot;');
+    }
+
+    function normalizeHexColor(value){
+      var text=String(value||'').trim();
+      if(!text) return '';
+      var m=/^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(text);
+      if(!m) return '';
+      var hex=m[1].toLowerCase();
+      if(hex.length===3){
+        hex=hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      }
+      return '#'+hex;
+    }
+
+    function hasVipIdentity(user){
+      if(!user || typeof user!=='object') return false;
+      if(typeof user.isVip === 'boolean') return user.isVip;
+      var status=String(user.membershipStatus||'').trim().toLowerCase();
+      if(status==='lifetime') return true;
+      if(status!=='active') return false;
+      if(!user.membershipExpiresAt) return true;
+      var ts=new Date(user.membershipExpiresAt).getTime();
+      if(Number.isNaN(ts)) return true;
+      return ts > Date.now();
+    }
+
+    function renderTitleBadge(text, kind, bgColor, textColor){
+      var cls='user-title-badge';
+      if(kind==='vip') cls+=' vip';
+      var styleText='';
+      if(kind!=='vip'){
+        var bg=normalizeHexColor(bgColor);
+        var color=normalizeHexColor(textColor);
+        if(bg || color){
+          var chunks=[];
+          if(bg){ chunks.push('background:'+bg); chunks.push('border-color:transparent'); }
+          if(color) chunks.push('color:'+color);
+          styleText=' style="'+escapeAttr(chunks.join(';'))+'"';
+        }
+      }
+      return '<span class="'+cls+'"'+styleText+'>'+escapeHtml(text)+'</span>';
+    }
+
+    function renderAvatarHtml(user, fallbackName){
+      var name=String(fallbackName||'匿名');
+      var rawUrl=user && user.avatarUrl ? String(user.avatarUrl||'').trim() : '';
+      var url=rawUrl ? sanitizeImgSrc(rawUrl) : '';
+      if(url){
+        return '<img class="forum-avatar" src="'+escapeAttr(url)+'" alt="'+escapeAttr(name)+'头像" loading="lazy" />';
+      }
+      var first=(name.trim()[0]||'?').toUpperCase();
+      return '<span class="forum-avatar fallback" aria-hidden="true">'+escapeHtml(first)+'</span>';
+    }
+
+    function renderDisplayNameWithBadges(user, fallbackName, nameClass){
+      var name=String(fallbackName || '匿名');
+      var titleText=String(user && user.titleText || '').trim();
+      var isVip=hasVipIdentity(user);
+      var cls=(nameClass || 'forum-author-name') + (isVip ? ' is-vip' : '');
+      var badges='';
+      if(titleText){
+        badges += renderTitleBadge(titleText, 'custom', user && user.titleBgColor, user && user.titleColor);
+      }
+      if(isVip){
+        badges += renderTitleBadge('VIP', 'vip');
+      }
+      return '<span class="user-name-with-badges"><span class="'+cls+'">'+escapeHtml(name)+'</span>'+badges+'</span>';
+    }
+
+    function renderForumAuthorIdentity(user, username){
+      var name = String(username || '匿名');
+      var inner = renderAvatarHtml(user, name) + renderDisplayNameWithBadges(user, name, 'forum-author-name');
+      return '<span class="forum-author-inline">' + inner + '</span>';
+    }
+
+    function renderForumAuthorIdentityLinked(user, username){
+      var name = String(username || '匿名');
+      var inner = renderAvatarHtml(user, name) + renderDisplayNameWithBadges(user, name, 'forum-author-name');
+      var uid = Number(user && user.id);
+      if(Number.isFinite(uid) && uid > 0){
+        return '<button type="button" class="forum-author-link" data-open-user="'+uid+'" aria-label="查看'+escapeAttr(name)+'的主页">' + inner + '</button>';
+      }
+      return '<span class="forum-author-inline">' + inner + '</span>';
+    }
+
+    function goForumAuthorHome(uid){
+      uid = Number(uid);
+      if(!Number.isFinite(uid) || uid <= 0) return;
+      var href='/?tab=forum&openUser='+encodeURIComponent(String(uid));
+      window.location.href=href;
+    }
+
+    function sanitizeHtml(html){
+      // 轻量防护：去掉 script/style，移除 on* 事件属性
+      var text=String(html||'');
+      text=text.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi,'');
+      text=text.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi,'');
+      text=text.replace(/\son[a-z]+\s*=\s*(['"]).*?\1/gi,'');
+      return text;
+    }
+
+    function sanitizeImgSrc(url){
+      if(!url) return '';
+      var val=String(url).trim();
+      if(!val) return '';
+      var lower=val.toLowerCase();
+      if(lower.startsWith('javascript:') || lower.startsWith('vbscript:') || lower.startsWith('data:text/html')) return '';
+      // 允许站内 uploads 相对路径
+      if(val[0] === '/' && val[1] !== '/'){
+        return val;
+      }
+      try{
+        var u=new URL(val, window.location.href);
+        if(u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+      }catch(e){}
+      return '';
+    }
+
+    function formatDate(value){
+      var d=new Date(value||'');
+      if(!d||isNaN(d.getTime())) return '';
+      var pad=function(n){ return String(n).padStart(2,'0'); };
+      return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+    }
+
+    async function loadPost(){
+      var id=Number(qs('id')||0);
+      if(!(Number.isFinite(id) && id>0)){
+        document.getElementById('title').textContent='参数错误';
+        document.getElementById('hint').style.display='block';
+        document.getElementById('hint').textContent='缺少帖子 id。请从论坛列表进入。';
+        return;
+      }
+      document.getElementById('backBtn').addEventListener('click',function(){
+        location.href='/?tab=forum';
+      });
+
+      var state={ postId:id, post:null, comments:[], me:null, replyToCommentId:null, editing:false, openThreads:{} };
+
+      var forumMetaClickBound=false;
+      function bindForumMetaOnce(){
+        if(forumMetaClickBound) return;
+        var metaEl=document.getElementById('meta');
+        if(!metaEl) return;
+        forumMetaClickBound=true;
+        metaEl.addEventListener('click', function(e){
+          var openAU=e.target.closest('[data-open-user]');
+          if(openAU){
+            e.preventDefault();
+            goForumAuthorHome(Number(openAU.getAttribute('data-open-user')));
+            return;
+          }
+          var fbtn=e.target.closest('[data-forum-follow]');
+          if(fbtn){
+            e.preventDefault();
+            toggleForumPostAuthorFollow(Number(fbtn.getAttribute('data-forum-follow')));
+            return;
+          }
+          if(e.target.closest('[data-forum-follow-login]')){
+            e.preventDefault();
+            setHint('请先登录');
+            return;
+          }
+        });
+      }
+
+      async function toggleForumPostAuthorFollow(authorUid){
+        authorUid=Number(authorUid);
+        if(!Number.isFinite(authorUid)||authorUid<=0) return;
+        if(!state.me || !state.me.id){
+          setHint('请先登录');
+          return;
+        }
+        if(Number(state.me.id)===authorUid){
+          setHint('不能关注自己');
+          return;
+        }
+        var post=state.post;
+        if(!post || !post.author || Number(post.author.id)!==authorUid) return;
+        var btn=document.querySelector('#meta [data-forum-follow="'+authorUid+'"]');
+        var was=!!post.author.iFollow;
+        if(btn) btn.disabled=true;
+        try{
+          var method=was?'DELETE':'POST';
+          await apiFetchJson('/api/users/'+encodeURIComponent(authorUid)+'/follow',{method:method,body:'{}'});
+          post.author.iFollow=!was;
+          state.me.followingCount=Math.max(0, Number(state.me.followingCount||0)+(was?-1:1));
+          render();
+        }catch(err){
+          setHint('操作失败：'+String(err&&err.message||err));
+        }finally{
+          if(btn) btn.disabled=false;
+        }
+      }
+
+      function setHint(text){
+        var hint=document.getElementById('hint');
+        hint.style.display='block';
+        hint.textContent=text;
+      }
+
+      function apiFetchJson(url, options){
+        options=options||{};
+        options.credentials='include';
+        options.cache='no-store';
+        options.headers=options.headers||{};
+        if(options.body && !options.headers['Content-Type']) options.headers['Content-Type']='application/json';
+        return fetch(url, options).then(async function(resp){
+          var data=null;
+          try{ data=await resp.json(); }catch(e){ data=null; }
+          if(!resp.ok){
+            var msg=(data&&data.error)?data.error:('HTTP_'+resp.status);
+            var err=new Error(msg);
+            err.data=data; err.status=resp.status;
+            throw err;
+          }
+          return data;
+        });
+      }
+
+      async function loadMe(){
+        try{
+          var r=await fetch('/api/auth/me',{credentials:'include'});
+          var d=null;
+          try{ d=await r.json(); }catch(e){ d=null; }
+          if(!r.ok) return null;
+          return d && d.user ? d.user : null;
+        }catch(e){
+          return null;
+        }
+      }
+
+      function renderMe(){
+        var el=document.getElementById('whoami');
+        if(!el) return;
+        if(state.me && state.me.username){
+          el.textContent='已登录：'+String(state.me.username);
+        }else{
+          el.innerHTML='未登录 · <a href="/?tab=me" style="color:var(--accent);text-decoration:none;border-bottom:1px dotted currentColor;">去登录</a>';
+        }
+      }
+
+      function render(){
+        var post=state.post;
+        if(!post) return;
+        renderMe();
+        document.title=(post.title||'阅读内容')+' - 论坛';
+        document.getElementById('title').textContent=post.title||'阅读内容';
+        var authorName=(post.author&&post.author.username)?post.author.username:'匿名';
+        var identityLinked=renderForumAuthorIdentityLinked(post.author||{}, authorName);
+        var aid=Number(post.author&&post.author.id);
+        var followPart='';
+        if(Number.isFinite(aid)&&aid>0){
+          if(state.me && Number(state.me.id)===aid){
+            followPart='';
+          }else if(state.me){
+            followPart='<button type="button" class="forum-follow-btn" data-forum-follow="'+aid+'">'+(post.author.iFollow?'已关注':'关注')+'</button>';
+          }else{
+            followPart='<button type="button" class="forum-follow-btn" data-forum-follow-login="1">关注</button>';
+          }
+        }
+        var typeLbl=post.type==='image'?'图文':'文章';
+        document.getElementById('meta').innerHTML=
+          '<div class="forum-detail-meta-row">'
+          +'<span class="forum-meta-author">'+identityLinked+'</span>'
+          + followPart
+          +'<span class="forum-detail-meta-rest">'+formatDate(post.createdAt)+' · '+typeLbl+'</span>'
+          +'</div>';
+
+        var actions=document.getElementById('actions');
+        actions.style.display='flex';
+        document.getElementById('viewCount').textContent=String(Number(post.viewCount||0));
+        document.getElementById('likeCount').textContent=String(Number(post.likeCount||0));
+        document.getElementById('favCount').textContent=String(Number(post.favoriteCount||0));
+
+        var likeBtn=document.getElementById('likeBtn');
+        var favBtn=document.getElementById('favBtn');
+        var canAct=!!(state.me && state.me.id);
+        likeBtn.disabled=!canAct;
+        favBtn.disabled=!canAct;
+        likeBtn.classList.toggle('liked', !!post.likedByMe);
+        likeBtn.classList.toggle('primary', !!post.likedByMe);
+        favBtn.classList.toggle('favorited', !!post.favoritedByMe);
+        favBtn.classList.toggle('primary', !!post.favoritedByMe);
+
+        var contentBox=document.getElementById('content');
+        var bodyHtml='';
+        if(post.contentHtml){
+          bodyHtml=sanitizeHtml(post.contentHtml);
+        }else{
+          bodyHtml='<div style="white-space:pre-wrap;">'+escapeHtml(post.contentText||'')+'</div>';
+        }
+
+        // 图文帖：图片通常存放在 coverImages（后端已把 base64 落地成 /uploads/forum/...）
+        var imgHtml='';
+        if(post.type==='image'){
+          var imgs=Array.isArray(post.coverImages)?post.coverImages:[];
+          var safeImgs=imgs.map(sanitizeImgSrc).filter(Boolean);
+          if(safeImgs.length){
+            imgHtml='<div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">'
+              + safeImgs.map(function(src){ return '<img src="'+escapeHtml(src)+'" alt="图片" loading="lazy" />'; }).join('')
+              + '</div>';
+          }
+        }
+        contentBox.innerHTML=bodyHtml + imgHtml;
+
+        // 帖子管理按钮
+        var me=state.me||null;
+        var isAdmin=!!(me && (me.isAdmin || me.forumPublisher));
+        var isAuthor=!!(me && post.author && Number(me.id)===Number(post.author.id));
+        var canEditOrDelete=!!(isAdmin || isAuthor);
+        var postAdminBar=document.getElementById('postAdminBar');
+        var postAdminNote=document.getElementById('postAdminNote');
+        var pinPostBtn=document.getElementById('pinPostBtn');
+        var editPostBtn=document.getElementById('editPostBtn');
+        var deletePostBtn=document.getElementById('deletePostBtn');
+        if(postAdminBar){
+          postAdminBar.style.display=canEditOrDelete||isAdmin ? 'flex' : 'none';
+        }
+        if(postAdminNote){
+          postAdminNote.textContent = isAdmin ? '管理员操作' : (isAuthor ? '作者操作' : '');
+        }
+        if(pinPostBtn){
+          pinPostBtn.style.display = isAdmin ? '' : 'none';
+          pinPostBtn.textContent = post.isPinned ? '取消置顶' : '置顶';
+          pinPostBtn.disabled = !isAdmin;
+        }
+        if(editPostBtn){
+          editPostBtn.style.display = canEditOrDelete ? '' : 'none';
+          editPostBtn.disabled = !canEditOrDelete;
+        }
+        if(deletePostBtn){
+          deletePostBtn.style.display = canEditOrDelete ? '' : 'none';
+          deletePostBtn.disabled = !canEditOrDelete;
+        }
+
+        var editPanel=document.getElementById('editPanel');
+        if(editPanel){
+          editPanel.style.display = state.editing ? 'flex' : 'none';
+        }
+
+        var commentsWrap=document.getElementById('comments');
+        commentsWrap.style.display='block';
+        document.getElementById('commentCount').textContent=String(state.comments.length);
+        var commentInput=document.getElementById('commentInput');
+        var commentBtn=document.getElementById('commentSubmit');
+        if(commentInput) commentInput.disabled=!canAct;
+        if(commentBtn) commentBtn.disabled=!canAct;
+        if(!canAct){
+          var hint=document.getElementById('commentHint');
+          if(hint){
+            hint.style.display='block';
+            hint.innerHTML='未登录，无法评论/点赞/收藏。<a href="/?tab=me" style="color:var(--accent);text-decoration:none;border-bottom:1px dotted currentColor;">去登录</a>';
+          }
+        }
+        var list=document.getElementById('commentList');
+        var comments=Array.isArray(state.comments)?state.comments:[];
+        if(!comments.length){
+          list.innerHTML='<div class="notice">暂无评论</div>';
+        }else{
+          var canPinComment=!!(me && (me.isAdmin || Number(me.id)===Number(post.author && post.author.id)));
+          var canDeleteComment=function(c){
+            if(!me) return false;
+            if(me.isAdmin) return true;
+            if(post.author && Number(me.id)===Number(post.author.id)) return true;
+            return c && c.author && Number(me.id)===Number(c.author.id);
+          };
+          function sortComments(arr){
+            return (arr||[]).slice().sort(function(a,b){
+              var ap=Number(a&&a.isPinned?1:0), bp=Number(b&&b.isPinned?1:0);
+              if(ap!==bp) return bp-ap;
+              var at=new Date(a&&a.createdAt||0).getTime()||0;
+              var bt=new Date(b&&b.createdAt||0).getTime()||0;
+              if(at!==bt) return bt-at;
+              return Number(b&&b.id||0)-Number(a&&a.id||0);
+            });
+          }
+          // 把所有“回复”（包括回复的回复）归并到其根评论下面，避免出现“只有一条回复、没有展开”的错觉
+          var byId={};
+          comments.forEach(function(c){ if(c && c.id!=null) byId[String(c.id)]=c; });
+          function findRootId(c){
+            var cur=c;
+            var guard=0;
+            while(cur && cur.replyToCommentId && guard<20){
+              var parent=byId[String(cur.replyToCommentId)];
+              if(!parent) break;
+              cur=parent;
+              guard+=1;
+            }
+            return cur && cur.id!=null ? String(cur.id) : null;
+          }
+          var repliesByRoot={};
+          comments.forEach(function(c){
+            if(c && c.replyToCommentId){
+              var rootId=findRootId(c);
+              if(!rootId) return;
+              if(!repliesByRoot[rootId]) repliesByRoot[rootId]=[];
+              repliesByRoot[rootId].push(c);
+            }
+          });
+          var top = sortComments(comments.filter(function(c){ return !(c && c.replyToCommentId); }));
+
+          function renderCommentCard(c, options){
+            options=options||{};
+            var isReply=!!options.isReply;
+            var name=(c.author&&c.author.username)?c.author.username:'匿名';
+            var when=formatDate(c.createdAt);
+            var pinnedBadge = c.isPinned ? ' <span class="badge pinned">置顶</span>' : '';
+            var replyLine = (c.replyTo && c.replyTo.author && c.replyTo.author.username)
+              ? ('<div class="comment-meta">回复 @'+escapeHtml(c.replyTo.author.username)+'</div>')
+              : '';
+            var actions = '<div class="comment-actions">'
+              + (canAct ? '<button class="link-btn" type="button" data-action="reply" data-id="'+Number(c.id)+'">回复</button>' : '')
+              + (canPinComment ? '<button class="link-btn" type="button" data-action="pin" data-id="'+Number(c.id)+'">'+(c.isPinned?'取消置顶':'置顶')+'</button>' : '')
+              + (canDeleteComment(c) ? '<button class="link-btn" type="button" data-action="delete" data-id="'+Number(c.id)+'" style="color:#ef4444;">删除</button>' : '')
+              + '</div>';
+            return '<div class="comment" data-comment-id="'+Number(c.id)+'"'+(isReply?' style="margin:8px 0;"':'')+'>'
+              + '<div class="comment-meta"><span class="forum-meta-author">'+renderForumAuthorIdentity(c.author, name)+'</span> · '+escapeHtml(when)+pinnedBadge+'</div>'
+              + replyLine
+              + '<div class="comment-body">'+escapeHtml(c.content||'')+'</div>'
+              + actions
+              + '</div>';
+          }
+
+          list.innerHTML = top.map(function(c){
+            var pid=String(c.id);
+            var replies = sortComments(repliesByRoot[pid]||[]);
+            var open = !!state.openThreads[pid];
+
+            // 默认只显示 1 条回复；多条时点击展开全部
+            var showAll = open && replies.length > 1;
+            var shownReplies = replies.length ? (showAll ? replies : replies.slice(0, 1)) : [];
+
+            var toggle = '';
+            if (replies.length > 1) {
+              toggle =
+                '<div class="thread-toggle">'
+                + '<button class="link-btn" type="button" data-action="toggle-thread" data-id="'+escapeHtml(pid)+'">'
+                + (showAll ? '收起回复' : ('展开更多回复（'+(replies.length - 1)+'）'))
+                + '</button>'
+                + '</div>';
+            }
+
+            var thread = replies.length
+              ? ('<div class="thread">'+shownReplies.map(function(r){ return renderCommentCard(r,{ isReply:true }); }).join('')+'</div>')
+              : '';
+
+            return '<div style="margin:8px 0;">'
+              + renderCommentCard(c,{ isReply:false })
+              + thread
+              + toggle
+              + '</div>';
+          }).join('');
+        }
+
+        // 回复提示
+        var replyHint=document.getElementById('replyHint');
+        if(replyHint){
+          if(state.replyToCommentId){
+            var target = (state.comments||[]).find(function(c){ return Number(c.id)===Number(state.replyToCommentId); }) || null;
+            var who = target && target.author && target.author.username ? String(target.author.username) : '该评论';
+            replyHint.style.display='block';
+            replyHint.innerHTML='正在回复 @'+escapeHtml(who)+' <button class="link-btn" type="button" id="cancelReplyBtn">取消</button>';
+            setTimeout(function(){
+              var b=document.getElementById('cancelReplyBtn');
+              if(b) b.onclick=function(){ state.replyToCommentId=null; render(); };
+            },0);
+          }else{
+            replyHint.style.display='none';
+            replyHint.textContent='';
+          }
+        }
+      }
+
+      async function refresh(recordView){
+        var qs=new URLSearchParams();
+        qs.set('_', String(Date.now()));
+        qs.set('nc', Math.random().toString(36).slice(2, 14)+String(Date.now()));
+        if(recordView) qs.set('incrementView', '1');
+        var data=await apiFetchJson('/api/forum/posts/'+id+'?'+qs.toString(),{method:'GET'});
+        state.post=data.post||null;
+        state.comments=Array.isArray(data.comments)?data.comments:[];
+        render();
+        if(recordView){
+          try{
+            sessionStorage.setItem('wjdr_forum_ping', JSON.stringify({ postId:id, viewCount:Number(state.post&&state.post.viewCount||0), t:Date.now() }));
+          }catch(_err){}
+        }
+      }
+
+      async function toggleLike(){
+        var btn=document.getElementById('likeBtn');
+        btn.disabled=true;
+        try{
+          var r=await apiFetchJson('/api/forum/posts/'+id+'/like',{method:'POST',body:'{}'});
+          state.post.likedByMe=!!r.liked;
+          state.post.likeCount=Number(r.likeCount||0);
+          render();
+        }finally{
+          btn.disabled=false;
+        }
+      }
+
+      async function toggleFav(){
+        var btn=document.getElementById('favBtn');
+        btn.disabled=true;
+        try{
+          var r=await apiFetchJson('/api/forum/posts/'+id+'/favorite',{method:'POST',body:'{}'});
+          state.post.favoritedByMe=!!r.favorited;
+          state.post.favoriteCount=Number(r.favoriteCount||0);
+          render();
+        }finally{
+          btn.disabled=false;
+        }
+      }
+
+      async function submitComment(){
+        var input=document.getElementById('commentInput');
+        var btn=document.getElementById('commentSubmit');
+        var hint=document.getElementById('commentHint');
+        hint.style.display='none';
+        var text=String(input.value||'').trim();
+        if(!text){ hint.style.display='block'; hint.textContent='请输入评论内容'; return; }
+        btn.disabled=true;
+        try{
+          await apiFetchJson('/api/forum/comments',{method:'POST',body:JSON.stringify({postId:id, content:text, replyToCommentId: state.replyToCommentId || null})});
+          input.value='';
+          state.replyToCommentId=null;
+          await refresh();
+        }catch(err){
+          hint.style.display='block';
+          hint.textContent='发布失败：'+String(err&&err.message||err);
+        }finally{
+          btn.disabled=false;
+        }
+      }
+
+      async function togglePostPin(){
+        var btn=document.getElementById('pinPostBtn');
+        if(!btn || !state.post) return;
+        btn.disabled=true;
+        try{
+          var next = !state.post.isPinned;
+          await apiFetchJson('/api/forum/posts/'+id+'/pin',{method:'PATCH',body:JSON.stringify({pinned: next})});
+          state.post.isPinned = next;
+          render();
+        }catch(err){
+          setHint('置顶失败：'+String(err&&err.message||err));
+        }finally{
+          btn.disabled=false;
+        }
+      }
+
+      function openEdit(){
+        if(!state.post) return;
+        state.editing=true;
+        var t=document.getElementById('editTitle');
+        var c=document.getElementById('editContent');
+        if(t) t.value=state.post.title||'';
+        if(c) c.value=String(state.post.contentHtml||'') || String(state.post.contentText||'');
+        render();
+      }
+
+      function closeEdit(){
+        state.editing=false;
+        var hint=document.getElementById('editHint');
+        if(hint){ hint.style.display='none'; hint.textContent=''; }
+        render();
+      }
+
+      async function saveEdit(){
+        var hint=document.getElementById('editHint');
+        if(hint){ hint.style.display='none'; hint.textContent=''; }
+        var t=document.getElementById('editTitle');
+        var c=document.getElementById('editContent');
+        var title=String(t && t.value || '').trim();
+        var html=String(c && c.value || '').trim();
+        if(!title || title.length>120){
+          if(hint){ hint.style.display='block'; hint.textContent='标题不能为空且最多 120 字'; }
+          return;
+        }
+        if(!state.post) return;
+        var body={
+          section: state.post.section,
+          type: state.post.type,
+          title: title,
+          contentText: '',
+          contentHtml: html,
+          coverImage: state.post.type==='image' ? (state.post.coverImages||[]) : null
+        };
+        var btn=document.getElementById('saveEditBtn');
+        if(btn) btn.disabled=true;
+        try{
+          await apiFetchJson('/api/forum/posts/'+id,{method:'PATCH',body:JSON.stringify(body)});
+          state.editing=false;
+          await refresh();
+        }catch(err){
+          if(hint){ hint.style.display='block'; hint.textContent='保存失败：'+String(err&&err.message||err); }
+        }finally{
+          if(btn) btn.disabled=false;
+        }
+      }
+
+      async function deletePost(){
+        if(!state.post) return;
+        var ok=confirm('确定删除这篇帖子吗？此操作不可撤销。');
+        if(!ok) return;
+        var btn=document.getElementById('deletePostBtn');
+        if(btn) btn.disabled=true;
+        try{
+          await apiFetchJson('/api/forum/posts/'+id,{method:'DELETE'});
+          location.href='/?tab=forum';
+        }catch(err){
+          setHint('删除失败：'+String(err&&err.message||err));
+        }finally{
+          if(btn) btn.disabled=false;
+        }
+      }
+
+      async function pinComment(commentId){
+        await apiFetchJson('/api/forum/comments/'+commentId+'/pin',{method:'PATCH',body:'{}'});
+        await refresh();
+      }
+
+      async function delComment(commentId){
+        var ok=confirm('确定删除这条评论吗？');
+        if(!ok) return;
+        await apiFetchJson('/api/forum/comments/'+commentId,{method:'DELETE'});
+        await refresh();
+      }
+
+      function setReply(commentId){
+        state.replyToCommentId = Number(commentId)||null;
+        var input=document.getElementById('commentInput');
+        if(input){ try{ input.focus(); }catch(e){} }
+        render();
+      }
+
+      bindForumMetaOnce();
+      try{
+        state.me = await loadMe();
+        await refresh(true);
+        document.getElementById('likeBtn').addEventListener('click',toggleLike);
+        document.getElementById('favBtn').addEventListener('click',toggleFav);
+        document.getElementById('commentSubmit').addEventListener('click',submitComment);
+        document.getElementById('pinPostBtn')&&document.getElementById('pinPostBtn').addEventListener('click',togglePostPin);
+        document.getElementById('editPostBtn')&&document.getElementById('editPostBtn').addEventListener('click',openEdit);
+        document.getElementById('cancelEditBtn')&&document.getElementById('cancelEditBtn').addEventListener('click',closeEdit);
+        document.getElementById('saveEditBtn')&&document.getElementById('saveEditBtn').addEventListener('click',saveEdit);
+        document.getElementById('deletePostBtn')&&document.getElementById('deletePostBtn').addEventListener('click',deletePost);
+        document.getElementById('commentList')&&document.getElementById('commentList').addEventListener('click',function(e){
+          var btn=e.target && e.target.closest ? e.target.closest('[data-action][data-id]') : null;
+          if(!btn) return;
+          var action=String(btn.getAttribute('data-action')||'');
+          var idStr=String(btn.getAttribute('data-id')||'');
+          if(!idStr) return;
+          if(action==='toggle-thread'){
+            state.openThreads[idStr]=!state.openThreads[idStr];
+            render();
+            return;
+          }
+          var cid=Number(idStr);
+          if(!(Number.isFinite(cid) && cid>0)) return;
+          if(action==='reply'){ setReply(cid); return; }
+          if(action==='pin'){ pinComment(cid).catch(function(err){ setHint('评论置顶失败：'+String(err&&err.message||err)); }); return; }
+          if(action==='delete'){ delComment(cid).catch(function(err){ setHint('删除评论失败：'+String(err&&err.message||err)); }); return; }
+        });
+
+        // 图片灯箱
+        var lb=document.getElementById('imgLightbox');
+        var lbImg=document.getElementById('imgLightboxImg');
+        var lbClose=document.getElementById('imgLightboxClose');
+        function openLightbox(src){
+          if(!lb || !lbImg) return;
+          lbImg.src=src||'';
+          lb.classList.add('open');
+          lb.setAttribute('aria-hidden','false');
+        }
+        function closeLightbox(){
+          if(!lb || !lbImg) return;
+          lb.classList.remove('open');
+          lb.setAttribute('aria-hidden','true');
+          lbImg.src='';
+        }
+        if(lbClose) lbClose.addEventListener('click',closeLightbox);
+        if(lb) lb.addEventListener('click',function(ev){ if(ev.target && ev.target.id==='imgLightbox') closeLightbox(); });
+        document.addEventListener('keydown',function(ev){ if(ev.key==='Escape') closeLightbox(); });
+        var contentBox=document.getElementById('content');
+        if(contentBox){
+          contentBox.addEventListener('click',function(ev){
+            var img=ev.target && ev.target.closest ? ev.target.closest('img') : null;
+            if(!img) return;
+            ev.preventDefault();
+            openLightbox(img.getAttribute('src')||img.src||'');
+          });
+        }
+      }catch(err){
+        document.getElementById('title').textContent='加载失败';
+        setHint('无法加载帖子内容：'+String(err&&err.message||err));
+      }
+    }
+    loadPost();
+  </script>
+  <script src="/function/site-beian.js" defer></script>
+</body>
+</html>
