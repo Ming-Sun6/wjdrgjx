@@ -1399,11 +1399,7 @@
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.5（2026-05-04）</div>
             <div style="color:var(--muted);line-height:1.6;">本轮为<strong>前台静态展示</strong>修复：论坛「文章」正文在阅读区补充 <code>white-space: pre-wrap</code>（首页弹层 <code>.forum-content-view</code>、独立页 <code>forum-post.html</code> 文章态），与既有评论换行策略对齐。</div>
-            <div style="color:var(--muted);line-height:1.6;"><strong>无后端变更</strong>：未新增/调整管理端菜单与权限点，论坛相关接口、数据库字段与缓存策略均无改动；管理端联调与审计无需跟进接口版本。</div>
-          </div>
-          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
-            <div style="font-weight:800;margin-bottom:8px;">V0.9.4（2026-05-01）</div>
-            <div style="color:var(--muted);line-height:1.6;">本轮以前台论坛与阅读链路修复为主；<strong>管理端菜单/权限点无新增</strong>，仍无新库表字段。论坛相关接口有<strong>向后兼容的响应体扩展</strong>，见下。</div>
+            <div style="color:var(--muted);line-height:1.6;">合并原 V0.9.4 记录：以前台论坛与阅读链路修复为主；<strong>管理端菜单/权限点无新增</strong>，仍无新库表字段。论坛相关接口有<strong>向后兼容的响应体扩展</strong>，见下。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>接口（兼容扩展）</strong>：<code>GET /api/forum/posts/:id</code> 在已登录时补充作者关注态子查询；帖子 <code>author</code> 对象增加 <code>iFollow</code>、<code>isSelf</code>（布尔，未登录恒为 false）。不影响旧客户端解析。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>浏览计数</strong>：详情接口支持查询参数 <code>incrementView=1</code> 触发写 <code>forum_post_views</code>；列表/详情关键响应补充 <code>Cache-Control: private, no-store</code> 等，降低反代缓存导致计数与展示不一致；插入后按库内 COUNT 回填，避免部分驱动 <code>affectedRows</code> 不可靠。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>PostgreSQL 兼容</strong>：<code>postgres-db</code> 行别名映射补充 <code>viewcount→viewCount</code>、<code>authorifollow→authorIFollow</code>，修复列表浏览量、作者关注态在前端恒为默认值的显示类问题。</div>
