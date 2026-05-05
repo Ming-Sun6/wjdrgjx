@@ -62,7 +62,8 @@
       z-index:1;
       width:100%;
       line-height:0;
-      background:#070d18;
+      /* 不与 body 背景割裂，避免宽屏两侧出现一条更深的「黑边」色带 */
+      background:transparent;
       border-bottom:1px solid var(--border);
     }
     .wjdr-home-lead-inner{
@@ -74,13 +75,17 @@
       border-radius:12px;
       overflow:hidden;
       border:1px solid var(--border);
-      background:rgba(15,23,42,.35);
+      /* 浅色主题下深色半透明底会像一圈黑框，改为透明仅保留细描边 */
+      background:transparent;
     }
     .wjdr-home-carousel-track{
       display:grid;
       width:100%;
       line-height:0;
+      cursor:grab;
+      touch-action:pan-y pinch-zoom;
     }
+    .wjdr-home-carousel-track:active{cursor:grabbing;}
     .wjdr-home-carousel-slide{
       grid-area:1/1;
       opacity:0;
@@ -3134,12 +3139,19 @@
   (function(){
     var track=document.getElementById('wjdrHomeLeadTrack');
     var dotsRoot=document.getElementById('wjdrHomeLeadDots');
+    var root=document.getElementById('wjdrHomeLeadRoot');
     if(!track) return;
     var timer=null;
     var idx=0;
     var slides=[];
     var intervalMs=6000;
     var hoverBound=false;
+    var swipeBound=false;
+    var swipeSx=0;
+    var swipeSy=0;
+    var swipePanning=false;
+    var swipePtrId=null;
+    var suppressCarouselClick=false;
     function clearTimer(){ if(timer){ clearInterval(timer); timer=null; } }
     function applySlide(i){
       if(!slides.length) return;
@@ -3157,6 +3169,70 @@
       if(slides.length<=1) return;
       timer=setInterval(function(){ applySlide(idx+1); }, intervalMs);
     }
+    function bindCarouselSwipe(){
+      if(!track||swipeBound) return;
+      swipeBound=true;
+      var threshold=48;
+      function trySwipeEnd(clientX, clientY){
+        if(!swipePanning) return;
+        swipePanning=false;
+        swipePtrId=null;
+        var dx=clientX-swipeSx;
+        var dy=clientY-swipeSy;
+        if(slides.length<=1) return;
+        if(Math.abs(dx)<threshold) return;
+        if(Math.abs(dx)<Math.abs(dy)*1.2) return;
+        if(dx<0) applySlide(idx+1);
+        else applySlide(idx-1);
+        armTimer();
+        suppressCarouselClick=true;
+      }
+      function onPointerDown(ev){
+        if(ev.pointerType==='mouse'&&ev.button!==0) return;
+        if(ev.target&&ev.target.closest&&ev.target.closest('.wjdr-home-carousel-dot')) return;
+        swipePanning=true;
+        swipePtrId=ev.pointerId;
+        swipeSx=ev.clientX;
+        swipeSy=ev.clientY;
+        try{ track.setPointerCapture(ev.pointerId); }catch(e){}
+      }
+      function onPointerUp(ev){
+        if(swipePtrId===null||ev.pointerId!==swipePtrId) return;
+        try{ track.releasePointerCapture(ev.pointerId); }catch(e){}
+        trySwipeEnd(ev.clientX, ev.clientY);
+      }
+      function onPointerCancel(){
+        swipePanning=false;
+        swipePtrId=null;
+      }
+      if(window.PointerEvent){
+        track.addEventListener('pointerdown', onPointerDown);
+        track.addEventListener('pointerup', onPointerUp);
+        track.addEventListener('pointercancel', onPointerCancel);
+        track.addEventListener('lostpointercapture', onPointerCancel);
+      }else{
+        track.addEventListener('touchstart', function(ev){
+          if(!ev.touches||ev.touches.length!==1) return;
+          if(ev.target&&ev.target.closest&&ev.target.closest('.wjdr-home-carousel-dot')) return;
+          swipePanning=true;
+          swipeSx=ev.touches[0].clientX;
+          swipeSy=ev.touches[0].clientY;
+        }, {passive:true});
+        track.addEventListener('touchend', function(ev){
+          var t=ev.changedTouches&&ev.changedTouches[0];
+          if(!t) return;
+          trySwipeEnd(t.clientX, t.clientY);
+        }, {passive:true});
+        track.addEventListener('touchcancel', onPointerCancel, {passive:true});
+      }
+      track.addEventListener('click', function(ev){
+        if(!suppressCarouselClick) return;
+        suppressCarouselClick=false;
+        ev.preventDefault();
+        ev.stopPropagation();
+      }, true);
+    }
+    bindCarouselSwipe();
     function escAttr(v){
       return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     }
@@ -3199,7 +3275,6 @@
           }
         }
       }
-      var root=document.getElementById('wjdrHomeLeadRoot');
       if(root && !hoverBound){
         hoverBound=true;
         root.addEventListener('mouseenter',clearTimer);
