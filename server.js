@@ -113,6 +113,15 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function sanitizeAnnouncementHtml(inputHtml) {
   const raw = String(inputHtml || '').trim();
   if (!raw) return '';
@@ -167,6 +176,143 @@ function sanitizeAnnouncementHtml(inputHtml) {
     },
     disallowedTagsMode: 'discard'
   });
+}
+
+const HOME_LEAD_SETTING_KEY = 'home_lead_carousel';
+
+function isSafeSitePath(urlPath) {
+  const p = String(urlPath || '').trim();
+  if (!p.startsWith('/')) return false;
+  return !p.split('/').some((seg) => seg === '..');
+}
+
+function isAllowedHomeLeadImageUrl(url) {
+  const s = String(url || '').trim();
+  if (!s || s.length > 2048) return false;
+  if (s.startsWith('/')) {
+    if (!isSafeSitePath(s)) return false;
+    if (s.startsWith('/uploads/')) return true;
+    if (s.startsWith('/public/wjdr-home/')) return true;
+    if (s.startsWith('/public/')) return true;
+    return false;
+  }
+  if (/^https?:\/\//i.test(s)) return true;
+  return false;
+}
+
+function isAllowedHomeLeadHref(href) {
+  const s = String(href || '').trim();
+  if (!s || s.length > 2048) return false;
+  if (/^javascript:/i.test(s) || /^data:/i.test(s)) return false;
+  if (s.startsWith('/')) return isSafeSitePath(s);
+  if (/^https?:\/\//i.test(s)) return true;
+  return false;
+}
+
+function sanitizeHomeLeadDetailHtml(inputHtml) {
+  const raw = String(inputHtml || '').trim();
+  if (!raw) return '';
+  if (!sanitizeHtml) {
+    return escapeHtml(raw).replace(/\n/g, '<br>');
+  }
+  return sanitizeHtml(raw, {
+    allowedTags: [
+      'b', 'strong', 'i', 'em', 'u', 's',
+      'br', 'p', 'div', 'span',
+      'ul', 'ol', 'li',
+      'h1', 'h2', 'h3',
+      'a', 'img'
+    ],
+    allowedAttributes: {
+      a: ['href', 'target', 'rel'],
+      img: ['src', 'alt', 'title'],
+      span: ['style'],
+      p: ['style'],
+      div: ['style']
+    },
+    allowedStyles: {
+      '*': {
+        color: [/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/],
+        'font-size': [/^\d+(px|rem|em|%)$/],
+        'font-weight': [/^(normal|bold|[1-9]00)$/],
+        'text-decoration': [/^(none|underline|line-through)$/],
+        'text-align': [/^(left|right|center|justify)$/]
+      }
+    },
+    transformTags: {
+      a: (tagName, attribs) => {
+        const href = String(attribs.href || '').trim();
+        const safeHref = (!href || href.startsWith('/') || /^https?:\/\//i.test(href)) ? href : '';
+        return {
+          tagName,
+          attribs: {
+            href: safeHref,
+            target: '_blank',
+            rel: 'noopener noreferrer'
+          }
+        };
+      },
+      img: (tagName, attribs) => {
+        const src = String(attribs.src || '').trim();
+        let safeSrc = '';
+        if (/^data:image\//i.test(src)) safeSrc = src;
+        else if (src.startsWith('/uploads/') || src.startsWith('/public/wjdr-home/') || src.startsWith('/public/')) {
+          safeSrc = isSafeSitePath(src) ? src : '';
+        }
+        return { tagName, attribs: { src: safeSrc, alt: String(attribs.alt || '') } };
+      }
+    },
+    disallowedTagsMode: 'discard'
+  });
+}
+
+function defaultHomeLeadCarousel() {
+  return {
+    intervalMs: 6000,
+    slides: [
+      {
+        id: 'default',
+        imageUrl: '/public/wjdr-home/2213301_47_5895.jpg',
+        alt: '活动说明图示',
+        href: '/public/wjdr-home/board',
+        detailTitle: '',
+        detailHtml: ''
+      }
+    ]
+  };
+}
+
+function normalizeHomeLeadCarousel(input) {
+  const base = defaultHomeLeadCarousel();
+  if (!input || typeof input !== 'object') return base;
+  let intervalMs = Number(input.intervalMs);
+  if (!Number.isFinite(intervalMs)) intervalMs = base.intervalMs;
+  intervalMs = Math.max(3000, Math.min(30000, Math.floor(intervalMs)));
+  let slidesIn = Array.isArray(input.slides) ? input.slides : [];
+  slidesIn = slidesIn.slice(0, 10);
+  const slides = [];
+  for (const raw of slidesIn) {
+    if (!raw || typeof raw !== 'object') continue;
+    const imageUrl = String(raw.imageUrl || '').trim();
+    const href = String(raw.href || '').trim();
+    if (!isAllowedHomeLeadImageUrl(imageUrl) || !isAllowedHomeLeadHref(href)) continue;
+    let id = String(raw.id || '').trim();
+    if (!id || id.length > 64) id = `hl_${Date.now()}_${crypto.randomInt(1000, 9999)}`;
+    const alt = String(raw.alt || '').trim().slice(0, 120);
+    const detailTitle = String(raw.detailTitle || '').trim().slice(0, 120);
+    let detailHtml = sanitizeHomeLeadDetailHtml(String(raw.detailHtml || ''));
+    if (detailHtml.length > 12000) detailHtml = detailHtml.slice(0, 12000);
+    slides.push({
+      id,
+      imageUrl,
+      alt: alt || '活动图示',
+      href,
+      detailTitle,
+      detailHtml
+    });
+  }
+  if (!slides.length) return base;
+  return { intervalMs, slides };
 }
 
 app.get('/', (req, res) => {
@@ -2372,6 +2518,50 @@ app.put('/api/admin/announcement', async (req, res) => {
 
 app.post('/api/admin/announcement', async (req, res) => {
   try { await upsertAnnouncement(req, res); } catch (err) { console.error('announcement post failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+app.get('/api/home-lead', async (_req, res) => {
+  try {
+    const stored = await getSetting(HOME_LEAD_SETTING_KEY, null);
+    return res.json(normalizeHomeLeadCarousel(stored));
+  } catch (err) {
+    console.error('home-lead get failed:', err);
+    return res.json(defaultHomeLeadCarousel());
+  }
+});
+
+app.get('/api/admin/home-lead', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const stored = await getSetting(HOME_LEAD_SETTING_KEY, null);
+    return res.json(normalizeHomeLeadCarousel(stored));
+  } catch (err) {
+    console.error('admin home-lead get failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.put('/api/admin/home-lead', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const normalized = normalizeHomeLeadCarousel(req.body);
+    await setSetting(HOME_LEAD_SETTING_KEY, normalized);
+    await auditAdminAction(req, {
+      actor: admin,
+      action: 'home_lead.publish',
+      targetType: 'home_lead_carousel',
+      targetId: 'current',
+      riskLevel: 'watch',
+      summary: `更新首页活动横幅（${normalized.slides.length} 张）`,
+      metadata: { slideCount: normalized.slides.length }
+    });
+    return res.json({ ok: true, homeLead: normalized });
+  } catch (err) {
+    console.error('admin home-lead put failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
 });
 
 app.post('/api/user-voices', async (req, res) => {

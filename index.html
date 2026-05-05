@@ -70,23 +70,66 @@
       margin:0 auto;
       padding:8px 16px 2px;
     }
-    .wjdr-home-lead a{
-      display:block;
-      text-decoration:none;
-      outline:none;
+    .wjdr-home-carousel{
       border-radius:12px;
       overflow:hidden;
       border:1px solid var(--border);
       background:rgba(15,23,42,.35);
     }
-    .wjdr-home-lead a:focus-visible{
-      box-shadow:0 0 0 2px rgba(59,130,246,.85);
+    .wjdr-home-carousel-track{
+      display:grid;
+      width:100%;
+      line-height:0;
     }
-    .wjdr-home-lead img{
+    .wjdr-home-carousel-slide{
+      grid-area:1/1;
+      opacity:0;
+      visibility:hidden;
+      transition:opacity .55s ease;
+      z-index:0;
+    }
+    .wjdr-home-carousel-slide.is-active{
+      opacity:1;
+      visibility:visible;
+      z-index:1;
+    }
+    .wjdr-home-carousel-slide a{
+      display:block;
+      text-decoration:none;
+      outline:none;
+    }
+    .wjdr-home-carousel-slide a:focus-visible{
+      box-shadow:inset 0 0 0 2px rgba(59,130,246,.85);
+    }
+    .wjdr-home-carousel-slide img{
       display:block;
       width:100%;
       height:auto;
       vertical-align:top;
+    }
+    .wjdr-home-carousel-dots{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:8px;
+      padding:10px 8px 6px;
+      line-height:1;
+    }
+    .wjdr-home-carousel-dot{
+      width:9px;
+      height:9px;
+      padding:0;
+      border:none;
+      border-radius:999px;
+      background:rgba(148,163,184,.35);
+      cursor:pointer;
+      transition:transform .15s ease,background .15s ease;
+    }
+    .wjdr-home-carousel-dot:hover{background:rgba(148,163,184,.55);}
+    .wjdr-home-carousel-dot.is-active{
+      background:rgba(59,130,246,.95);
+      transform:scale(1.15);
     }
 
     /* 右上角登录/注册 */
@@ -3053,34 +3096,125 @@
     @media (min-width: 1280px){
       .tool-warehouse-grid{grid-template-columns:repeat(8,minmax(0,1fr));}
     }
-    body:has(.wjdr-home-lead) .container{
-      padding-top:14px;
-    }
-    @media (max-width: 600px){
-      body:has(.wjdr-home-lead) .container{
-        padding-top:10px;
-      }
-    }
-    @media (max-width: 400px){
-      body:has(.wjdr-home-lead) .container{
-        padding-top:8px;
-      }
-    }
   </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <link rel="stylesheet" href="/function/theme.css?v=20260501-0103" />
+  <!-- 窄屏下 mobile-responsive 为避开固定 auth-bar 会加大 .container 的 padding-top；
+       首页已包含活动横幅时不应再预留整块顶部空白，否则标题与横幅间距过大 -->
+  <style id="wjdr-home-lead-container-gap">
+    body:has(.wjdr-home-lead) > .auth-bar ~ .container{
+      padding-top:10px !important;
+    }
+    @media (max-width:600px){
+      body:has(.wjdr-home-lead) > .auth-bar ~ .container{
+        padding-top:8px !important;
+      }
+    }
+  </style>
   <style id="wjdr-home-fab-offset">@media (max-width:600px){#themeToggle{right:12px;bottom:92px}}</style>
   <script src="/function/theme.js?v=20260501-0103" defer></script>
 </head>
 <body>
   <div class="wjdr-home-lead" aria-label="活动说明入口">
     <div class="wjdr-home-lead-inner">
-      <a href="/public/wjdr-home/board">
-        <img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high" />
-      </a>
+      <div class="wjdr-home-carousel" id="wjdrHomeLeadRoot">
+        <div class="wjdr-home-carousel-track" id="wjdrHomeLeadTrack">
+          <div class="wjdr-home-carousel-slide is-active">
+            <a href="/public/wjdr-home/board">
+              <img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high" />
+            </a>
+          </div>
+        </div>
+        <div class="wjdr-home-carousel-dots" id="wjdrHomeLeadDots" hidden></div>
+      </div>
     </div>
   </div>
+  <script>
+  (function(){
+    var track=document.getElementById('wjdrHomeLeadTrack');
+    var dotsRoot=document.getElementById('wjdrHomeLeadDots');
+    if(!track) return;
+    var timer=null;
+    var idx=0;
+    var slides=[];
+    var intervalMs=6000;
+    var hoverBound=false;
+    function clearTimer(){ if(timer){ clearInterval(timer); timer=null; } }
+    function applySlide(i){
+      if(!slides.length) return;
+      idx=(i+slides.length)%slides.length;
+      for(var s=0;s<slides.length;s++){
+        slides[s].classList.toggle('is-active',s===idx);
+      }
+      if(dotsRoot){
+        var dots=dotsRoot.querySelectorAll('.wjdr-home-carousel-dot');
+        for(var d=0;d<dots.length;d++){ dots[d].classList.toggle('is-active',d===idx); }
+      }
+    }
+    function armTimer(){
+      clearTimer();
+      if(slides.length<=1) return;
+      timer=setInterval(function(){ applySlide(idx+1); }, intervalMs);
+    }
+    function escAttr(v){
+      return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    }
+    function build(slidesCfg, ms){
+      clearTimer();
+      slides=[];
+      intervalMs=typeof ms==='number'&&isFinite(ms)?Math.max(3000,Math.min(30000,ms)):6000;
+      if(!slidesCfg||!slidesCfg.length){
+        track.innerHTML='<div class="wjdr-home-carousel-slide is-active"><a href="/public/wjdr-home/board"><img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high"/></a></div>';
+        slides=[track.querySelector('.wjdr-home-carousel-slide')];
+        if(dotsRoot){ dotsRoot.innerHTML=''; dotsRoot.hidden=true; }
+        return;
+      }
+      var html='';
+      for(var i=0;i<slidesCfg.length;i++){
+        var sl=slidesCfg[i];
+        var img=sl.imageUrl||'';
+        var href=sl.href||'#';
+        var alt=sl.alt||'活动图示';
+        var fp=i===0?' fetchpriority="high"':'';
+        html+='<div class="wjdr-home-carousel-slide'+(i===0?' is-active':'')+'">'+
+          '<a href="'+escAttr(href)+'">'+
+          '<img src="'+escAttr(img)+'" alt="'+escAttr(alt)+'" decoding="async"'+fp+'/>'+
+          '</a></div>';
+      }
+      track.innerHTML=html;
+      slides=[].slice.call(track.querySelectorAll('.wjdr-home-carousel-slide'));
+      if(dotsRoot){
+        if(slides.length<=1){ dotsRoot.innerHTML=''; dotsRoot.hidden=true; }
+        else{
+          dotsRoot.hidden=false;
+          dotsRoot.innerHTML='';
+          for(var j=0;j<slides.length;j++){
+            var b=document.createElement('button');
+            b.type='button';
+            b.className='wjdr-home-carousel-dot'+(j===0?' is-active':'');
+            b.setAttribute('aria-label','第 '+(j+1)+' 张');
+            (function(n){ b.addEventListener('click',function(){ applySlide(n); armTimer(); }); })(j);
+            dotsRoot.appendChild(b);
+          }
+        }
+      }
+      var root=document.getElementById('wjdrHomeLeadRoot');
+      if(root && !hoverBound){
+        hoverBound=true;
+        root.addEventListener('mouseenter',clearTimer);
+        root.addEventListener('mouseleave',armTimer);
+      }
+      armTimer();
+    }
+    fetch('/api/home-lead',{credentials:'omit',cache:'no-store'})
+      .then(function(r){ return r.json().catch(function(){ return null; }); })
+      .then(function(cfg){
+        if(cfg&&cfg.slides&&cfg.slides.length) build(cfg.slides, cfg.intervalMs);
+      })
+      .catch(function(){});
+  })();
+  </script>
   <div class="auth-bar" id="authBar">
     <span class="auth-pill" id="authPill">未登录</span>
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>

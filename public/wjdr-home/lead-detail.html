@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>活动说明-无尽冬日工具箱</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      min-height:100vh;
+      background:#0b1220;
+      color:#e5e7eb;
+    }
+    .toolbar{
+      position:sticky;
+      top:0;
+      z-index:2;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px 14px;
+      background:rgba(11,18,32,.92);
+      border-bottom:1px solid rgba(255,255,255,.1);
+      backdrop-filter:blur(8px);
+    }
+    .toolbar a{
+      color:#93c5fd;
+      text-decoration:none;
+      font-size:.9rem;
+    }
+    .toolbar a:hover{text-decoration:underline}
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:16px 14px 32px;
+    }
+    .title{
+      font-size:1.15rem;
+      font-weight:700;
+      margin-bottom:12px;
+      color:#f1f5f9;
+    }
+    .body{
+      font-size:.95rem;
+      line-height:1.75;
+      color:#cbd5e1;
+      word-break:break-word;
+    }
+    .body a{color:#93c5fd;}
+    .body img{max-width:100%;height:auto;display:block;margin:12px 0;border-radius:8px;}
+    .empty{color:#94a3b8;font-size:.95rem;line-height:1.6;}
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <a href="/">返回首页</a>
+  </header>
+  <div class="wrap">
+    <h1 class="title" id="leadDetailTitle">活动说明</h1>
+    <div class="body" id="leadDetailBody">
+      <p class="empty" id="leadDetailLoading">加载中…</p>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var params=new URLSearchParams(window.location.search);
+    var id=String(params.get('id')||'').trim();
+    var titleEl=document.getElementById('leadDetailTitle');
+    var bodyEl=document.getElementById('leadDetailBody');
+    var loadingEl=document.getElementById('leadDetailLoading');
+    if(!id){
+      if(loadingEl) loadingEl.textContent='缺少参数 id，请从首页横幅进入或检查链接。';
+      return;
+    }
+    fetch('/api/home-lead',{credentials:'omit',cache:'no-store'})
+      .then(function(r){ return r.json().catch(function(){ return null; }); })
+      .then(function(cfg){
+        if(loadingEl) loadingEl.remove();
+        var slides=(cfg&&cfg.slides)||[];
+        var found=null;
+        for(var i=0;i<slides.length;i++){
+          if(String(slides[i].id||'')===id){ found=slides[i]; break; }
+        }
+        if(!found){
+          bodyEl.innerHTML='<p class="empty">未找到对应内容，可能已被管理员更新或删除。</p>';
+          return;
+        }
+        var t=String(found.detailTitle||'').trim();
+        if(titleEl) titleEl.textContent=t||'活动说明';
+        var html=String(found.detailHtml||'').trim();
+        if(html){
+          bodyEl.innerHTML=html;
+        }else{
+          bodyEl.innerHTML='<p class="empty">管理员暂未填写落地页正文。你也可以返回首页重新进入。</p>';
+        }
+      })
+      .catch(function(){
+        if(loadingEl) loadingEl.textContent='加载失败，请稍后重试。';
+      });
+  })();
+  </script>
+</body>
+</html>
