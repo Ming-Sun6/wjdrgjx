@@ -312,7 +312,9 @@
             display: block;
         }
         .woam-sidebar-item[data-img*="castle.png"] .woam-sidebar-thumb img,
-        .woam-sidebar-item[data-img*="online6.png"] .woam-sidebar-thumb img {
+        .woam-sidebar-item[data-img*="online6.png"] .woam-sidebar-thumb img,
+        .woam-sidebar-item[data-img*="item_icon_302541"] .woam-sidebar-thumb img,
+        .woam-sidebar-item[data-img*="item_icon_302509"] .woam-sidebar-thumb img {
             opacity: 0.8;
         }
         .woam-sidebar-label {
@@ -1424,9 +1426,13 @@
                 <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/联盟/worldfield_allianceterritory_008.png" alt="联盟总部"></div>
                 <div class="woam-sidebar-label">联盟总部</div>
             </div>
-            <div class="woam-sidebar-item" data-size="2" data-color="#67c23a" data-img="../Scores/online6.png">
-                <div class="woam-sidebar-thumb"><img src="../Scores/online6.png" alt="炉子2"></div>
+            <div class="woam-sidebar-item" data-size="2" data-color="#67c23a" data-img="../../Scores/道具图标/item_icon_302541.png">
+                <div class="woam-sidebar-thumb"><img src="../../Scores/道具图标/item_icon_302541.png" alt="炉子2"></div>
                 <div class="woam-sidebar-label">炉子2</div>
+            </div>
+            <div class="woam-sidebar-item" data-size="2" data-color="#67c23a" data-img="../../Scores/道具图标/item_icon_302509.png">
+                <div class="woam-sidebar-thumb"><img src="../../Scores/道具图标/item_icon_302509.png" alt="炉子3"></div>
+                <div class="woam-sidebar-label">炉子3</div>
             </div>
             <div class="woam-sidebar-item" data-size="2" data-color="#67c23a" data-img="../Scores/活动图标/jump_icon_40083.png">
                 <div class="woam-sidebar-thumb"><img src="../Scores/活动图标/jump_icon_40083.png" alt="联盟矿"></div>
@@ -1708,8 +1714,12 @@
             return s.includes('worldfield_tronghold_bg_006') || s.includes('worldfield_tronghold_bg_005');
         }
         const BEAPIT_WANGCHENG_CORNER_IMG = '../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_008.png';
-        /** 角标相对 2×2 格略放大，避免等距变换后显得像 1×1；仅影响四角 008 */
-        const BEAPIT_WC_CORNER_SIZE_SCALE = 1.24;
+        /** 一般放置物站立贴图缩放（与 CSS .placed-sprite 默认 scale 一致） */
+        const BEAPIT_PLACED_SPRITE_BASE_SCALE = 0.92;
+        /** 炉子 1/2/3：同比略小于其它 2×2（如联盟矿） */
+        const BEAPIT_FURNACE_SPRITE_SCALE = 0.86;
+        /** 王城四角炮台相对 2×2 格的边长倍率；仅影响四角 008 */
+        const BEAPIT_WC_CORNER_SIZE_SCALE = 1.38;
         /** 相对「指向王城中心」再顺时针旋转的角度（度），炮台贴图朝向 */
         const BEAPIT_WC_CORNER_EXTRA_CLOCKWISE_DEG = 90;
         /** 王城：16×16 主图 007，四角内嵌 2×2 角标 008（角图由路径推导，存档仅需主图 URL） */
@@ -1725,10 +1735,10 @@
             const dy = 8 - ay;
             return (Math.atan2(dy, dx) * 180) / Math.PI;
         }
-        /** 炉子、炉子2：贴图不透明度 80% */
+        /** 炉子 / 炉子2 / 炉子3：贴图不透明度 80% */
         function isFurnaceStoveSpritePath(src) {
             const s = String(src || '');
-            return s.includes('castle.png') || s.includes('online6.png');
+            return s.includes('castle.png') || s.includes('online6.png') || s.includes('item_icon_302541') || s.includes('item_icon_302509');
         }
         /** 2×2 命名颜色：统一为 #rrggbb，供存档还原与 <input type="color"> */
         function normalizeTwoByTwoNameColor(nameColor, fallback) {
@@ -2326,7 +2336,10 @@
                 sprite.style.backgroundColor = 'transparent';
                 sprite.style.backgroundImage = `url("${String(finalImg).trim()}")`;
             }
-            if (isFurnaceStoveSpritePath(finalImg)) sprite.style.opacity = '0.8';
+            if (isFurnaceStoveSpritePath(finalImg)) {
+                sprite.style.opacity = '0.8';
+                sprite.style.transform = `translate(-54%, -58%) rotate(-45deg) scaleY(2) scale(${BEAPIT_FURNACE_SPRITE_SCALE})`;
+            }
             item.appendChild(sprite);
 
             if (size === 16 && isWangChengCapitalSpritePath(finalImg)) {
@@ -2348,7 +2361,7 @@
                     corner.style.left = `${cx - sCorner / 2}px`;
                     corner.style.top = `${cy - sCorner / 2}px`;
                     const face = wangChengCornerTowardCenterDeg(idx) + BEAPIT_WC_CORNER_EXTRA_CLOCKWISE_DEG;
-                    corner.style.transform = `rotate(-45deg) scaleY(2) scale(0.92) rotate(${face}deg)`;
+                    corner.style.transform = `rotate(-45deg) scaleY(2) scale(${BEAPIT_PLACED_SPRITE_BASE_SCALE}) rotate(${face}deg)`;
                     corner.style.backgroundImage = `url("${cornerUrl}")`;
                     corner.style.filter =
                         'drop-shadow(2px 3px 2px rgba(0,0,0,0.25)) drop-shadow(-1px -1px 0 rgba(255,255,255,0.45))';
@@ -3440,8 +3453,9 @@
                         // 抵消地面 rotate(45) + scaleY(0.5)
                         ctx.rotate(-45 * deg);
                         ctx.scale(1, 2);
-                        // 缩放与偏移（贴近当前 CSS）
-                        const baseScale = 0.92;
+                        // 缩放与偏移（贴近当前 CSS；炉子略小）
+                        const baseScale =
+                            it.size === 2 && isFurnaceStoveSpritePath(src) ? BEAPIT_FURNACE_SPRITE_SCALE : BEAPIT_PLACED_SPRITE_BASE_SCALE;
                         ctx.scale(baseScale, baseScale);
                         const isLargeFootprint = it.size >= 3;
                         const dx = isLargeFootprint ? (-0.07 * w0) : (-0.04 * w0);
