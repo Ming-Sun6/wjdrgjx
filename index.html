@@ -3225,10 +3225,10 @@
         }, {passive:true});
         track.addEventListener('touchcancel', onPointerCancel, {passive:true});
       }
-      track.addEventListener('click', function(ev){
-        if(!suppressCarouselClick) return;
-        suppressCarouselClick=false;
-        ev.preventDefault();
+      track.addEventListener('click', function(ev){角标示意
+        if(!suppressCarouselClick) return;角标示意
+        suppressCarouselClick=false;角标示意
+        ev.preventDefault();角标示意
         ev.stopPropagation();
       }, true);
     }
@@ -3295,7 +3295,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.6</div>
+  <div class="version-tag">版本 V0.9.7</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -3806,6 +3806,17 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.7（2026-05-06）</h4>
+        <p><strong>熊坑排布（撞熊）体验与坐标表增强</strong></p>
+        <ol>
+          <li><strong>王城</strong>：支持 16×16 王城主图摆放，四角内嵌 2×2 炮台。</li>
+          <li><strong>炉子 / 炉子2</strong>：建筑贴图统一为约 80% 不透明度（画布、导出与侧栏预览一致）。</li>
+          <li><strong>存档与同步</strong>：本机/账号存档、导入导出配置时，2×2 的<strong>命名颜色、加粗、斜体</strong>与画布、坐标表一致读写；修复登录后加载账号布局时部分命名样式未正确还原的问题。</li>
+          <li><strong>放置物坐标表</strong>：支持按放置类型筛选；多选与批量设置<strong>仅在表格内</strong>勾选生效；表格内可直接改命名与样式并与画布双向同步。</li>
+          <li><strong>重名提示</strong>：2×2 命名在全局范围内 trim 后判重（含多个空命名视为同名），重复行在表内<strong>标红</strong>并带悬浮说明。</li>
+          <li><strong>默认命名</strong>：新摆非联盟矿 2×2 默认依次为「<strong>命名1</strong>」「<strong>命名2</strong>」…，自动避开已有名字，炉子与炉子2 不再共用同一默认文案。</li>
+        </ol>
+
         <h4>V0.9.6（2026-05-05）</h4>
         <p><strong>浏览器标题规范与邻邦进度表修正</strong></p>
         <ol>

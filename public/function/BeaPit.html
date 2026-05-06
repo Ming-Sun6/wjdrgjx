@@ -311,6 +311,10 @@
             object-fit: contain;
             display: block;
         }
+        .woam-sidebar-item[data-img*="castle.png"] .woam-sidebar-thumb img,
+        .woam-sidebar-item[data-img*="online6.png"] .woam-sidebar-thumb img {
+            opacity: 0.8;
+        }
         .woam-sidebar-label {
             font-size: 12px;
             color: var(--text);
@@ -339,9 +343,110 @@
             white-space: nowrap;
             text-align: left;
         }
+        .coords-table td.coords-chk-cell {
+            text-align: center;
+            vertical-align: middle;
+        }
+        .coords-table .coords-row-check {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .coords-type-filter {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 10px;
+            padding: 8px 12px 10px;
+            margin: 0 0 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            font-size: 13px;
+            color: var(--text, #111827);
+        }
+        .coords-type-filter[hidden] {
+            display: none !important;
+        }
+        .coords-type-filter-label {
+            font-weight: 600;
+            margin-right: 2px;
+        }
+        .coords-filter-chip {
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 0, 0, 0.18);
+            background: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            line-height: 1.3;
+        }
+        .coords-filter-chip:hover {
+            border-color: #409eff;
+            color: #1d4ed8;
+        }
+        .coords-filter-chip.active {
+            background: rgba(64, 158, 255, 0.18);
+            border-color: #409eff;
+            font-weight: 600;
+        }
+        .coords-table tr.coords-row-dup-name {
+            background: rgba(220, 38, 38, 0.08);
+        }
+        .coords-table tr.coords-row-dup-name .coords-name-input {
+            color: #dc2626 !important;
+            -webkit-text-fill-color: #dc2626;
+        }
+        .coords-table tr.coords-row-dup-name .coords-name-tools {
+            outline: 1px solid rgba(220, 38, 38, 0.45);
+            border-radius: 4px;
+        }
         .coords-table th {
             background: #f3f4f6;
             font-weight: 700;
+        }
+        .coords-name-cell {
+            white-space: normal;
+            vertical-align: middle;
+        }
+        .coords-name-tools {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            max-width: min(100%, 320px);
+        }
+        .coords-name-input {
+            min-width: 72px;
+            flex: 1 1 90px;
+            padding: 4px 6px;
+            font-size: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .coords-name-tools input[type="color"] {
+            width: 32px;
+            height: 28px;
+            padding: 0;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .coords-fmt-btn {
+            min-width: 28px;
+            height: 26px;
+            padding: 0 6px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .coords-fmt-btn.active {
+            background: rgba(59, 130, 246, 0.18);
+            border-color: #409eff;
         }
         /* 操作栏：物品选择 */
         .tool-bar {
@@ -479,6 +584,16 @@
             pointer-events: none;
             z-index: 1;
         }
+        /* 王城 16×16：与占格一致的浅蓝示意 */
+        .influence-16x16-range {
+            position: absolute;
+            border-radius: 0;
+            background: rgba(64, 158, 255, 0.14);
+            border: 1px solid rgba(64, 158, 255, 0.28);
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.35) inset;
+            pointer-events: none;
+            z-index: 1;
+        }
         .placed-item {
             position: absolute;
             cursor: pointer;
@@ -493,6 +608,49 @@
             /* 背景图放到内部 sprite 上，方便单独旋转 */
             background: transparent;
             z-index: 5;
+        }
+        .beapit-multi-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            padding: 10px 14px;
+            margin: 0 0 10px 0;
+            border: 1px solid rgba(64, 158, 255, 0.35);
+            border-radius: 8px;
+            background: rgba(59, 130, 246, 0.08);
+            font-size: 13px;
+            color: var(--text, #111827);
+        }
+        .beapit-multi-bar[hidden] {
+            display: none !important;
+        }
+        .beapit-multi-count {
+            font-weight: 600;
+            margin-right: 4px;
+        }
+        .beapit-multi-group {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .beapit-multi-name-input {
+            min-width: 120px;
+            max-width: 200px;
+            padding: 4px 8px;
+            font-size: 13px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        .beapit-multi-bar input[type="color"] {
+            width: 34px;
+            height: 30px;
+            padding: 0;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            vertical-align: middle;
+            cursor: pointer;
         }
 
         /* 给放置物加一层轻微“地面投影”，更有深度感 */
@@ -534,10 +692,22 @@
             z-index: 1;
         }
 
-        /* 3×3 / 6×6 大图：向左上微调贴图重心 */
+        /* 3×3 / 6×6 / 16×16 大图：向左上微调贴图重心 */
         .placed-item.size-3 .placed-sprite,
-        .placed-item.size-6 .placed-sprite {
+        .placed-item.size-6 .placed-sprite,
+        .placed-item.size-16 .placed-sprite {
             transform: translate(-57%, -61%) rotate(-45deg) scaleY(2) scale(0.92);
+        }
+        /* 王城四角 2×2 贴图（相对 16×16 内坐标，与主 sprite 同视角） */
+        .placed-item.size-16 .placed-wc-corner {
+            position: absolute;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 100% 100%;
+            pointer-events: none;
+            z-index: 2;
+            transform: translate(-57%, -61%) rotate(-45deg) scaleY(2) scale(0.92);
+            transform-origin: center center;
         }
         /* 已摆放物品的中心文字/命名框 */
         .placed-item .item-center {
@@ -874,6 +1044,36 @@
             gap: 12px;
             padding: 12px 14px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        body.beapit-landscape-mode .coords-table-panel .beapit-multi-bar {
+            flex-shrink: 0;
+            margin: 0 12px 8px 12px;
+            color: #e2e8f0;
+            border-color: rgba(255, 255, 255, 0.14);
+            background: rgba(30, 41, 59, 0.55);
+        }
+        body.beapit-landscape-mode .coords-table-panel .coords-type-filter {
+            margin: 0 12px 8px 12px;
+            padding: 8px 10px 10px;
+            color: #e2e8f0;
+            border-bottom-color: rgba(255, 255, 255, 0.1);
+        }
+        body.beapit-landscape-mode .coords-table-panel .coords-filter-chip {
+            background: rgba(30, 41, 59, 0.75);
+            border-color: rgba(255, 255, 255, 0.2);
+            color: #e2e8f0;
+        }
+        body.beapit-landscape-mode .coords-table-panel .coords-filter-chip.active {
+            background: rgba(59, 130, 246, 0.35);
+            border-color: #60a5fa;
+            color: #fff;
+        }
+        body.beapit-landscape-mode .coords-table tr.coords-row-dup-name {
+            background: rgba(248, 113, 113, 0.12);
+        }
+        body.beapit-landscape-mode .coords-table tr.coords-row-dup-name .coords-name-input {
+            color: #f87171 !important;
+            -webkit-text-fill-color: #f87171;
         }
         body.beapit-landscape-mode #woam-coords-table {
             margin: 0;
@@ -1233,6 +1433,10 @@
                 <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/堡垒/worldfield_tronghold_bg_005.png" alt="要塞"></div>
                 <div class="woam-sidebar-label">要塞</div>
             </div>
+            <div class="woam-sidebar-item" data-size="16" data-color="#a16207" data-img="../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_007.png">
+                <div class="woam-sidebar-thumb"><img src="../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_007.png" alt="王城"></div>
+                <div class="woam-sidebar-label">王城</div>
+            </div>
         </div>
         <div class="actions landscape-only" id="woam-bottomActions">
             <button class="btn secondary" id="btnUndoLandscape" type="button" disabled>撤销</button>
@@ -1288,8 +1492,28 @@
                     <strong>放置物坐标表</strong>
                     <button class="btn secondary" id="btnCloseCoordsTable" type="button">关闭</button>
                 </div>
+                <div id="beapit-multi-bar" class="beapit-multi-bar" hidden aria-hidden="true">
+                    <span id="beapit-multi-count" class="beapit-multi-count">表格已选 0 行</span>
+                    <span class="beapit-multi-group">
+                        <label for="beapitMultiColor">颜色</label>
+                        <input type="color" id="beapitMultiColor" value="#ff4da6" title="批量字体颜色（仅对已勾选的 2×2 生效）">
+                        <button type="button" class="btn secondary" id="beapitMultiApplyColor">应用颜色</button>
+                    </span>
+                    <span class="beapit-multi-group">
+                        <button type="button" class="btn secondary" id="beapitMultiBoldOn">加粗</button>
+                        <button type="button" class="btn secondary" id="beapitMultiBoldOff">取消加粗</button>
+                        <button type="button" class="btn secondary" id="beapitMultiItalicOn">斜体</button>
+                        <button type="button" class="btn secondary" id="beapitMultiItalicOff">取消斜体</button>
+                    </span>
+                    <span class="beapit-multi-group">
+                        <input type="text" id="beapitMultiName" class="beapit-multi-name-input" maxlength="20" placeholder="统一命名" title="批量命名（仅对已勾选的 2×2 生效）">
+                        <button type="button" class="btn secondary" id="beapitMultiApplyName">应用命名</button>
+                    </span>
+                    <button type="button" class="btn secondary" id="beapitMultiClearSel">清除勾选</button>
+                </div>
+                <div id="beapit-coords-type-filter" class="coords-type-filter" hidden aria-hidden="true"></div>
         <div id="woam-coords-table">
-            <p style="color:var(--muted); padding:6px 2px;">放置物坐标表（2×2 可命名）。</p>
+            <p style="color:var(--muted); padding:6px 2px;">可用「类型筛选」缩小列表；勾选表格行可多选，批量设置仅对已勾选的 2×2 生效。2×2 命名（trim 后相同视为同名，含多个空命名）若与其它 2×2 重复，该行在表中标红并带提示。</p>
                 </div>
             </div>
         </div>
@@ -1411,6 +1635,7 @@
             btnUndoLandscape: document.getElementById('btnUndoLandscape'),
             btnClearLandscape: document.getElementById('btnClearLandscape'),
             btnDeletePickLandscape: document.getElementById('btnDeletePickLandscape'),
+            multiBar: document.getElementById('beapit-multi-bar'),
             occupiedCells: new Set(),
             // 拖拽与缩放配置
             isDragging: false,
@@ -1444,10 +1669,26 @@
 
             // 指定删除模式
             deleteMode: false,
+            /** 坐标表类型筛选：null 表示不过滤；Set<number> 为允许的 size */
+            coordsTypeFilter: null,
         };
+        /** 坐标表多选：锚点 "startRow,startCol,size" */
+        CONFIG.coordsTableSelected = new Set();
 
         const ALLIANCE_MINE_DEFAULT_NAME = '联盟矿';
         const ALLIANCE_MINE_NAME_COLOR = '#eab308';
+        /** 新摆非联盟矿 2×2（炉子、炉子2 等）：默认「命名1」「命名2」…，与已有 2×2 的任意非空名去重 */
+        function nextDefaultTwoByTwoSequentialName() {
+            const used = new Set();
+            for (const it of CONFIG.placedList) {
+                if (!it || it.size !== 2) continue;
+                const n = String(it.name || it.el?.dataset?.name || '').trim();
+                if (n) used.add(n);
+            }
+            let k = 1;
+            while (used.has(`命名${k}`)) k++;
+            return `命名${k}`;
+        }
         function isAllianceMineSpritePath(src) {
             return String(src || '').includes('jump_icon_40083');
         }
@@ -1458,6 +1699,30 @@
         function isFortressSixRangePath(src) {
             const s = String(src || '');
             return s.includes('worldfield_tronghold_bg_006') || s.includes('worldfield_tronghold_bg_005');
+        }
+        const BEAPIT_WANGCHENG_CORNER_IMG = '../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_008.png';
+        /** 王城：16×16 主图 007，四角内嵌 2×2 角标 008（角图由路径推导，存档仅需主图 URL） */
+        function isWangChengCapitalSpritePath(src) {
+            const s = String(src || '');
+            return s.includes('建筑图标/野外/王城/worldfield_tronghold_bg_007');
+        }
+        /** 炉子、炉子2：贴图不透明度 80% */
+        function isFurnaceStoveSpritePath(src) {
+            const s = String(src || '');
+            return s.includes('castle.png') || s.includes('online6.png');
+        }
+        /** 2×2 命名颜色：统一为 #rrggbb，供存档还原与 <input type="color"> */
+        function normalizeTwoByTwoNameColor(nameColor, fallback) {
+            const fb = String(fallback || '#ff4da6').trim();
+            const raw = String(nameColor == null ? '' : nameColor).trim();
+            if (!raw) return /^#[0-9a-fA-F]{6}$/i.test(fb) ? fb.toLowerCase() : '#ff4da6';
+            let hex = raw.startsWith('#') ? raw.slice(1) : raw;
+            if (/^[0-9a-fA-F]{3}$/i.test(hex)) {
+                hex = hex.split('').map((ch) => ch + ch).join('');
+            }
+            if (/^[0-9a-fA-F]{6}$/i.test(hex)) return ('#' + hex).toLowerCase();
+            if (/^[0-9a-fA-F]{8}$/i.test(hex)) return ('#' + hex.slice(0, 6)).toLowerCase();
+            return /^#[0-9a-fA-F]{6}$/i.test(fb) ? fb.toLowerCase() : '#ff4da6';
         }
         const BEAPIT_TERRAIN_LAKE_MARKER = '__beapit_terrain_lake__';
         const BEAPIT_TERRAIN_MOUNTAIN_MARKER = '__beapit_terrain_mountain__';
@@ -1482,7 +1747,7 @@
             return s;
         }
 
-        const BEAPIT_COLOR_BY_SIZE = { 1: '#409eff', 2: '#67c23a', 3: '#e6a23c', 6: '#64748b' };
+        const BEAPIT_COLOR_BY_SIZE = { 1: '#409eff', 2: '#67c23a', 3: '#e6a23c', 6: '#64748b', 16: '#a16207' };
 
         function escapeHtml(str) {
             return String(str || '').replace(/[&<>"']/g, (s) => (
@@ -1639,6 +1904,16 @@
                 if (CONFIG.btnDeletePickLandscape) CONFIG.btnDeletePickLandscape.classList.remove('active');
                 setStatus('就绪', 'ok');
             }
+            if (CONFIG.placedList.length === 0) {
+                CONFIG.coordsTableSelected.clear();
+                if (CONFIG.multiBar) {
+                    CONFIG.multiBar.hidden = true;
+                    CONFIG.multiBar.setAttribute('aria-hidden', 'true');
+                }
+            } else if (CONFIG.multiBar) {
+                CONFIG.multiBar.hidden = false;
+                CONFIG.multiBar.setAttribute('aria-hidden', 'false');
+            }
             renderCoordsTable();
         }
 
@@ -1751,7 +2026,8 @@
                     !e.target.closest('#woam-sidebar') &&
                     !e.target.closest('#woam-toolbar') &&
                     !e.target.closest('#woam-bottomActions') &&
-                    !e.target.closest('.view-frame')
+                    !e.target.closest('.view-frame') &&
+                    !e.target.closest('#coordsTableOverlay')
                 ) {
                     deselectBuildItem();
                     setTip('请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。右键已摆放物品可删除。');
@@ -1854,6 +2130,93 @@
                 CONFIG.placedList[idx].nameBold = itemEl.dataset.nameBold === '1';
                 CONFIG.placedList[idx].nameItalic = itemEl.dataset.nameItalic === '1';
             }
+            renderCoordsTable();
+        }
+
+        function findPlacedRecordByCell(sr, sc, ss) {
+            return CONFIG.placedList.find(p => p.startRow === sr && p.startCol === sc && p.size === ss) || null;
+        }
+
+        /** 从坐标表或外部 patch 同步 2×2 命名元数据到 placedList 与画布元素 */
+        function applyPlacedItemNameMeta(rec, patch) {
+            if (!rec || rec.size !== 2) return;
+            if ('name' in patch) rec.name = patch.name == null ? '' : String(patch.name);
+            if ('nameColor' in patch) {
+                rec.nameColor = normalizeTwoByTwoNameColor(patch.nameColor, rec.nameColor || '#ff4da6');
+            }
+            if ('nameBold' in patch) rec.nameBold = !!patch.nameBold;
+            if ('nameItalic' in patch) rec.nameItalic = !!patch.nameItalic;
+            const el = rec.el;
+            if (!el) return;
+            if ('name' in patch) el.dataset.name = rec.name || '';
+            if ('nameColor' in patch) el.dataset.nameColor = rec.nameColor;
+            if ('nameBold' in patch) el.dataset.nameBold = rec.nameBold ? '1' : '0';
+            if ('nameItalic' in patch) el.dataset.nameItalic = rec.nameItalic ? '1' : '0';
+            const nameInp = el.querySelector('.item-name-input');
+            if (nameInp) {
+                if ('name' in patch) nameInp.value = rec.name || '';
+                applyNameFormat(nameInp, el);
+            }
+            const barColor = el.querySelector('.item-format-bar input[type="color"]');
+            if (barColor && 'nameColor' in patch) {
+                barColor.value = normalizeTwoByTwoNameColor(rec.nameColor, '#ff4da6');
+            }
+            const fmtBtns = el.querySelectorAll('.item-format-bar .fmt-btn');
+            if (fmtBtns[0] && 'nameBold' in patch) fmtBtns[0].classList.toggle('active', !!rec.nameBold);
+            if (fmtBtns[1] && 'nameItalic' in patch) fmtBtns[1].classList.toggle('active', !!rec.nameItalic);
+        }
+
+        function bindCoordsTableEditDelegation() {
+            const wrap = CONFIG.coordsWrap;
+            if (!wrap || wrap.dataset.coordsEditBound === '1') return;
+            wrap.dataset.coordsEditBound = '1';
+            wrap.addEventListener('input', (e) => {
+                const t = e.target;
+                if (!t || (t.nodeType !== 1)) return;
+                if (!t.classList.contains('coords-name-input') && !t.classList.contains('coords-name-color')) return;
+                const tr = t.closest('tr[data-coord-sr]');
+                if (!tr) return;
+                const sr = parseInt(tr.dataset.coordSr, 10);
+                const sc = parseInt(tr.dataset.coordSc, 10);
+                const ss = parseInt(tr.dataset.coordSs, 10);
+                const rec = findPlacedRecordByCell(sr, sc, ss);
+                if (!rec || rec.size !== 2) return;
+                if (t.classList.contains('coords-name-input')) {
+                    applyPlacedItemNameMeta(rec, { name: t.value });
+                    refreshCoordsTableDuplicateHighlights();
+                } else if (t.classList.contains('coords-name-color')) {
+                    applyPlacedItemNameMeta(rec, { nameColor: t.value });
+                }
+            });
+            wrap.addEventListener('change', (e) => {
+                const cb = e.target && e.target.closest && e.target.closest('.coords-row-check');
+                if (!cb || cb.type !== 'checkbox') return;
+                const anchor = cb.dataset.anchor;
+                if (!anchor) return;
+                if (cb.checked) CONFIG.coordsTableSelected.add(anchor);
+                else CONFIG.coordsTableSelected.delete(anchor);
+                syncMultiBarUI();
+            });
+            wrap.addEventListener('click', (e) => {
+                const btn = e.target.closest('.coords-fmt-btn');
+                if (!btn) return;
+                const tr = btn.closest('tr[data-coord-sr]');
+                if (!tr) return;
+                const sr = parseInt(tr.dataset.coordSr, 10);
+                const sc = parseInt(tr.dataset.coordSc, 10);
+                const ss = parseInt(tr.dataset.coordSs, 10);
+                const rec = findPlacedRecordByCell(sr, sc, ss);
+                if (!rec || rec.size !== 2) return;
+                const curB = rec.nameBold !== false && rec.el?.dataset?.nameBold !== '0';
+                const curI = !!rec.nameItalic || rec.el?.dataset?.nameItalic === '1';
+                if (btn.dataset.fmt === 'bold') {
+                    applyPlacedItemNameMeta(rec, { nameBold: !curB });
+                    btn.classList.toggle('active', !!rec.nameBold);
+                } else if (btn.dataset.fmt === 'italic') {
+                    applyPlacedItemNameMeta(rec, { nameItalic: !curI });
+                    btn.classList.toggle('active', !!rec.nameItalic);
+                }
+            });
         }
 
         // 创建已摆放的物品元素（nameColor/nameBold/nameItalic 仅对 2×2 命名生效）
@@ -1916,6 +2279,17 @@
                 influenceEl.dataset.ownerRow = String(startRow);
                 influenceEl.dataset.ownerCol = String(startCol);
                 CONFIG.placedArea.appendChild(influenceEl);
+            } else if (size === 16 && isWangChengCapitalSpritePath(finalImg)) {
+                const dim = 16 * CONFIG.cellSize;
+                influenceEl = document.createElement('div');
+                influenceEl.className = 'influence-16x16-range';
+                influenceEl.style.left = `${startCol * CONFIG.cellSize}px`;
+                influenceEl.style.top = `${startRow * CONFIG.cellSize}px`;
+                influenceEl.style.width = `${dim}px`;
+                influenceEl.style.height = `${dim}px`;
+                influenceEl.dataset.ownerRow = String(startRow);
+                influenceEl.dataset.ownerCol = String(startCol);
+                CONFIG.placedArea.appendChild(influenceEl);
             }
 
             // 内部 sprite：承载颜色/图片，并统一旋转 -45°
@@ -1926,7 +2300,34 @@
                 sprite.style.backgroundColor = 'transparent';
                 sprite.style.backgroundImage = `url("${String(finalImg).trim()}")`;
             }
+            if (isFurnaceStoveSpritePath(finalImg)) sprite.style.opacity = '0.8';
             item.appendChild(sprite);
+
+            if (size === 16 && isWangChengCapitalSpritePath(finalImg)) {
+                const cs = CONFIG.cellSize;
+                const s2 = 2 * cs;
+                const cornerUrl = BEAPIT_WANGCHENG_CORNER_IMG;
+                const centers = [
+                    [cs, cs],
+                    [15 * cs, cs],
+                    [cs, 15 * cs],
+                    [15 * cs, 15 * cs]
+                ];
+                centers.forEach(([cx, cy]) => {
+                    const corner = document.createElement('div');
+                    corner.className = 'placed-wc-corner';
+                    corner.style.width = `${s2}px`;
+                    corner.style.height = `${s2}px`;
+                    corner.style.left = `${cx}px`;
+                    corner.style.top = `${cy}px`;
+                    corner.style.marginLeft = `${-s2 / 2}px`;
+                    corner.style.marginTop = `${-s2 / 2}px`;
+                    corner.style.backgroundImage = `url("${cornerUrl}")`;
+                    corner.style.filter =
+                        'drop-shadow(2px 3px 2px rgba(0,0,0,0.25)) drop-shadow(-1px -1px 0 rgba(255,255,255,0.45))';
+                    item.appendChild(corner);
+                });
+            }
 
             // 中心显示：
             // - 2×2：命名框（可编辑，可自定义颜色/加粗/倾斜）
@@ -1936,9 +2337,8 @@
             const defItalic = false;
             if (size === 2) {
                 const isAllianceMine = isAllianceMineSpritePath(finalImg);
-                const effectiveNameColor = (nameColor && /^#[0-9a-fA-F]{6}$/.test(String(nameColor).trim()))
-                    ? String(nameColor).trim()
-                    : (isAllianceMine ? ALLIANCE_MINE_NAME_COLOR : defColor);
+                const colorFallback = isAllianceMine ? ALLIANCE_MINE_NAME_COLOR : defColor;
+                const effectiveNameColor = normalizeTwoByTwoNameColor(nameColor, colorFallback);
                 item.dataset.nameColor = effectiveNameColor;
                 item.dataset.nameBold = (nameBold === undefined || nameBold === null) ? (defBold ? '1' : '0') : (nameBold ? '1' : '0');
                 item.dataset.nameItalic = (nameItalic === undefined || nameItalic === null) ? (defItalic ? '1' : '0') : (nameItalic ? '1' : '0');
@@ -1951,7 +2351,7 @@
                 input.type = 'text';
                 item.dataset.name = (initialName && String(initialName).trim())
                     ? String(initialName).trim()
-                    : (isAllianceMine ? ALLIANCE_MINE_DEFAULT_NAME : '命名');
+                    : (isAllianceMine ? ALLIANCE_MINE_DEFAULT_NAME : nextDefaultTwoByTwoSequentialName());
                 input.value = item.dataset.name;
                 input.maxLength = 20;
                 input.spellcheck = false;
@@ -2072,6 +2472,14 @@
             const record = idx >= 0 ? CONFIG.placedList[idx] : null;
             const keys = record ? record.occupyKeys : null;
 
+            if (record) {
+                const anchor = `${record.startRow},${record.startCol},${record.size}`;
+                if (CONFIG.coordsTableSelected.has(anchor)) {
+                    CONFIG.coordsTableSelected.delete(anchor);
+                    syncMultiBarUI();
+                }
+            }
+
             if (!opts.skipHistory) pushHistorySnapshot();
             if (keys) {
                 for (const key of keys) {
@@ -2123,47 +2531,277 @@
                 if (x.influenceEl && x.influenceEl.parentNode === CONFIG.placedArea) CONFIG.placedArea.removeChild(x.influenceEl);
             });
             CONFIG.placedList = [];
+            CONFIG.coordsTypeFilter = null;
             updateActionButtons();
             if (!opts.silentTip) setTip('已清空。请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。');
         }
 
+        function getCoordsTypeFilterActiveSet() {
+            const f = CONFIG.coordsTypeFilter;
+            if (!f || f.size === 0) return null;
+            return f;
+        }
+
+        function pruneCoordsTypeFilter() {
+            if (!CONFIG.coordsTypeFilter || CONFIG.coordsTypeFilter.size === 0) {
+                CONFIG.coordsTypeFilter = null;
+                return;
+            }
+            const inUse = new Set(CONFIG.placedList.map((it) => it.size));
+            for (const s of [...CONFIG.coordsTypeFilter]) {
+                if (!inUse.has(s)) CONFIG.coordsTypeFilter.delete(s);
+            }
+            if (CONFIG.coordsTypeFilter.size === 0) CONFIG.coordsTypeFilter = null;
+        }
+
+        function renderCoordsTypeFilterBar() {
+            const el = document.getElementById('beapit-coords-type-filter');
+            if (!el) return;
+            if (!CONFIG.placedList.length) {
+                el.replaceChildren();
+                el.hidden = true;
+                el.setAttribute('aria-hidden', 'true');
+                return;
+            }
+            pruneCoordsTypeFilter();
+            el.hidden = false;
+            el.setAttribute('aria-hidden', 'false');
+            const sizes = [...new Set(CONFIG.placedList.map((it) => it.size))].sort((a, b) => a - b);
+            const active = getCoordsTypeFilterActiveSet();
+            const allOn = active === null;
+            el.replaceChildren();
+            const label = document.createElement('span');
+            label.className = 'coords-type-filter-label';
+            label.textContent = '类型筛选：';
+            el.appendChild(label);
+            const btnAll = document.createElement('button');
+            btnAll.type = 'button';
+            btnAll.className = 'coords-filter-chip' + (allOn ? ' active' : '');
+            btnAll.dataset.filterAll = '1';
+            btnAll.textContent = '全部';
+            el.appendChild(btnAll);
+            sizes.forEach((s) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'coords-filter-chip' + (!allOn && active && active.has(s) ? ' active' : '');
+                b.dataset.size = String(s);
+                b.textContent = `${s}×${s}`;
+                el.appendChild(b);
+            });
+        }
+
+        function bindCoordsTypeFilter() {
+            const el = document.getElementById('beapit-coords-type-filter');
+            if (!el || el.dataset.filterBound === '1') return;
+            el.dataset.filterBound = '1';
+            el.addEventListener('click', (e) => {
+                const t = e.target.closest('.coords-filter-chip');
+                if (!t) return;
+                if (t.dataset.filterAll) {
+                    CONFIG.coordsTypeFilter = null;
+                } else if (t.dataset.size) {
+                    const sz = parseInt(t.dataset.size, 10);
+                    if (!Number.isFinite(sz)) return;
+                    if (CONFIG.coordsTypeFilter === null || CONFIG.coordsTypeFilter.size === 0) {
+                        CONFIG.coordsTypeFilter = new Set([sz]);
+                    } else {
+                        if (CONFIG.coordsTypeFilter.has(sz)) CONFIG.coordsTypeFilter.delete(sz);
+                        else CONFIG.coordsTypeFilter.add(sz);
+                        if (CONFIG.coordsTypeFilter.size === 0) CONFIG.coordsTypeFilter = null;
+                    }
+                }
+                renderCoordsTypeFilterBar();
+                renderCoordsTable();
+            });
+        }
+
+        /** 全局 2×2：同名（trim 后相同；空命名用同一键）出现 2 次及以上则视为重复 */
+        function getDuplicateNameTwoByTwoAnchors() {
+            const freq = new Map();
+            for (const it of CONFIG.placedList) {
+                if (!it || it.size !== 2) continue;
+                const raw = String(it.name || it.el?.dataset?.name || '').trim();
+                const key = raw || '__empty__';
+                freq.set(key, (freq.get(key) || 0) + 1);
+            }
+            const dup = new Set();
+            for (const it of CONFIG.placedList) {
+                if (!it || it.size !== 2) continue;
+                const raw = String(it.name || it.el?.dataset?.name || '').trim();
+                const key = raw || '__empty__';
+                if ((freq.get(key) || 0) > 1) dup.add(placedAnchor(it));
+            }
+            return dup;
+        }
+
+        /** 不重绘表格，仅更新重名行的样式（避免坐标表内命名输入失焦） */
+        function refreshCoordsTableDuplicateHighlights() {
+            if (!CONFIG.coordsWrap) return;
+            const table = CONFIG.coordsWrap.querySelector('table.coords-table');
+            if (!table) return;
+            const dup = getDuplicateNameTwoByTwoAnchors();
+            table.querySelectorAll('tbody tr[data-coord-ss="2"]').forEach((tr) => {
+                const sr = parseInt(tr.dataset.coordSr, 10);
+                const sc = parseInt(tr.dataset.coordSc, 10);
+                const a = `${sr},${sc},2`;
+                const inp = tr.querySelector('.coords-name-input');
+                const shown = (inp && inp.value != null) ? String(inp.value).trim() : '';
+                const tipShown = shown || '（空命名）';
+                if (dup.has(a)) {
+                    tr.classList.add('coords-row-dup-name');
+                    tr.title = `命名「${tipShown}」与其它 2×2 重复`;
+                } else {
+                    tr.classList.remove('coords-row-dup-name');
+                    tr.removeAttribute('title');
+                }
+            });
+        }
+
         function renderCoordsTable() {
             if (!CONFIG.coordsWrap) return;
+            renderCoordsTypeFilterBar();
             if (CONFIG.placedList.length === 0) {
                 CONFIG.coordsWrap.innerHTML = `<p style="color:var(--muted); padding:6px 2px;">暂无放置物。</p>`;
+                syncMultiBarUI();
                 return;
             }
 
-            const rows = CONFIG.placedList.map((it, i) => {
-                const name = it.size === 2 ? (it.name || it.el?.dataset?.name || '') : '';
-                const safeName = escapeHtml(name);
-                return `
-                    <tr>
-                        <td>${i + 1}</td>
-                        <td>${it.size}×${it.size}</td>
-                        <td>${it.startRow}</td>
-                        <td>${it.startCol}</td>
-                        <td>${safeName}</td>
-                    </tr>
-                `;
-            }).join('');
+            pruneCoordsTableSelection();
 
-            CONFIG.coordsWrap.innerHTML = `
-                <table class="coords-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>类型</th>
-                            <th>Row</th>
-                            <th>Col</th>
-                            <th>命名(仅2×2)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rows}
-                    </tbody>
-                </table>
-            `;
+            const activeFilter = getCoordsTypeFilterActiveSet();
+            const visibleRows = activeFilter
+                ? CONFIG.placedList.filter((it) => activeFilter.has(it.size))
+                : CONFIG.placedList;
+
+            if (visibleRows.length === 0) {
+                CONFIG.coordsWrap.textContent = '';
+                const p = document.createElement('p');
+                p.style.cssText = 'color:var(--muted); padding:6px 2px; margin:0 0 8px 0;';
+                p.textContent = '当前类型筛选下没有符合条件的放置物。';
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn secondary';
+                btn.textContent = '清除类型筛选';
+                btn.addEventListener('click', () => {
+                    CONFIG.coordsTypeFilter = null;
+                    renderCoordsTypeFilterBar();
+                    renderCoordsTable();
+                });
+                CONFIG.coordsWrap.appendChild(p);
+                CONFIG.coordsWrap.appendChild(btn);
+                syncMultiBarUI();
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'coords-table';
+            const thead = document.createElement('thead');
+            const hr = document.createElement('tr');
+            ['选', '#', '类型', 'Row', 'Col', '命名 / 颜色 / 加粗 / 斜体（仅 2×2）'].forEach((label) => {
+                const th = document.createElement('th');
+                th.textContent = label;
+                hr.appendChild(th);
+            });
+            thead.appendChild(hr);
+
+            const tbody = document.createElement('tbody');
+            const dupNameAnchors = getDuplicateNameTwoByTwoAnchors();
+            visibleRows.forEach((it, i) => {
+                const tr = document.createElement('tr');
+                tr.dataset.coordSr = String(it.startRow);
+                tr.dataset.coordSc = String(it.startCol);
+                tr.dataset.coordSs = String(it.size);
+
+                const tdPick = document.createElement('td');
+                tdPick.className = 'coords-chk-cell';
+                const anchor = placedAnchor(it);
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.className = 'coords-row-check';
+                cb.dataset.anchor = anchor;
+                cb.checked = CONFIG.coordsTableSelected.has(anchor);
+                cb.title = '多选此行（批量设置见上方工具条）';
+                tdPick.appendChild(cb);
+                tr.appendChild(tdPick);
+
+                const tdIdx = document.createElement('td');
+                tdIdx.textContent = String(i + 1);
+                tr.appendChild(tdIdx);
+
+                const tdType = document.createElement('td');
+                tdType.textContent = `${it.size}×${it.size}`;
+                tr.appendChild(tdType);
+
+                const tdR = document.createElement('td');
+                tdR.textContent = String(it.startRow);
+                tr.appendChild(tdR);
+
+                const tdC = document.createElement('td');
+                tdC.textContent = String(it.startCol);
+                tr.appendChild(tdC);
+
+                const tdName = document.createElement('td');
+                tdName.className = 'coords-name-cell';
+                if (it.size === 2) {
+                    if (dupNameAnchors.has(anchor)) {
+                        tr.classList.add('coords-row-dup-name');
+                        const nmShow = String(it.name || it.el?.dataset?.name || '').trim() || '（空命名）';
+                        tr.title = `命名「${nmShow}」与其它 2×2 重复`;
+                    }
+                    const name = it.name || it.el?.dataset?.name || '';
+                    const nc = normalizeTwoByTwoNameColor(it.nameColor || it.el?.dataset?.nameColor, '#ff4da6');
+                    const nb = it.nameBold !== false && it.el?.dataset?.nameBold !== '0';
+                    const ni = !!it.nameItalic || it.el?.dataset?.nameItalic === '1';
+
+                    const tools = document.createElement('div');
+                    tools.className = 'coords-name-tools';
+
+                    const nameInp = document.createElement('input');
+                    nameInp.type = 'text';
+                    nameInp.className = 'coords-name-input';
+                    nameInp.maxLength = 20;
+                    nameInp.value = name;
+                    nameInp.spellcheck = false;
+                    nameInp.title = '命名';
+
+                    const colorInp = document.createElement('input');
+                    colorInp.type = 'color';
+                    colorInp.className = 'coords-name-color';
+                    colorInp.value = nc;
+                    colorInp.title = '字体颜色';
+
+                    const btnB = document.createElement('button');
+                    btnB.type = 'button';
+                    btnB.className = 'coords-fmt-btn' + (nb ? ' active' : '');
+                    btnB.dataset.fmt = 'bold';
+                    btnB.textContent = 'B';
+                    btnB.title = '加粗';
+
+                    const btnI = document.createElement('button');
+                    btnI.type = 'button';
+                    btnI.className = 'coords-fmt-btn' + (ni ? ' active' : '');
+                    btnI.dataset.fmt = 'italic';
+                    btnI.textContent = 'I';
+                    btnI.title = '斜体';
+
+                    tools.appendChild(nameInp);
+                    tools.appendChild(colorInp);
+                    tools.appendChild(btnB);
+                    tools.appendChild(btnI);
+                    tdName.appendChild(tools);
+                } else {
+                    tdName.textContent = '—';
+                    tdName.style.color = 'var(--muted, #94a3b8)';
+                }
+                tr.appendChild(tdName);
+                tbody.appendChild(tr);
+            });
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            CONFIG.coordsWrap.textContent = '';
+            CONFIG.coordsWrap.appendChild(table);
+            syncMultiBarUI();
         }
 
         function getSaveKey() {
@@ -2387,6 +3025,74 @@
             }
         }
 
+        function placedAnchor(it) {
+            return `${it.startRow},${it.startCol},${it.size}`;
+        }
+
+        function pruneCoordsTableSelection() {
+            const valid = new Set(CONFIG.placedList.map((it) => placedAnchor(it)));
+            for (const a of [...CONFIG.coordsTableSelected]) {
+                if (!valid.has(a)) CONFIG.coordsTableSelected.delete(a);
+            }
+        }
+
+        function getSelectedTwoByTwoRecords() {
+            const out = [];
+            for (const it of CONFIG.placedList) {
+                if (!it || it.size !== 2) continue;
+                if (CONFIG.coordsTableSelected.has(placedAnchor(it))) out.push(it);
+            }
+            return out;
+        }
+
+        function syncMultiBarUI() {
+            const cnt = document.getElementById('beapit-multi-count');
+            const n = CONFIG.coordsTableSelected.size;
+            const m = getSelectedTwoByTwoRecords().length;
+            if (cnt) cnt.textContent = `表格已选 ${n} 行（其中 2×2：${m} 个，批量操作仅作用于 2×2）`;
+            const dis = m === 0;
+            ['beapitMultiApplyColor', 'beapitMultiBoldOn', 'beapitMultiBoldOff', 'beapitMultiItalicOn', 'beapitMultiItalicOff', 'beapitMultiApplyName'].forEach((id) => {
+                const b = document.getElementById(id);
+                if (b) b.disabled = dis;
+            });
+        }
+
+        function clearCoordsTableSelection() {
+            CONFIG.coordsTableSelected.clear();
+            renderCoordsTable();
+        }
+
+        function applyBatchToSelectedTwoByTwo(patch) {
+            const targets = getSelectedTwoByTwoRecords();
+            if (!targets.length) {
+                setTip('请在坐标表中勾选至少一个 2×2 行后再批量设置。');
+                return;
+            }
+            pushHistorySnapshot();
+            targets.forEach((rec) => applyPlacedItemNameMeta(rec, patch));
+            renderCoordsTable();
+            setTip(`已应用到 ${targets.length} 个 2×2。`);
+        }
+
+        function bindMultiBatchBar() {
+            document.getElementById('beapitMultiApplyColor')?.addEventListener('click', () => {
+                const v = document.getElementById('beapitMultiColor')?.value;
+                applyBatchToSelectedTwoByTwo({ nameColor: normalizeTwoByTwoNameColor(v, '#ff4da6') });
+            });
+            document.getElementById('beapitMultiBoldOn')?.addEventListener('click', () => applyBatchToSelectedTwoByTwo({ nameBold: true }));
+            document.getElementById('beapitMultiBoldOff')?.addEventListener('click', () => applyBatchToSelectedTwoByTwo({ nameBold: false }));
+            document.getElementById('beapitMultiItalicOn')?.addEventListener('click', () => applyBatchToSelectedTwoByTwo({ nameItalic: true }));
+            document.getElementById('beapitMultiItalicOff')?.addEventListener('click', () => applyBatchToSelectedTwoByTwo({ nameItalic: false }));
+            document.getElementById('beapitMultiApplyName')?.addEventListener('click', () => {
+                const raw = (document.getElementById('beapitMultiName')?.value || '').trim();
+                applyBatchToSelectedTwoByTwo({ name: raw });
+            });
+            document.getElementById('beapitMultiClearSel')?.addEventListener('click', () => {
+                clearCoordsTableSelection();
+                setTip('已清除坐标表勾选。');
+            });
+        }
+
         function pad2(n) {
             return String(n).padStart(2, '0');
         }
@@ -2583,9 +3289,15 @@
                 const srcSet = new Set();
                 for (const it of CONFIG.placedList) {
                     if (it && it.img) srcSet.add(it.img);
+                    if (it && it.img && isWangChengCapitalSpritePath(it.img)) srcSet.add(BEAPIT_WANGCHENG_CORNER_IMG);
                 }
                 // 兜底：如果某些旧数据没有 img，就按 size 给默认
-                const fallbackBySize = { 1: '../Scores/建筑图标/野外/联盟/联盟旗帜/worldfield_allianceterritory_009.png', 2: '../Scores/castle.png', 3: '../Scores/beartrap-1.png' };
+                const fallbackBySize = {
+                    1: '../Scores/建筑图标/野外/联盟/联盟旗帜/worldfield_allianceterritory_009.png',
+                    2: '../Scores/castle.png',
+                    3: '../Scores/beartrap-1.png',
+                    16: '../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_007.png'
+                };
                 for (const it of CONFIG.placedList) {
                     if (it && !it.img && fallbackBySize[it.size]) srcSet.add(fallbackBySize[it.size]);
                 }
@@ -2657,6 +3369,19 @@
                     ctx.strokeRect(x, y, dim, dim);
                 }
 
+                // 王城 16×16 半透明区域
+                for (const it of CONFIG.placedList) {
+                    if (!it || it.size !== 16 || !isWangChengCapitalSpritePath(it.img)) continue;
+                    const x = it.startCol * cs;
+                    const y = it.startRow * cs;
+                    const dim = 16 * cs;
+                    ctx.fillStyle = 'rgba(64, 158, 255, 0.14)';
+                    ctx.fillRect(x, y, dim, dim);
+                    ctx.strokeStyle = 'rgba(64, 158, 255, 0.28)';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(x, y, dim, dim);
+                }
+
                 // 放置物图片（本地坐标，近似复刻“站立”的 sprite 变换）
                 const deg = Math.PI / 180;
                 for (const it of CONFIG.placedList) {
@@ -2676,6 +3401,7 @@
 
                     if (im) {
                         ctx.save();
+                        if (isFurnaceStoveSpritePath(src)) ctx.globalAlpha = 0.8;
                         ctx.translate(x + w0 / 2, y + h0 / 2);
                         // 抵消地面 rotate(45) + scaleY(0.5)
                         ctx.rotate(-45 * deg);
@@ -2689,10 +3415,31 @@
                         ctx.translate(dx, dy);
                         ctx.drawImage(im, -w0 / 2, -h0 / 2, w0, h0);
                         ctx.restore();
+
+                        if (it.size === 16 && isWangChengCapitalSpritePath(it.img)) {
+                            const imCorner = imgCache.get(BEAPIT_WANGCHENG_CORNER_IMG);
+                            if (imCorner) {
+                                const s2 = 2 * cs;
+                                const drawCorner = (lx, ly) => {
+                                    ctx.save();
+                                    ctx.translate(lx + s2 / 2, ly + s2 / 2);
+                                    ctx.rotate(-45 * deg);
+                                    ctx.scale(1, 2);
+                                    ctx.scale(baseScale, baseScale);
+                                    ctx.translate(-0.07 * s2, -0.11 * s2);
+                                    ctx.drawImage(imCorner, -s2 / 2, -s2 / 2, s2, s2);
+                                    ctx.restore();
+                                };
+                                drawCorner(x + 0, y + 0);
+                                drawCorner(x + 14 * cs, y + 0);
+                                drawCorner(x + 0, y + 14 * cs);
+                                drawCorner(x + 14 * cs, y + 14 * cs);
+                            }
+                        }
                     } else {
                         // 图片加载失败：用色块兜底
                         ctx.save();
-                        ctx.fillStyle = it.size === 1 ? 'rgba(64,158,255,0.6)' : it.size === 2 ? 'rgba(103,194,58,0.6)' : it.size === 6 ? 'rgba(100,116,139,0.65)' : 'rgba(230,162,60,0.6)';
+                        ctx.fillStyle = it.size === 1 ? 'rgba(64,158,255,0.6)' : it.size === 2 ? 'rgba(103,194,58,0.6)' : it.size === 6 ? 'rgba(100,116,139,0.65)' : it.size === 16 ? 'rgba(161,98,7,0.65)' : 'rgba(230,162,60,0.6)';
                         ctx.fillRect(x, y, w0, h0);
                         ctx.restore();
                     }
@@ -3036,6 +3783,9 @@
             });
             document.getElementById('btnExportConfig')?.addEventListener('click', exportConfigBeaPit);
             document.getElementById('btnImportConfig')?.addEventListener('click', importConfigBeaPit);
+            bindCoordsTableEditDelegation();
+            bindMultiBatchBar();
+            bindCoordsTypeFilter();
             updateActionButtons();
             window.addEventListener('resize', () => {
                 if (CONFIG.landscapeMode) clampToFrame();
@@ -3215,8 +3965,11 @@
                             const s = parseInt(it.s, 10);
                             const n = it.n;
                             const img = it.i;
+                            const nc = it.nc;
+                            const nb = it.nb;
+                            const ni = it.ni;
                             if (!Number.isFinite(r) || !Number.isFinite(c) || !Number.isFinite(s)) return;
-                            const ok = placeItemAt(r, c, s, colorBySize[s] || '#409eff', n, img, undefined, undefined, undefined, { skipHistory: true });
+                            const ok = placeItemAt(r, c, s, colorBySize[s] || '#409eff', n, img, nc, nb, ni, { skipHistory: true });
                             if (ok) okCount++;
                         });
                         CONFIG.historyStack = [];
