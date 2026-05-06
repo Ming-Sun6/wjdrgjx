@@ -1725,9 +1725,10 @@
             if (s.includes('item_icon_302541') || s.includes('item_icon_302509')) return BEAPIT_FURNACE_ICON_SCALE;
             return BEAPIT_FURNACE_CASTLE_SCALE;
         }
-        /** 炉子类在格内略上移（视觉偏下时微调；与导出 dy 同量级） */
+        /** 炉子类：X 与其它 2×2 一致（-54%），Y 在 -58% 基准上再略上移（勿改用 -50% 会整体偏右） */
         const BEAPIT_FURNACE_NUDGE_Y_PX = -10;
-        const BEAPIT_FURNACE_EXPORT_DY_FRAC = -0.095;
+        /** 导出：在标准 2×2 的 dy=-0.08*h0 基础上再下移调量（负值=更往上），总 dy≈-0.095*h0 */
+        const BEAPIT_FURNACE_EXPORT_DY_EXTRA_FRAC = -0.015;
         /** 王城四角炮台相对 2×2 格的边长倍率；仅影响四角 008 */
         const BEAPIT_WC_CORNER_SIZE_SCALE = 1.38;
         /** 相对「指向王城中心」再顺时针旋转的角度（度），炮台贴图朝向 */
@@ -2349,7 +2350,7 @@
             if (isFurnaceStoveSpritePath(finalImg)) {
                 sprite.style.opacity = '0.8';
                 const fsc = getFurnaceSpriteScale(finalImg);
-                sprite.style.transform = `translate(-50%, calc(-50% + ${BEAPIT_FURNACE_NUDGE_Y_PX}px)) rotate(-45deg) scaleY(2) scale(${fsc})`;
+                sprite.style.transform = `translate(-54%, calc(-58% + ${BEAPIT_FURNACE_NUDGE_Y_PX}px)) rotate(-45deg) scaleY(2) scale(${fsc})`;
             }
             item.appendChild(sprite);
 
@@ -3464,7 +3465,7 @@
                         // 抵消地面 rotate(45) + scaleY(0.5)
                         ctx.rotate(-45 * deg);
                         ctx.scale(1, 2);
-                        // 缩放与偏移（贴近当前 CSS；炉子类 2×2 居中无额外偏移）
+                        // 缩放与偏移（贴近当前 CSS；炉子类 2×2 与联盟矿同 dx，dy 略多上移）
                         const isFv2 = it.size === 2 && isFurnaceStoveSpritePath(src);
                         const baseScale = isFv2 ? getFurnaceSpriteScale(src) : BEAPIT_PLACED_SPRITE_BASE_SCALE;
                         ctx.scale(baseScale, baseScale);
@@ -3475,8 +3476,8 @@
                             dx = -0.07 * w0;
                             dy = -0.11 * h0;
                         } else if (isFv2) {
-                            dx = 0;
-                            dy = BEAPIT_FURNACE_EXPORT_DY_FRAC * h0;
+                            dx = -0.04 * w0;
+                            dy = (-0.08 + BEAPIT_FURNACE_EXPORT_DY_EXTRA_FRAC) * h0;
                         } else {
                             dx = -0.04 * w0;
                             dy = -0.08 * h0;
