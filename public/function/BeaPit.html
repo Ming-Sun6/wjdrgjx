@@ -704,7 +704,7 @@
         .placed-item.size-16 .placed-wc-16-base {
             position: absolute;
             inset: 0;
-            background: rgba(72, 76, 86, 0.42);
+            background: rgba(48, 52, 62, 0.55);
             pointer-events: none;
             z-index: 0;
         }
@@ -1716,8 +1716,15 @@
         const BEAPIT_WANGCHENG_CORNER_IMG = '../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_008.png';
         /** 一般放置物站立贴图缩放（与 CSS .placed-sprite 默认 scale 一致） */
         const BEAPIT_PLACED_SPRITE_BASE_SCALE = 0.92;
-        /** 炉子 1/2/3：同比略小于其它 2×2（如联盟矿） */
-        const BEAPIT_FURNACE_SPRITE_SCALE = 0.86;
+        /** 炉子（castle / online6）：居中等距缩放 */
+        const BEAPIT_FURNACE_CASTLE_SCALE = 0.88;
+        /** 炉子2 / 炉子3（道具图标）：略大于炉子，同样居中 */
+        const BEAPIT_FURNACE_ICON_SCALE = 0.94;
+        function getFurnaceSpriteScale(spriteSrc) {
+            const s = String(spriteSrc || '');
+            if (s.includes('item_icon_302541') || s.includes('item_icon_302509')) return BEAPIT_FURNACE_ICON_SCALE;
+            return BEAPIT_FURNACE_CASTLE_SCALE;
+        }
         /** 王城四角炮台相对 2×2 格的边长倍率；仅影响四角 008 */
         const BEAPIT_WC_CORNER_SIZE_SCALE = 1.38;
         /** 相对「指向王城中心」再顺时针旋转的角度（度），炮台贴图朝向 */
@@ -2338,7 +2345,8 @@
             }
             if (isFurnaceStoveSpritePath(finalImg)) {
                 sprite.style.opacity = '0.8';
-                sprite.style.transform = `translate(-54%, -58%) rotate(-45deg) scaleY(2) scale(${BEAPIT_FURNACE_SPRITE_SCALE})`;
+                const fsc = getFurnaceSpriteScale(finalImg);
+                sprite.style.transform = `translate(-50%, -50%) rotate(-45deg) scaleY(2) scale(${fsc})`;
             }
             item.appendChild(sprite);
 
@@ -3441,7 +3449,7 @@
 
                     if (it.size === 16 && isWangChengCapitalSpritePath(it.img)) {
                         ctx.save();
-                        ctx.fillStyle = 'rgba(72, 76, 86, 0.42)';
+                        ctx.fillStyle = 'rgba(48, 52, 62, 0.55)';
                         ctx.fillRect(x, y, w0, h0);
                         ctx.restore();
                     }
@@ -3453,13 +3461,23 @@
                         // 抵消地面 rotate(45) + scaleY(0.5)
                         ctx.rotate(-45 * deg);
                         ctx.scale(1, 2);
-                        // 缩放与偏移（贴近当前 CSS；炉子略小）
-                        const baseScale =
-                            it.size === 2 && isFurnaceStoveSpritePath(src) ? BEAPIT_FURNACE_SPRITE_SCALE : BEAPIT_PLACED_SPRITE_BASE_SCALE;
+                        // 缩放与偏移（贴近当前 CSS；炉子类 2×2 居中无额外偏移）
+                        const isFv2 = it.size === 2 && isFurnaceStoveSpritePath(src);
+                        const baseScale = isFv2 ? getFurnaceSpriteScale(src) : BEAPIT_PLACED_SPRITE_BASE_SCALE;
                         ctx.scale(baseScale, baseScale);
                         const isLargeFootprint = it.size >= 3;
-                        const dx = isLargeFootprint ? (-0.07 * w0) : (-0.04 * w0);
-                        const dy = isLargeFootprint ? (-0.11 * h0) : (-0.08 * h0);
+                        let dx;
+                        let dy;
+                        if (isLargeFootprint) {
+                            dx = -0.07 * w0;
+                            dy = -0.11 * h0;
+                        } else if (isFv2) {
+                            dx = 0;
+                            dy = 0;
+                        } else {
+                            dx = -0.04 * w0;
+                            dy = -0.08 * h0;
+                        }
                         ctx.translate(dx, dy);
                         ctx.drawImage(im, -w0 / 2, -h0 / 2, w0, h0);
                         ctx.restore();
