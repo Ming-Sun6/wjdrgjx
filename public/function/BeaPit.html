@@ -698,7 +698,7 @@
         .placed-item.size-16 .placed-sprite {
             transform: translate(-57%, -61%) rotate(-45deg) scaleY(2) scale(0.92);
         }
-        /* 王城四角 2×2 贴图（相对 16×16 内坐标，与主 sprite 同视角） */
+        /* 王城四角 2×2 贴图：变换由内联样式设置（含指向中心的平面角），勿套用 16×16 大图的 translate 偏移 */
         .placed-item.size-16 .placed-wc-corner {
             position: absolute;
             background-repeat: no-repeat;
@@ -706,7 +706,6 @@
             background-size: 100% 100%;
             pointer-events: none;
             z-index: 2;
-            transform: translate(-57%, -61%) rotate(-45deg) scaleY(2) scale(0.92);
             transform-origin: center center;
         }
         /* 已摆放物品的中心文字/命名框 */
@@ -1701,10 +1700,20 @@
             return s.includes('worldfield_tronghold_bg_006') || s.includes('worldfield_tronghold_bg_005');
         }
         const BEAPIT_WANGCHENG_CORNER_IMG = '../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_008.png';
+        /** 角标相对 2×2 格略放大，避免等距变换后显得像 1×1；仅影响四角 008 */
+        const BEAPIT_WC_CORNER_SIZE_SCALE = 1.08;
         /** 王城：16×16 主图 007，四角内嵌 2×2 角标 008（角图由路径推导，存档仅需主图 URL） */
         function isWangChengCapitalSpritePath(src) {
             const s = String(src || '');
             return s.includes('建筑图标/野外/王城/worldfield_tronghold_bg_007');
+        }
+        /** 四角中心在 16×16 格坐标（格宽 1）：左上(1,1)、右上(15,1)、左下(1,15)、右下(15,15)，指向 (8,8)；贴图默认可视为沿 +x「朝右」 */
+        function wangChengCornerTowardCenterDeg(cornerIndex) {
+            const centers = [[1, 1], [15, 1], [1, 15], [15, 15]];
+            const [ax, ay] = centers[cornerIndex] || [1, 1];
+            const dx = 8 - ax;
+            const dy = 8 - ay;
+            return (Math.atan2(dy, dx) * 180) / Math.PI;
         }
         /** 炉子、炉子2：贴图不透明度 80% */
         function isFurnaceStoveSpritePath(src) {
@@ -2305,7 +2314,7 @@
 
             if (size === 16 && isWangChengCapitalSpritePath(finalImg)) {
                 const cs = CONFIG.cellSize;
-                const s2 = 2 * cs;
+                const sCorner = 2 * cs * BEAPIT_WC_CORNER_SIZE_SCALE;
                 const cornerUrl = BEAPIT_WANGCHENG_CORNER_IMG;
                 const centers = [
                     [cs, cs],
@@ -2313,15 +2322,16 @@
                     [cs, 15 * cs],
                     [15 * cs, 15 * cs]
                 ];
-                centers.forEach(([cx, cy]) => {
+                centers.forEach(([cx, cy], idx) => {
                     const corner = document.createElement('div');
                     corner.className = 'placed-wc-corner';
-                    corner.style.width = `${s2}px`;
-                    corner.style.height = `${s2}px`;
-                    corner.style.left = `${cx}px`;
-                    corner.style.top = `${cy}px`;
-                    corner.style.marginLeft = `${-s2 / 2}px`;
-                    corner.style.marginTop = `${-s2 / 2}px`;
+                    corner.dataset.wcCornerIdx = String(idx);
+                    corner.style.width = `${sCorner}px`;
+                    corner.style.height = `${sCorner}px`;
+                    corner.style.left = `${cx - sCorner / 2}px`;
+                    corner.style.top = `${cy - sCorner / 2}px`;
+                    const face = wangChengCornerTowardCenterDeg(idx);
+                    corner.style.transform = `rotate(-45deg) scaleY(2) scale(0.92) rotate(${face}deg)`;
                     corner.style.backgroundImage = `url("${cornerUrl}")`;
                     corner.style.filter =
                         'drop-shadow(2px 3px 2px rgba(0,0,0,0.25)) drop-shadow(-1px -1px 0 rgba(255,255,255,0.45))';
@@ -3419,21 +3429,26 @@
                         if (it.size === 16 && isWangChengCapitalSpritePath(it.img)) {
                             const imCorner = imgCache.get(BEAPIT_WANGCHENG_CORNER_IMG);
                             if (imCorner) {
-                                const s2 = 2 * cs;
-                                const drawCorner = (lx, ly) => {
+                                const sCorner = 2 * cs * BEAPIT_WC_CORNER_SIZE_SCALE;
+                                const offs = [
+                                    [0, 0],
+                                    [14 * cs, 0],
+                                    [0, 14 * cs],
+                                    [14 * cs, 14 * cs]
+                                ];
+                                offs.forEach(([ox, oy], idx) => {
+                                    const cx = x + ox + cs;
+                                    const cy = y + oy + cs;
+                                    const face = wangChengCornerTowardCenterDeg(idx) * deg;
                                     ctx.save();
-                                    ctx.translate(lx + s2 / 2, ly + s2 / 2);
+                                    ctx.translate(cx, cy);
                                     ctx.rotate(-45 * deg);
                                     ctx.scale(1, 2);
                                     ctx.scale(baseScale, baseScale);
-                                    ctx.translate(-0.07 * s2, -0.11 * s2);
-                                    ctx.drawImage(imCorner, -s2 / 2, -s2 / 2, s2, s2);
+                                    ctx.rotate(face);
+                                    ctx.drawImage(imCorner, -sCorner / 2, -sCorner / 2, sCorner, sCorner);
                                     ctx.restore();
-                                };
-                                drawCorner(x + 0, y + 0);
-                                drawCorner(x + 14 * cs, y + 0);
-                                drawCorner(x + 0, y + 14 * cs);
-                                drawCorner(x + 14 * cs, y + 14 * cs);
+                                });
                             }
                         }
                     } else {
