@@ -698,6 +698,14 @@
         .placed-item.size-16 .placed-sprite {
             transform: translate(-57%, -61%) rotate(-45deg) scaleY(2) scale(0.92);
         }
+        /* 王城 16×16：底部半透明灰底（在主贴图之下） */
+        .placed-item.size-16 .placed-wc-16-base {
+            position: absolute;
+            inset: 0;
+            background: rgba(72, 76, 86, 0.42);
+            pointer-events: none;
+            z-index: 0;
+        }
         /* 王城四角 2×2 贴图：变换由内联样式设置（含指向中心的平面角），勿套用 16×16 大图的 translate 偏移 */
         .placed-item.size-16 .placed-wc-corner {
             position: absolute;
@@ -1701,7 +1709,9 @@
         }
         const BEAPIT_WANGCHENG_CORNER_IMG = '../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_008.png';
         /** 角标相对 2×2 格略放大，避免等距变换后显得像 1×1；仅影响四角 008 */
-        const BEAPIT_WC_CORNER_SIZE_SCALE = 1.08;
+        const BEAPIT_WC_CORNER_SIZE_SCALE = 1.24;
+        /** 相对「指向王城中心」再顺时针旋转的角度（度），炮台贴图朝向 */
+        const BEAPIT_WC_CORNER_EXTRA_CLOCKWISE_DEG = 90;
         /** 王城：16×16 主图 007，四角内嵌 2×2 角标 008（角图由路径推导，存档仅需主图 URL） */
         function isWangChengCapitalSpritePath(src) {
             const s = String(src || '');
@@ -2301,6 +2311,13 @@
                 CONFIG.placedArea.appendChild(influenceEl);
             }
 
+            // 王城 16×16：主图之下的半透明灰底
+            if (size === 16 && isWangChengCapitalSpritePath(finalImg)) {
+                const base = document.createElement('div');
+                base.className = 'placed-wc-16-base';
+                item.appendChild(base);
+            }
+
             // 内部 sprite：承载颜色/图片，并统一旋转 -45°
             const sprite = document.createElement('div');
             sprite.className = 'placed-sprite';
@@ -2330,7 +2347,7 @@
                     corner.style.height = `${sCorner}px`;
                     corner.style.left = `${cx - sCorner / 2}px`;
                     corner.style.top = `${cy - sCorner / 2}px`;
-                    const face = wangChengCornerTowardCenterDeg(idx);
+                    const face = wangChengCornerTowardCenterDeg(idx) + BEAPIT_WC_CORNER_EXTRA_CLOCKWISE_DEG;
                     corner.style.transform = `rotate(-45deg) scaleY(2) scale(0.92) rotate(${face}deg)`;
                     corner.style.backgroundImage = `url("${cornerUrl}")`;
                     corner.style.filter =
@@ -3409,6 +3426,13 @@
                     ctx.fillRect(x, y, w0, h0);
                     ctx.restore();
 
+                    if (it.size === 16 && isWangChengCapitalSpritePath(it.img)) {
+                        ctx.save();
+                        ctx.fillStyle = 'rgba(72, 76, 86, 0.42)';
+                        ctx.fillRect(x, y, w0, h0);
+                        ctx.restore();
+                    }
+
                     if (im) {
                         ctx.save();
                         if (isFurnaceStoveSpritePath(src)) ctx.globalAlpha = 0.8;
@@ -3439,7 +3463,7 @@
                                 offs.forEach(([ox, oy], idx) => {
                                     const cx = x + ox + cs;
                                     const cy = y + oy + cs;
-                                    const face = wangChengCornerTowardCenterDeg(idx) * deg;
+                                    const face = (wangChengCornerTowardCenterDeg(idx) + BEAPIT_WC_CORNER_EXTRA_CLOCKWISE_DEG) * deg;
                                     ctx.save();
                                     ctx.translate(cx, cy);
                                     ctx.rotate(-45 * deg);
