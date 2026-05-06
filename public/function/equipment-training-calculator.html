@@ -322,12 +322,12 @@
           const canTrain = accDays * 86400 / dt * rate / 10000;
           const prepD = (N(to.prep) ?? NaN) - (N(from.prep) ?? NaN);
           const frostD = (N(to.frost) ?? NaN) - (N(from.frost) ?? NaN);
-          txt("needDays", F(needDays,4));
-          txt("prepByCount", F(countWan * prepD,4));
-          txt("frostByCount", F(countWan * frostD,4));
-          txt("canTrain", F(canTrain,6));
-          txt("prepByAcc", F(canTrain * prepD,4));
-          txt("frostByAcc", F(canTrain * frostD,4));
+          txt("needDays", F(needDays,2));
+          txt("prepByCount", F(countWan * prepD,2));
+          txt("frostByCount", F(countWan * frostD,2));
+          txt("canTrain", F(canTrain,2));
+          txt("prepByAcc", F(canTrain * prepD,2));
+          txt("frostByAcc", F(canTrain * frostD,2));
           txt("trainStatus", `训练速度 ${F(speed,1)}%，区间 ${from.lv} -> ${to.lv}`);
           document.getElementById("trainStatus").className = "status ok";
         }
