@@ -258,6 +258,29 @@
         #woam-status.ok { color: #16a34a; }
         #woam-status.err { color: #dc2626; }
 
+        .beapit-global-offset-wrap {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            background: var(--surface, #f8fafc);
+        }
+        .beapit-global-offset-wrap .beapit-offset-hint {
+            font-size: 11px;
+            color: var(--muted, #64748b);
+            margin-right: 2px;
+            white-space: nowrap;
+        }
+        .beapit-global-offset-wrap .btn.beapit-offset-btn {
+            min-width: 34px;
+            padding: 4px 6px;
+            font-size: 14px;
+            line-height: 1.1;
+        }
+
         #woam-sidebar {
             width: 100%;
             height: 110px;
@@ -348,6 +371,15 @@
         .coords-table td.coords-chk-cell {
             text-align: center;
             vertical-align: middle;
+        }
+        .coords-table th.coords-th-pick {
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .coords-table .coords-select-all {
+            vertical-align: middle;
+            margin-left: 2px;
+            cursor: pointer;
         }
         .coords-table .coords-row-check {
             width: 16px;
@@ -1390,6 +1422,13 @@
                 <button class="btn secondary" id="btnDeletePick" type="button" disabled>🗑 指定删除</button>
                 <button class="btn" id="btnDownload" type="button">⬇ 下载图片</button>
             </div>
+            <span class="beapit-global-offset-wrap" title="仅平移已摆放建筑与范围示意（不占格、不改坐标表数值）；保存/导入会一并记录">
+                <span class="beapit-offset-hint">建筑偏移</span>
+                <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetLeft" aria-label="建筑左移">←</button>
+                <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetRight" aria-label="建筑右移">→</button>
+                <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetUp" aria-label="建筑上移">↑</button>
+                <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetDown" aria-label="建筑下移">↓</button>
+            </span>
             <button class="btn secondary" id="btnLandscapeMode" type="button">横屏模式</button>
             <button class="btn secondary landscape-only" id="btnCoordsTableToggle" type="button">坐标表</button>
             <button class="btn secondary landscape-only" id="btnExitLandscapeMode" type="button">退出横屏</button>
@@ -1684,6 +1723,9 @@
             deleteMode: false,
             /** 坐标表类型筛选：null 表示不过滤；Set<number> 为允许的 size */
             coordsTypeFilter: null,
+            /** 全图已摆放层（建筑+范围示意）在格坐标内的像素平移，不占格、不改逻辑坐标 */
+            placedGlobalOffsetX: 0,
+            placedGlobalOffsetY: 0,
         };
         /** 坐标表多选：锚点 "startRow,startCol,size" */
         CONFIG.coordsTableSelected = new Set();
@@ -1714,6 +1756,8 @@
             return s.includes('worldfield_tronghold_bg_006') || s.includes('worldfield_tronghold_bg_005');
         }
         const BEAPIT_WANGCHENG_CORNER_IMG = '../Scores/建筑图标/野外/王城/worldfield_tronghold_bg_008.png';
+        /** 全图建筑像素平移步长（屏幕/格内像素，与导出一致） */
+        const BEAPIT_PLACED_GLOBAL_OFFSET_STEP = 3;
         /** 一般放置物站立贴图缩放（与 CSS .placed-sprite 默认 scale 一致） */
         const BEAPIT_PLACED_SPRITE_BASE_SCALE = 0.92;
         /** 炉子（castle / online6）：居中等距缩放 */
@@ -2232,6 +2276,18 @@
                 }
             });
             wrap.addEventListener('change', (e) => {
+                const t = e.target;
+                if (t && t.classList && t.classList.contains('coords-select-all') && t.type === 'checkbox') {
+                    const visible2 = getCoordsTableVisibleRows().filter((it) => it.size === 2);
+                    if (t.checked) {
+                        visible2.forEach((it) => CONFIG.coordsTableSelected.add(placedAnchor(it)));
+                    } else {
+                        visible2.forEach((it) => CONFIG.coordsTableSelected.delete(placedAnchor(it)));
+                    }
+                    syncMultiBarUI();
+                    renderCoordsTable();
+                    return;
+                }
                 const cb = e.target && e.target.closest && e.target.closest('.coords-row-check');
                 if (!cb || cb.type !== 'checkbox') return;
                 const anchor = cb.dataset.anchor;
@@ -2587,6 +2643,9 @@
             });
             CONFIG.placedList = [];
             CONFIG.coordsTypeFilter = null;
+            CONFIG.placedGlobalOffsetX = 0;
+            CONFIG.placedGlobalOffsetY = 0;
+            applyPlacedGlobalOffset();
             updateActionButtons();
             if (!opts.silentTip) setTip('已清空。请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。');
         }
@@ -2595,6 +2654,14 @@
             const f = CONFIG.coordsTypeFilter;
             if (!f || f.size === 0) return null;
             return f;
+        }
+
+        /** 坐标表当前可见行（与类型筛选一致），供表头全选等使用 */
+        function getCoordsTableVisibleRows() {
+            const activeFilter = getCoordsTypeFilterActiveSet();
+            return activeFilter
+                ? CONFIG.placedList.filter((it) => activeFilter.has(it.size))
+                : CONFIG.placedList.slice();
         }
 
         function pruneCoordsTypeFilter() {
@@ -2723,10 +2790,7 @@
 
             pruneCoordsTableSelection();
 
-            const activeFilter = getCoordsTypeFilterActiveSet();
-            const visibleRows = activeFilter
-                ? CONFIG.placedList.filter((it) => activeFilter.has(it.size))
-                : CONFIG.placedList;
+            const visibleRows = getCoordsTableVisibleRows();
 
             if (visibleRows.length === 0) {
                 CONFIG.coordsWrap.textContent = '';
@@ -2752,7 +2816,23 @@
             table.className = 'coords-table';
             const thead = document.createElement('thead');
             const hr = document.createElement('tr');
-            ['选', '#', '类型', 'Row', 'Col', '命名 / 颜色 / 加粗 / 斜体（仅 2×2）'].forEach((label) => {
+            const thPick = document.createElement('th');
+            thPick.className = 'coords-th-pick';
+            const thPickLab = document.createElement('span');
+            thPickLab.textContent = '选';
+            thPickLab.style.marginRight = '4px';
+            thPick.appendChild(thPickLab);
+            const selAll = document.createElement('input');
+            selAll.type = 'checkbox';
+            selAll.className = 'coords-select-all';
+            selAll.title = '全选/取消当前表中所有 2×2（批量设置仅对 2×2 生效）';
+            const visible2ForMaster = visibleRows.filter((it) => it.size === 2);
+            const sel2Count = visible2ForMaster.filter((it) => CONFIG.coordsTableSelected.has(placedAnchor(it))).length;
+            selAll.checked = visible2ForMaster.length > 0 && sel2Count === visible2ForMaster.length;
+            selAll.indeterminate = visible2ForMaster.length > 0 && sel2Count > 0 && sel2Count < visible2ForMaster.length;
+            thPick.appendChild(selAll);
+            hr.appendChild(thPick);
+            ['#', '类型', 'Row', 'Col', '命名 / 颜色 / 加粗 / 斜体（仅 2×2）'].forEach((label) => {
                 const th = document.createElement('th');
                 th.textContent = label;
                 hr.appendChild(th);
@@ -2864,8 +2944,23 @@
             return `woam_map_${pwd || 'default'}`;
         }
 
+        function applyPlacedGlobalOffset() {
+            if (!CONFIG.placedArea) return;
+            const ox = Number(CONFIG.placedGlobalOffsetX) || 0;
+            const oy = Number(CONFIG.placedGlobalOffsetY) || 0;
+            CONFIG.placedArea.style.transform = `translate(${ox}px, ${oy}px)`;
+        }
+
+        function nudgePlacedGlobalOffset(dx, dy) {
+            pushHistorySnapshot();
+            CONFIG.placedGlobalOffsetX = (Number(CONFIG.placedGlobalOffsetX) || 0) + dx;
+            CONFIG.placedGlobalOffsetY = (Number(CONFIG.placedGlobalOffsetY) || 0) + dy;
+            applyPlacedGlobalOffset();
+            setTip(`建筑整体偏移：横向 ${CONFIG.placedGlobalOffsetX}px，纵向 ${CONFIG.placedGlobalOffsetY}px（不占格，导出与存档会带上）。`);
+        }
+
         function serializeLayout() {
-            return {
+            const out = {
                 v: 1,
                 savedAt: new Date().toISOString(),
                 items: CONFIG.placedList.map(it => ({
@@ -2879,6 +2974,13 @@
                     ni: it.size === 2 ? (!!it.nameItalic || it.el?.dataset?.nameItalic === '1') : undefined
                 }))
             };
+            const gx = Number(CONFIG.placedGlobalOffsetX) || 0;
+            const gy = Number(CONFIG.placedGlobalOffsetY) || 0;
+            if (gx !== 0 || gy !== 0) {
+                out.gox = gx;
+                out.goy = gy;
+            }
+            return out;
         }
 
         function cloneLayoutSnapshot(data) {
@@ -2913,6 +3015,9 @@
                 });
                 updateActionButtons();
                 renderCoordsTable();
+                CONFIG.placedGlobalOffsetX = Number(snapshot.gox) || 0;
+                CONFIG.placedGlobalOffsetY = Number(snapshot.goy) || 0;
+                applyPlacedGlobalOffset();
             } finally {
                 CONFIG.restoring = false;
             }
@@ -2937,7 +3042,11 @@
                 while (arr.length > 3 && arr[arr.length - 1] === defs[arr.length - 4]) arr.pop();
                 return arr;
             });
-            return { v: 2, i: rows };
+            const out = { v: 2, i: rows };
+            const gx = Number(CONFIG.placedGlobalOffsetX) || 0;
+            const gy = Number(CONFIG.placedGlobalOffsetY) || 0;
+            if (gx !== 0 || gy !== 0) out.g = [gx, gy];
+            return out;
         }
 
         function placeItemAt(startRow, startCol, size, color, name, img, nameColor, nameBold, nameItalic, opts = {}) {
@@ -3055,7 +3164,11 @@
                 CONFIG.historyStack = [];
                 pushHistorySnapshot();
                 CONFIG.restoring = false;
+                CONFIG.placedGlobalOffsetX = Number(data.gox) || 0;
+                CONFIG.placedGlobalOffsetY = Number(data.goy) || 0;
+                applyPlacedGlobalOffset();
                 updateActionButtons();
+                renderCoordsTable();
                 setStatus(`已加载：${okCount} 个`, 'ok');
             } catch (e) {
                 setStatus('加载失败', 'err');
@@ -3110,6 +3223,13 @@
                 const b = document.getElementById(id);
                 if (b) b.disabled = dis;
             });
+            const sa = CONFIG.coordsWrap?.querySelector('.coords-select-all');
+            if (sa && sa.type === 'checkbox') {
+                const visible2 = getCoordsTableVisibleRows().filter((it) => it.size === 2);
+                const sc = visible2.filter((it) => CONFIG.coordsTableSelected.has(placedAnchor(it))).length;
+                sa.checked = visible2.length > 0 && sc === visible2.length;
+                sa.indeterminate = visible2.length > 0 && sc > 0 && sc < visible2.length;
+            }
         }
 
         function clearCoordsTableSelection() {
@@ -3385,6 +3505,11 @@
                     }
                 }
 
+                const exportPlacedGox = Number(CONFIG.placedGlobalOffsetX) || 0;
+                const exportPlacedGoy = Number(CONFIG.placedGlobalOffsetY) || 0;
+                ctx.save();
+                ctx.translate(exportPlacedGox, exportPlacedGoy);
+
                 // 1×1 的 7×7 半透明区域（联盟旗帜类；湖/山不画）
                 for (const it of CONFIG.placedList) {
                     if (!it || it.size !== 1 || isPlainTerrain1x1NoAllianceRange(it.img)) continue;
@@ -3523,7 +3648,8 @@
                     }
                 }
 
-                ctx.restore(); // 结束本地坐标绘制
+                ctx.restore(); // 结束建筑整体平移
+                ctx.restore(); // 结束本地坐标绘制（gridContainer 矩阵）
 
                 // 2×2 命名文字：直接画在屏幕坐标，让它“正对着我”
                 ctx.save();
@@ -3538,7 +3664,10 @@
                     if (!it || it.size !== 2) continue;
                     const name = (it.name || it.el?.dataset?.name || '').trim();
                     if (!name) continue;
-                    const p = m.transformPoint({ x: it.startCol * cs + cs, y: it.startRow * cs + cs }); // 2×2 中心
+                    const p = m.transformPoint({
+                        x: it.startCol * cs + cs + exportPlacedGox,
+                        y: it.startRow * cs + cs + exportPlacedGoy
+                    }); // 2×2 中心（含全图建筑平移）
                     const nc = it.nameColor || it.el?.dataset?.nameColor || '#ff4da6';
                     const bold = it.nameBold !== false && it.el?.dataset?.nameBold !== '0';
                     const italic = !!it.nameItalic || it.el?.dataset?.nameItalic === '1';
@@ -3840,6 +3969,11 @@
 
             // 操作按钮
             CONFIG.btnUndo.addEventListener('click', undoLast);
+            document.getElementById('btnPlacedOffsetLeft')?.addEventListener('click', () => nudgePlacedGlobalOffset(-BEAPIT_PLACED_GLOBAL_OFFSET_STEP, 0));
+            document.getElementById('btnPlacedOffsetRight')?.addEventListener('click', () => nudgePlacedGlobalOffset(BEAPIT_PLACED_GLOBAL_OFFSET_STEP, 0));
+            document.getElementById('btnPlacedOffsetUp')?.addEventListener('click', () => nudgePlacedGlobalOffset(0, -BEAPIT_PLACED_GLOBAL_OFFSET_STEP));
+            document.getElementById('btnPlacedOffsetDown')?.addEventListener('click', () => nudgePlacedGlobalOffset(0, BEAPIT_PLACED_GLOBAL_OFFSET_STEP));
+            applyPlacedGlobalOffset();
             CONFIG.btnClear.addEventListener('click', () => window.__beapitConfirmClear?.open?.());
             CONFIG.btnDeletePick.addEventListener('click', toggleDeleteMode);
             CONFIG.btnDownload.addEventListener('click', downloadAsImage);
@@ -3918,8 +4052,14 @@
                     const config = JSON.parse(rawText);
                     if (!config) throw new Error('配置格式错误');
                     const defC = '#ff4da6';
+                    let gx = Number(config.gox) || 0;
+                    let gy = Number(config.goy) || 0;
                     if (config.v === 2 && Array.isArray(config.i)) {
-                        return config.i.filter(row => Array.isArray(row) && row.length >= 3 && Number.isFinite(row[0]) && Number.isFinite(row[1]) && Number.isFinite(row[2])).map(row => {
+                        if (Array.isArray(config.g) && config.g.length >= 2) {
+                            gx = Number(config.g[0]) || 0;
+                            gy = Number(config.g[1]) || 0;
+                        }
+                        const items = config.i.filter(row => Array.isArray(row) && row.length >= 3 && Number.isFinite(row[0]) && Number.isFinite(row[1]) && Number.isFinite(row[2])).map(row => {
                             const r = parseInt(row[0], 10), c = parseInt(row[1], 10), s = parseInt(row[2], 10);
                             const n = (row[3] != null && row[3] !== '') ? String(row[3]) : '';
                             const i = (row[4] != null && row[4] !== '') ? String(row[4]) : '';
@@ -3936,18 +4076,26 @@
                             }
                             return { r, c, s, n, i, nc, nb, ni };
                         });
+                        return { items, gx, gy };
                     }
                     if (Array.isArray(config.items)) {
-                        return config.items.filter(it => it && Number.isFinite(it.r) && Number.isFinite(it.c) && Number.isFinite(it.s)).map(it => ({
+                        const items = config.items.filter(it => it && Number.isFinite(it.r) && Number.isFinite(it.c) && Number.isFinite(it.s)).map(it => ({
                             r: parseInt(it.r, 10), c: parseInt(it.c, 10), s: parseInt(it.s, 10),
                             n: it.n || '', i: it.i || '', nc: it.nc, nb: it.nb, ni: it.ni
                         }));
+                        return { items, gx, gy };
                     }
                     throw new Error('配置格式错误：缺少 items 或 i 数组');
                 }
-                function applyImported(items) {
+                function applyImported(payload) {
+                    const items = payload && payload.items ? payload.items : [];
+                    const gx = payload != null && Number.isFinite(Number(payload.gx)) ? Number(payload.gx) : 0;
+                    const gy = payload != null && Number.isFinite(Number(payload.gy)) ? Number(payload.gy) : 0;
                     CONFIG.restoring = true;
                     clearAll({ skipHistory: true, silentTip: true });
+                    CONFIG.placedGlobalOffsetX = gx;
+                    CONFIG.placedGlobalOffsetY = gy;
+                    applyPlacedGlobalOffset();
                     let okCount = 0;
                     items.forEach(it => {
                         const color = colorBySize[it.s] || '#409eff';
@@ -3969,12 +4117,13 @@
                     if (stage === 'parse') {
                         if (!text) { setStatus('error', '请先粘贴配置序列码。'); return; }
                         try {
-                            const items = parseConfig(text);
-                            if (!items.length) { setStatus('error', '配置中没有可导入的放置物。'); return; }
-                            pendingImported = items;
+                            const parsed = parseConfig(text);
+                            if (!parsed.items.length) { setStatus('error', '配置中没有可导入的放置物。'); return; }
+                            pendingImported = parsed;
                             doBtn.dataset.stage = 'confirm';
                             doBtn.textContent = '确认覆盖并导入';
-                            setStatus('info', `已解析到 ${items.length} 个放置物。点击「确认覆盖并导入」将覆盖当前所有摆放。`);
+                            const offHint = (parsed.gx || parsed.gy) ? `，建筑偏移 (${parsed.gx}, ${parsed.gy})` : '';
+                            setStatus('info', `已解析到 ${parsed.items.length} 个放置物${offHint}。点击「确认覆盖并导入」将覆盖当前所有摆放。`);
                         } catch (err) {
                             pendingImported = null;
                             setStatus('error', '配置格式错误：' + (err?.message || '请检查 JSON 格式'));
@@ -4053,7 +4202,11 @@
                         CONFIG.historyStack = [];
                         pushHistorySnapshot();
                         CONFIG.restoring = false;
+                        CONFIG.placedGlobalOffsetX = Number(remote.gox) || 0;
+                        CONFIG.placedGlobalOffsetY = Number(remote.goy) || 0;
+                        applyPlacedGlobalOffset();
                         updateActionButtons();
+                        renderCoordsTable();
                         setStatus(`已从账号加载：${okCount} 个`, 'ok');
                     } catch (e) {
                         console.warn(e);

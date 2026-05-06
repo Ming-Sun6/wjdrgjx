@@ -3126,8 +3126,8 @@
       <div class="wjdr-home-carousel" id="wjdrHomeLeadRoot">
         <div class="wjdr-home-carousel-track" id="wjdrHomeLeadTrack">
           <div class="wjdr-home-carousel-slide is-active">
-            <a href="/public/wjdr-home/board">
-              <img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high" />
+            <a href="/public/wjdr-home/board" draggable="false">
+              <img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high" draggable="false" />
             </a>
           </div>
         </div>
@@ -3194,7 +3194,10 @@
         swipePtrId=ev.pointerId;
         swipeSx=ev.clientX;
         swipeSy=ev.clientY;
-        try{ track.setPointerCapture(ev.pointerId); }catch(e){}
+        /* 鼠标不要用 capture：会把 click 重定向到 track，导致内部 <a> 无法导航；触摸/笔仍 capture 以便滑出元素仍能结束滑动 */
+        if(ev.pointerType!=='mouse'){
+          try{ track.setPointerCapture(ev.pointerId); }catch(e){}
+        }
       }
       function onPointerUp(ev){
         if(swipePtrId===null||ev.pointerId!==swipePtrId) return;
@@ -3225,10 +3228,10 @@
         }, {passive:true});
         track.addEventListener('touchcancel', onPointerCancel, {passive:true});
       }
-      track.addEventListener('click', function(ev){角标示意
-        if(!suppressCarouselClick) return;角标示意
-        suppressCarouselClick=false;角标示意
-        ev.preventDefault();角标示意
+      track.addEventListener('click', function(ev){
+        if(!suppressCarouselClick) return;
+        suppressCarouselClick=false;
+        ev.preventDefault();
         ev.stopPropagation();
       }, true);
     }
@@ -3241,7 +3244,7 @@
       slides=[];
       intervalMs=typeof ms==='number'&&isFinite(ms)?Math.max(3000,Math.min(30000,ms)):6000;
       if(!slidesCfg||!slidesCfg.length){
-        track.innerHTML='<div class="wjdr-home-carousel-slide is-active"><a href="/public/wjdr-home/board"><img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high"/></a></div>';
+        track.innerHTML='<div class="wjdr-home-carousel-slide is-active"><a href="/public/wjdr-home/board" draggable="false"><img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high" draggable="false"/></a></div>';
         slides=[track.querySelector('.wjdr-home-carousel-slide')];
         if(dotsRoot){ dotsRoot.innerHTML=''; dotsRoot.hidden=true; }
         return;
@@ -3254,8 +3257,8 @@
         var alt=sl.alt||'活动图示';
         var fp=i===0?' fetchpriority="high"':'';
         html+='<div class="wjdr-home-carousel-slide'+(i===0?' is-active':'')+'">'+
-          '<a href="'+escAttr(href)+'">'+
-          '<img src="'+escAttr(img)+'" alt="'+escAttr(alt)+'" decoding="async"'+fp+'/>'+
+          '<a href="'+escAttr(href)+'" draggable="false">'+
+          '<img src="'+escAttr(img)+'" alt="'+escAttr(alt)+'" decoding="async" draggable="false"'+fp+'/>'+
           '</a></div>';
       }
       track.innerHTML=html;
