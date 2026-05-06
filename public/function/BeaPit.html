@@ -1725,6 +1725,9 @@
             if (s.includes('item_icon_302541') || s.includes('item_icon_302509')) return BEAPIT_FURNACE_ICON_SCALE;
             return BEAPIT_FURNACE_CASTLE_SCALE;
         }
+        /** 炉子类在格内略上移（视觉偏下时微调；与导出 dy 同量级） */
+        const BEAPIT_FURNACE_NUDGE_Y_PX = -4;
+        const BEAPIT_FURNACE_EXPORT_DY_FRAC = -0.055;
         /** 王城四角炮台相对 2×2 格的边长倍率；仅影响四角 008 */
         const BEAPIT_WC_CORNER_SIZE_SCALE = 1.38;
         /** 相对「指向王城中心」再顺时针旋转的角度（度），炮台贴图朝向 */
@@ -2346,7 +2349,7 @@
             if (isFurnaceStoveSpritePath(finalImg)) {
                 sprite.style.opacity = '0.8';
                 const fsc = getFurnaceSpriteScale(finalImg);
-                sprite.style.transform = `translate(-50%, -50%) rotate(-45deg) scaleY(2) scale(${fsc})`;
+                sprite.style.transform = `translate(-50%, calc(-50% + ${BEAPIT_FURNACE_NUDGE_Y_PX}px)) rotate(-45deg) scaleY(2) scale(${fsc})`;
             }
             item.appendChild(sprite);
 
@@ -3473,7 +3476,7 @@
                             dy = -0.11 * h0;
                         } else if (isFv2) {
                             dx = 0;
-                            dy = 0;
+                            dy = BEAPIT_FURNACE_EXPORT_DY_FRAC * h0;
                         } else {
                             dx = -0.04 * w0;
                             dy = -0.08 * h0;
