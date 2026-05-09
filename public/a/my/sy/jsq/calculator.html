@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>萌芽计划收益计算器</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #1a1a1a;
+      background: #f4f6f9;
+    }
+    body {
+      max-width: 420px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+    label {
+      display: block;
+      font-size: 0.875rem;
+      color: #444;
+      margin-bottom: 0.35rem;
+    }
+    input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #ccd2dc;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    input[type="number"]:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      background: #2563eb;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1d4ed8;
+    }
+    .result {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+    .result strong {
+      color: #0f172a;
+    }
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .result-row:last-of-type {
+      border-bottom: none;
+    }
+    .result-row span:first-child {
+      color: #64748b;
+      flex-shrink: 0;
+    }
+    .result-row strong {
+      text-align: right;
+    }
+    .result-note {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <h1>收益计算器</h1>
+
+  <label for="plays">播放量</label>
+  <input id="plays" type="number" min="0" step="any" placeholder="请输入播放量" />
+
+  <label for="likes">点赞量</label>
+  <input id="likes" type="number" min="0" step="any" placeholder="请输入点赞量" />
+
+  <button type="button" id="calc">计算</button>
+
+  <div class="result" id="out" hidden>
+    <div class="result-row"><span>有效播放量</span><strong id="effPlays"></strong></div>
+    <div class="result-row"><span>赞播比</span><strong id="ratio"></strong></div>
+    <div class="result-row"><span>收益（税前）</span><strong id="rmb"></strong></div>
+    <div class="result-row"><span>寒冬之星</span><strong id="stars"></strong></div>
+    <p class="result-note" id="tierNote"></p>
+  </div>
+
+  <script>
+    function fmtNum(n, maxDec) {
+      var s = Number(n).toFixed(maxDec != null ? maxDec : 4);
+      return s.replace(/\.?0+$/, "");
+    }
+
+    document.getElementById("calc").addEventListener("click", function () {
+      var plays = parseFloat(document.getElementById("plays").value);
+      var likes = parseFloat(document.getElementById("likes").value);
+
+      if (isNaN(plays) || isNaN(likes)) {
+        alert("请填写有效的播放量和点赞量（数字）。");
+        return;
+      }
+      if (plays <= 0) {
+        alert("播放量须大于 0。");
+        return;
+      }
+      if (likes < 0) {
+        alert("点赞量不能为负。");
+        return;
+      }
+
+      // 赞播比 = 点赞 / 播放量 × 100%
+      var ratioPct = (likes / plays) * 100;
+      // 赞播比 < 1% 按实际达成比例结算 → 有效播放量 = 点赞 / 1% = 点赞×100；否则为播放量（等价于 min）
+      var effective = Math.min(plays, likes * 100);
+
+      var rmb;
+      if (plays <= 1000) {
+        rmb = 8;
+      } else {
+        rmb = (effective / 1000) * 8;
+      }
+      var winterStars = rmb * 13;
+
+      document.getElementById("effPlays").textContent = fmtNum(effective, 2);
+      document.getElementById("ratio").textContent = fmtNum(ratioPct, 4) + "%";
+      document.getElementById("rmb").textContent = fmtNum(rmb, 4) + " 元";
+      document.getElementById("stars").textContent = fmtNum(winterStars, 2) + " 寒冬之星";
+
+      var note = document.getElementById("tierNote");
+      if (plays <= 1000) {
+        note.textContent =
+          "当前档位：播放量 ≤1000，按规则为每条固定税前 8 元（或 104 寒冬之星）；有效播放量仍按赞播比折算展示。";
+      } else {
+        note.textContent =
+          "当前档位：播放量 ＞1000，税前收益 =（有效播放量÷1000）×8；寒冬之星 = 税前 ×13（例：12 元 → 156）。";
+      }
+
+      document.getElementById("out").hidden = false;
+    });
+  </script>
+</body>
+</html>
