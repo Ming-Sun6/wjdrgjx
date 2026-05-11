@@ -100,8 +100,15 @@
     .summary-box strong{color:#e2e8f0;font-weight:800}
     body.theme-light .summary-box strong{color:#0f172a}
     .foot{margin-top:8px;color:var(--muted);font-size:.82rem;line-height:1.65}
-    .matrix-table-toolbar{display:flex;align-items:center;justify-content:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .matrix-table-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
     .matrix-forecast-tag{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .matrix-forecast-pick{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    .matrix-forecast-select{
+      background:rgba(15,23,42,.75);color:var(--text);border:1px solid var(--border);
+      border-radius:9px;padding:7px 10px;font-size:.86rem;font-weight:700;cursor:pointer;min-width:12rem;max-width:100%
+    }
+    body.theme-light .matrix-forecast-select{background:#fff;color:#0f172a}
+    .matrix-forecast-select:focus{border-color:rgba(96,165,250,.8);outline:none;box-shadow:0 0 0 3px rgba(96,165,250,.2)}
     .matrix-forecast-label{color:var(--muted);font-size:.86rem;font-weight:700}
     body.theme-light .matrix-forecast-label{color:#475569}
     thead.matrix-thead-matrix .matrix-banner-row th{
@@ -147,7 +154,7 @@
     <div class="top">
       <div>
         <div class="title">移民开放时间 · 同期分组一览</div>
-        <div class="sub"><strong>界定同组</strong>：在<strong>某一移民展示日</strong>上，凡「历史移民分组矩阵」所用的<strong>+1 日</strong>口径下算出<strong>相同进度档</strong>的邻邦表行，即视为<strong>该期同一组</strong>。<br />下方为<strong>下期外推展示日</strong>的矩阵同档聚合与多期推演。<strong style="color:#fbbf24;">仅供参考。</strong></div>
+        <div class="sub">与「历史移民分组」相同：<strong>展示日 +1 日</strong>对里程碑得到<strong>相同进度档</strong>即<strong>同期同组</strong>。下为外推矩阵与多期日期。<strong style="color:#fbbf24;">仅供参考。</strong></div>
       </div>
       <div class="top-actions">
         <a class="btn" href="neighbor-progress.html">邻邦进度</a>
@@ -168,12 +175,15 @@
     </section>
 
     <section class="card">
-      <h2>下期推算日 · 矩阵 +1 日同档分组</h2>
-      <p class="tiny">同一<strong>进度</strong>行内，左上方<strong>推算展示日（当期）</strong>对应的本表一次聚合；算法与<a href="history-immigration-group.html">历史移民分组矩阵</a>一致：<strong>展示日 +1 日</strong>再对里程碑。进度列为<strong>火晶档 + 英雄代</strong>组合口径（与常见对照表一致）；其中<strong>战争学院（T11）</strong>指战争学院阶段、<strong>非</strong> T11 兵种。首列为<strong>组序号</strong>（第一组、第二组…）；末列<strong>区服分段</strong>为连续区服段的<strong>头～尾</strong>合并。</p>
-      <div class="matrix-table-toolbar">
+      <h2>下期推算日 · 分组</h2>
+      <p class="tiny">算法同<a href="history-immigration-group.html">历史移民分组矩阵</a>：<strong>展示日 +1 日</strong>聚合。列为火晶档+英雄代；末列为连续区服合并。</p>
+      <div class="matrix-table-toolbar">左上可选其他外推展示日
         <div class="matrix-forecast-tag">
-          <span class="matrix-forecast-label">推算展示日（当期）</span>
+          <span id="matrixForecastSectionLabel" class="matrix-forecast-label">推算展示日（当期）</span>
+        </div>
+        <div class="matrix-forecast-pick">
           <span id="matrixForecastDateBadge" class="pill forecast">—</span>
+          <select id="matrixForecastPeriodSelect" class="matrix-forecast-select" aria-label="选择推算展示日（多期）" hidden></select>
         </div>
       </div>
       <div class="table-wrap">
@@ -195,7 +205,7 @@
 
     <details class="card">
       <summary style="cursor:pointer;font-weight:800;font-size:1.02rem">下期起多期开放日推演（展开）</summary>
-      <p class="tiny" style="margin-top:10px">按历史移民日期间距的中位数外推后续窗口（节律非官方）；「为你区服档位」一栏按您输入的区服推演。</p>
+      <p class="tiny" style="margin-top:10px">按历史期间距<strong>中位数</strong>外推（非官方）；末列按当前输入区服。</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>期序</th><th>推算开放日</th><th>还剩</th><th>当期为你区服的档位预测</th></tr></thead>
@@ -206,7 +216,7 @@
 
     <details class="card">
       <summary style="cursor:pointer;font-weight:800;font-size:1.02rem">历史移民日与为你区服的档位对照（展开）</summary>
-      <p class="tiny" style="margin-top:10px">日期与「历史移民分组」列一致；+1 天口径与同页矩阵一致。</p>
+      <p class="tiny" style="margin-top:10px">与历史矩阵同源日期，<strong>+1 日</strong>口径与上方矩阵一致。</p>
       <div class="table-wrap">
         <table>
           <thead><tr><th>移民展示日</th><th>为你区服的档位预测</th><th>备注</th></tr></thead>
@@ -217,11 +227,10 @@
 
     <div class="foot">
       说明：<br />
-      1. <strong>同期同组的判定</strong>：在<strong>同一移民展示日</strong>上，凡按历史移民矩阵使用的<strong>+1 日</strong>口径算出的<strong>进度档完全相同</strong>的邻邦表行，即为该期的<strong>同一组</strong>（见上文「下期推算日·矩阵同档分组」聚合表）。<br />
-      2. 概览中「习惯分段」取自社区整理的区服组别（至 3716）；未覆盖空档（如 329~341）、以及<strong>表外区服</strong>请以游戏与官方社群为准。<br />
-      3. 推算开放日仅供参考；档位计算若命中邻邦表中的<strong>里程碑覆盖</strong>行会自动采用覆盖日期（与同站邻邦进度页一致）。<br />
-      4. 表内「第一组」「第二组」等为<strong>当期矩阵档位</strong>下的序号；与论坛子版块命名无必然对应。<br />
-      5. 对照表里常见的「T11」指<strong>战争学院</strong>（与 T11 兵等无关）；本站写作「战争学院（T11）」。里程碑已含<strong>11 代英雄</strong>开启日（与邻邦进度表同源）；更晚代际需后续再补数据。
+      1. <strong>同组</strong>＝同一展示日、<strong>+1 日</strong>口径下进度档相同的邻邦行（见上方矩阵）。<br />
+      2. 区服分段为社区表（约至 3716），空档与表外以游戏为准。<br />
+      3. 日期与档位为推算；里程碑有<strong>表内覆盖</strong>时按覆盖日（同邻邦进度页）。「第几组」仅为矩阵内排序。<br />
+      4. 「战争学院」指学院阶段（非 T11 兵）；里程碑含 11 代英雄等，随数据更新。
     </div>
   </div>
 
@@ -256,7 +265,7 @@
       var left = "";
       if (fc10) left = "\u706b10";
       else if (fc8) left = "\u706b8";
-      else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662\uFF08T11\uFF09";
+      else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662";
       else if (fc5) left = "\u706b5";
       var maxH = 0;
       for (var g = 11; g >= 4; g--){
@@ -578,6 +587,63 @@
       }
       return parts.join("\u3001");
     }
+    function renderMatrixForecastUI(sid, fc, selectedIdx){
+      var matrixBody = document.getElementById("matrixGroupBody");
+      var matrixForecastDateBadge = document.getElementById("matrixForecastDateBadge");
+      var sectionLabel = document.getElementById("matrixForecastSectionLabel");
+      var rangeIdx = findScheduleRangeIndex(sid);
+      var dates = fc && fc.dates ? fc.dates : [];
+      if (!dates.length){
+        if (sectionLabel) sectionLabel.textContent = "\u63a8\u7b97\u5c55\u793a\u65e5\uff08\u5f53\u671f\uff09";
+        if (matrixForecastDateBadge) matrixForecastDateBadge.textContent = "\u2014";
+        if (matrixBody) matrixBody.innerHTML = "<tr><td colspan=\"3\">\u6682\u65e0\u5916\u63a8\u65e5\u671f\u3002</td></tr>";
+        return;
+      }
+      var idx = Math.max(0, Math.min(Math.floor(Number(selectedIdx)) || 0, dates.length - 1));
+      var displayDate = dates[idx];
+      if (sectionLabel){
+        sectionLabel.textContent =
+          idx === 0
+            ? "\u63a8\u7b97\u5c55\u793a\u65e5\uff08\u5f53\u671f\uff09"
+            : "\u63a8\u7b97\u5c55\u793a\u65e5\uff08" + displayDate + "\uff09";
+      }
+      if (matrixForecastDateBadge) matrixForecastDateBadge.textContent = displayDate;
+      var userBundleSel =
+        rangeIdx >= 0 && displayDate
+          ? progressBundleForCutoff(rangeIdx, immigrationMarkSerial(displayDate))
+          : null;
+      var userBucketSel = userBundleSel ? userBundleSel.bucketKey : "";
+      var mgHtml = "";
+      if (matrixBody){
+        var groupsMg = buildMatrixGroupsForDate(displayDate);
+        var nMg = groupsMg.length;
+        for (var mi = 0; mi < nMg; mi++){
+          var grp = groupsMg[mi];
+          var trM = userBucketSel && grp.bucketKey === userBucketSel ? " class=\"row-matrix-user\"" : "";
+          mgHtml +=
+            "<tr" + trM + ">" +
+            "<td>" + matrixGroupOrdinal(mi + 1) + "</td>" +
+            "<td class=\"st-soft\">" + grp.progressText + "</td>" +
+            "<td class=\"matrix-ranges\">" + summarizeGroupRangeLabels(grp.ranges) + "</td>" +
+            "</tr>";
+        }
+        matrixBody.innerHTML = mgHtml;
+      }
+    }
+    function refreshMatrixForecastTable(){
+      var input = document.getElementById("serverInput");
+      var sid = Number(input && input.value);
+      if (!Number.isFinite(sid)) sid = 755;
+      sid = Math.max(1, Math.floor(sid));
+      var fc = forecastDatesFromHistory(historyDateMarks, 10);
+      var sel = document.getElementById("matrixForecastPeriodSelect");
+      var idx = 0;
+      if (sel && sel.value !== ""){
+        var parsed = parseInt(sel.value, 10);
+        if (Number.isFinite(parsed)) idx = parsed;
+      }
+      renderMatrixForecastUI(sid, fc, idx);
+    }
     function renderAll(){
       var input = document.getElementById("serverInput");
       var sid = Number(input && input.value);
@@ -592,8 +658,7 @@
       var rhythmEl = document.getElementById("rhythmHint");
       var histBody = document.getElementById("historyPredictionBody");
       var fcBody = document.getElementById("forecastBody");
-      var matrixBody = document.getElementById("matrixGroupBody");
-      var matrixForecastDateBadge = document.getElementById("matrixForecastDateBadge");
+      var matrixPeriodSelect = document.getElementById("matrixForecastPeriodSelect");
       var summaryEl = document.getElementById("userSummary");
 
       var fc = forecastDatesFromHistory(historyDateMarks, 10);
@@ -625,58 +690,48 @@
         rangeIdx >= 0 && nextOpen !== "-" ? progressBundleForCutoff(rangeIdx, immigrationMarkSerial(nextOpen)) : null;
       var userBucketNext = userBundleNext ? userBundleNext.bucketKey : "";
       var userTextNext = userBundleNext ? userBundleNext.text : "";
-      var matrixMateLine = "";
-      if (userBucketNext && userBucketNext !== "__empty__"){
+
+      var summaryTail = "";
+      if (rangeIdx >= 0 && nextOpen !== "-" && userBucketNext && userBucketNext !== "__empty__"){
         var nMate = countRangesSameMatrixPlusOne(nextOpen, userBucketNext);
-        matrixMateLine =
-          "<br /><strong>\u4e0b\u671f\u9884\u6d4b\u5c55\u793a\u65e5\uff1a</strong>" +
-          nextOpen +
-          "\uff08<strong>\u77e9\u9635 +1 \u5929</strong>\u53e3\u5f84\uff09\u3002" +
-          "<strong>\u60a8\u5728\u6b64\u671f\u7684\u540c\u7ec4\u6863\u4f4d\uff1a</strong>" +
-          "<span class=\"st-soft\">\u3010" + userTextNext + "\u3011</span>\u3002" +
-          "\u5171 <strong>" + nMate + "</strong> \u6761\u90bb\u90a6\u8868\u884c\u4e0e\u6b64\u6863\u76f8\u540c\uff0c" +
-          "<strong>\u5373\u8be5\u671f\u540c\u671f\u540c\u7ec4</strong>\u3002";
+        summaryTail =
+          "<br /><strong>\u4e0b\u671f\u5c55\u793a</strong> <span class=\"st-soft\">" + nextOpen +
+          "</span>\uff08+1\u65e5\u77e9\u9635\uff09\uff0c" +
+          "<strong>\u540c\u7ec4</strong> <span class=\"st-soft\">" + userTextNext + "</span>\uff0c" +
+          "<strong>" + nMate + "</strong> \u6761\u90bb\u90a6\u8868\u540c\u6863";
+      } else if (rangeIdx >= 0 && nextOpen !== "-"){
+        summaryTail =
+          "<br /><strong>\u4e0b\u671f\u5c55\u793a</strong> <span class=\"st-soft\">" + nextOpen + "</span>";
       } else if (rangeIdx < 0 && nextOpen !== "-"){
-        matrixMateLine =
-          "<br /><span style=\"opacity:.88\">\u8f93\u5165 NB \u5217\u4e4b\u524d\u7684\u533a\u670d\u540e\uff0c\u53ef\u5728\u6b64\u663e\u793a\u4e0b\u671f\u77e9\u9635\u540c\u7ec4\u6982\u8981\u3002</span>";
+        summaryTail =
+          "<br /><span style=\"opacity:.88\">\u8f93\u5165 NB \u5217\u4e4b\u524d\u7684\u533a\u670d\u53f7\u540e\u53ef\u663e\u793a\u4e0b\u671f\u540c\u7ec4\u3002</span>";
       }
 
       if (summaryEl){
+        var rowNeighbor = rangeIdx >= 0 ? displayRangeLabel(rangeIdx) : rngLabelMine;
         summaryEl.innerHTML =
-          "<strong>" + sid + " \u533a\u670d</strong>\uFF1A" + bandStr +
-          "\u3002<strong>\u5f53\u524d\u8fdb\u5ea6\uff08\u4eca\u65e5\uff09</strong>\uff1a<span class=\"st-accent\">" +
-          curMine.text +
-          "</span>\u3002<br /><strong>\u90bb\u90a6\u8fdb\u5ea6\u8868\u5bf9\u5e94\u884c</strong>\uff1a" +
-          (rangeIdx >= 0 ? displayRangeLabel(rangeIdx) : rngLabelMine) +
-          "\u3002<strong>\u6700\u8fd1\u4e00\u671f\u5c55\u793a/\u9884\u6d4b</strong>\uff1a" +
-          "<span class=\"st-soft\">" + nextOpen + "</span>\u3002" +
-          matrixMateLine;
+          "<strong>" + sid + "</strong> \u533a\uff0c" + bandStr +
+          "\uff0c<strong>\u90bb\u90a6\u8868\u884c</strong> " + rowNeighbor +
+          "\uff0c<strong>\u4eca\u65e5</strong> <span class=\"st-accent\">" + curMine.text + "</span>" +
+          summaryTail;
       }
 
-      if (matrixForecastDateBadge){
-        matrixForecastDateBadge.textContent = nextOpen === "-" ? "\u2014" : nextOpen;
-      }
-
-      var mgHtml = "";
-      if (matrixBody){
-        if (nextOpen === "-"){
-          mgHtml = "<tr><td colspan=\"3\">\u6682\u65e0\u5916\u63a8\u65e5\u671f\u3002</td></tr>";
-        } else {
-          var groupsMg = buildMatrixGroupsForDate(nextOpen);
-          var nMg = groupsMg.length;
-          for (var mi = 0; mi < nMg; mi++){
-            var grp = groupsMg[mi];
-            var trM = userBucketNext && grp.bucketKey === userBucketNext ? " class=\"row-matrix-user\"" : "";
-            mgHtml +=
-              "<tr" + trM + ">" +
-              "<td>" + matrixGroupOrdinal(mi + 1) + "</td>" +
-              "<td class=\"st-soft\">" + grp.progressText + "</td>" +
-              "<td class=\"matrix-ranges\">" + summarizeGroupRangeLabels(grp.ranges) + "</td>" +
-              "</tr>";
+      if (matrixPeriodSelect){
+        matrixPeriodSelect.innerHTML = "";
+        if (fc.dates.length > 1){
+          matrixPeriodSelect.hidden = false;
+          for (var pi = 0; pi < fc.dates.length; pi++){
+            var opt = document.createElement("option");
+            opt.value = String(pi);
+            opt.textContent = fc.dates[pi];
+            matrixPeriodSelect.appendChild(opt);
           }
+          matrixPeriodSelect.value = "0";
+        } else {
+          matrixPeriodSelect.hidden = true;
         }
-        matrixBody.innerHTML = mgHtml;
       }
+      renderMatrixForecastUI(sid, fc, 0);
 
       /* \u5c55\u958b\u5386\u53f2 */
       var hHtml = "";
@@ -728,6 +783,12 @@
     document.getElementById("serverInput").addEventListener("keydown", function(e){
       if (e.key === "Enter") renderAll();
     });
+    (function bindMatrixForecastSelectOnce(){
+      var sel = document.getElementById("matrixForecastPeriodSelect");
+      if (!sel || sel.dataset.bound === "1") return;
+      sel.dataset.bound = "1";
+      sel.addEventListener("change", refreshMatrixForecastTable);
+    })();
     renderAll();
   })();
   </script>

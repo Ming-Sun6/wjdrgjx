@@ -440,7 +440,7 @@
     <div class="foot">
       说明：<br />
       1. 该表格仅供参考。<br />
-      2. 格内「战争学院（T11）」表示战争学院阶段已开放且火晶八尚未开放；其中 T11 为社群俗称，与 T11 兵种无关。
+      2. 格内「战争学院」表示战争学院阶段已开放且火晶八尚未开放；对照表里常见的 T11 为社群俗称，与 T11 兵种无关。
     </div>
   </div>
 
@@ -575,7 +575,7 @@
         var left = "";
         if (fc10) left = "\u706b10";
         else if (fc8) left = "\u706b8";
-        else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662\uFF08T11\uFF09";
+        else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662";
         else if (fc5) left = "\u706b5";
         var maxH = 0;
         for (var g = 11; g >= 4; g--) {
@@ -789,7 +789,7 @@
           return Number.isFinite(serial) ? serial + 1 : serial;
         }
 
-        // 与邻邦进度 / 移民预测一致：里程碑日期含区间覆盖表；展示为「火晶 + 代」组合（战争学院期写作「战争学院（T11）」）
+        // 与邻邦进度 / 移民预测一致：里程碑日期含区间覆盖表；展示为「火晶 + 代」组合（战争学院期写作「战争学院」）
         function getCellForMark(rangeIdx, markSerial) {
           if (!Number.isFinite(rangeIdx) || rangeIdx < 0) return { text: "-", domState: "" };
           if (!Number.isFinite(markSerial)) return { text: "-", domState: "" };
