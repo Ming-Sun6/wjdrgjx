@@ -587,7 +587,7 @@
           var data=null;
           try{ data=await resp.json(); }catch(e){ data=null; }
           if(!resp.ok){
-            var msg=(data&&data.error)?data.error:('HTTP_'+resp.status);
+            var msg=(data&&(data.error||data.message))?String(data.error||data.message):('HTTP_'+resp.status);
             var err=new Error(msg);
             err.data=data; err.status=resp.status;
             throw err;

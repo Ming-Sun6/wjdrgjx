@@ -3070,8 +3070,8 @@ app.post('/api/forum/posts/:id/favorite', async (req, res) => {
 
 app.patch('/api/forum/posts/:id/pin', async (req, res) => {
   try {
-    const admin = await requireAdmin(req, res);
-    if (!admin) return;
+    const mod = await requireModerator(req, res);
+    if (!mod) return;
     const postId = Number(req.params.id);
     if (!Number.isFinite(postId) || postId <= 0) return res.status(400).json({ error: 'BAD_ID' });
     const pinned = !!req.body?.pinned;
@@ -4130,6 +4130,14 @@ app.get('/api/add-user', async (_req, res) => {
   } catch (err) {
     return res.status(500).json({ ok: false, error: err.message });
   }
+});
+
+app.use((err, req, res, next) => {
+  if (!err || res.headersSent) return next(err);
+  if (!String(req.path || '').startsWith('/api/')) return next(err);
+  const isBadJson = err.type === 'entity.parse.failed';
+  if (!isBadJson) return next(err);
+  return res.status(400).json({ error: 'BAD_JSON', message: String(err.message || '') });
 });
 
 app.use((req, res) => {

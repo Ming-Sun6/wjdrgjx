@@ -7070,7 +7070,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       }
         var pinBtn=document.getElementById('forumPinPostBtn');
         if(pinBtn){
-          if(authUser && authUser.isAdmin){
+          if(authUser && (authUser.isAdmin || authUser.forumPublisher)){
             pinBtn.style.display='';
             pinBtn.textContent = post.isPinned ? '取消置顶' : '置顶';
           }else{
@@ -7208,7 +7208,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     }
     async function togglePostPin(){
       if(!forumCurrentPostId) return;
-      if(!(authUser && authUser.isAdmin)) return;
+      if(!(authUser && (authUser.isAdmin || authUser.forumPublisher))) return;
       try{
         var r=await apiFetch('/api/forum/posts/'+forumCurrentPostId+'/pin',{method:'PATCH',body:JSON.stringify({pinned: !forumCurrentPost?.isPinned})});
         if(!r.ok) return;
