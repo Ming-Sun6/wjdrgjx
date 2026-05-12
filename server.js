@@ -2990,7 +2990,7 @@ app.delete('/api/forum/comments/:id', async (req, res) => {
   }
 });
 
-app.patch('/api/forum/comments/:id/pin', async (req, res) => {
+const handleForumCommentPin = async (req, res) => {
   try {
     const user = await requireAuth(req, res);
     if (!user) return;
@@ -3016,7 +3016,9 @@ app.patch('/api/forum/comments/:id/pin', async (req, res) => {
     console.error('forum comment pin failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
-});
+};
+app.patch('/api/forum/comments/:id/pin', handleForumCommentPin);
+app.post('/api/forum/comments/:id/pin', handleForumCommentPin);
 
 app.post('/api/forum/posts/:id/like', async (req, res) => {
   try {
@@ -3068,7 +3070,7 @@ app.post('/api/forum/posts/:id/favorite', async (req, res) => {
   }
 });
 
-app.patch('/api/forum/posts/:id/pin', async (req, res) => {
+const handleForumPostPin = async (req, res) => {
   try {
     const mod = await requireModerator(req, res);
     if (!mod) return;
@@ -3082,7 +3084,9 @@ app.patch('/api/forum/posts/:id/pin', async (req, res) => {
     console.error('forum post pin failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
-});
+};
+app.patch('/api/forum/posts/:id/pin', handleForumPostPin);
+app.post('/api/forum/posts/:id/pin', handleForumPostPin);
 
 app.get('/api/admin/forum/settings', async (req, res) => {
   try {

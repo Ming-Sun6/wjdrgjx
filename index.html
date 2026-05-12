@@ -7210,7 +7210,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       if(!forumCurrentPostId) return;
       if(!(authUser && (authUser.isAdmin || authUser.forumPublisher))) return;
       try{
-        var r=await apiFetch('/api/forum/posts/'+forumCurrentPostId+'/pin',{method:'PATCH',body:JSON.stringify({pinned: !forumCurrentPost?.isPinned})});
+        var r=await apiFetch('/api/forum/posts/'+forumCurrentPostId+'/pin',{method:'POST',body:JSON.stringify({pinned: !forumCurrentPost?.isPinned})});
         if(!r.ok) return;
         await loadForumDetail(forumCurrentPostId);
         loadForumPosts();
@@ -7219,7 +7219,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     async function toggleCommentPin(commentId){
       if(!commentId) return;
       try{
-        var r=await apiFetch('/api/forum/comments/'+commentId+'/pin',{method:'PATCH',body:JSON.stringify({})});
+        var r=await apiFetch('/api/forum/comments/'+commentId+'/pin',{method:'POST',body:JSON.stringify({})});
         if(!r.ok) return;
         loadForumDetail(forumCurrentPostId);
       }catch(e){}

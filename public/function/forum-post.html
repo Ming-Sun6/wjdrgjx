@@ -922,7 +922,7 @@
         btn.disabled=true;
         try{
           var next = !state.post.isPinned;
-          await apiFetchJson('/api/forum/posts/'+id+'/pin',{method:'PATCH',body:JSON.stringify({pinned: next})});
+          await apiFetchJson('/api/forum/posts/'+id+'/pin',{method:'POST',body:JSON.stringify({pinned: next})});
           state.post.isPinned = next;
           render();
         }catch(err){
@@ -999,7 +999,7 @@
       }
 
       async function pinComment(commentId){
-        await apiFetchJson('/api/forum/comments/'+commentId+'/pin',{method:'PATCH',body:'{}'});
+        await apiFetchJson('/api/forum/comments/'+commentId+'/pin',{method:'POST',body:'{}'});
         await refresh();
       }
 
