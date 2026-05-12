@@ -281,6 +281,33 @@
             line-height: 1.1;
         }
 
+        .beapit-sprite-opacity-wrap {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 8px;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            background: var(--surface, #f8fafc);
+        }
+        .beapit-sprite-opacity-wrap label {
+            font-size: 11px;
+            color: var(--muted, #64748b);
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .beapit-sprite-opacity-wrap input[type="range"] {
+            width: 80px;
+            vertical-align: middle;
+        }
+        .beapit-sprite-opacity-wrap .beapit-sprite-opacity-val {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text, #0f172a);
+            min-width: 2.6em;
+        }
+
         #woam-sidebar {
             width: 100%;
             height: 110px;
@@ -790,24 +817,30 @@
         }
         .placed-item .item-name-input {
             width: 100%;
-            height: 12px;
+            height: 14px;
             padding: 0 1px;
             border-radius: 0;
             border: none;
             background: transparent;
-            font-size: 5px;
+            font-size: 7px;
             font-weight: 700;
             font-style: normal;
-            color: #ff4da6;
-            line-height: 12px;
+            color: #c2185b;
+            line-height: 14px;
             text-align: center;
             outline: none;
             transform: none;
             transform-origin: center;
             pointer-events: none;
+            /* 亮色描边 + 暗晕：贴图再艳也能压住字 */
+            text-shadow:
+                0 0 2px rgba(255, 255, 255, 0.98),
+                0 0 4px rgba(255, 255, 255, 0.9),
+                0 1px 2px rgba(0, 0, 0, 0.85),
+                0 -1px 1px rgba(0, 0, 0, 0.55);
         }
         .placed-item .item-name-input::placeholder {
-            color: rgba(255, 77, 166, 0.75);
+            color: rgba(194, 24, 91, 0.72);
         }
         /* 让 2×2 命名框“正对着我”：抵消地面的 rotate(45deg) + scaleY(0.5) */
         .placed-item.size-2 .item-center {
@@ -817,6 +850,7 @@
         .placed-item.size-2 .item-name-input {
             transform: rotate(-45deg) scaleY(2);
             transform-origin: center;
+            font-size: 9px;
         }
         /* 2×2 编辑时显示的格式工具栏 */
         .placed-item .item-format-bar {
@@ -1429,6 +1463,11 @@
                 <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetUp" aria-label="建筑上移">↑</button>
                 <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetDown" aria-label="建筑下移">↓</button>
             </span>
+            <span class="beapit-sprite-opacity-wrap" title="调低后建筑贴图变淡，便于看清 2×2 上的命名；影响画布与导出图，不改变存档坐标">
+                <label for="beapitSpriteOpacity">图标透明度</label>
+                <input type="range" id="beapitSpriteOpacity" min="20" max="100" value="100" step="5" aria-label="已摆放建筑贴图透明度">
+                <span class="beapit-sprite-opacity-val" id="beapitSpriteOpacityVal">100%</span>
+            </span>
             <button class="btn secondary" id="btnLandscapeMode" type="button">横屏模式</button>
             <button class="btn secondary landscape-only" id="btnCoordsTableToggle" type="button">坐标表</button>
             <button class="btn secondary landscape-only" id="btnExitLandscapeMode" type="button">退出横屏</button>
@@ -1548,7 +1587,7 @@
                     <span id="beapit-multi-count" class="beapit-multi-count">表格已选 0 行</span>
                     <span class="beapit-multi-group">
                         <label for="beapitMultiColor">颜色</label>
-                        <input type="color" id="beapitMultiColor" value="#ff4da6" title="批量字体颜色（仅对已勾选的 2×2 生效）">
+                        <input type="color" id="beapitMultiColor" value="#c2185b" title="批量字体颜色（仅对已勾选的 2×2 生效）">
                         <button type="button" class="btn secondary" id="beapitMultiApplyColor">应用颜色</button>
                     </span>
                     <span class="beapit-multi-group">
@@ -1732,6 +1771,8 @@
 
         const ALLIANCE_MINE_DEFAULT_NAME = '联盟矿';
         const ALLIANCE_MINE_NAME_COLOR = '#eab308';
+        /** 2×2 命名默认色（偏深，易压住彩色贴图） */
+        const BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR = '#c2185b';
         /** 新摆非联盟矿 2×2（炉子、炉子2 等）：默认「命名1」「命名2」…，与已有 2×2 的任意非空名去重 */
         function nextDefaultTwoByTwoSequentialName() {
             const used = new Set();
@@ -1800,16 +1841,16 @@
         }
         /** 2×2 命名颜色：统一为 #rrggbb，供存档还原与 <input type="color"> */
         function normalizeTwoByTwoNameColor(nameColor, fallback) {
-            const fb = String(fallback || '#ff4da6').trim();
+            const fb = String(fallback || BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR).trim();
             const raw = String(nameColor == null ? '' : nameColor).trim();
-            if (!raw) return /^#[0-9a-fA-F]{6}$/i.test(fb) ? fb.toLowerCase() : '#ff4da6';
+            if (!raw) return /^#[0-9a-fA-F]{6}$/i.test(fb) ? fb.toLowerCase() : BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
             let hex = raw.startsWith('#') ? raw.slice(1) : raw;
             if (/^[0-9a-fA-F]{3}$/i.test(hex)) {
                 hex = hex.split('').map((ch) => ch + ch).join('');
             }
             if (/^[0-9a-fA-F]{6}$/i.test(hex)) return ('#' + hex).toLowerCase();
             if (/^[0-9a-fA-F]{8}$/i.test(hex)) return ('#' + hex.slice(0, 6)).toLowerCase();
-            return /^#[0-9a-fA-F]{6}$/i.test(fb) ? fb.toLowerCase() : '#ff4da6';
+            return /^#[0-9a-fA-F]{6}$/i.test(fb) ? fb.toLowerCase() : BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
         }
         const BEAPIT_TERRAIN_LAKE_MARKER = '__beapit_terrain_lake__';
         const BEAPIT_TERRAIN_MOUNTAIN_MARKER = '__beapit_terrain_mountain__';
@@ -1835,6 +1876,70 @@
         }
 
         const BEAPIT_COLOR_BY_SIZE = { 1: '#409eff', 2: '#67c23a', 3: '#e6a23c', 6: '#64748b', 16: '#a16207' };
+        /** 已摆放贴图透明度：仅视图与导出，不入布局存档 */
+        const BEAPIT_SPRITE_OPACITY_LS_KEY = 'beapit_placed_sprite_opacity';
+
+        function readStoredSpriteOpacity() {
+            try {
+                const raw = localStorage.getItem(BEAPIT_SPRITE_OPACITY_LS_KEY);
+                if (raw == null || raw === '') return 1;
+                const n = parseFloat(raw);
+                if (!Number.isFinite(n)) return 1;
+                return Math.min(1, Math.max(0.2, n));
+            } catch (_) {
+                return 1;
+            }
+        }
+
+        function getBeapitSpriteUserOpacity() {
+            const range = document.getElementById('beapitSpriteOpacity');
+            if (range && range.value !== '' && range.value != null) {
+                const pct = Math.min(100, Math.max(20, Number(range.value)));
+                if (Number.isFinite(pct)) return pct / 100;
+            }
+            return readStoredSpriteOpacity();
+        }
+
+        function effectiveSpriteOpacityForImg(imgSrc) {
+            return getBeapitSpriteUserOpacity() * (isFurnaceStoveSpritePath(imgSrc) ? 0.8 : 1);
+        }
+
+        function refreshAllPlacedSpriteOpacity() {
+            for (const it of CONFIG.placedList) {
+                if (!it || !it.el) continue;
+                const sp = it.el.querySelector('.placed-sprite');
+                if (sp) {
+                    const src = it.img || '';
+                    sp.style.opacity = String(effectiveSpriteOpacityForImg(src));
+                }
+                const uo = getBeapitSpriteUserOpacity();
+                it.el.querySelectorAll('.placed-wc-corner').forEach((cr) => {
+                    cr.style.opacity = String(uo);
+                });
+            }
+        }
+
+        function bindBeapitSpriteOpacityControls() {
+            const range = document.getElementById('beapitSpriteOpacity');
+            const valSpan = document.getElementById('beapitSpriteOpacityVal');
+            if (!range) return;
+            const stored = readStoredSpriteOpacity();
+            const pct0 = Math.round(stored * 100);
+            const pctClamped = Math.min(100, Math.max(20, Math.round(pct0 / 5) * 5));
+            range.value = String(pctClamped);
+            if (valSpan) valSpan.textContent = `${pctClamped}%`;
+            const sync = () => {
+                const pct = Math.min(100, Math.max(20, Number(range.value) || 100));
+                range.value = String(pct);
+                if (valSpan) valSpan.textContent = `${pct}%`;
+                try {
+                    localStorage.setItem(BEAPIT_SPRITE_OPACITY_LS_KEY, String(pct / 100));
+                } catch (_) { /* ignore */ }
+                refreshAllPlacedSpriteOpacity();
+            };
+            range.addEventListener('input', sync);
+            range.addEventListener('change', sync);
+        }
 
         function escapeHtml(str) {
             return String(str || '').replace(/[&<>"']/g, (s) => (
@@ -2206,7 +2311,7 @@
 
         function applyNameFormat(inputEl, itemEl) {
             if (!inputEl || !itemEl) return;
-            inputEl.style.color = itemEl.dataset.nameColor || '#ff4da6';
+            inputEl.style.color = itemEl.dataset.nameColor || BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
             inputEl.style.fontWeight = itemEl.dataset.nameBold === '1' ? '700' : '400';
             inputEl.style.fontStyle = itemEl.dataset.nameItalic === '1' ? 'italic' : 'normal';
         }
@@ -2229,7 +2334,7 @@
             if (!rec || rec.size !== 2) return;
             if ('name' in patch) rec.name = patch.name == null ? '' : String(patch.name);
             if ('nameColor' in patch) {
-                rec.nameColor = normalizeTwoByTwoNameColor(patch.nameColor, rec.nameColor || '#ff4da6');
+                rec.nameColor = normalizeTwoByTwoNameColor(patch.nameColor, rec.nameColor || BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR);
             }
             if ('nameBold' in patch) rec.nameBold = !!patch.nameBold;
             if ('nameItalic' in patch) rec.nameItalic = !!patch.nameItalic;
@@ -2246,7 +2351,7 @@
             }
             const barColor = el.querySelector('.item-format-bar input[type="color"]');
             if (barColor && 'nameColor' in patch) {
-                barColor.value = normalizeTwoByTwoNameColor(rec.nameColor, '#ff4da6');
+                barColor.value = normalizeTwoByTwoNameColor(rec.nameColor, BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR);
             }
             const fmtBtns = el.querySelectorAll('.item-format-bar .fmt-btn');
             if (fmtBtns[0] && 'nameBold' in patch) fmtBtns[0].classList.toggle('active', !!rec.nameBold);
@@ -2407,10 +2512,10 @@
                 sprite.style.backgroundImage = `url("${String(finalImg).trim()}")`;
             }
             if (isFurnaceStoveSpritePath(finalImg)) {
-                sprite.style.opacity = '0.8';
                 const fsc = getFurnaceSpriteScale(finalImg);
                 sprite.style.transform = `translate(calc(-54% + ${BEAPIT_FURNACE_NUDGE_X_PX}px), calc(-58% + ${BEAPIT_FURNACE_NUDGE_Y_PX}px)) rotate(-45deg) scaleY(2) scale(${fsc})`;
             }
+            sprite.style.opacity = String(effectiveSpriteOpacityForImg(finalImg));
             item.appendChild(sprite);
 
             if (size === 16 && isWangChengCapitalSpritePath(finalImg)) {
@@ -2436,6 +2541,7 @@
                     corner.style.backgroundImage = `url("${cornerUrl}")`;
                     corner.style.filter =
                         'drop-shadow(2px 3px 2px rgba(0,0,0,0.25)) drop-shadow(-1px -1px 0 rgba(255,255,255,0.45))';
+                    corner.style.opacity = String(getBeapitSpriteUserOpacity());
                     item.appendChild(corner);
                 });
             }
@@ -2443,7 +2549,7 @@
             // 中心显示：
             // - 2×2：命名框（可编辑，可自定义颜色/加粗/倾斜）
             // - 3×3：改为图片展示（不再显示文字）
-            const defColor = '#ff4da6';
+            const defColor = BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
             const defBold = true;
             const defItalic = false;
             if (size === 2) {
@@ -2572,7 +2678,7 @@
                 size,
                 name: item.dataset.name || '',
                 img: (finalImg && String(finalImg).trim()) ? String(finalImg).trim() : '',
-                nameColor: item.dataset.nameColor || '#ff4da6',
+                nameColor: item.dataset.nameColor || BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR,
                 nameBold: item.dataset.nameBold === '1',
                 nameItalic: item.dataset.nameItalic === '1'
             });
@@ -2884,7 +2990,7 @@
                         tr.title = `命名「${nmShow}」与其它 2×2 重复`;
                     }
                     const name = it.name || it.el?.dataset?.name || '';
-                    const nc = normalizeTwoByTwoNameColor(it.nameColor || it.el?.dataset?.nameColor, '#ff4da6');
+                    const nc = normalizeTwoByTwoNameColor(it.nameColor || it.el?.dataset?.nameColor, BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR);
                     const nb = it.nameBold !== false && it.el?.dataset?.nameBold !== '0';
                     const ni = !!it.nameItalic || it.el?.dataset?.nameItalic === '1';
 
@@ -2969,7 +3075,7 @@
                     s: it.size,
                     n: it.size === 2 ? (it.name || it.el?.dataset?.name || '') : '',
                     i: it.img || '',
-                    nc: it.size === 2 ? (it.nameColor || it.el?.dataset?.nameColor || '#ff4da6') : undefined,
+                    nc: it.size === 2 ? (it.nameColor || it.el?.dataset?.nameColor || BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR) : undefined,
                     nb: it.size === 2 ? (it.nameBold !== false && it.el?.dataset?.nameBold !== '0') : undefined,
                     ni: it.size === 2 ? (!!it.nameItalic || it.el?.dataset?.nameItalic === '1') : undefined
                 }))
@@ -3025,7 +3131,7 @@
 
         // 紧凑导出格式 v2：数组替代对象，省略尾部默认值，减少字符数
         function serializeLayoutCompact() {
-            const defC = '#ff4da6';
+            const defC = BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
             const defs = ['', '', 0, 1, 0]; // n,i,nc,b,t 的默认值
             const rows = CONFIG.placedList.map(it => {
                 const nc = (it.size === 2 ? (it.nameColor || it.el?.dataset?.nameColor || defC) : defC);
@@ -3252,7 +3358,7 @@
         function bindMultiBatchBar() {
             document.getElementById('beapitMultiApplyColor')?.addEventListener('click', () => {
                 const v = document.getElementById('beapitMultiColor')?.value;
-                applyBatchToSelectedTwoByTwo({ nameColor: normalizeTwoByTwoNameColor(v, '#ff4da6') });
+                applyBatchToSelectedTwoByTwo({ nameColor: normalizeTwoByTwoNameColor(v, BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR) });
             });
             document.getElementById('beapitMultiBoldOn')?.addEventListener('click', () => applyBatchToSelectedTwoByTwo({ nameBold: true }));
             document.getElementById('beapitMultiBoldOff')?.addEventListener('click', () => applyBatchToSelectedTwoByTwo({ nameBold: false }));
@@ -3588,7 +3694,7 @@
 
                     if (im) {
                         ctx.save();
-                        if (isFurnaceStoveSpritePath(src)) ctx.globalAlpha = 0.8;
+                        ctx.globalAlpha = effectiveSpriteOpacityForImg(src);
                         ctx.translate(x + w0 / 2, y + h0 / 2);
                         // 抵消地面 rotate(45) + scaleY(0.5)
                         ctx.rotate(-45 * deg);
@@ -3629,6 +3735,7 @@
                                     const cy = y + oy + cs;
                                     const face = (wangChengCornerTowardCenterDeg(idx) + BEAPIT_WC_CORNER_EXTRA_CLOCKWISE_DEG) * deg;
                                     ctx.save();
+                                    ctx.globalAlpha = getBeapitSpriteUserOpacity();
                                     ctx.translate(cx, cy);
                                     ctx.rotate(-45 * deg);
                                     ctx.scale(1, 2);
@@ -3656,7 +3763,7 @@
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.scale(dpr, dpr);
                 ctx.font = '700 11px "Microsoft YaHei", sans-serif';
-                ctx.fillStyle = '#ff4da6';
+                ctx.fillStyle = BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
@@ -3668,11 +3775,16 @@
                         x: it.startCol * cs + cs + exportPlacedGox,
                         y: it.startRow * cs + cs + exportPlacedGoy
                     }); // 2×2 中心（含全图建筑平移）
-                    const nc = it.nameColor || it.el?.dataset?.nameColor || '#ff4da6';
+                    const nc = it.nameColor || it.el?.dataset?.nameColor || BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
                     const bold = it.nameBold !== false && it.el?.dataset?.nameBold !== '0';
                     const italic = !!it.nameItalic || it.el?.dataset?.nameItalic === '1';
-                    ctx.fillStyle = nc;
                     ctx.font = `${bold ? '700' : '400'} ${italic ? 'italic ' : ''}11px "Microsoft YaHei", sans-serif`;
+                    ctx.lineJoin = 'round';
+                    ctx.miterLimit = 2;
+                    ctx.lineWidth = 3.5;
+                    ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+                    ctx.strokeText(name, p.x, p.y);
+                    ctx.fillStyle = nc;
                     ctx.fillText(name, p.x, p.y);
                 }
                 ctx.restore();
@@ -3928,6 +4040,7 @@
         // 初始化所有功能
         window.onload = function() {
             createGrid();
+            bindBeapitSpriteOpacityControls();
             bindGridHover();     // 网格悬浮预览（优化性能 + 适配旋转）
             bindItemSelect();   // 物品点击选择
             bindGridClickPlace();// 网格点击摆放
@@ -4051,7 +4164,7 @@
                 function parseConfig(rawText) {
                     const config = JSON.parse(rawText);
                     if (!config) throw new Error('配置格式错误');
-                    const defC = '#ff4da6';
+                    const defC = BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
                     let gx = Number(config.gox) || 0;
                     let gy = Number(config.goy) || 0;
                     if (config.v === 2 && Array.isArray(config.i)) {
