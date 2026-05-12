@@ -2,7 +2,8 @@
   "type": "commonjs",
   "scripts": {
     "migrate:inline-avatars": "node scripts/migrate-inline-avatars.js",
-    "regenerate:t12": "node scripts/regenerate-t12-html.js"
+    "regenerate:t12": "node scripts/regenerate-t12-html.js",
+    "convert:webp": "node scripts/convert-to-webp.js"
   },
   "devDependencies": {
     "xlsx": "^0.18.5"
