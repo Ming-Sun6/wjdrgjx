@@ -6754,7 +6754,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       setPublishStatus(editing ? '保存中...' : '发布中...');
       if(btn) btn.disabled=true;
       try{
-        var url = editing ? ('/api/forum/posts/'+forumEditingPostId) : '/api/forum/posts';
+        var url = editing ? ('/api/forum/posts/'+forumEditingPostId+'/update') : '/api/forum/posts';
         var method = 'POST';
         var r=await apiFetchWithTimeout(url,{method:method,body:JSON.stringify(payload)},15000);
         var d=await r.json().catch(function(){ return {}; });

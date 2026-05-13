@@ -972,7 +972,7 @@
         var btn=document.getElementById('saveEditBtn');
         if(btn) btn.disabled=true;
         try{
-          await apiFetchJson('/api/forum/posts/'+id,{method:'POST',body:JSON.stringify(body)});
+          await apiFetchJson('/api/forum/posts/'+id+'/update',{method:'POST',body:JSON.stringify(body)});
           state.editing=false;
           await refresh();
         }catch(err){

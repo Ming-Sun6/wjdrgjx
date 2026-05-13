@@ -2808,7 +2808,7 @@ const handleForumPostUpdate = async (req, res) => {
   }
 };
 app.patch('/api/forum/posts/:id', handleForumPostUpdate);
-app.post('/api/forum/posts/:id', handleForumPostUpdate);
+app.post('/api/forum/posts/:id/update', handleForumPostUpdate);
 
 app.get('/api/forum/posts/:id', async (req, res) => {
   try {
