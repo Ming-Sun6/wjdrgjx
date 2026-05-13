@@ -2749,7 +2749,7 @@ app.post('/api/forum/posts', async (req, res) => {
   }
 });
 
-app.patch('/api/forum/posts/:id', async (req, res) => {
+const handleForumPostUpdate = async (req, res) => {
   try {
     const user = await requireAuth(req, res);
     if (!user) return;
@@ -2803,10 +2803,12 @@ app.patch('/api/forum/posts/:id', async (req, res) => {
     const row = await getPostById(postId);
     return res.json({ ok: true, post: toForumPostDto(row, Number(user.id)) });
   } catch (err) {
-    console.error('forum post patch failed:', err);
+    console.error('forum post update failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
-});
+};
+app.patch('/api/forum/posts/:id', handleForumPostUpdate);
+app.post('/api/forum/posts/:id', handleForumPostUpdate);
 
 app.get('/api/forum/posts/:id', async (req, res) => {
   try {

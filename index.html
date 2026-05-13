@@ -6755,7 +6755,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       if(btn) btn.disabled=true;
       try{
         var url = editing ? ('/api/forum/posts/'+forumEditingPostId) : '/api/forum/posts';
-        var method = editing ? 'PATCH' : 'POST';
+        var method = 'POST';
         var r=await apiFetchWithTimeout(url,{method:method,body:JSON.stringify(payload)},15000);
         var d=await r.json().catch(function(){ return {}; });
         if(!r.ok){
