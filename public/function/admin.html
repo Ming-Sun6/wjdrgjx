@@ -3156,7 +3156,7 @@
       if(!toggle) return;
       setStatus('reviewStatus','处理中...');
       try{
-        var r=await apiFetch('/api/admin/forum/settings',{method:'PATCH',body:JSON.stringify({autoApprove: !!toggle.checked})});
+        var r=await apiFetch('/api/admin/forum/settings',{method:'POST',body:JSON.stringify({autoApprove: !!toggle.checked})});
         if(!r.ok){
           var err=await r.json().catch(function(){ return {}; });
           setStatus('reviewStatus','设置失败：'+(err.error||r.status));
@@ -3537,7 +3537,7 @@
       if(!ok) return;
       setStatus('reviewStatus','处理中...');
       try{
-        var r=await apiFetch('/api/admin/forum/posts/'+postId+'/review',{method:'PATCH',body:JSON.stringify({action: action})});
+        var r=await apiFetch('/api/admin/forum/posts/'+postId+'/review',{method:'POST',body:JSON.stringify({action: action})});
         if(!r.ok){
           var err=await r.json().catch(function(){ return {}; });
           setStatus('reviewStatus','操作失败：'+(err.error||r.status));
@@ -3693,7 +3693,7 @@
       if(!confirm(actionText)) return;
       setStatus('deleteReviewStatus','处理中...');
       try{
-        var r=await apiFetch('/api/admin/user-delete-requests/'+requestId,{method:'PATCH',body:JSON.stringify({action: action})});
+        var r=await apiFetch('/api/admin/user-delete-requests/'+requestId,{method:'POST',body:JSON.stringify({action: action})});
         var d=await r.json().catch(function(){ return {}; });
         if(!r.ok){
           var msg=d.error||r.status;

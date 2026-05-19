@@ -1864,7 +1864,7 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
-app.patch('/api/profile', async (req, res) => {
+const handleProfileUpdate = async (req, res) => {
   try {
     const user = await requireAuth(req, res);
     if (!user) return;
@@ -1954,7 +1954,10 @@ app.patch('/api/profile', async (req, res) => {
     console.error('profile patch failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
-});
+};
+
+app.patch('/api/profile', handleProfileUpdate);
+app.post('/api/profile', handleProfileUpdate);
 
 app.post('/api/profile/avatar', async (req, res) => {
   try {
@@ -3101,7 +3104,7 @@ app.get('/api/admin/forum/settings', async (req, res) => {
   }
 });
 
-app.patch('/api/admin/forum/settings', async (req, res) => {
+const handleAdminForumSettingsUpdate = async (req, res) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
@@ -3112,7 +3115,10 @@ app.patch('/api/admin/forum/settings', async (req, res) => {
     console.error('forum settings patch failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
-});
+};
+
+app.patch('/api/admin/forum/settings', handleAdminForumSettingsUpdate);
+app.post('/api/admin/forum/settings', handleAdminForumSettingsUpdate);
 
 app.get('/api/admin/forum/pending', async (req, res) => {
   try {
@@ -3196,7 +3202,7 @@ app.get('/api/admin/forum/posts', async (req, res) => {
   }
 });
 
-app.patch('/api/admin/forum/posts/:id/review', async (req, res) => {
+const handleAdminForumPostReview = async (req, res) => {
   try {
     const mod = await requireModerator(req, res);
     if (!mod) return;
@@ -3223,7 +3229,10 @@ app.patch('/api/admin/forum/posts/:id/review', async (req, res) => {
     console.error('forum review patch failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
-});
+};
+
+app.patch('/api/admin/forum/posts/:id/review', handleAdminForumPostReview);
+app.post('/api/admin/forum/posts/:id/review', handleAdminForumPostReview);
 
 app.get('/api/admin/blackroom/users', async (req, res) => {
   try {
@@ -3382,7 +3391,7 @@ app.get('/api/admin/user-delete-requests', async (req, res) => {
   }
 });
 
-app.patch('/api/admin/user-delete-requests/:id', async (req, res) => {
+const handleAdminUserDeleteRequestReview = async (req, res) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
@@ -3449,7 +3458,10 @@ app.patch('/api/admin/user-delete-requests/:id', async (req, res) => {
     console.error('admin user delete request patch failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
-});
+};
+
+app.patch('/api/admin/user-delete-requests/:id', handleAdminUserDeleteRequestReview);
+app.post('/api/admin/user-delete-requests/:id', handleAdminUserDeleteRequestReview);
 
 app.get('/api/admin/users', async (req, res) => {
   try {
