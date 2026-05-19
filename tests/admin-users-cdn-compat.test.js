@@ -22,3 +22,11 @@ test('admin user update API accepts POST alongside PATCH', () => {
   assert.match(source, /app\.patch\('\/api\/admin\/users\/:id',\s*handleAdminUserUpdate\s*\);/);
   assert.match(source, /app\.post\('\/api\/admin\/users\/:id',\s*handleAdminUserUpdate\s*\);/);
 });
+
+test('admin user editor includes visible save result hint near the save action', () => {
+  const source = read(path.join('public', 'function', 'admin-users-page.js'));
+  assert.match(source, /userDetailSaveHint/);
+  assert.match(source, /setSaveHint\(modal,'保存中\.\.\.'/);
+  assert.match(source, /var failMsg='保存失败：'/);
+  assert.match(source, /var okMsg='保存成功/);
+});
