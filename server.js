@@ -3484,7 +3484,7 @@ app.get('/api/admin/users', async (req, res) => {
   }
 });
 
-app.patch('/api/admin/users/:id', async (req, res) => {
+const handleAdminUserUpdate = async (req, res) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
@@ -3614,7 +3614,10 @@ app.patch('/api/admin/users/:id', async (req, res) => {
     console.error('admin users patch failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
-});
+};
+
+app.patch('/api/admin/users/:id', handleAdminUserUpdate);
+app.post('/api/admin/users/:id', handleAdminUserUpdate);
 
 app.post('/api/admin/users/batch', async (req, res) => {
   try {

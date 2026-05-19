@@ -3419,7 +3419,7 @@
       if(!confirm(next?'确认拉黑该账号？':'确认解除拉黑该账号？')) return;
       setStatus('violationStatus','处理中...');
       try{
-        var r=await apiFetch('/api/admin/users/'+userId,{method:'PATCH',body:JSON.stringify({isBanned: next})});
+        var r=await apiFetch('/api/admin/users/'+userId,{method:'POST',body:JSON.stringify({isBanned: next})});
         if(!r.ok){
           var err=await r.json().catch(function(){ return {}; });
           setStatus('violationStatus','操作失败：'+(err.error||r.status));
@@ -3476,7 +3476,7 @@
       if(!confirm(msg)) return;
       setStatus('violationStatus','处理中...');
       try{
-        var r=await apiFetch('/api/admin/users/'+userId,{method:'PATCH',body:JSON.stringify({mutedUntil: mutedUntil})});
+        var r=await apiFetch('/api/admin/users/'+userId,{method:'POST',body:JSON.stringify({mutedUntil: mutedUntil})});
         if(!r.ok){
           var err=await r.json().catch(function(){ return {}; });
           setStatus('violationStatus','禁言操作失败：'+(err.error||r.status));
@@ -3718,7 +3718,7 @@
       if(!userId) return;
       setStatus('blackroomStatus','处理中...');
       try{
-        var r=await apiFetch('/api/admin/users/'+userId,{method:'PATCH',body:JSON.stringify(payload||{})});
+        var r=await apiFetch('/api/admin/users/'+userId,{method:'POST',body:JSON.stringify(payload||{})});
         var d=await r.json().catch(function(){ return {}; });
         if(!r.ok){
           setStatus('blackroomStatus','操作失败：'+(d.error||r.status));
