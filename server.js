@@ -37,7 +37,7 @@ const {
   validateBatchAdminUserAction,
   buildBatchResetUsername
 } = require('./admin-user-management');
-const { mountGiftcodeProxy, GIFTCODE_URL_PREFIX, GIFTCODE_SERVICE_URL } = require('./giftcode-proxy');
+const { mountGiftcodeProxy, GIFTCODE_URL_PREFIX, GIFTCODE_SERVICE_URL, GIFTCODE_UI_MODE } = require('./giftcode-proxy');
 
 const app = express();
 const PORT = 3000;
@@ -94,6 +94,14 @@ try {
 let analyticsService = null;
 let dashboardHandlers = null;
 let governanceService = null;
+
+const giftcodeStaticDir = path.join(__dirname, 'public', 'giftcode');
+if (GIFTCODE_UI_MODE !== 'live') {
+  app.get(['/giftcode', '/giftcode/'], (_req, res) => {
+    res.sendFile(path.join(giftcodeStaticDir, 'index.html'));
+  });
+  app.use('/giftcode', express.static(giftcodeStaticDir, { index: 'index.html' }));
+}
 
 mountGiftcodeProxy(app);
 app.use(express.json({ limit: '8mb' }));
@@ -4176,7 +4184,7 @@ app.listen(PORT, async () => {
     console.log('Local server started.');
     console.log(`Site: http://localhost:${PORT}`);
     if (GIFTCODE_URL_PREFIX) {
-      console.log(`Giftcode UI: http://localhost:${PORT}${GIFTCODE_URL_PREFIX}/`);
+      console.log(`Giftcode UI: http://localhost:${PORT}${GIFTCODE_URL_PREFIX}/ (${GIFTCODE_UI_MODE})`);
     }
     console.log(`Giftcode API proxy -> ${GIFTCODE_SERVICE_URL}`);
     console.log(`Auth check: http://localhost:${PORT}/api/auth/me`);

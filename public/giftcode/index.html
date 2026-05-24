@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>兑换中心 - 无尽冬日工具箱</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", system-ui, sans-serif;
+      color: #e2e8f0;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(59,130,246,.22), transparent 55%),
+        radial-gradient(900px 600px at 85% 20%, rgba(139,92,246,.18), transparent 55%),
+        linear-gradient(135deg, #0b1220, #0f172a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, .72);
+      backdrop-filter: blur(6px);
+      z-index: 10;
+    }
+    .modal {
+      position: fixed;
+      z-index: 20;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: min(92vw, 420px);
+      background: linear-gradient(160deg, rgba(30,41,59,.96), rgba(15,23,42,.98));
+      border: 1px solid rgba(148,163,184,.22);
+      border-radius: 20px;
+      padding: 28px 24px 24px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.45);
+      text-align: center;
+    }
+    .icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 16px;
+      border-radius: 16px;
+      background: rgba(59,130,246,.15);
+      border: 1px solid rgba(96,165,250,.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #f8fafc;
+    }
+    p {
+      font-size: .95rem;
+      line-height: 1.65;
+      color: #94a3b8;
+      margin-bottom: 22px;
+    }
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #3b82f6, #6366f1);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(59,130,246,.35);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .btn-home:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(59,130,246,.45);
+    }
+    .hint {
+      margin-top: 14px;
+      font-size: .75rem;
+      color: #64748b;
+    }
+    .page-bg {
+      text-align: center;
+      opacity: .35;
+      pointer-events: none;
+      user-select: none;
+    }
+    .page-bg h2 { font-size: 1.5rem; margin-bottom: 8px; }
+    .page-bg p { font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <div class="page-bg" aria-hidden="true">
+    <h2>无尽冬日兑换中心</h2>
+    <p>礼包码自动兑换 · 码库管理</p>
+  </div>
+
+  <div class="backdrop" aria-hidden="true"></div>
+
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="dev-title" aria-describedby="dev-desc">
+    <div class="icon" aria-hidden="true">🛠️</div>
+    <h1 id="dev-title">该模块正在开发中</h1>
+    <p id="dev-desc">兑换中心正在升级对接，暂时无法使用。请稍后再来，或返回工具箱首页使用其他功能。</p>
+    <a class="btn-home" href="/">返回主页</a>
+    <p class="hint">窗口暂不可关闭 · 无尽冬日工具箱</p>
+  </div>
+</body>
+</html>
