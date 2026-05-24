@@ -7,8 +7,8 @@ set "SERVICE_NAME=wjgl-node"
 
 echo.
 echo ================================
-echo  启动后端
-echo  目录: %cd%
+echo  Start Node backend (port 3000)
+echo  Dir: %cd%
 echo ================================
 echo.
 
@@ -28,11 +28,11 @@ echo.
 
 call :port_listening 5201
 if errorlevel 1 (
-  echo [START] 兑换中心 Flask 未运行，正在后台启动 start-giftcode.bat ...
+  echo [START] Giftcode not on 5201, launching start-giftcode.bat ...
   start "wjdr-giftcode" /min "%~dp0start-giftcode.bat"
   timeout /t 3 /nobreak >nul
 ) else (
-  echo [SKIP] 兑换中心已在端口 5201 运行
+  echo [SKIP] Giftcode already on port 5201
 )
 
 echo.
