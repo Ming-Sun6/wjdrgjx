@@ -3,7 +3,11 @@
   "scripts": {
     "migrate:inline-avatars": "node scripts/migrate-inline-avatars.js",
     "regenerate:t12": "node scripts/regenerate-t12-html.js",
-    "convert:webp": "node scripts/convert-to-webp.js"
+    "convert:webp": "node scripts/convert-to-webp.js",
+    "service:install": "node scripts/service-install.js",
+    "service:uninstall": "node scripts/service-uninstall.js",
+    "service:giftcode:install": "node scripts/giftcode-service-install.js",
+    "service:giftcode:uninstall": "node scripts/giftcode-service-uninstall.js"
   },
   "devDependencies": {
     "xlsx": "^0.18.5"

@@ -12,7 +12,8 @@ const GIFTCODE_EXACT_API_PATHS = new Set([
   '/api/submitGiftCode',
   '/api/getGiftCode',
   '/api/giftCode',
-  '/api/giftCodeAll'
+  '/api/giftCodeAll',
+  '/api/giftcode/health'
 ]);
 
 function normalizePrefix(prefix) {

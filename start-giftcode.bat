@@ -3,9 +3,11 @@ setlocal EnableExtensions
 
 cd /d "%~dp0wjdr-giftcode"
 
-REM Avoid multiple Flask instances on 5201 (old copies would shadow new routes)
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":5201 .*LISTENING"') do (
-  taskkill /F /PID %%a >nul 2>&1
+  echo Port 5201 already in use by PID %%a
+  echo Stop it first or use restart-all.bat
+  pause
+  exit /b 1
 )
 
 set "GIFTCODE_URL_PREFIX=/giftcode"
@@ -19,7 +21,15 @@ echo.
 echo ================================
 echo  WJDR Giftcode (Flask) :%GIFTCODE_PORT%
 echo  URL prefix: %GIFTCODE_URL_PREFIX%
+echo  Keep THIS window open while using giftcode.
 echo ================================
 echo.
 
 python main.py
+set "EC=%ERRORLEVEL%"
+if not "%EC%"=="0" (
+  echo.
+  echo [ERROR] Giftcode exited with code %EC%
+  pause
+)
+exit /b %EC%

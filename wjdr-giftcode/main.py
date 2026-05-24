@@ -8,12 +8,14 @@ from datebase import db, setGiftCode, getGiftCodesByPage, update_user_cdk_statis
 from models import User, redeemCode, Admin
 from auth import api_sign_required
 import time
-from sqlalchemy import or_, and_, cast, Integer
+from sqlalchemy import or_, and_, cast, Integer, text
 from app import _run, _runAll, _runUserAll, login_fid, string_to_timestamp
 from apscheduler.schedulers.background import BackgroundScheduler
 from pytz import timezone
 from dotenv import load_dotenv
 import logging
+
+from db_config import get_database_url, get_engine_options
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -175,21 +177,17 @@ app = Flask(__name__)
 # ========================
 # 应用配置
 # ========================
-DATABASE_URL = os.getenv('MYSQL_URL')
+try:
+    DATABASE_URL = get_database_url()
+except RuntimeError as e:
+    DATABASE_URL = None
+    logger.error(str(e))
+
 app.config.update(
-    # 数据库配置
     SQLALCHEMY_DATABASE_URI=DATABASE_URL,
-    SQLALCHEMY_ENGINE_OPTIONS={
-        'pool_pre_ping': True,
-        'pool_recycle': 300,
-        'connect_args': {
-            'charset': 'utf8mb4',
-            'collation': 'utf8mb4_unicode_ci'
-        }
-    },
+    SQLALCHEMY_ENGINE_OPTIONS=get_engine_options() if DATABASE_URL else {},
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    # 安全配置
-    PROPAGATE_EXCEPTIONS=True
+    PROPAGATE_EXCEPTIONS=True,
 )
 
 db.init_app(app)
@@ -216,6 +214,23 @@ def handle_api_exception(e):
 @app.route('/')
 def dashboard():
     return render_template('index.html')
+
+
+@app.route('/api/giftcode/health', methods=['GET'])
+def api_giftcode_health():
+    db_ok = False
+    try:
+        db.session.execute(text('SELECT 1'))
+        db_ok = True
+    except Exception:
+        db_ok = False
+    from datebase import _redis_ok
+    return jsonify({
+        'ok': db_ok,
+        'database': db_ok,
+        'redis': _redis_ok(),
+        'service': 'wjdr-giftcode',
+    })
 
 
 @app.route('/api/giftcode/player', methods=['POST'])

@@ -16,12 +16,11 @@ class BaseUser(db.Model):
 
 
 class User(BaseUser):
-    __tablename__ = 'user'
+    __tablename__ = 'gc_user'
 
 
 class redeemCode(db.Model):
-    # 兑换码表
-    __tablename__ = 'redeemCode'
+    __tablename__ = 'gc_redeem_code'
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.String(20), default=lambda: str(round(time.time() * 1000)))
     code = db.Column(db.String(30), nullable=False, unique=True)
@@ -33,8 +32,7 @@ class redeemCode(db.Model):
 
 
 class danmu(db.Model):
-    # 弹幕
-    __tablename__ = 'danmu'
+    __tablename__ = 'gc_danmu'
     id = db.Column(db.Integer, primary_key=True)
     created_at = db.Column(db.String(20), default=lambda: str(round(time.time() * 1000)))
     username = db.Column(db.String(128), nullable=True)
@@ -45,8 +43,7 @@ class danmu(db.Model):
 
 
 class Admin(db.Model):
-    # 管理员
-    __tablename__ = 'admin'
+    __tablename__ = 'gc_admin'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(128), nullable=True)
     password = db.Column(db.String(128), nullable=False)
