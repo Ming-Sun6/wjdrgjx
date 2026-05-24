@@ -98,9 +98,8 @@ let governanceService = null;
 const giftcodeStaticDir = path.join(__dirname, 'public', 'giftcode');
 if (GIFTCODE_UI_MODE !== 'live') {
   app.get(['/giftcode', '/giftcode/'], (_req, res) => {
-    res.sendFile(path.join(giftcodeStaticDir, 'index.html'));
+    res.redirect(302, '/#giftcode-dev');
   });
-  app.use('/giftcode', express.static(giftcodeStaticDir, { index: 'index.html' }));
 }
 
 mountGiftcodeProxy(app);
