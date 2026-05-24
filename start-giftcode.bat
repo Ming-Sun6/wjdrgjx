@@ -25,6 +25,8 @@ echo  Keep THIS window open while using giftcode.
 echo ================================
 echo.
 
+python -m pip install -r requirements.txt -q 2>nul
+
 python main.py
 set "EC=%ERRORLEVEL%"
 if not "%EC%"=="0" (

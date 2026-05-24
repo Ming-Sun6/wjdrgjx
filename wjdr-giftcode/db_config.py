@@ -14,25 +14,42 @@ def get_database_url() -> str:
     if explicit:
         return explicit
 
-    pg_host = (os.getenv('PGHOST') or '').strip()
-    if pg_host:
-        user = quote_plus(os.getenv('PGUSER') or '')
-        password = quote_plus(os.getenv('PGPASSWORD') or '')
-        host = pg_host
-        port = (os.getenv('PGPORT') or '5432').strip()
-        database = (os.getenv('PGDATABASE') or 'postgres').strip()
-        ssl_mode = (os.getenv('PGSSLMODE') or os.getenv('PGSSL') or '').strip().lower()
-        query = f'?sslmode={quote_plus(ssl_mode)}' if ssl_mode else ''
-        return f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}{query}'
-
     mysql = (os.getenv('MYSQL_URL') or '').strip()
+    pg_host = (os.getenv('PGHOST') or '').strip()
+    engine = (os.getenv('GIFTCODE_DB_ENGINE') or '').strip().lower()
+
+    if engine in ('mysql', 'mariadb'):
+        if mysql:
+            return mysql
+        raise RuntimeError('GIFTCODE_DB_ENGINE=mysql 但未设置 MYSQL_URL')
+
+    if engine in ('postgres', 'postgresql', 'pg'):
+        if pg_host:
+            return _build_postgres_url(pg_host)
+        raise RuntimeError('GIFTCODE_DB_ENGINE=postgres 但未设置 PGHOST')
+
+    # 本地：wjdr-giftcode/.env 里配了 MYSQL_URL 时优先 MySQL
+    # 服务器：通常只有根目录 PGHOST，没有 MYSQL_URL → 走 PostgreSQL
     if mysql:
         return mysql
 
+    if pg_host:
+        return _build_postgres_url(pg_host)
+
     raise RuntimeError(
-        '未配置数据库：请在工具箱根目录 .env 设置 PGHOST/PGUSER/PGPASSWORD/PGDATABASE，'
-        '或设置 DATABASE_URL / MYSQL_URL'
+        '未配置数据库：服务器请在根目录 .env 设置 PGHOST；'
+        '本地请在 wjdr-giftcode/.env 设置 MYSQL_URL'
     )
+
+
+def _build_postgres_url(pg_host: str) -> str:
+    user = quote_plus(os.getenv('PGUSER') or '')
+    password = quote_plus(os.getenv('PGPASSWORD') or '')
+    port = (os.getenv('PGPORT') or '5432').strip()
+    database = (os.getenv('PGDATABASE') or 'postgres').strip()
+    ssl_mode = (os.getenv('PGSSLMODE') or os.getenv('PGSSL') or '').strip().lower()
+    query = f'?sslmode={quote_plus(ssl_mode)}' if ssl_mode else ''
+    return f'postgresql+psycopg2://{user}:{password}@{pg_host}:{port}/{database}{query}'
 
 
 def get_engine_options() -> dict:

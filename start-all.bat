@@ -17,7 +17,12 @@ if errorlevel 1 (
   if errorlevel 1 (
     echo.
     echo [ERROR] Giftcode did not start on port 5201.
-    echo         Double-click start-giftcode.bat to see the error message.
+    echo         Double-click start-giftcode.bat to see the error.
+    if exist "logs\giftcode.log" (
+      echo.
+      echo --- logs\giftcode.log (last 12 lines) ---
+      powershell -NoProfile -Command "Get-Content 'logs\giftcode.log' -Tail 12 -ErrorAction SilentlyContinue"
+    )
     echo.
     pause
     exit /b 1

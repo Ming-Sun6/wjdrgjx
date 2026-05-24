@@ -15,8 +15,13 @@ if not exist ".env" (
 
 if not exist "..\logs" mkdir "..\logs" >nul 2>&1
 
+python -m pip install -r requirements.txt -q 2>nul
+
 python main.py >> "..\logs\giftcode.log" 2>&1
 if errorlevel 1 (
-  echo Giftcode crashed. See logs\giftcode.log
+  echo Giftcode crashed. Last lines of logs\giftcode.log:
+  echo ----------------------------------------
+  powershell -NoProfile -Command "Get-Content '..\logs\giftcode.log' -Tail 15 -ErrorAction SilentlyContinue"
+  echo ----------------------------------------
   pause
 )
