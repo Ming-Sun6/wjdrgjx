@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions
-cd /d "%~dp0wjdr-giftcode"
+cd /d "%~dp0wjdr-giftcode" || exit /b 1
 
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":5201 .*LISTENING"') do (
   taskkill /F /PID %%a >nul 2>&1
@@ -15,13 +15,11 @@ if not exist ".env" (
 
 if not exist "..\logs" mkdir "..\logs" >nul 2>&1
 
-python -m pip install -r requirements.txt -q 2>nul
-
-python main.py >> "..\logs\giftcode.log" 2>&1
-if errorlevel 1 (
-  echo Giftcode crashed. Last lines of logs\giftcode.log:
-  echo ----------------------------------------
-  powershell -NoProfile -Command "Get-Content '..\logs\giftcode.log' -Tail 15 -ErrorAction SilentlyContinue"
-  echo ----------------------------------------
-  pause
+where python >nul 2>&1 || (
+  echo Python not found >> "..\logs\giftcode.log"
+  exit /b 1
 )
+
+python -m pip install -r requirements.txt -q 2>nul
+python main.py >> "..\logs\giftcode.log" 2>&1
+exit /b %ERRORLEVEL%

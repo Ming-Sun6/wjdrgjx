@@ -1,11 +1,12 @@
 @echo off
 setlocal EnableExtensions
+cd /d "%~dp0wjdr-giftcode" || (echo [ERROR] wjdr-giftcode folder not found. & pause & exit /b 1)
 
-cd /d "%~dp0wjdr-giftcode"
+where python >nul 2>&1 || (echo [ERROR] Python not found. Install Python 3 and add to PATH. & pause & exit /b 1)
 
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R /C:":5201 .*LISTENING"') do (
   echo Port 5201 already in use by PID %%a
-  echo Stop it first or use restart-all.bat
+  echo Close it first or run restart-all.bat
   pause
   exit /b 1
 )
@@ -19,9 +20,8 @@ if not exist ".env" (
 
 echo.
 echo ================================
-echo  WJDR Giftcode (Flask) :%GIFTCODE_PORT%
-echo  URL prefix: %GIFTCODE_URL_PREFIX%
-echo  Keep THIS window open while using giftcode.
+echo  WJDR Giftcode Flask port %GIFTCODE_PORT%
+echo  Keep THIS window open.
 echo ================================
 echo.
 
