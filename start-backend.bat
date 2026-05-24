@@ -25,7 +25,23 @@ if %errorlevel%==0 (
 
 echo 未检测到服务 %SERVICE_NAME%，改用 node 直接启动 server.js...
 echo.
+
+call :port_listening 5201
+if errorlevel 1 (
+  echo [START] 兑换中心 Flask 未运行，正在后台启动 start-giftcode.bat ...
+  start "wjdr-giftcode" /min "%~dp0start-giftcode.bat"
+  timeout /t 3 /nobreak >nul
+) else (
+  echo [SKIP] 兑换中心已在端口 5201 运行
+)
+
+echo.
 node server.js
 echo.
 pause
+exit /b 0
+
+:port_listening
+netstat -ano | findstr /R /C:":%1 .*LISTENING" >nul 2>&1
+exit /b %errorlevel%
 

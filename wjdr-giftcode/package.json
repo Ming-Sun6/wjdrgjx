@@ -1,0 +1,15 @@
+{
+  "devDependencies": {
+    "dotenv-webpack": "^9.0.0",
+    "html-webpack-plugin": "^5.6.7",
+    "tailwindcss": "^3.4.18",
+    "terser-webpack-plugin": "^5.4.0",
+    "webpack": "^5.106.2",
+    "webpack-cli": "^7.0.2"
+  },
+  "scripts": {
+    "dev": "npx tailwindcss -i app/static/css/input.css -o app/static/css/tailwindcss.css --watch",
+    "build": "npx tailwindcss -i app/static/css/input.css -o app/static/css/tailwindcss.css --minify",
+    "webpackbuild": "webpack --config app/webpack.config.js"
+  }
+}

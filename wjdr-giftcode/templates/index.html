@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无尽冬日兑换中心 </title>
+    <link rel="icon" href="{{ url_prefix }}/static/image/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ url_prefix }}/static/image/favicon.ico" type="image/x-icon">
+    <link href="{{ url_prefix }}/static/css/tailwindcss.css" rel="stylesheet">
+    <link href="{{ url_prefix }}/static/css/app966.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 transition-colors duration-300 font-sans">
+
+<div class="relative z-10 h-full flex flex-col antialiased">
+    <header class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-4">
+                    <img src="{{ url_prefix }}/static/image/favicon.ico" alt="Logo" class="h-11 w-11 rounded-xl shadow-sm border border-slate-100 dark:border-slate-800">
+                    <div class="min-w-0 flex-1">
+                        <h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">无尽冬日兑换中心</h1>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            <div class="hidden sm:block">
+                                <span>管理员添加兑换码</span>
+                                <span class="mx-1 opacity-50">|</span>
+                                <span>定时为已注册账号自动兑换</span>
+                            </div>
+                            <div class="sm:hidden">
+                                <span>定时自动兑换新码</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="/" class="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 transition-colors">
+                        <i class="fas fa-arrow-left"></i> 返回工具箱
+                    </a>
+                    <label class="toggle-cont scale-90">
+                      <input type="checkbox" class="input__check">
+                      <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+        <section class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 p-6 md:p-8 transition-colors duration-300">
+            <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-green-500 rounded-full"></span>
+                自动兑换配置
+            </h2>
+
+            <div>
+                <label for="account-id" class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2 pl-1">游戏账号ID</label>
+                <input type="text" id="account-id" placeholder="如: 821629893" pattern="\d*"
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:focus:ring-primary-500/20 transition-all outline-none">
+                <p class="mt-2 text-xs text-slate-400 dark:text-slate-500 pl-1">添加后系统将定时自动兑换新码，可在近期兑换列表查看结果，随时可删。</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                <button id="add-account-btn" disabled
+                        class="flex-1 bg-slate-800 text-white hover:bg-slate-900 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 py-3 px-4 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-0.5 shadow-sm">
+                    添加账号
+                </button>
+                <button id="del-account-btn" disabled
+                        class="flex-1 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30 dark:hover:bg-red-900/40 py-3 px-4 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                    删除账号
+                </button>
+            </div>
+        </section>
+
+        <section class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 p-6 md:p-8 transition-colors duration-300">
+            <h2 class="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
+                <span class="w-1.5 h-5 bg-purple-500 rounded-full"></span>
+                手动兑换通道
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="manual-account-id" class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2 pl-1">游戏账号ID</label>
+                    <input type="text" id="manual-account-id" placeholder="输入游戏账号" pattern="\d*"
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white transition-all outline-none">
+                </div>
+
+                <div>
+                    <label for="redeem-code" class="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2 pl-1">指定兑换码 (选填)</label>
+                    <input type="text" id="redeem-code" placeholder="留空则可一键兑换其他类型"
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white transition-all outline-none">
+                    <p class="mt-2 text-[11px] text-slate-400 pl-1">注：兑换长效码仅适合从未兑换过的新手玩家</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+                <button id="redeem-btn" disabled
+                        class="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-0.5 shadow-sm shadow-primary-500/30">
+                    兑换单码
+                </button>
+                <button id="redeem-all-btn" disabled
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 py-3 px-4 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                    一键限时
+                </button>
+                <button id="redeem-all-btn2" disabled
+                        class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 py-3 px-4 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200">
+                    一键长效
+                </button>
+            </div>
+        </section>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <section class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 p-6 flex flex-col h-[500px]">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-base font-bold text-slate-800 dark:text-white">最近兑换
+                        <span id="exchange-count" class="text-xs font-normal text-slate-400 ml-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full"></span>
+                    </h2>
+                    <button id="refresh-exchange" class="text-slate-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <i class="fas fa-sync-alt text-sm"></i>
+                    </button>
+                </div>
+                <div id="exchange-list" class="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+                    </div>
+                <div id="load-more-container" class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-center shrink-0">
+                    <button id="load-more-btn" class="text-sm text-slate-500 hover:text-primary-500 dark:text-slate-400 font-medium transition-colors">
+                        查看更多记录 <i class="fas fa-angle-down ml-1"></i>
+                    </button>
+                </div>
+            </section>
+
+            <section class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/60 dark:border-slate-800 p-6 flex flex-col h-[500px]">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-base font-bold text-slate-800 dark:text-white">
+                        可用兑换码
+                        <span id="code-count" class="text-xs font-normal text-slate-400 ml-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full"></span>
+                    </h2>
+                    <button id="refresh-codes" type="button" title="刷新列表"
+                            class="text-slate-400 hover:text-primary-500 dark:hover:text-primary-400 transition-colors p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+                        <i class="fas fa-sync-alt text-sm"></i>
+                    </button>
+                </div>
+                <button id="player-addcode-open" type="button" title="提交并验证新兑换码"
+                        class="w-full mb-4 shrink-0 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white py-3 px-4 rounded-xl font-semibold text-sm shadow-md shadow-primary-500/25 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2">
+                    <i class="fas fa-plus-circle text-base"></i>
+                    <span>提交新兑换码</span>
+                </button>
+                <div id="code-list" class="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar min-h-0">
+                     </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="mt-auto py-6 border-t border-slate-200 dark:border-slate-800/50 transition-colors duration-300">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <p class="text-xs text-slate-400 dark:text-slate-500">
+                &copy; <span id="current-year"></span> By 胖达网络 | <a href="https://github.com/Superheroff/wjdrGiftcode">本项目已开源：wjdrGiftcode</a>
+            </p>
+        </div>
+    </footer>
+</div>
+
+<div id="copy-toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-3 rounded-full shadow-lg hidden transition-opacity duration-300 z-50 flex items-center space-x-2 text-sm backdrop-blur-md bg-opacity-90">
+    <i class="fas fa-check-circle text-green-400"></i>
+    <span>已复制到剪贴板</span>
+</div>
+
+<div id="message-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300 border border-slate-100 dark:border-slate-800">
+        <div class="p-6">
+            <div class="flex items-center mb-4 gap-3">
+                <div class="flex-shrink-0 w-10 h-10 bg-primary-50 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
+                    <i class="fas fa-info-circle text-primary-500" id="message-icon"></i>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white" id="message-title">提示</h3>
+            </div>
+            <p class="text-slate-600 dark:text-slate-300 mb-6 text-sm leading-relaxed" id="message-content"></p>
+            <div class="flex justify-end">
+                <button id="message-ok"
+                        onclick="closeMessageModal()"
+                        class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-white rounded-xl font-medium transition-colors duration-200 text-sm w-full">
+                    知道了
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="player-addcode-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md mx-auto border border-slate-100 dark:border-slate-800 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+            <h3 class="text-base font-bold text-slate-800 dark:text-white">提交新兑换码</h3>
+            <button id="player-addcode-close" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4">
+            <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
+                系统将使用验证账号实机兑换一次；兑换成功或提示<strong>已经兑换过了</strong>均可入库；仅<strong>兑换码无效/不存在</strong>时不添加（成功兑换会消耗该码一次）。
+            </p>
+            <div>
+                <label for="player-code-input" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 pl-1">兑换码</label>
+                <input type="text" id="player-code-input" placeholder="如 WJDR2026" autocomplete="off"
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white outline-none transition-all uppercase">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 pl-1">时效类型</label>
+                <div class="grid grid-cols-2 gap-3">
+                    <label class="player-type-option relative flex items-center justify-center p-3 border-2 border-primary-500 rounded-xl cursor-pointer transition-colors" data-type="0">
+                        <input type="radio" name="player-code-type" value="0" checked class="sr-only">
+                        <div class="text-center text-sm font-medium text-slate-700 dark:text-slate-300">长期有效</div>
+                    </label>
+                    <label class="player-type-option relative flex items-center justify-center p-3 border-2 border-slate-200 dark:border-slate-700 rounded-xl cursor-pointer transition-colors" data-type="1">
+                        <input type="radio" name="player-code-type" value="1" class="sr-only">
+                        <div class="text-center text-sm font-medium text-slate-700 dark:text-slate-300">限时兑换</div>
+                    </label>
+                </div>
+            </div>
+            <div id="player-expiry-container" class="hidden">
+                <label for="player-expiry-date" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5 pl-1">失效日期</label>
+                <input type="date" id="player-expiry-date"
+                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 focus:border-primary-500 rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-white outline-none">
+            </div>
+            <button id="player-submit-addcode" type="button" disabled
+                    class="w-full bg-primary-600 text-white hover:bg-primary-700 font-medium py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <i class="fas fa-shield-check"></i>
+                验证并添加
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>window.__WJDR_GIFTCODE_API_PREFIX__ = "{{ url_prefix }}";</script>
+<script src="{{ url_prefix }}/static/js/app966.wjdr.js"></script>
+
+</body>
+</html>

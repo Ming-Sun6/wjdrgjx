@@ -37,6 +37,7 @@ const {
   validateBatchAdminUserAction,
   buildBatchResetUsername
 } = require('./admin-user-management');
+const { mountGiftcodeProxy, GIFTCODE_URL_PREFIX, GIFTCODE_SERVICE_URL } = require('./giftcode-proxy');
 
 const app = express();
 const PORT = 3000;
@@ -94,6 +95,7 @@ let analyticsService = null;
 let dashboardHandlers = null;
 let governanceService = null;
 
+mountGiftcodeProxy(app);
 app.use(express.json({ limit: '8mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -4173,6 +4175,10 @@ app.listen(PORT, async () => {
     await initDB();
     console.log('Local server started.');
     console.log(`Site: http://localhost:${PORT}`);
+    if (GIFTCODE_URL_PREFIX) {
+      console.log(`Giftcode UI: http://localhost:${PORT}${GIFTCODE_URL_PREFIX}/`);
+    }
+    console.log(`Giftcode API proxy -> ${GIFTCODE_SERVICE_URL}`);
     console.log(`Auth check: http://localhost:${PORT}/api/auth/me`);
     console.log('MySQL connected and API routes initialized.');
   } catch (err) {
