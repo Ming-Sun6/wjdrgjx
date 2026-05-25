@@ -1,51 +1,93 @@
 /**
  * 后台启动 giftcode（供 start-giftcode-min.bat / Windows 服务调用）
- * 通过 Node 解析 Python 路径，避免 cmd 下 PYTHON_CMD 未导出或 PATH 仅有 Windows 商店占位。
  */
 const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
-require('dotenv').config({ path: path.join(__dirname, '..', 'wjdr-giftcode', '.env') });
-
 const rootDir = path.join(__dirname, '..');
 const giftcodeDir = path.join(rootDir, 'wjdr-giftcode');
 const logPath = path.join(rootDir, 'logs', 'giftcode.log');
 
-const pythonCandidates = [
-  process.env.PYTHON_CMD,
-  'C:\\Python314\\python.exe',
-  'C:\\Python313\\python.exe',
-  'C:\\Python312\\python.exe',
-  'C:\\Python311\\python.exe',
-  path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python314', 'python.exe'),
-  path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python313', 'python.exe'),
-  path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python312', 'python.exe'),
-  'py',
-  'python'
-].filter(Boolean);
+require('dotenv').config({ path: path.join(rootDir, '.env') });
+require('dotenv').config({ path: path.join(giftcodeDir, '.env') });
 
 function appendLog(line) {
   fs.mkdirSync(path.dirname(logPath), { recursive: true });
   fs.appendFileSync(logPath, line + '\n', 'utf8');
 }
 
-function resolvePythonCmd() {
-  for (const cmd of pythonCandidates) {
-    if (cmd.includes('\\') && !fs.existsSync(cmd)) continue;
-    const args = cmd === 'py'
-      ? ['-3', '-c', 'import sys; print(sys.executable)']
-      : ['-c', 'import sys; print(sys.executable)'];
-    try {
-      const r = spawnSync(cmd, args, { encoding: 'utf8', windowsHide: true, timeout: 15000 });
-      if (r.status === 0 && r.stdout && r.stdout.trim()) {
-        const exe = r.stdout.trim();
-        if (exe.toLowerCase().includes('windowsapps')) continue;
-        if (fs.existsSync(exe)) return exe;
-      }
-    } catch (_e) {}
+function readPythonFromEnvFile() {
+  const envPath = path.join(rootDir, '.env');
+  if (!fs.existsSync(envPath)) return null;
+  const text = fs.readFileSync(envPath, 'utf8');
+  for (const line of text.split(/\r?\n/)) {
+    const m = line.match(/^\uFEFF?PYTHON_CMD\s*=\s*(.+)\s*$/i) || line.match(/^PYTHON_CMD\s*=\s*(.+)\s*$/i);
+    if (!m) continue;
+    return m[1].replace(/^["']|["']$/g, '').trim();
   }
+  return null;
+}
+
+function canRunPython(exe) {
+  if (!exe) return false;
+  const p = path.normalize(exe);
+  if (!fs.existsSync(p)) return false;
+  try {
+    const r = spawnSync(p, ['--version'], {
+      encoding: 'utf8',
+      windowsHide: true,
+      timeout: 20000,
+      env: process.env
+    });
+    const out = `${r.stdout || ''}${r.stderr || ''}`;
+    return r.status === 0 || /python\s+\d/i.test(out);
+  } catch (_e) {
+    return false;
+  }
+}
+
+function resolvePythonCmd() {
+  const tried = [];
+  const candidates = [
+    process.env.PYTHON_CMD,
+    readPythonFromEnvFile(),
+    'C:\\Python314\\python.exe',
+    'C:\\Python313\\python.exe',
+    'C:\\Python312\\python.exe',
+    'C:\\Python311\\python.exe',
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python314', 'python.exe'),
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python313', 'python.exe'),
+    path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Python', 'Python312', 'python.exe')
+  ];
+
+  for (const raw of candidates) {
+    if (!raw) continue;
+    const cmd = String(raw).trim();
+    if (!cmd || tried.includes(cmd)) continue;
+    tried.push(cmd);
+
+    if (cmd.includes('\\') || cmd.includes('/')) {
+      if (canRunPython(cmd)) return path.normalize(cmd);
+      continue;
+    }
+
+    if (cmd === 'py') {
+      try {
+        const r = spawnSync('py', ['-3', '-c', 'import sys; print(sys.executable)'], {
+          encoding: 'utf8',
+          windowsHide: true,
+          timeout: 20000
+        });
+        if (r.status === 0 && r.stdout && r.stdout.trim()) {
+          const exe = r.stdout.trim();
+          if (!exe.toLowerCase().includes('windowsapps') && canRunPython(exe)) return exe;
+        }
+      } catch (_e) {}
+    }
+  }
+
+  appendLog(`[giftcode-start-min] tried Python paths: ${tried.join(' | ')}`);
   return null;
 }
 
@@ -55,7 +97,8 @@ function pipInstall(pythonCmd) {
     cwd: giftcodeDir,
     encoding: 'utf8',
     windowsHide: true,
-    timeout: 300000
+    timeout: 300000,
+    env: process.env
   });
   if (r.status !== 0) {
     appendLog((r.stderr || r.stdout || '').trim() || `[pip] exit ${r.status}`);
@@ -65,7 +108,7 @@ function pipInstall(pythonCmd) {
 
 const pythonCmd = resolvePythonCmd();
 if (!pythonCmd) {
-  appendLog('[giftcode-start-min] ERROR: Python 3 not found. Set PYTHON_CMD in .env');
+  appendLog('[giftcode-start-min] ERROR: Python 3 not found. Set PYTHON_CMD=C:\\Python314\\python.exe in project .env');
   process.exit(1);
 }
 
@@ -74,6 +117,7 @@ pipInstall(pythonCmd);
 
 const env = {
   ...process.env,
+  PYTHON_CMD: pythonCmd,
   GIFTCODE_URL_PREFIX: process.env.GIFTCODE_URL_PREFIX || '/giftcode',
   GIFTCODE_PORT: process.env.GIFTCODE_PORT || '5201'
 };

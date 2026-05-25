@@ -16,7 +16,7 @@ if errorlevel 1 (
   if errorlevel 1 (
     echo.
     echo [ERROR] Giftcode did not start on port 5201 within 90s.
-    echo         First run may need pip install — see logs\giftcode.log
+    echo         First run may need pip install - see logs\giftcode.log
     echo         Or double-click start-giftcode.bat for details.
     if exist "logs\giftcode.log" (
       echo.
@@ -72,5 +72,5 @@ timeout /t 1 /nobreak >nul
 goto wait_port_loop
 
 :port_listening
-netstat -ano | findstr /R /C:":%1 .*LISTENING" >nul 2>&1
+netstat -ano | findstr ":%1" | findstr /i "LISTENING" >nul 2>&1
 exit /b %errorlevel%
