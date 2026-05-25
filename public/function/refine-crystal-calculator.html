@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>精炼提炼计算器-无尽冬日工具箱</title>
+  <style>
+    :root {
+      --bg0:#0f172a; --bg1:#1e293b; --line:rgba(148,163,184,.28);
+      --txt:#e2e8f0; --muted:#94a3b8; --panel:rgba(15,23,42,.78); --surface:rgba(30,41,59,.72);
+      --surface-strong:rgba(15,23,42,.9); --table-head:rgba(15,23,42,.95);
+      --acc1:#fb923c; --acc2:#22d3ee; --acc3:#22c55e;
+    }
+    body.theme-day {
+      --bg0:#eaf2ff; --bg1:#f8fbff; --line:rgba(15,23,42,.14);
+      --txt:#0f172a; --muted:#475569; --panel:rgba(255,255,255,.94); --surface:rgba(255,255,255,.95);
+      --surface-strong:rgba(255,255,255,.95); --table-head:rgba(255,255,255,.98);
+      --acc1:#ea580c; --acc2:#0369a1; --acc3:#15803d;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"Microsoft YaHei",system-ui,sans-serif;color:var(--txt);min-height:100vh;padding:16px;
+      background:radial-gradient(900px 420px at -10% -10%, rgba(251,146,60,.24), transparent 65%),
+        radial-gradient(900px 420px at 110% 0%, rgba(34,211,238,.2), transparent 68%),
+        linear-gradient(140deg,var(--bg0),var(--bg1));
+    }
+    .home-btn,.nav-link{
+      position:fixed;top:10px;z-index:20;text-decoration:none;color:var(--txt);
+      border:1px solid var(--line);background:var(--surface-strong);border-radius:10px;
+      padding:8px 12px;font-size:12px;font-weight:700;
+    }
+    .home-btn{left:10px}
+    .nav-link{left:112px}
+    .app{max-width:980px;margin:52px auto 24px;display:grid;gap:14px}
+    .hero,.panel{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:16px}
+    h1{font-size:clamp(22px,4vw,32px);margin-bottom:8px}
+    .subtitle{color:var(--muted);font-size:14px;line-height:1.55}
+    .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .field{display:grid;gap:6px}
+    label{font-size:12px;color:var(--muted);font-weight:700}
+    input,select{
+      width:100%;border:1px solid var(--line);background:var(--surface-strong);color:var(--txt);
+      border-radius:10px;padding:10px;font-size:14px;
+    }
+    .stats{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+    .stat{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface)}
+    .stat .label{color:var(--muted);font-size:12px}
+    .stat .value{font-size:clamp(20px,3vw,28px);font-weight:800;margin-top:4px}
+    .v1{color:var(--acc1)} .v2{color:var(--acc2)} .v3{color:var(--acc3)}
+    .table-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto;-webkit-overflow-scrolling:touch}
+    table{width:100%;border-collapse:collapse;min-width:640px}
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:right;font-size:13px;white-space:nowrap}
+    th{background:var(--table-head);text-align:right}
+    th:first-child,td:first-child{text-align:left}
+    .note{color:var(--muted);font-size:12px;line-height:1.6;margin-top:8px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .tab{
+      border:1px solid var(--line);background:var(--surface);color:var(--txt);
+      border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;
+    }
+    .tab.active{background:color-mix(in srgb,var(--acc2) 22%,var(--surface));border-color:color-mix(in srgb,var(--acc2) 45%,var(--line))}
+    .mode-panel{display:none}
+    .mode-panel.active{display:block}
+    @media(max-width:680px){.nav-link{top:48px;left:10px}.app{margin-top:88px}}
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../rukou.html">返回主页</a>
+  <a class="nav-link" href="refine-crystal-simulator.html">提炼模拟器</a>
+
+  <main class="app">
+    <section class="hero">
+      <h1>精炼提炼计算器</h1>
+      <p class="subtitle">按游戏内「精炼火晶提炼」概率表计算期望产出与火晶消耗。<strong>每日首次提炼消耗为标价的 50%</strong>；周策略按「首天集中 + 后 6 天各 1 次」拆分天数计优惠。</p>
+    </section>
+
+    <section class="panel">
+      <div class="tabs">
+        <button type="button" class="tab active" data-mode="manual">按次数计算</button>
+        <button type="button" class="tab" data-mode="strategy">按周策略计算</button>
+      </div>
+
+      <div id="modeManual" class="mode-panel active">
+        <div class="grid" style="margin-top:4px">
+          <div class="field">
+            <label for="startCount">本周已提炼次数（0–99）</label>
+            <input id="startCount" type="number" min="0" max="99" value="0" />
+          </div>
+          <div class="field">
+            <label for="planTimes">计划再提炼次数</label>
+            <input id="planTimes" type="number" min="0" max="100" value="86" />
+          </div>
+          <div class="field" style="align-self:end">
+            <label><input id="manualFirstDiscount" type="checkbox" /> 连续提炼时仅第 1 次享半价</label>
+          </div>
+        </div>
+      </div>
+
+      <div id="modeStrategy" class="mode-panel">
+        <div class="grid" style="margin-top:4px">
+          <div class="field">
+            <label for="strategyStart">本周已提炼次数（0–99）</label>
+            <input id="strategyStart" type="number" min="0" max="99" value="0" />
+          </div>
+          <div class="field">
+            <label for="strategyPick">周策略</label>
+            <select id="strategyPick"></select>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats" style="margin-top:14px">
+        <div class="stat"><div class="label">预计获得精炼火晶</div><div id="outCrystals" class="value v1">0</div></div>
+        <div class="stat"><div class="label">优惠后消耗火晶</div><div id="outCost" class="value v2">0</div></div>
+        <div class="stat"><div class="label">提炼次数</div><div id="outTimes" class="value v3">0</div></div>
+        <div class="stat"><div class="label">单次平均期望</div><div id="outAvg" class="value">0</div></div>
+      </div>
+      <p class="note" id="outNote"></p>
+    </section>
+
+    <section class="panel">
+      <h2 style="font-size:16px;margin-bottom:10px">分段期望明细</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>提炼次数段</th><th>本次段内次数</th><th>单次消耗</th><th>段内期望产出</th><th>段内消耗合计</th>
+            </tr>
+          </thead>
+          <tbody id="detailBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 style="font-size:16px;margin-bottom:10px">概率参考表</h2>
+      <div class="table-wrap">
+        <table id="probTable">
+          <thead>
+            <tr>
+              <th>提炼次数</th>
+              <th>1颗</th><th>2颗</th><th>3颗</th><th>4颗</th><th>5颗</th><th>6颗</th>
+              <th>7颗</th><th>8颗</th><th>9颗</th><th>10颗</th><th>11颗</th><th>12颗</th>
+              <th>单次消耗</th>
+            </tr>
+          </thead>
+          <tbody id="probBody"></tbody>
+        </table>
+      </div>
+      <p class="note">期望单次产出：1–20 次 1.45 · 21–40 次 2.15 · 41–60 次 3.18 · 61–80 次 3.435 · 81–100 次 3.71 · 每日首次消耗 ×50%</p>
+    </section>
+
+    <section class="panel">
+      <h2 style="font-size:16px;margin-bottom:10px">周策略参考（含每日首抽优惠）</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>策略</th><th>次数</th><th>优惠后消耗</th><th>数学期望</th>
+            </tr>
+          </thead>
+          <tbody id="strategyRefBody"></tbody>
+        </table>
+      </div>
+  </main>
+
+  <script src="refine-crystal-data.js"></script>
+  <script>
+    "use strict";
+    const RC = window.RefineCrystal;
+    let mode = "manual";
+
+    function fmt(n, d) {
+      d = d == null ? 2 : d;
+      return Number(n).toLocaleString("zh-CN", { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+    function fmtInt(n) {
+      return Number(n).toLocaleString("zh-CN", { maximumFractionDigits: 0 });
+    }
+
+    function pct(p) {
+      if (!p) return "—";
+      return (p * 100).toFixed(p >= 0.01 ? 2 : 3).replace(/\.?0+$/, "") + "%";
+    }
+
+    function renderProbTable() {
+      const body = document.getElementById("probBody");
+      body.innerHTML = RC.TIERS.map(tier => {
+        const probs = {};
+        tier.outcomes.forEach(([n, p]) => { probs[n] = p; });
+        const cells = [];
+        for (let i = 1; i <= 12; i += 1) {
+          cells.push(`<td>${pct(probs[i])}</td>`);
+        }
+        return `<tr><td>${tier.from}–${tier.to} 次</td>${cells.join("")}<td>${tier.cost}</td></tr>`;
+      }).join("");
+    }
+
+    function renderStrategyOptions() {
+      const sel = document.getElementById("strategyPick");
+      sel.innerHTML = RC.STRATEGIES_ENRICHED.map(s =>
+        `<option value="${s.id}">${s.label} · ${s.times} 次 · 消耗 ${fmtInt(s.totalCost)} · 期望 ${fmt(s.expectedCrystals)}</option>`
+      ).join("");
+      sel.value = sel.value || "d80_6";
+    }
+
+    function renderStrategyRef() {
+      const main = RC.STRATEGIES_ENRICHED.filter(s => /^d\d+_6$/.test(s.id));
+      document.getElementById("strategyRefBody").innerHTML = main.map(s => `
+        <tr>
+          <td>${s.label}</td>
+          <td>${fmtInt(s.times)}</td>
+          <td>${fmtInt(s.totalCost)} 颗</td>
+          <td>${fmt(s.expectedCrystals)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function calcManual() {
+      const start = Number(document.getElementById("startCount").value) || 0;
+      let times = Number(document.getElementById("planTimes").value) || 0;
+      const max = RC.MAX_WEEKLY - Math.max(0, Math.min(99, start));
+      times = Math.max(0, Math.min(max, times));
+      document.getElementById("planTimes").value = times;
+      const onlyFirstDiscount = document.getElementById("manualFirstDiscount").checked;
+      return RC.calcSession(start, times, { onlyFirstDiscount });
+    }
+
+    function calcStrategy() {
+      const start = Number(document.getElementById("strategyStart").value) || 0;
+      const id = document.getElementById("strategyPick").value;
+      const strategy = RC.STRATEGIES.find(s => s.id === id) || RC.STRATEGIES[4];
+      const session = RC.calcSessionFromDaily(strategy.daily, start);
+      session.strategyLabel = strategy.label;
+      return session;
+    }
+
+    function renderResult(result) {
+      document.getElementById("outCrystals").textContent = fmt(result.expectedCrystals);
+      document.getElementById("outCost").textContent = fmtInt(result.totalCost);
+      document.getElementById("outTimes").textContent = fmtInt(result.times);
+      document.getElementById("outAvg").textContent = result.times ? fmt(result.expectedCrystals / result.times) : "0";
+      const note = document.getElementById("outNote");
+      if (result.strategyLabel) {
+        note.textContent = `策略：${result.strategyLabel}。已计入每日首次 50% 消耗优惠。从第 ${result.startCount + 1} 次至第 ${result.endCount} 次（本周剩余 ${RC.MAX_WEEKLY - result.endCount} 次）。`;
+      } else {
+        const disc = document.getElementById("manualFirstDiscount").checked ? "已勾选「仅第 1 次半价」。" : "未拆分天数时不享每日首抽优惠，建议用周策略模式。";
+        note.textContent = `${disc} 从第 ${result.startCount + 1} 次至第 ${result.endCount} 次（本周剩余 ${RC.MAX_WEEKLY - result.endCount} 次）。`;
+      }
+
+      document.getElementById("detailBody").innerHTML = result.byTier.map(b => `
+        <tr>
+          <td>${b.label}</td>
+          <td>${fmtInt(b.times)}</td>
+          <td>${b.tier.cost}${b.cost < b.times * b.tier.cost ? "（含半价）" : ""}</td>
+          <td>${fmt(b.expectedCrystals)}</td>
+          <td>${fmtInt(b.cost)}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="5" style="text-align:center;color:var(--muted)">暂无提炼次数</td></tr>`;
+    }
+
+    function recalc() {
+      const result = mode === "strategy" ? calcStrategy() : calcManual();
+      renderResult(result);
+    }
+
+    function setMode(next) {
+      mode = next;
+      document.querySelectorAll(".tab").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-mode") === next);
+      });
+      document.getElementById("modeManual").classList.toggle("active", next === "manual");
+      document.getElementById("modeStrategy").classList.toggle("active", next === "strategy");
+      recalc();
+    }
+
+    document.querySelectorAll(".tab").forEach(btn => {
+      btn.addEventListener("click", () => setMode(btn.getAttribute("data-mode")));
+    });
+    ["startCount", "planTimes", "strategyStart", "strategyPick", "manualFirstDiscount"].forEach(id => {
+      document.getElementById(id).addEventListener("input", recalc);
+      document.getElementById(id).addEventListener("change", recalc);
+    });
+
+    renderProbTable();
+    renderStrategyOptions();
+    renderStrategyRef();
+    recalc();
+  </script>
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子、飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球\A宣传大使：懒羊羊\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;padding:14px 18px 22px;text-align:center;font-size:12px;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));margin-top:1.75rem}
+</style>
+  <footer class="wjdr-footer"><p>版权所有 © 2026 无尽冬日工具箱</p></footer>
+</body>
+</html>

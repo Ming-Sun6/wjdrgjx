@@ -3299,7 +3299,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.10</div>
+  <div class="version-tag">版本 V0.9.11</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -3372,6 +3372,24 @@
               </div>
             </a>
             <div class="pill">Architecture10.html</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+            <a class="tool-tile-link" href="function/refine-crystal-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F525;</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span>精炼提炼计算器</div>
+            </a>
+            <div class="pill">refine-crystal-calculator.html</div>
+            <div class="desc">按概率表计算精炼火晶期望产出与火晶消耗，支持周策略。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+            <a class="tool-tile-link" href="function/refine-crystal-simulator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span>精炼提炼模拟器</div>
+            </a>
+            <div class="pill">refine-crystal-simulator.html</div>
+            <div class="desc">真实随机模拟每次提炼爆率与奖励，支持蒙特卡洛批量模拟。</div>
           </section>
 
           <section class="card featured-tool-card feature-progress" data-category="calcTools" data-tool-priority="featured">
@@ -3824,6 +3842,18 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.11（2026-05-25）</h4>
+        <p><strong>精炼火晶工具与火晶建筑计算器</strong></p>
+        <ol>
+          <li><strong>新增「精炼提炼计算器」</strong>：按游戏内分段概率表计算期望产出与火晶消耗；支持按次数或周策略计算，并计入<strong>每日首次提炼 50% 消耗优惠</strong>。</li>
+          <li><strong>新增「精炼提炼模拟器」</strong>：逐步模拟单次提炼结果，并提供蒙特卡洛批量统计，便于感受波动与期望值差异。</li>
+          <li><strong>火晶建筑计算器升级</strong>：可选 6 档周策略（14+6 至 94+6）估算<strong>精炼周期</strong>，同步展示每周期期望产出、优惠后消耗与<strong>估算总火晶消耗</strong>；底部附策略参考表。</li>
+        </ol>
+        <p><strong>论坛</strong></p>
+        <ol>
+          <li>修复部分<strong>CDN 环境</strong>下帖子<strong>置顶</strong>、<strong>编辑保存</strong>失败的问题；首页弹层与独立阅读页均已改用兼容的请求方式。</li>
+        </ol>
+
         <h4>V0.9.10（2026-05-12）</h4>
         <p><strong>熊坑排布：贴图透明度与命名可读性</strong></p>
         <ol>

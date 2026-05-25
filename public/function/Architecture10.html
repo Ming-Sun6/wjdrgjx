@@ -63,17 +63,14 @@
       padding: 16px;
       transition: background .2s ease, color .2s ease;
     }
-    .home-btn {
-      position: fixed; top: 10px; left: 10px; z-index: 20;
+    .home-btn, .nav-link {
+      position: fixed; top: 10px; z-index: 20;
       text-decoration: none; color: var(--txt);
       border: 1px solid var(--line); background: var(--surface-strong);
       border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 700;
     }
-    .theme-toggle {
-      position: fixed; top: 10px; left: 112px; z-index: 20;
-      border: 1px solid var(--line); background: var(--surface-strong); color: var(--txt);
-      border-radius: 10px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
-    }
+    .home-btn { left: 10px; }
+    .nav-link { left: 112px; }
     .app { max-width: 1180px; margin: 52px auto 24px; display: grid; gap: 14px; }
     .hero, .panel { border: 1px solid var(--line); border-radius: 18px; background: var(--panel); padding: 16px; }
     h1 { font-size: clamp(24px,4vw,36px); margin-bottom: 8px; }
@@ -90,6 +87,8 @@
     select { width: 100%; border: 1px solid var(--line); background: var(--surface-strong); color: var(--txt); border-radius: 10px; padding: 9px; }
     .stats { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); }
     .stat { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: var(--surface); }
+    .stat-wide { grid-column: 1 / -1; }
+    .stat .field select { width: 100%; max-width: none; }
     .label { color: var(--muted); font-size: 12px; }
     .value { font-size: clamp(22px,4vw,30px); font-weight: 800; }
     .v1 { color: var(--acc1); } .v2 { color: var(--acc2); } .v3 { color: var(--good); }
@@ -124,6 +123,7 @@
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .field { justify-items: start; }
       .field select { width: min(100%, 136px); }
+      .stat-wide .field select { width: 100%; max-width: none; }
       .btn { flex: 1 1 150px; }
       select { font-size: 16px; padding: 10px; }
       table { min-width: 620px; }
@@ -131,7 +131,8 @@
     @media (max-width: 680px) {
       body { padding: 10px; }
       .home-btn { top: 8px; left: 8px; padding: 7px 10px; }
-      .app { margin-top: 46px; gap: 8px; }
+      .nav-link { top: 48px; left: 8px; }
+      .app { margin-top: 88px; gap: 8px; }
       .hero, .panel { padding: 10px; border-radius: 12px; }
       #cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
       #cards .card { padding: 8px; border-radius: 10px; }
@@ -139,6 +140,7 @@
       .stats { grid-template-columns: 1fr; }
       .row { grid-template-columns: 1fr; }
       .field select { width: min(100%, 120px); }
+      .stat-wide .field select { width: 100%; max-width: none; }
       .btn-row .btn { flex: 1 1 100%; width: 100%; }
       th, td { padding: 8px; font-size: 12px; }
       table { min-width: 560px; }
@@ -151,10 +153,12 @@
 </head>
 <body>
   <a class="home-btn" href="../rukou.html">返回主页</a>
+  <a class="nav-link" href="refine-crystal-calculator.html">提炼计算器</a>
 
   <main class="app">
     <section class="hero">
       <h1>火晶建筑计算器</h1>
+      <p class="subtitle">建筑升级消耗汇总；精炼周数按所选策略的<strong>数学期望产出</strong>估算，消耗按<strong>每日首次 50% 优惠</strong>后的火晶计。</p>
     </section>
 
     <section class="panel">
@@ -173,7 +177,31 @@
       <div class="stats" style="margin-top: 12px;">
         <div class="stat"><div class="label">总火晶</div><div id="totalCrystal" class="value v1">0</div></div>
         <div class="stat"><div class="label">总精炼</div><div id="totalRefine" class="value v2">0</div></div>
-        <div class="stat"><div class="label">按“80+6”每周期约 226.56（每周第一天精练80次，后续每天精炼一次）</div><div id="weeks" class="value v3">0 周</div></div>
+        <div class="stat stat-wide">
+          <div class="field" style="margin-bottom:8px;">
+            <label for="refineStrategy">精炼策略（每日首次消耗 50% · 每周最多 100 次）</label>
+            <select id="refineStrategy"></select>
+          </div>
+          <div class="stats" style="margin-top:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+            <div class="stat" style="padding:10px">
+              <div class="label">预计周数</div>
+              <div id="weeks" class="value v3" style="font-size:clamp(20px,3vw,26px)">0 周</div>
+            </div>
+            <div class="stat" style="padding:10px">
+              <div class="label">每周期期望产出</div>
+              <div id="weeklyYield" class="value v1" style="font-size:clamp(20px,3vw,26px)">0</div>
+            </div>
+            <div class="stat" style="padding:10px">
+              <div class="label">每周期优惠后消耗</div>
+              <div id="weeklyCost" class="value v2" style="font-size:clamp(20px,3vw,26px)">0</div>
+            </div>
+            <div class="stat" style="padding:10px">
+              <div class="label">估算总消耗火晶</div>
+              <div id="totalRefineCost" class="value" style="font-size:clamp(20px,3vw,26px)">0</div>
+            </div>
+          </div>
+          <p class="note" id="strategyYieldLabel" style="color:var(--muted);font-size:12px;line-height:1.55;margin-top:10px"></p>
+        </div>
       </div>
       <div class="table-wrap" style="margin-top: 12px;">
         <table>
@@ -182,8 +210,24 @@
         </table>
       </div>
     </section>
+
+    <section class="panel">
+      <h2 style="font-size:16px;margin-bottom:10px">周策略参考（含每日首抽优惠）</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>策略</th><th>次数</th><th>优惠后消耗</th><th>数学期望</th>
+            </tr>
+          </thead>
+          <tbody id="strategyRefBody"></tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top:8px">期望单次产出：1–20 次 1.45 · 21–40 次 2.15 · 41–60 次 3.18 · 61–80 次 3.435 · 81–100 次 3.71 · 每日首次消耗 ×50%</p>
+    </section>
   </main>
 
+  <script src="refine-crystal-data.js"></script>
   <script>
     "use strict";
     const fireData = [{"level":31,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":32,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":33,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":34,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":35,"furnace":[132.0,0.0],"embassy":[33.0,0.0],"infirmary":[26.0,0.0],"command":[26.0,0.0],"shield":[59.0,0.0],"lancer":[59.0,0.0],"marksman":[59.0,0.0],"academy":[0.0,0.0]},{"level":36,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":37,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":38,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":39,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":40,"furnace":[158.0,0.0],"embassy":[39.0,0.0],"infirmary":[31.0,0.0],"command":[31.0,0.0],"shield":[71.0,0.0],"lancer":[71.0,0.0],"marksman":[71.0,0.0],"academy":[71.0,0.0]},{"level":41,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":42,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":43,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":44,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":45,"furnace":[238.0,0.0],"embassy":[59.0,0.0],"infirmary":[47.0,0.0],"command":[47.0,0.0],"shield":[107.0,0.0],"lancer":[107.0,0.0],"marksman":[107.0,0.0],"academy":[107.0,0.0]},{"level":46,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":47,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":48,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":49,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":50,"furnace":[280.0,0.0],"embassy":[70.0,0.0],"infirmary":[56.0,0.0],"command":[56.0,0.0],"shield":[126.0,0.0],"lancer":[126.0,0.0],"marksman":[126.0,0.0],"academy":[126.0,0.0]},{"level":51,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":52,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":53,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":54,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":55,"furnace":[335.0,0.0],"embassy":[83.0,0.0],"infirmary":[67.0,0.0],"command":[67.0,0.0],"shield":[150.0,0.0],"lancer":[150.0,0.0],"marksman":[150.0,0.0],"academy":[150.0,0.0]},{"level":56,"furnace":[200.0,10.0],"embassy":[50.0,2.0],"infirmary":[40.0,2.0],"command":[40.0,2.0],"shield":[90.0,4.0],"lancer":[90.0,4.0],"marksman":[90.0,4.0],"academy":[90.0,4.0]},{"level":57,"furnace":[200.0,10.0],"embassy":[50.0,2.0],"infirmary":[40.0,2.0],"command":[40.0,2.0],"shield":[90.0,4.0],"lancer":[90.0,4.0],"marksman":[90.0,4.0],"academy":[90.0,4.0]},{"level":58,"furnace":[200.0,10.0],"embassy":[50.0,2.0],"infirmary":[40.0,2.0],"command":[40.0,2.0],"shield":[90.0,4.0],"lancer":[90.0,4.0],"marksman":[90.0,4.0],"academy":[90.0,4.0]},{"level":59,"furnace":[200.0,10.0],"embassy":[50.0,2.0],"infirmary":[40.0,2.0],"command":[40.0,2.0],"shield":[90.0,4.0],"lancer":[90.0,4.0],"marksman":[90.0,4.0],"academy":[90.0,4.0]},{"level":60,"furnace":[100.0,20.0],"embassy":[25.0,5.0],"infirmary":[20.0,5.0],"command":[20.0,5.0],"shield":[45.0,9.0],"lancer":[45.0,9.0],"marksman":[45.0,9.0],"academy":[45.0,9.0]},{"level":61,"furnace":[240.0,15.0],"embassy":[60.0,3.0],"infirmary":[48.0,3.0],"command":[48.0,3.0],"shield":[108.0,6.0],"lancer":[108.0,6.0],"marksman":[108.0,6.0],"academy":[108.0,6.0]},{"level":62,"furnace":[240.0,15.0],"embassy":[60.0,3.0],"infirmary":[48.0,3.0],"command":[48.0,3.0],"shield":[108.0,6.0],"lancer":[108.0,6.0],"marksman":[108.0,6.0],"academy":[108.0,6.0]},{"level":63,"furnace":[240.0,15.0],"embassy":[60.0,3.0],"infirmary":[48.0,3.0],"command":[48.0,3.0],"shield":[108.0,6.0],"lancer":[108.0,6.0],"marksman":[108.0,6.0],"academy":[108.0,6.0]},{"level":64,"furnace":[240.0,15.0],"embassy":[60.0,3.0],"infirmary":[48.0,3.0],"command":[48.0,3.0],"shield":[108.0,6.0],"lancer":[108.0,6.0],"marksman":[108.0,6.0],"academy":[108.0,6.0]},{"level":65,"furnace":[120.0,30.0],"embassy":[30.0,7.0],"infirmary":[24.0,7.0],"command":[24.0,7.0],"shield":[54.0,13.0],"lancer":[54.0,13.0],"marksman":[54.0,13.0],"academy":[54.0,13.0]},{"level":66,"furnace":[240.0,20.0],"embassy":[60.0,5.0],"infirmary":[48.0,4.0],"command":[48.0,4.0],"shield":[108.0,9.0],"lancer":[108.0,9.0],"marksman":[108.0,9.0],"academy":[108.0,9.0]},{"level":67,"furnace":[240.0,20.0],"embassy":[60.0,5.0],"infirmary":[48.0,4.0],"command":[48.0,4.0],"shield":[108.0,9.0],"lancer":[108.0,9.0],"marksman":[108.0,9.0],"academy":[108.0,9.0]},{"level":68,"furnace":[240.0,20.0],"embassy":[60.0,5.0],"infirmary":[48.0,4.0],"command":[48.0,4.0],"shield":[108.0,9.0],"lancer":[108.0,9.0],"marksman":[108.0,9.0],"academy":[108.0,9.0]},{"level":69,"furnace":[240.0,20.0],"embassy":[60.0,5.0],"infirmary":[48.0,4.0],"command":[48.0,4.0],"shield":[108.0,9.0],"lancer":[108.0,9.0],"marksman":[108.0,9.0],"academy":[108.0,9.0]},{"level":70,"furnace":[120.0,40.0],"embassy":[30.0,10.0],"infirmary":[24.0,8.0],"command":[24.0,8.0],"shield":[54.0,18.0],"lancer":[54.0,18.0],"marksman":[54.0,18.0],"academy":[54.0,18.0]},{"level":71,"furnace":[280.0,30.0],"embassy":[70.0,7.0],"infirmary":[56.0,6.0],"command":[56.0,6.0],"shield":[126.0,13.0],"lancer":[126.0,13.0],"marksman":[126.0,13.0],"academy":[126.0,13.0]},{"level":72,"furnace":[280.0,30.0],"embassy":[70.0,7.0],"infirmary":[56.0,6.0],"command":[56.0,6.0],"shield":[126.0,13.0],"lancer":[126.0,13.0],"marksman":[126.0,13.0],"academy":[126.0,13.0]},{"level":73,"furnace":[280.0,30.0],"embassy":[70.0,7.0],"infirmary":[56.0,6.0],"command":[56.0,6.0],"shield":[126.0,13.0],"lancer":[126.0,13.0],"marksman":[126.0,13.0],"academy":[126.0,13.0]},{"level":74,"furnace":[280.0,30.0],"embassy":[70.0,7.0],"infirmary":[56.0,6.0],"command":[56.0,6.0],"shield":[126.0,13.0],"lancer":[126.0,13.0],"marksman":[126.0,13.0],"academy":[126.0,13.0]},{"level":75,"furnace":[140.0,60.0],"embassy":[35.0,15.0],"infirmary":[28.0,12.0],"command":[28.0,12.0],"shield":[63.0,27.0],"lancer":[63.0,27.0],"marksman":[63.0,27.0],"academy":[63.0,27.0]},{"level":76,"furnace":[350.0,70.0],"embassy":[87.0,17.0],"infirmary":[70.0,14.0],"command":[70.0,14.0],"shield":[157.0,31.0],"lancer":[157.0,31.0],"marksman":[157.0,31.0],"academy":[157.0,31.0]},{"level":77,"furnace":[350.0,70.0],"embassy":[87.0,17.0],"infirmary":[70.0,14.0],"command":[70.0,14.0],"shield":[157.0,31.0],"lancer":[157.0,31.0],"marksman":[157.0,31.0],"academy":[157.0,31.0]},{"level":78,"furnace":[350.0,70.0],"embassy":[87.0,17.0],"infirmary":[70.0,14.0],"command":[70.0,14.0],"shield":[157.0,31.0],"lancer":[157.0,31.0],"marksman":[157.0,31.0],"academy":[157.0,31.0]},{"level":79,"furnace":[350.0,70.0],"embassy":[87.0,17.0],"infirmary":[70.0,14.0],"command":[70.0,14.0],"shield":[157.0,31.0],"lancer":[157.0,31.0],"marksman":[157.0,31.0],"academy":[157.0,31.0]},{"level":80,"furnace":[175.0,140.0],"embassy":[43.0,35.0],"infirmary":[35.0,28.0],"command":[35.0,28.0],"shield":[78.0,63.0],"lancer":[78.0,63.0],"marksman":[78.0,63.0],"academy":[78.0,61.0]}];
@@ -216,12 +260,62 @@
     const fireByLevel = new Map(fireData.map(x => [x.level, x]));
     const state = {};
 
+    const RC = window.RefineCrystal;
+    const REFINE_STRATEGIES = RC.STRATEGIES_ENRICHED.filter(s => /^d\d+_6$/.test(s.id)).map(s => ({
+      id: s.id,
+      label: s.label,
+      daily: s.daily,
+      weeklyYield: s.expectedCrystals,
+      weeklyCount: s.times,
+      weeklyCost: s.totalCost
+    }));
+
+    let refineStrategyId = "d80_6";
+
+    function getRefineStrategy() {
+      return REFINE_STRATEGIES.find(s => s.id === refineStrategyId) || REFINE_STRATEGIES[0];
+    }
+
+    function renderRefineStrategyOptions() {
+      const sel = document.getElementById("refineStrategy");
+      if (!sel) return;
+      sel.innerHTML = REFINE_STRATEGIES.map(s =>
+        `<option value="${s.id}">${s.label} · 期望 ${fmtSmart(s.weeklyYield)} · 消耗 ${fmtInt(s.weeklyCost)}</option>`
+      ).join("");
+      sel.value = refineStrategyId;
+    }
+
+    function updateStrategyLabel() {
+      const s = getRefineStrategy();
+      const el = document.getElementById("strategyYieldLabel");
+      if (el) {
+        el.textContent = `${s.label}：每周 ${s.weeklyCount} 次 · 期望 ${fmtSmart(s.weeklyYield)} 精炼火晶 · 优惠后消耗 ${fmtSmart(s.weeklyCost)} 火晶`;
+      }
+    }
+
     function fmt(n, d = 0) {
       return Number(n).toLocaleString("zh-CN", { minimumFractionDigits: d, maximumFractionDigits: d });
     }
 
     function fmtSmart(n) {
       return Number(n).toLocaleString("zh-CN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    }
+
+    function fmtInt(n) {
+      return Number(n).toLocaleString("zh-CN", { maximumFractionDigits: 0 });
+    }
+
+    function renderStrategyRef() {
+      const body = document.getElementById("strategyRefBody");
+      if (!body) return;
+      body.innerHTML = REFINE_STRATEGIES.map(s => `
+        <tr>
+          <td>${s.label}</td>
+          <td>${fmtInt(s.weeklyCount)}</td>
+          <td>${fmtInt(s.weeklyCost)} 颗</td>
+          <td>${fmtSmart(s.weeklyYield)}</td>
+        </tr>
+      `).join("");
     }
 
     function levelLabel(level) {
@@ -309,7 +403,23 @@
 
       document.getElementById("totalCrystal").textContent = fmt(totalCrystal);
       document.getElementById("totalRefine").textContent = fmt(totalRefine);
-      document.getElementById("weeks").textContent = `${fmtSmart(totalRefine / 226.56)} 周`;
+      const strategy = getRefineStrategy();
+      const weeklyYield = strategy.weeklyYield || 0;
+      const weeklyCost = strategy.weeklyCost || 0;
+      const weeks = weeklyYield > 0 ? totalRefine / weeklyYield : 0;
+      document.getElementById("weeks").textContent = weeklyYield > 0
+        ? `${fmtSmart(weeks)} 周`
+        : "—";
+      document.getElementById("weeklyYield").textContent = weeklyYield > 0
+        ? `${fmtSmart(weeklyYield)} 精炼`
+        : "—";
+      document.getElementById("weeklyCost").textContent = weeklyCost > 0
+        ? `${fmtSmart(weeklyCost)} 火晶`
+        : "—";
+      document.getElementById("totalRefineCost").textContent = weeklyYield > 0 && weeklyCost > 0
+        ? `${fmtSmart(weeks * weeklyCost)} 火晶`
+        : "—";
+      updateStrategyLabel();
     }
 
     function setAll(current, target) {
@@ -324,6 +434,13 @@
 
     function init() {
       renderCards();
+      renderRefineStrategyOptions();
+      renderStrategyRef();
+      updateStrategyLabel();
+      document.getElementById("refineStrategy").addEventListener("change", e => {
+        refineStrategyId = e.target.value;
+        calc();
+      });
       document.getElementById("reset").addEventListener("click", () => setAll(30, 30));
       document.getElementById("presetAll3").addEventListener("click", () => setAll(45, 45));
       document.getElementById("presetAll5").addEventListener("click", () => setAll(55, 55));

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>精炼提炼模拟器-无尽冬日工具箱</title>
+  <style>
+    :root {
+      --bg0:#0f172a; --bg1:#1e293b; --line:rgba(148,163,184,.28);
+      --txt:#e2e8f0; --muted:#94a3b8; --panel:rgba(15,23,42,.78); --surface:rgba(30,41,59,.72);
+      --surface-strong:rgba(15,23,42,.9); --acc1:#fb923c; --acc2:#22d3ee; --acc3:#22c55e; --danger:#f87171;
+    }
+    body.theme-day {
+      --bg0:#eaf2ff; --bg1:#f8fbff; --line:rgba(15,23,42,.14);
+      --txt:#0f172a; --muted:#475569; --panel:rgba(255,255,255,.94); --surface:rgba(255,255,255,.95);
+      --surface-strong:rgba(255,255,255,.95); --acc1:#ea580c; --acc2:#0369a1; --acc3:#15803d; --danger:#dc2626;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:"Microsoft YaHei",system-ui,sans-serif;color:var(--txt);min-height:100vh;padding:16px;
+      background:radial-gradient(900px 420px at -10% -10%, rgba(251,146,60,.24), transparent 65%),
+        radial-gradient(900px 420px at 110% 0%, rgba(34,211,238,.2), transparent 68%),
+        linear-gradient(140deg,var(--bg0),var(--bg1));
+    }
+    .home-btn,.nav-link{
+      position:fixed;top:10px;z-index:20;text-decoration:none;color:var(--txt);
+      border:1px solid var(--line);background:var(--surface-strong);border-radius:10px;
+      padding:8px 12px;font-size:12px;font-weight:700;
+    }
+    .home-btn{left:10px}
+    .nav-link{left:112px}
+    .app{max-width:980px;margin:52px auto 24px;display:grid;gap:14px}
+    .hero,.panel{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:16px}
+    h1{font-size:clamp(22px,4vw,32px);margin-bottom:8px}
+    .subtitle{color:var(--muted);font-size:14px;line-height:1.55}
+    .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .btn{
+      border:1px solid var(--line);border-radius:10px;padding:9px 14px;background:var(--surface);color:var(--txt);
+      cursor:pointer;font-weight:700;font-size:13px;min-height:40px;
+    }
+    .btn.primary{background:color-mix(in srgb,var(--acc2) 24%,var(--surface))}
+    .btn.danger{color:var(--danger)}
+    .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+    .field{display:grid;gap:6px}
+    label{font-size:12px;color:var(--muted);font-weight:700}
+    input,select{
+      width:100%;border:1px solid var(--line);background:var(--surface-strong);color:var(--txt);
+      border-radius:10px;padding:10px;font-size:14px;
+    }
+    .stats{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+    .stat{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface)}
+    .stat .label{color:var(--muted);font-size:12px}
+    .stat .value{font-size:clamp(18px,3vw,26px);font-weight:800;margin-top:4px}
+    .v1{color:var(--acc1)} .v2{color:var(--acc2)} .v3{color:var(--acc3)}
+    .log{
+      margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+      max-height:320px;overflow:auto;font-size:12px;line-height:1.5;
+    }
+    .log table{width:100%;border-collapse:collapse}
+    .log th,.log td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+    .log th{background:var(--surface-strong);position:sticky;top:0}
+    .log th:first-child,.log td:first-child{text-align:left}
+    .log-empty{padding:24px;text-align:center;color:var(--muted)}
+    .dist{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .dist-item{
+      border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px;font-weight:700;
+      background:var(--surface);
+    }
+    .note{color:var(--muted);font-size:12px;line-height:1.6;margin-top:8px}
+    .compare{margin-top:10px;font-size:13px;color:var(--muted)}
+    .compare strong{color:var(--txt)}
+    @media(max-width:680px){.nav-link{top:48px;left:10px}.app{margin-top:88px}}
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../rukou.html">返回主页</a>
+  <a class="nav-link" href="refine-crystal-calculator.html">提炼计算器</a>
+
+  <main class="app">
+    <section class="hero">
+      <h1>精炼提炼模拟器</h1>
+      <p class="subtitle">按真实概率随机模拟每次提炼结果。<strong>每日首次提炼消耗 50%</strong>；连抽视为同一天，点「下一天」后首抽重新享受优惠。</p>
+    </section>
+
+    <section class="panel">
+      <div class="grid">
+        <div class="field">
+          <label for="weekCount">本周已提炼次数</label>
+          <input id="weekCount" type="number" min="0" max="100" value="0" readonly />
+        </div>
+        <div class="field">
+          <label for="weekStrategy">整周模拟策略</label>
+          <select id="weekStrategy"></select>
+        </div>
+        <div class="field">
+          <label for="mcRuns">蒙特卡洛次数</label>
+          <input id="mcRuns" type="number" min="100" max="50000" step="100" value="2000" />
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn primary" id="btnOnce">提炼 1 次</button>
+        <button type="button" class="btn" id="btnTen">提炼 10 次</button>
+        <button type="button" class="btn" id="btnToMax">提炼至 100 次</button>
+        <button type="button" class="btn" id="btnWeek">模拟整周策略</button>
+        <button type="button" class="btn" id="btnMonte">蒙特卡洛模拟</button>
+        <button type="button" class="btn" id="btnNextDay">下一天（刷新首抽优惠）</button>
+        <button type="button" class="btn danger" id="btnReset">重置本周</button>
+      </div>
+
+      <div class="stats" style="margin-top:14px">
+        <div class="stat"><div class="label">累计获得精炼火晶</div><div id="sumCrystals" class="value v1">0</div></div>
+        <div class="stat"><div class="label">优惠后累计消耗</div><div id="sumCost" class="value v2">0</div></div>
+        <div class="stat"><div class="label">第几天 / 今日已抽</div><div id="dayInfo" class="value v3" style="font-size:16px">1 / 0</div></div>
+        <div class="stat"><div class="label">单次实际平均</div><div id="sessionAvg" class="value">0</div></div>
+      </div>
+      <p class="compare" id="compareLine"></p>
+      <div class="dist" id="distBox"></div>
+    </section>
+
+    <section class="panel">
+      <h2 style="font-size:16px;margin-bottom:8px">提炼记录</h2>
+      <div class="log" id="logBox"><div class="log-empty">点击「提炼 1 次」开始模拟</div></div>
+      <p class="note">记录按时间倒序，最多保留 200 条。期望值为理论均值，实际结果会有波动。</p>
+    </section>
+
+    <section class="panel" id="mcPanel" style="display:none">
+      <h2 style="font-size:16px;margin-bottom:8px">蒙特卡洛统计</h2>
+      <div class="stats">
+        <div class="stat"><div class="label">模拟周数</div><div id="mcRunsOut" class="value">0</div></div>
+        <div class="stat"><div class="label">平均产出</div><div id="mcAvg" class="value v1">0</div></div>
+        <div class="stat"><div class="label">平均消耗</div><div id="mcCost" class="value v2">0</div></div>
+        <div class="stat"><div class="label">产出区间</div><div id="mcRange" class="value v3" style="font-size:16px">—</div></div>
+      </div>
+      <div class="dist" id="mcDist" style="margin-top:12px"></div>
+    </section>
+  </main>
+
+  <script src="refine-crystal-data.js"></script>
+  <script>
+    "use strict";
+    const RC = window.RefineCrystal;
+    const state = {
+      weekCount: 0,
+      dayIndex: 1,
+      todayCount: 0,
+      sessionTimes: 0,
+      sumCrystals: 0,
+      sumCost: 0,
+      distribution: {},
+      logs: []
+    };
+
+    function fmt(n, d) {
+      d = d == null ? 2 : d;
+      return Number(n).toLocaleString("zh-CN", { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+    function fmtInt(n) {
+      return Number(n).toLocaleString("zh-CN", { maximumFractionDigits: 0 });
+    }
+
+    function renderStrategyOptions() {
+      document.getElementById("weekStrategy").innerHTML = RC.STRATEGIES_ENRICHED.map(s =>
+        `<option value="${s.id}">${s.label} · 消耗 ${fmtInt(s.totalCost)}</option>`
+      ).join("");
+      document.getElementById("weekStrategy").value = "d80_6";
+    }
+
+    function syncWeekInput() {
+      document.getElementById("weekCount").value = state.weekCount;
+    }
+
+    function syncDayInfo() {
+      const el = document.getElementById("dayInfo");
+      if (el) el.textContent = `${state.dayIndex} / ${state.todayCount}`;
+    }
+
+    function renderDist() {
+      const box = document.getElementById("distBox");
+      const keys = Object.keys(state.distribution).map(Number).sort((a, b) => a - b);
+      if (!keys.length) {
+        box.innerHTML = "";
+        return;
+      }
+      box.innerHTML = keys.map(k => {
+        const c = state.distribution[k];
+        const pct = state.sessionTimes ? (c / state.sessionTimes * 100).toFixed(1) : "0";
+        return `<span class="dist-item">${k} 颗 × ${c}（${pct}%）</span>`;
+      }).join("");
+    }
+
+    function renderStats() {
+      document.getElementById("sumCrystals").textContent = fmtInt(state.sumCrystals);
+      document.getElementById("sumCost").textContent = fmtInt(state.sumCost);
+      const dayEl = document.getElementById("dayInfo");
+      if (dayEl) dayEl.textContent = `${state.dayIndex} / ${state.todayCount}`;
+      document.getElementById("sessionAvg").textContent = state.sessionTimes
+        ? fmt(state.sumCrystals / state.sessionTimes)
+        : "0";
+
+      if (state.sessionTimes) {
+        let expected = 0;
+        for (let i = state.weekCount - state.sessionTimes + 1; i <= state.weekCount; i += 1) {
+          if (i >= 1) expected += RC.expectedYieldAt(i);
+        }
+        const diff = state.sumCrystals - expected;
+        const sign = diff >= 0 ? "+" : "";
+        document.getElementById("compareLine").innerHTML =
+          `理论期望约 <strong>${fmt(expected)}</strong> 颗，实际 <strong>${fmtInt(state.sumCrystals)}</strong> 颗（${sign}${fmt(diff)}）`;
+      } else {
+        document.getElementById("compareLine").textContent = "";
+      }
+      renderDist();
+    }
+
+    function pushLog(entry) {
+      state.logs.unshift(entry);
+      if (state.logs.length > 200) state.logs.length = 200;
+      const box = document.getElementById("logBox");
+      if (!state.logs.length) {
+        box.innerHTML = '<div class="log-empty">暂无记录</div>';
+        return;
+      }
+      box.innerHTML = `<table>
+        <thead><tr>
+          <th>#</th><th>次数段</th><th>消耗</th><th>获得</th><th>期望</th><th>备注</th>
+        </tr></thead>
+        <tbody>${state.logs.map(row => `<tr>
+          <td>第 ${row.count} 次</td>
+          <td>${row.tierText}</td>
+          <td>${row.cost}${row.discounted ? " <span style=\"color:var(--acc3)\">半</span>" : ""}</td>
+          <td><strong>${row.crystals}</strong> 颗</td>
+          <td>${fmt(RC.expectedYieldAt(row.count))}</td>
+          <td>${row.note || ""}</td>
+        </tr>`).join("")}</tbody>
+      </table>`;
+    }
+
+    function applyRoll(hit, note) {
+      state.weekCount += 1;
+      state.sessionTimes += 1;
+      state.todayCount += 1;
+      state.sumCrystals += hit.crystals;
+      state.sumCost += hit.cost;
+      state.distribution[hit.crystals] = (state.distribution[hit.crystals] || 0) + 1;
+      hit.note = note || (hit.discounted ? "每日首抽半价" : "");
+      pushLog(hit);
+      syncWeekInput();
+      syncDayInfo();
+      renderStats();
+    }
+
+    function refineTimes(n) {
+      const times = Math.max(0, Number(n) || 0);
+      for (let i = 0; i < times; i += 1) {
+        if (state.weekCount >= RC.MAX_WEEKLY) break;
+        const isFirstOfDay = state.todayCount === 0;
+        const hit = RC.rollAt(state.weekCount + 1, Math.random, isFirstOfDay);
+        if (!hit) break;
+        applyRoll(hit);
+      }
+    }
+
+    function nextDay() {
+      if (state.dayIndex >= 7) return;
+      state.dayIndex += 1;
+      state.todayCount = 0;
+      syncDayInfo();
+    }
+
+    function resetWeek() {
+      state.weekCount = 0;
+      state.dayIndex = 1;
+      state.todayCount = 0;
+      state.sessionTimes = 0;
+      state.sumCrystals = 0;
+      state.sumCost = 0;
+      state.distribution = {};
+      state.logs = [];
+      syncWeekInput();
+      syncDayInfo();
+      document.getElementById("logBox").innerHTML = '<div class="log-empty">已重置，点击「提炼 1 次」开始</div>';
+      document.getElementById("compareLine").textContent = "";
+      document.getElementById("distBox").innerHTML = "";
+      renderStats();
+      document.getElementById("mcPanel").style.display = "none";
+    }
+
+    function simulateWeek() {
+      resetWeek();
+      const id = document.getElementById("weekStrategy").value;
+      const result = RC.simulateWeek(id, 0);
+      result.rolls.forEach(hit => {
+        state.weekCount += 1;
+        state.sessionTimes += 1;
+        state.todayCount = hit.day === state.dayIndex ? state.todayCount + 1 : 1;
+        state.dayIndex = hit.day || state.dayIndex;
+        state.sumCrystals += hit.crystals;
+        state.sumCost += hit.cost;
+        state.distribution[hit.crystals] = (state.distribution[hit.crystals] || 0) + 1;
+        pushLog(hit);
+      });
+      syncWeekInput();
+      syncDayInfo();
+      renderStats();
+    }
+
+    function runMonteCarlo() {
+      const id = document.getElementById("weekStrategy").value;
+      const runs = Number(document.getElementById("mcRuns").value) || 2000;
+      const result = RC.monteCarloWeeks(id, runs, 0);
+      document.getElementById("mcPanel").style.display = "";
+      document.getElementById("mcRunsOut").textContent = fmtInt(result.runs);
+      document.getElementById("mcAvg").textContent = fmt(result.avgCrystals);
+      document.getElementById("mcCost").textContent = fmtInt(result.avgCost);
+      document.getElementById("mcRange").textContent = `${fmt(result.minCrystals)} ~ ${fmt(result.maxCrystals)}`;
+      const keys = Object.keys(result.avgDistribution).map(Number).sort((a, b) => a - b);
+      document.getElementById("mcDist").innerHTML = keys.map(k =>
+        `<span class="dist-item">${k} 颗 · 均 ${fmt(result.avgDistribution[k], 2)} 次/周</span>`
+      ).join("");
+    }
+
+    document.getElementById("btnOnce").addEventListener("click", () => refineTimes(1));
+    document.getElementById("btnTen").addEventListener("click", () => refineTimes(10));
+    document.getElementById("btnToMax").addEventListener("click", () => refineTimes(RC.MAX_WEEKLY - state.weekCount));
+    document.getElementById("btnWeek").addEventListener("click", simulateWeek);
+    document.getElementById("btnMonte").addEventListener("click", runMonteCarlo);
+    document.getElementById("btnNextDay").addEventListener("click", nextDay);
+    document.getElementById("btnReset").addEventListener("click", resetWeek);
+
+    renderStrategyOptions();
+    syncWeekInput();
+    syncDayInfo();
+    renderStats();
+  </script>
+  <style id="wjdr-footer-inline">footer.wjdr-footer{display:flex;justify-content:center;padding:14px;font-size:12px;color:var(--muted,#94a3b8);border-top:1px solid var(--line,rgba(148,163,184,.28));margin-top:1.75rem}</style>
+  <footer class="wjdr-footer"><p>版权所有 © 2026 无尽冬日工具箱</p></footer>
+</body>
+</html>
