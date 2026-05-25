@@ -1416,6 +1416,12 @@
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.12（2026-05-25）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>练兵计算站</strong>（<code>public/function/equipment-training-calculator.html</code>）：纯前端静态页重构——合并「数量与时间」与「兵种数量与减免」；移除练兵数量/已有加速输入，分数与加速按盾+矛+弓合计；晋升路径时间/积分/资源改逐级差值累加（含 T11→T12 8 秒/兵特例）；T11 与 T12 目标均展示并应用减免；修复脚本括号缺失导致下拉框未初始化。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>首页版本号与更新日志</strong>：<code>index.html</code> 版本标签与弹窗内「首页更新日志」追加 V0.9.12 条目。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>无后端变更</strong>：未新增/调整管理端菜单与权限点；接口、库表字段与缓存策略均无改动。</div>
+          </div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.11（2026-05-25）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>论坛接口（CDN 兼容）</strong>：保留既有 <code>PATCH</code> 路由，新增等价 <code>POST</code> 备用路径——<code>POST /api/forum/posts/:id/pin</code>、<code>POST /api/forum/posts/:id/update</code>、<code>POST /api/forum/comments/:id/pin</code>；请求体与鉴权逻辑与 PATCH 共用同一 handler，旧客户端不受影响。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>置顶权限</strong>：帖子置顶改经 <code>requireModerator</code>（<code>is_admin</code> 或 <code>forum_publisher</code>）；与首页/独立阅读页仅对管理员与论坛发布者展示置顶按钮一致。</div>
