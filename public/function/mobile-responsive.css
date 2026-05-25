@@ -39,6 +39,10 @@
 
 @media (max-width: 520px){
   .theme-toggle-btn{right:10px;bottom:10px;width:38px;height:38px;}
+  body:has(.tab-bar) .theme-toggle-btn{
+    right:12px;
+    bottom:calc(92px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 @media (max-width: 768px) {

@@ -1005,6 +1005,10 @@
     a[href="function/calendar.html"]{
       display:none !important;
     }
+    /* 强制隐藏：兑换中心入口（避免筛选/搜索脚本覆盖 hidden） */
+    .card.tool-tile-card:has(#giftcode-dev-link){
+      display:none !important;
+    }
     .tool-subtabs{
       display:flex;
       align-items:center;
@@ -3091,9 +3095,6 @@
         font-size:.8rem;
       }
     }
-    @media (max-width: 520px){
-      .featured-tools-grid{grid-template-columns:1fr;}
-    }
     @media (min-width: 769px){
       .dev-toast{
         bottom:24px;
@@ -3118,7 +3119,7 @@
       }
     }
   </style>
-  <style id="wjdr-home-fab-offset">@media (max-width:600px){#themeToggle{right:12px;bottom:92px}}</style>
+  <style id="wjdr-home-fab-offset">@media (max-width:768px){body:has(.tab-bar) #themeToggle{right:12px;bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}}</style>
   <script src="/function/theme.js?v=20260501-0103" defer></script>
 </head>
 <body>
@@ -3508,7 +3509,7 @@
           </div>
         </div>
         <div class="tool-warehouse-grid">
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" hidden aria-hidden="true">
             <a class="tool-tile-link" href="/giftcode/" id="giftcode-dev-link">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F381;</div>
               <div class="card-title tool-tile-name">无尽冬日兑换中心</div>
@@ -8449,6 +8450,9 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           group.style.display=visible?'':'none';
         });
       }
+      function isPermanentlyHidden(card){
+        return card.hasAttribute('hidden') || !!card.querySelector('#giftcode-dev-link');
+      }
       function applyTab(tab){
         var keyword='';
         var giftKw='';
@@ -8458,6 +8462,10 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           giftKw=normalizeGiftKeyword(raw);
         }
         cards.forEach(function(card){
+          if(isPermanentlyHidden(card)){
+            card.style.display='none';
+            return;
+          }
           var visible=matchTab(card, tab);
           if(visible && (keyword || giftKw)){
             var txtHit = keyword && getSearchText(card).indexOf(keyword)>-1;
@@ -8635,13 +8643,5 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       setInterval(spawnSnowflake, 180);
     }
   </script>
-  <script>
-    (function () {
-      if (location.hash === '#giftcode-dev') {
-        location.replace('/giftcode/');
-      }
-    })();
-  </script>
-
 </body>
 </html>
