@@ -8747,10 +8747,11 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           }
           var visible=matchTab(card, tab);
           if(visible && (keyword || giftKw)){
+            var cat=card.getAttribute('data-category');
             var txtHit = keyword && getSearchText(card).indexOf(keyword)>-1;
             var giftCat = card.getAttribute('data-gift-search');
             var giftHit = !!(giftCat && giftKw && giftPackCategoryHasMatch(giftCat, giftKw));
-            var forumHit = !!(keyword && typeof window.forumHomeSearchIsActive === 'function' && window.forumHomeSearchIsActive());
+            var forumHit = !!(keyword && cat === 'forum' && typeof window.forumHomeSearchIsActive === 'function' && window.forumHomeSearchIsActive());
             visible = txtHit || giftHit || forumHit;
           }
           card.style.display=visible?'':'none';
