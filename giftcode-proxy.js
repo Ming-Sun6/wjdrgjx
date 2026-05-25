@@ -4,7 +4,7 @@ const { URL } = require('url');
 
 const GIFTCODE_SERVICE_URL = process.env.GIFTCODE_SERVICE_URL || 'http://127.0.0.1:5201';
 const GIFTCODE_URL_PREFIX = normalizePrefix(process.env.GIFTCODE_URL_PREFIX || '/giftcode');
-const GIFTCODE_UI_MODE = (process.env.GIFTCODE_UI_MODE || 'placeholder').trim().toLowerCase();
+const GIFTCODE_UI_MODE = (process.env.GIFTCODE_UI_MODE || 'live').trim().toLowerCase();
 
 const GIFTCODE_EXACT_API_PATHS = new Set([
   '/api/addUser',

@@ -3374,24 +3374,6 @@
             <div class="pill">Architecture10.html</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
-            <a class="tool-tile-link" href="function/refine-crystal-calculator.html">
-              <div class="tool-tile-icon" aria-hidden="true">&#x1F525;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span>精炼提炼计算器</div>
-            </a>
-            <div class="pill">refine-crystal-calculator.html</div>
-            <div class="desc">按概率表计算精炼火晶期望产出与火晶消耗，支持周策略。</div>
-          </section>
-
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
-            <a class="tool-tile-link" href="function/refine-crystal-simulator.html">
-              <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span>精炼提炼模拟器</div>
-            </a>
-            <div class="pill">refine-crystal-simulator.html</div>
-            <div class="desc">真实随机模拟每次提炼爆率与奖励，支持蒙特卡洛批量模拟。</div>
-          </section>
-
           <section class="card featured-tool-card feature-progress" data-category="calcTools" data-tool-priority="featured">
             <a class="featured-tool-link" href="function/lord-equipment-gem-calculator.html">
               <span class="featured-tool-badge">&#x88C5;&#x5907;&#x8FDB;&#x9636;</span>
@@ -3425,7 +3407,7 @@
           </section>
 
           <section class="card featured-tool-card feature-core" data-category="calcTools" data-tool-priority="featured">
-            <a class="featured-tool-link" href="/#giftcode-dev" id="giftcode-dev-link">
+            <a class="featured-tool-link" href="/giftcode/" id="giftcode-dev-link">
               <span class="featured-tool-badge">&#x5151;&#x6362;&#x4E2D;&#x5FC3;</span>
               <div class="featured-tool-main">
                 <div>
@@ -3455,6 +3437,24 @@
             </a>
             <div class="pill">BeaPit.html</div>
             <div class="desc">&#x7528;&#x4E8E;&#x718A;&#x5751;/&#x5EFA;&#x7B51;&#x6392;&#x5E03;&#x4E0E;&#x6807;&#x8BB0;&#xFF0C;&#x652F;&#x6301;&#x7F29;&#x653E;&#x3001;&#x4FDD;&#x5B58;&#x548C;&#x5BFC;&#x51FA;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+            <a class="tool-tile-link" href="function/refine-crystal-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F525;</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span>精炼提炼计算器</div>
+            </a>
+            <div class="pill">refine-crystal-calculator.html</div>
+            <div class="desc">按概率表计算精炼火晶期望产出与火晶消耗，支持周策略。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+            <a class="tool-tile-link" href="function/refine-crystal-simulator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span>精炼提炼模拟器</div>
+            </a>
+            <div class="pill">refine-crystal-simulator.html</div>
+            <div class="desc">真实随机模拟每次提炼爆率与奖励，支持蒙特卡洛批量模拟。</div>
           </section>
 
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
@@ -8639,58 +8639,13 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       setInterval(spawnSnowflake, 180);
     }
   </script>
-
-  <div id="giftcode-dev-modal" class="giftcode-dev-modal" hidden aria-hidden="true">
-    <div class="giftcode-dev-backdrop"></div>
-    <div class="giftcode-dev-dialog" role="alertdialog" aria-modal="true" aria-labelledby="giftcode-dev-title">
-      <div class="giftcode-dev-icon" aria-hidden="true">🛠️</div>
-      <h2 id="giftcode-dev-title">该模块正在开发中</h2>
-      <p>兑换中心正在升级对接，暂时无法使用。请稍后再来，或继续使用工具箱其他功能。</p>
-      <button type="button" class="giftcode-dev-close">返回主页</button>
-      <p class="giftcode-dev-hint">窗口暂不可关闭 · 无尽冬日工具箱</p>
-    </div>
-  </div>
-  <style>
-    .giftcode-dev-modal{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px}
-    .giftcode-dev-modal[hidden]{display:none!important}
-    .giftcode-dev-backdrop{position:absolute;inset:0;background:rgba(2,6,23,.75);backdrop-filter:blur(6px)}
-    .giftcode-dev-dialog{position:relative;z-index:1;width:min(92vw,400px);padding:26px 22px 20px;border-radius:18px;text-align:center;background:linear-gradient(160deg,rgba(30,41,59,.97),rgba(15,23,42,.98));border:1px solid rgba(148,163,184,.22);box-shadow:0 24px 60px rgba(0,0,0,.45);color:#e2e8f0}
-    .giftcode-dev-icon{width:52px;height:52px;margin:0 auto 14px;border-radius:14px;background:rgba(59,130,246,.15);border:1px solid rgba(96,165,250,.35);display:flex;align-items:center;justify-content:center;font-size:26px}
-    .giftcode-dev-dialog h2{font-size:1.2rem;margin-bottom:10px;color:#f8fafc}
-    .giftcode-dev-dialog p{font-size:.92rem;line-height:1.65;color:#94a3b8;margin-bottom:18px}
-    .giftcode-dev-close{width:100%;padding:13px 18px;border:none;border-radius:11px;background:linear-gradient(135deg,#3b82f6,#6366f1);color:#fff;font-size:1rem;font-weight:600;cursor:pointer}
-    .giftcode-dev-hint{margin-top:12px;font-size:.72rem;color:#64748b}
-  </style>
   <script>
     (function () {
-      var modal = document.getElementById('giftcode-dev-modal');
-      var link = document.getElementById('giftcode-dev-link');
-      if (!modal) return;
-      function openModal() {
-        modal.hidden = false;
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
-        if (location.hash !== '#giftcode-dev') {
-          try { history.replaceState(null, '', '#giftcode-dev'); } catch (e) {}
-        }
+      if (location.hash === '#giftcode-dev') {
+        location.replace('/giftcode/');
       }
-      function closeModal() {
-        modal.hidden = true;
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        if (location.hash === '#giftcode-dev') {
-          try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
-        }
-      }
-      if (link) {
-        link.addEventListener('click', function (e) {
-          e.preventDefault();
-          openModal();
-        });
-      }
-      modal.querySelector('.giftcode-dev-close').addEventListener('click', closeModal);
-      if (location.hash === '#giftcode-dev') openModal();
     })();
   </script>
+
 </body>
 </html>

@@ -1,16 +1,654 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>兑换中心 - 无尽冬日工具箱</title>
-  <meta http-equiv="refresh" content="0; url=https://wjgl.store/#giftcode-dev">
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>无尽冬日兑换码助手</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Microsoft YaHei', sans-serif; }
+        :root {
+            --bg-night-1:#0b1220;
+            --bg-night-2:#0f172a;
+            --bg-day-1:#f1f5ff;
+            --bg-day-2:#fefce8;
+            --glow-night-1:rgba(59,130,246,.25);
+            --glow-night-2:rgba(139,92,246,.22);
+            --glow-day-1:rgba(56,189,248,.22);
+            --glow-day-2:rgba(251,191,36,.18);
+            --surface-night:rgba(15,23,42,.75);
+            --surface-strong-night:rgba(30,41,59,.75);
+            --surface-day:rgba(255,255,255,.78);
+            --surface-strong-day:rgba(255,255,255,.9);
+            --border-night:rgba(255,255,255,.12);
+            --border-day:rgba(15,23,42,.12);
+            --text-night:#e2e8f0;
+            --text-day:#0f172a;
+            --muted-night:#94a3b8;
+            --muted-day:#475569;
+            --accent:#3b82f6;
+            --accent-2:#6366f1;
+            --shadow:0 14px 35px rgba(0,0,0,.35);
+            --shadow-soft:0 10px 24px rgba(15,23,42,.16);
+            --danger-soft-night:rgba(248,113,113,.18);
+            --danger-soft-day:rgba(248,113,113,.12);
+            --danger-border-night:rgba(248,113,113,.34);
+            --danger-border-day:rgba(239,68,68,.3);
+            --danger-text-night:#fca5a5;
+            --danger-text-day:#b91c1c;
+        }
+        html[data-theme="night"]{
+            --bg1:var(--bg-night-1);
+            --bg2:var(--bg-night-2);
+            --glow-1:var(--glow-night-1);
+            --glow-2:var(--glow-night-2);
+            --surface:var(--surface-night);
+            --surface-strong:var(--surface-strong-night);
+            --border:var(--border-night);
+            --text:var(--text-night);
+            --muted:var(--muted-night);
+            --danger-soft:var(--danger-soft-night);
+            --danger-border:var(--danger-border-night);
+            --danger-text:var(--danger-text-night);
+            color-scheme: dark;
+        }
+        html[data-theme="day"]{
+            --bg1:var(--bg-day-1);
+            --bg2:var(--bg-day-2);
+            --glow-1:var(--glow-day-1);
+            --glow-2:var(--glow-day-2);
+            --surface:var(--surface-day);
+            --surface-strong:var(--surface-strong-day);
+            --border:var(--border-day);
+            --text:var(--text-day);
+            --muted:var(--muted-day);
+            --danger-soft:var(--danger-soft-day);
+            --danger-border:var(--danger-border-day);
+            --danger-text:var(--danger-text-day);
+            color-scheme: light;
+        }
+        body {
+            background: radial-gradient(1200px 700px at 20% 10%, var(--glow-1), transparent 55%),
+                radial-gradient(900px 600px at 85% 20%, var(--glow-2), transparent 55%),
+                linear-gradient(135deg, var(--bg1), var(--bg2));
+            min-height: 100vh;
+            color: var(--text);
+            padding-bottom: 24px;
+            transition: background .4s ease, color .25s ease;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 20px 20px 16px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo {
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem;
+        }
+        .header-title { font-size: 1.25rem; font-weight: 800; color: var(--text); }
+        .header-sub { font-size: 0.85rem; color: var(--muted); margin-top: 4px; }
+        .header-actions { display: flex; gap: 8px; }
+        .header-actions .btn {
+            padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+            background: var(--surface-strong); border: 1px solid var(--border);
+            color: var(--text); cursor: pointer; text-decoration: none;
+        }
+        .header-actions .btn:hover { background: rgba(59, 130, 246, 0.25); }
+        .home-link { color: inherit; text-decoration: none; }
+        .container { max-width: 720px; margin: 0 auto; padding: 20px; }
+        .card {
+            background: var(--surface-strong);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+        .card h2 {
+            font-size: 1rem; font-weight: 700; color: var(--text);
+            margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+        }
+        .card h2::before {
+            content: ''; width: 4px; height: 16px; background: linear-gradient(180deg, #3b82f6, #6366f1);
+            border-radius: 2px;
+        }
+        .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+        .row:last-child { margin-bottom: 0; }
+        input[type="text"] {
+            flex: 1; min-width: 180px; padding: 10px 14px; border-radius: 8px;
+            border: 1px solid var(--border); background: var(--surface);
+            color: var(--text); font-size: 0.9rem; outline: none;
+        }
+        input::placeholder { color: var(--muted); }
+        input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        .btn {
+            padding: 10px 16px; border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+            border: none; cursor: pointer; background: linear-gradient(90deg, #3b82f6, #6366f1);
+            color: #fff;
+        }
+        .btn:hover { filter: brightness(1.08); }
+        .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+        .btn.secondary:hover { background: rgba(59, 130, 246, 0.18); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .muted { color: var(--muted) !important; }
+        .theme-toggle {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 10010;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: transform .15s ease, background .2s ease, color .2s ease;
+        }
+        .theme-toggle:hover { transform: translateY(-1px); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        html[data-motion="on"] .container,
+        html[data-motion="on"] .card {
+            animation: fadeUp .5s ease both;
+        }
+        .status { font-size: 0.9rem; margin-top: 8px; min-height: 22px; }
+        .status.ok { color: #34d399; }
+        .status.err { color: #f87171; }
+        .collapse {
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            overflow: hidden;
+        }
+        .collapse-head {
+            padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+            font-size: 0.9rem; color: var(--muted);
+        }
+        .collapse-head:hover { color: var(--text); }
+        .collapse-head .icon { transition: transform 0.2s; }
+        .collapse.open .collapse-head .icon { transform: rotate(180deg); }
+        .collapse-body { padding: 0 16px 14px; font-size: 0.85rem; color: var(--muted); line-height: 1.6; display: none; }
+        .collapse.open .collapse-body { display: block; }
+        .account-list { margin-top: 8px; }
+        .account-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 12px; background: var(--surface);
+            border-radius: 8px; margin-bottom: 8px; font-size: 0.9rem;
+        }
+        .account-item .avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(59, 130, 246, 0.3); flex-shrink: 0; }
+        .account-item .id { color: var(--muted); font-size: 0.85rem; }
+        .card-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .card-head h2 { margin-bottom: 0; }
+        .code-list { display: flex; flex-direction: column; gap: 8px; }
+        .code-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 14px; background: var(--surface);
+            border-radius: 8px; border: 1px solid var(--border);
+        }
+        .code-row .code-tag { font-weight: 700; color: var(--accent); font-size: 0.95rem; }
+        .code-row .btn-due { padding: 6px 14px; font-size: 0.88rem; min-width: 48px; }
+        #toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            padding: 10px 20px; border-radius: 8px;
+            background: var(--surface-strong); border: 1px solid var(--border);
+            color: var(--text); font-size: 0.9rem; z-index: 10000;
+            opacity: 0; transition: opacity 0.2s; pointer-events: none;
+        }
+        #toast.show { opacity: 1; }
+        .empty-tip { color: var(--muted); font-size: 0.85rem; padding: 12px 0; }
+        #apiWarn {
+            display: none; margin: 0; padding: 12px 20px; background: var(--danger-soft);
+            border-bottom: 1px solid var(--danger-border); color: var(--danger-text); font-size: 0.9rem; line-height: 1.5;
+        }
+        #apiWarn.show { display: block; }
+        @media (max-width: 600px) {
+            .header { padding: 14px 16px; }
+            .container { padding: 14px; }
+            .row { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+<style id="wjdr-theme-fab-style">
+  :root{
+    --wjdr-fab-size:44px;
+    --wjdr-fab-right:14px;
+    --wjdr-fab-bottom:14px;
+  }
+
+  #themeToggle,
+  #themeToggleBtn,
+  .theme-toggle.wjdr-theme-fab,
+  #themeToggle.wjdr-theme-fab,
+  #themeToggleBtn.wjdr-theme-fab{
+    position:fixed !important;
+    right:var(--wjdr-fab-right) !important;
+    bottom:var(--wjdr-fab-bottom) !important;
+    left:auto !important;
+    top:auto !important;
+    z-index:10060 !important;
+    width:var(--wjdr-fab-size) !important;
+    height:var(--wjdr-fab-size) !important;
+    min-width:var(--wjdr-fab-size) !important;
+    min-height:var(--wjdr-fab-size) !important;
+    padding:0 !important;
+    margin:0 !important;
+    border-radius:999px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    line-height:1 !important;
+    box-shadow:0 10px 24px rgba(15,23,42,.28) !important;
+    transition:transform .18s ease, box-shadow .22s ease, background-color .2s ease !important;
+    overflow:hidden;
+  }
+
+  #themeToggle:hover,
+  #themeToggleBtn:hover,
+  .theme-toggle.wjdr-theme-fab:hover{
+    transform:translateY(-2px) scale(1.04) !important;
+    box-shadow:0 14px 30px rgba(37,99,235,.28) !important;
+  }
+
+  #themeToggle:active,
+  #themeToggleBtn:active,
+  .theme-toggle.wjdr-theme-fab:active{
+    transform:translateY(0) scale(.96) !important;
+  }
+
+  .wjdr-theme-fab-icon{
+    width:20px;
+    height:20px;
+    display:block;
+    fill:currentColor;
+    pointer-events:none;
+  }
+
+  @media (max-width: 768px){
+    :root{
+      --wjdr-fab-size:42px;
+      --wjdr-fab-right:12px;
+      --wjdr-fab-bottom:12px;
+    }
+  }
+</style>
+<style id="wjdr-theme-transition-style">
+  html.wjdr-theme-switching,
+  html.wjdr-theme-switching body,
+  html.wjdr-theme-switching * {
+    transition: background-color .28s ease, color .28s ease, border-color .28s ease, box-shadow .28s ease, filter .28s ease !important;
+  }
+</style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
 </head>
 <body>
-  <p>正在返回工具箱首页…</p>
-  <a href="https://wjgl.store/#giftcode-dev">点击进入无尽冬日工具箱</a>
-  <script>
-    location.replace('https://wjgl.store/#giftcode-dev');
-  </script>
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">🎁</div>
+            <div>
+                <div class="header-title">无尽冬日兑换码助手</div>
+                <div class="header-sub">自动获取最新兑换码，自动兑换到您的账号！</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a class="btn secondary home-link" href="../rukou.html">返回主页</a>
+        </div>
+    </header>
+    <button class="theme-toggle" id="themeToggle" type="button">切换到日间</button>
+
+    <div id="apiWarn" role="alert">
+        无法连接后端。请通过网站访问本页（<a href="http://118.31.223.131/function/duihuan.html" style="color:var(--accent);">http://118.31.223.131/function/duihuan.html</a>），勿直接双击打开；并确保已运行「一键启动」或已启动后端服务，使 <code>/api</code> 可用。
+    </div>
+
+    <div class="container">
+        <div class="collapse" id="collapseNotice">
+            <div class="collapse-head" id="collapseBtn">
+                <span class="icon">▼</span>
+                <span>使用说明</span>
+                <span style="color:var(--muted);margin-left:4px;">点击展开</span>
+            </div>
+            <div class="collapse-body">
+                本工具接入官方兑换中心 <a href="https://wjdr-giftcode.centurygames.cn/" target="_blank" rel="noopener" style="color:var(--accent);">wjdr-giftcode.centurygames.cn</a> 进行登录与兑换。输入游戏账号（角色ID），点击「保存」可保存到本机；点击「登录」可校验该账号是否存在。下方兑换码点击「兑」即请求官方接口兑换到当前账号；若官方要求验证码，可到官方兑换页手动操作。测试可用账号：773936709。
+            </div>
+        </div>
+
+        <section class="card">
+            <h2>添加游戏账号</h2>
+            <div class="row">
+                <input type="text" id="roleId" placeholder="请输入您的游戏账号ID" maxlength="10" />
+                <button class="btn" id="btnSave" type="button">保存</button>
+                <button class="btn secondary" id="btnLoginVerify" type="button">登录</button>
+            </div>
+            <div class="status" id="loginStatus"></div>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2>查询账号状态</h2>
+            </div>
+            <div class="row">
+                <input type="text" id="queryId" placeholder="输入账号ID查询是否已添加" maxlength="10" />
+                <button class="btn" id="btnQuery" type="button">查询账号</button>
+            </div>
+            <div class="status" id="queryStatus"></div>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2>账号列表</h2>
+            </div>
+            <div class="account-list" id="accountList">
+                <div class="empty-tip" id="accountListEmpty">当前已保存账号将显示在此处</div>
+            </div>
+        </section>
+
+        <section class="card">
+            <div class="card-head">
+                <h2>兑换码列表</h2>
+            </div>
+            <div class="code-list" id="codeList">
+                <div class="code-row"><span class="code-tag">FM666</span><button class="btn btn-due" type="button" data-code="FM666">兑</button></div>
+                <div class="code-row"><span class="code-tag">FM888</span><button class="btn btn-due" type="button" data-code="FM888">兑</button></div>
+            </div>
+            <p class="empty-tip" style="margin-top:10px;">* 点击「兑」即通过官方接口兑换；若提示需验证码请至 <a href="https://wjdr-giftcode.centurygames.cn/" target="_blank" rel="noopener" style="color:var(--accent);">官方兑换中心</a> 操作。</p>
+        </section>
+    </div>
+
+    <div id="toast"></div>
+
+    <script>
+        var ROLE_KEY = 'duihuan_roleId';
+        (function checkApi() {
+            var warn = document.getElementById('apiWarn');
+            if (!warn) return;
+            if (location.protocol === 'file:') {
+                warn.classList.add('show');
+                return;
+            }
+            fetch('/api/health', { method: 'GET', cache: 'no-store' })
+                .then(function (r) { if (!r.ok) throw new Error(); warn.classList.remove('show'); })
+                .catch(function () { warn.classList.add('show'); });
+        })();
+        function toast(msg) {
+            var el = document.getElementById('toast');
+            if (!el) return;
+            el.textContent = msg; el.classList.add('show');
+            setTimeout(function () { el.classList.remove('show'); }, 2200);
+        }
+        function setStatus(id, text, type) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = text || ''; el.className = 'status' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
+        }
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, function (s) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[s];
+            });
+        }
+        function renderAccountList() {
+            var saved = '';
+            try { saved = localStorage.getItem(ROLE_KEY) || ''; } catch (e) {}
+            var wrap = document.getElementById('accountList');
+            var empty = document.getElementById('accountListEmpty');
+            if (!wrap) return;
+            if (!saved) {
+                if (empty) empty.style.display = 'block';
+                var old = wrap.querySelector('.account-item');
+                if (old) old.remove();
+                return;
+            }
+            if (empty) empty.style.display = 'none';
+            var item = wrap.querySelector('.account-item');
+            if (!item) {
+                item = document.createElement('div');
+                item.className = 'account-item';
+                wrap.insertBefore(item, wrap.firstChild);
+            }
+            item.innerHTML = '<div class="avatar"></div><div><div>账号</div><div class="id">ID: ' + escapeHtml(saved) + '</div></div>';
+        }
+
+        document.getElementById('collapseBtn') && document.getElementById('collapseBtn').addEventListener('click', function () {
+            document.getElementById('collapseNotice').classList.toggle('open');
+        });
+
+        async function doPlayerLogin(fid, statusId) {
+            if (!fid) { setStatus(statusId, '请先输入账号', 'err'); return; }
+            setStatus(statusId, '校验中…', '');
+            try {
+                var r = await fetch('/api/giftcode/player', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fid: fid }) });
+                var d = (await r.json()) || {};
+                if (d.code === 0 && d.data) {
+                    setStatus(statusId, '登录成功' + (d.data.nickname ? '：' + d.data.nickname : ''), 'ok');
+                    return;
+                }
+                setStatus(statusId, (d.msg || d.err_code || '未查询到角色').trim(), 'err');
+            } catch (e) {
+                setStatus(statusId, '网络错误：请通过网站访问本页并确保后端已启动（运行一键启动）。', 'err');
+            }
+        }
+
+        document.getElementById('btnSave') && document.getElementById('btnSave').addEventListener('click', function () {
+            var id = (document.getElementById('roleId').value || '').trim();
+            if (!id) { toast('请输入账号'); return; }
+            try { localStorage.setItem(ROLE_KEY, id); toast('已保存'); renderAccountList(); } catch (e) { toast('保存失败'); return; }
+            doPlayerLogin(id, 'loginStatus');
+        });
+        document.getElementById('btnLoginVerify') && document.getElementById('btnLoginVerify').addEventListener('click', function () {
+            var fid = (document.getElementById('roleId').value || '').trim();
+            doPlayerLogin(fid, 'loginStatus');
+        });
+        document.getElementById('btnQuery') && document.getElementById('btnQuery').addEventListener('click', function () {
+            var fid = (document.getElementById('queryId').value || '').trim();
+            doPlayerLogin(fid, 'queryStatus');
+        });
+
+        document.getElementById('codeList') && document.getElementById('codeList').addEventListener('click', async function (e) {
+            var btn = e.target && e.target.closest('.btn-due');
+            if (!btn || !btn.getAttribute('data-code')) return;
+            var code = btn.getAttribute('data-code');
+            var fid = (document.getElementById('roleId').value || '').trim();
+            if (!fid) { toast('请先输入账号'); return; }
+            btn.disabled = true;
+            try {
+                var r = await fetch('/api/giftcode/exchange', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fid: fid, cdk: code }) });
+                var d = (await r.json()) || {};
+                if (d.code === 0) toast('兑换成功');
+                else toast((d.msg || d.err_code || '兑换失败').toString());
+            } catch (e) { toast('网络错误：请通过网站访问本页并确保后端已启动（运行一键启动）。'); }
+            finally { btn.disabled = false; }
+        });
+
+        try {
+            var s = localStorage.getItem(ROLE_KEY);
+            var roleEl = document.getElementById('roleId');
+            if (roleEl) roleEl.value = s || '773936709';
+        } catch (e) {}
+        renderAccountList();
+    </script>
+    <script>
+        (function(){
+            var root = document.documentElement;
+            var key = 'wjdr_theme';
+            var saved = null;
+            try { saved = localStorage.getItem(key); } catch (e) {}
+            var preferLight = false;
+            try { preferLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches; } catch (e) {}
+            var theme = saved || (preferLight ? 'day' : 'night');
+            root.setAttribute('data-theme', theme);
+            var motion = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            root.setAttribute('data-motion', motion ? 'on' : 'off');
+            var btn = document.getElementById('themeToggle');
+            function update(){
+                if (!btn) return;
+                var isDay = root.getAttribute('data-theme') === 'day';
+                btn.textContent = isDay ? '切换到夜间' : '切换到日间';
+            }
+            if (btn){
+                btn.addEventListener('click', function(){
+                    var next = root.getAttribute('data-theme') === 'day' ? 'night' : 'day';
+                    root.setAttribute('data-theme', next);
+                    try { localStorage.setItem(key, next); } catch (e) {}
+                    update();
+                });
+                update();
+            }
+        })();
+    </script>
+<script id="wjdr-theme-fab-script">
+(function(){
+  function getCurrentThemeMode(){
+    var rootTheme = '';
+    try{ rootTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase(); }catch(e){}
+    if(rootTheme === 'day' || rootTheme === 'light'){ return 'day'; }
+    if(rootTheme === 'night' || rootTheme === 'dark'){ return 'night'; }
+
+    var body = document.body;
+    if(body){
+      if(body.classList.contains('theme-day') || body.classList.contains('theme-light')) return 'day';
+      if(body.classList.contains('theme-night') || body.classList.contains('theme-dark')) return 'night';
+    }
+    return 'night';
+  }
+
+  function getSunIcon(){
+    return '<svg class="wjdr-theme-fab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.48 14.32l1.79 1.8 1.41-1.42-1.8-1.79-1.4 1.41zM12 5a1 1 0 0 0 1-1V1h-2v3a1 1 0 0 0 1 1zm0 14a1 1 0 0 0-1 1v3h2v-3a1 1 0 0 0-1-1zM5 11H2v2h3a1 1 0 0 0 0-2zm17 0h-3a1 1 0 0 0 0 2h3v-2zM4.96 19.54l1.41 1.42 1.8-1.8-1.42-1.41-1.79 1.79zM19.04 4.46l-1.8 1.79 1.41 1.42 1.8-1.8-1.41-1.41zM12 7a5 5 0 1 0 .001 10.001A5 5 0 0 0 12 7z"/></svg>';
+  }
+
+  function getMoonIcon(){
+    return '<svg class="wjdr-theme-fab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.1 2a9.9 9.9 0 0 0 0 19.8 10 10 0 0 0 8.3-4.5 1 1 0 0 0-1.1-1.5A8 8 0 0 1 8.2 4.7 1 1 0 0 0 6.7 3.6 10 10 0 0 0 12.1 2z"/></svg>';
+  }
+
+  function getThemeButton(){
+    return document.getElementById('themeToggle') || document.getElementById('themeToggleBtn');
+  }
+
+  function renderThemeButton(){
+    var btn = getThemeButton();
+    if(!btn) return;
+    btn.classList.add('wjdr-theme-fab');
+
+    var current = getCurrentThemeMode();
+    var next = current === 'day' ? 'night' : 'day';
+    var label = next === 'day' ? '切换到日间' : '切换到夜间';
+
+    btn.innerHTML = next === 'day' ? getSunIcon() : getMoonIcon();
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+  }
+
+  function bind(){
+    var btn = getThemeButton();
+    if(btn){
+      btn.addEventListener('click', function(){
+        setTimeout(renderThemeButton, 0);
+      });
+    }
+
+    try{
+      var rootObserver = new MutationObserver(function(){ renderThemeButton(); });
+      rootObserver.observe(document.documentElement, { attributes:true, attributeFilter:['data-theme','class'] });
+    }catch(e){}
+
+    if(document.body){
+      try{
+        var bodyObserver = new MutationObserver(function(){ renderThemeButton(); });
+        bodyObserver.observe(document.body, { attributes:true, attributeFilter:['class'] });
+      }catch(e){}
+    }
+
+    renderThemeButton();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bind);
+  }else{
+    bind();
+  }
+})();
+</script>
+<script id="wjdr-theme-transition-script">
+(function(){
+  function markThemeSwitching(){
+    var root = document.documentElement;
+    if(!root) return;
+    root.classList.add('wjdr-theme-switching');
+    clearTimeout(markThemeSwitching._timer);
+    markThemeSwitching._timer = setTimeout(function(){
+      root.classList.remove('wjdr-theme-switching');
+    }, 320);
+  }
+
+  function bindThemeTransition(){
+    var btn = document.getElementById('themeToggle') || document.getElementById('themeToggleBtn');
+    if(!btn) return;
+    btn.addEventListener('click', function(){
+      markThemeSwitching();
+    }, true);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bindThemeTransition);
+  }else{
+    bindThemeTransition();
+  }
+})();
+</script>
+
+  <style id="wjdr-footer-inline">
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+      <span class="site-footer-sep" aria-hidden="true">|</span>
+      联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+    </p>
+  </footer>
+
 </body>
 </html>
+
+
+
+
