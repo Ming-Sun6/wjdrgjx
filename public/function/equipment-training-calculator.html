@@ -112,7 +112,7 @@
     :root[data-theme="day"] .stat { background: rgba(255, 255, 255, 0.9); }
     .k { color: var(--muted); font-size: 12px; }
     .v { font-size: 21px; font-weight: 900; font-variant-numeric: tabular-nums; margin-top: 2px; }
-    .result-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
+    .result-split { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { border: 1px solid var(--line); padding: 7px; text-align: left; }
     th { background: rgba(15, 23, 42, 0.54); }
@@ -122,7 +122,8 @@
     .status { border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; font-size: 13px; font-weight: 800; }
     .ok { color: var(--ok); }
     .warn { color: var(--warn); }
-    .bad { color: var(--bad); }
+    .discount-field { display: none; }
+    .discount-field.show { display: grid; }
     @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
     @media (max-width: 1024px) {
       .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -179,30 +180,19 @@
 
       <div class="result-split">
         <div class="box">
-          <h3>数量与时间</h3>
-          <div class="grid">
-            <div class="f2"><label id="countLabel">练兵数量 (万)</label><input id="countWan" type="number" min="0" step="0.1" value="0"></div>
-            <div class="f2"><label>已有加速 (天)</label><input id="accDays" type="number" min="0" step="0.1" value="0"></div>
-          </div>
-          <div class="stats" style="margin-top:8px;grid-template-columns:repeat(2,minmax(0,1fr));">
-            <div class="stat"><div class="k">消耗加速 (天)</div><div class="v" id="needDays">0</div></div>
-            <div class="stat"><div class="k" id="canTrainLabel">可练兵数量 (万)</div><div class="v" id="canTrain">0</div></div>
-            <div class="stat"><div class="k">备战分数 (万)</div><div class="v" id="prepByCount">0</div></div>
-            <div class="stat"><div class="k">冻土分数 (万)</div><div class="v" id="frostByCount">0</div></div>
-            <div class="stat"><div class="k">加速对应备战</div><div class="v" id="prepByAcc">0</div></div>
-            <div class="stat"><div class="k">加速对应冻土</div><div class="v" id="frostByAcc">0</div></div>
-          </div>
-        </div>
-
-        <div class="box">
           <h3>兵种数量与减免</h3>
           <div class="grid">
             <div class="f2"><label>盾数量 (万)</label><input id="shieldWan" type="number" min="0" step="0.1" value="0"></div>
             <div class="f2"><label>矛数量 (万)</label><input id="spearWan" type="number" min="0" step="0.1" value="0"></div>
             <div class="f2"><label>弓数量 (万)</label><input id="bowWan" type="number" min="0" step="0.1" value="0"></div>
-            <div class="f2"><label>盾减免 (%)</label><input id="shieldR" type="number" min="0" max="100" step="0.1" value="0"></div>
-            <div class="f2"><label>矛减免 (%)</label><input id="spearR" type="number" min="0" max="100" step="0.1" value="0"></div>
-            <div class="f2"><label>弓减免 (%)</label><input id="bowR" type="number" min="0" max="100" step="0.1" value="0"></div>
+            <div class="f2 discount-field"><label>盾减免 (%)</label><input id="shieldR" type="number" min="0" max="100" step="0.1" value="0"></div>
+            <div class="f2 discount-field"><label>矛减免 (%)</label><input id="spearR" type="number" min="0" max="100" step="0.1" value="0"></div>
+            <div class="f2 discount-field"><label>弓减免 (%)</label><input id="bowR" type="number" min="0" max="100" step="0.1" value="0"></div>
+          </div>
+          <div class="stats" style="margin-top:8px;grid-template-columns:repeat(3,minmax(0,1fr));">
+            <div class="stat"><div class="k">消耗加速 (天)</div><div class="v" id="needDays">0</div></div>
+            <div class="stat"><div class="k">备战分数 (万)</div><div class="v" id="prepByCount">0</div></div>
+            <div class="stat"><div class="k">冻土分数 (万)</div><div class="v" id="frostByCount">0</div></div>
           </div>
           <table style="margin-top:8px;">
             <thead><tr><th>资源</th><th>消耗（亿/万）</th></tr></thead>
@@ -213,7 +203,7 @@
               <tr><td><span class="res-name"><img src="../Scores/tie.png" alt="铁">铁</span></td><td id="rD">0</td></tr>
             </tbody>
           </table>
-          <p class="hint" style="margin-top:6px;">仅目标为 T11 时减免生效；T12 无减免。</p>
+          <p class="hint" style="margin-top:6px;">仅目标为 T11 时减免生效；T12 无减免。分数与加速按盾+矛+弓数量合计计算。</p>
         </div>
       </div>
 
@@ -263,6 +253,13 @@
       opt.style.display = "none";
     }
 
+    function applyDiscountVisibility(){
+      const show = document.getElementById("toTier")?.value === "T11";
+      document.querySelectorAll(".discount-field").forEach((el)=>{
+        el.classList.toggle("show", show);
+      });
+    }
+
     function applyTrainMode(){
       const modeEl = document.getElementById("trainMode");
       const fromWrap = document.getElementById("fromWrap");
@@ -277,16 +274,13 @@
         fromEl.disabled = false;
         fromWrap.style.display = "grid";
       }
-      const countLabel = document.getElementById("countLabel");
-      const canTrainLabel = document.getElementById("canTrainLabel");
       const timeHint = document.getElementById("timeHint");
-      if(countLabel) countLabel.textContent = isTrain ? "练兵数量 (万)" : "晋升数量 (万)";
-      if(canTrainLabel) canTrainLabel.textContent = isTrain ? "可练兵数量 (万)" : "可晋升数量 (万)";
       if(timeHint){
         timeHint.textContent = isTrain
           ? "直接练兵：表内为单兵累计时间/积分/资源（如 T12 为 215 秒/兵）。"
           : "晋升：时间、备战分、冻土分、资源均按逐级差值累加（T11→T12 时间为 8 秒/兵）。";
       }
+      applyDiscountVisibility();
     }
 
     function getFromTo(){
@@ -357,16 +351,15 @@
     }
 
     function recalcAll(){
+      applyDiscountVisibility();
       const { from, to } = getFromTo();
       const valid = isValidRange(from, to);
       const speed = Math.max(0, N(document.getElementById("trainSpeed").value) ?? 0);
-      const countWan = Math.max(0, N(document.getElementById("countWan").value) ?? 0);
-      const accDays = Math.max(0, N(document.getElementById("accDays").value) ?? 0);
       const prepExpert = prepExpertBonus(document.getElementById("prepExpertLevel").value);
       const prepExpertLv = clamp(Math.floor(N(document.getElementById("prepExpertLevel").value) ?? 0), 0, 10);
 
       if(!valid){
-        ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+        ["needDays","prepByCount","frostByCount","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
         setStatus("目标兵阶必须高于起始兵阶", "bad");
         return;
       }
@@ -374,32 +367,28 @@
       const isTrain = document.getElementById("trainMode").value === "train";
       const dtRaw = trainSeconds(from, to, isTrain);
       if(!Number.isFinite(dtRaw) || dtRaw <= 0){
-        ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+        ["needDays","prepByCount","frostByCount","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
         setStatus("无法计算训练时间", "bad");
         return;
       }
 
+      const qS = Math.max(0, N(document.getElementById("shieldWan").value) ?? 0);
+      const qP = Math.max(0, N(document.getElementById("spearWan").value) ?? 0);
+      const qB = Math.max(0, N(document.getElementById("bowWan").value) ?? 0);
+      const totalWan = qS + qP + qB;
       const rate = 1 + speed / 100;
       const dt = dtRaw;
-      const needDays = (dt / rate / 86400) * countWan * 10000;
-      const canTrain = accDays * 86400 / dt * rate / 10000;
+      const needDays = (dt / rate / 86400) * totalWan * 10000;
       const prepD = metricForRange(from, to, isTrain, "prep");
       const frostD = metricForRange(from, to, isTrain, "frost");
       if(!Number.isFinite(prepD) || !Number.isFinite(frostD)){
-        ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+        ["needDays","prepByCount","frostByCount","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
         setStatus("无法计算晋升积分", "bad");
         return;
       }
       txt("needDays", F(needDays, 2));
-      txt("prepByCount", F(countWan * prepD * prepExpert, 2));
-      txt("frostByCount", F(countWan * frostD, 2));
-      txt("canTrain", F(canTrain, 2));
-      txt("prepByAcc", F(canTrain * prepD * prepExpert, 2));
-      txt("frostByAcc", F(canTrain * frostD, 2));
-
-      const qS = Math.max(0, N(document.getElementById("shieldWan").value) ?? 0);
-      const qP = Math.max(0, N(document.getElementById("spearWan").value) ?? 0);
-      const qB = Math.max(0, N(document.getElementById("bowWan").value) ?? 0);
+      txt("prepByCount", F(totalWan * prepD * prepExpert, 2));
+      txt("frostByCount", F(totalWan * frostD, 2));
       const rS = clamp(Math.max(0, N(document.getElementById("shieldR").value) ?? 0), 0, 100) / 100;
       const rP = clamp(Math.max(0, N(document.getElementById("spearR").value) ?? 0), 0, 100) / 100;
       const rB = clamp(Math.max(0, N(document.getElementById("bowR").value) ?? 0), 0, 100) / 100;
@@ -443,7 +432,7 @@
 
       const inputs = [
         "trainMode", "trainSpeed", "fromTier", "toTier", "prepExpertLevel",
-        "countWan", "accDays", "shieldWan", "spearWan", "bowWan",
+        "shieldWan", "spearWan", "bowWan",
         "shieldR", "spearR", "bowR"
       ];
       inputs.forEach((id)=>{
@@ -456,6 +445,7 @@
         recalcAll();
       });
 
+      applyDiscountVisibility();
       recalcAll();
     }
     init();
