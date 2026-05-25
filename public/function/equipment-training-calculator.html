@@ -72,7 +72,6 @@
       backdrop-filter: blur(8px);
     }
     #homeBtn { left: 10px; }
-    #themeBtn { right: 10px; cursor: pointer; }
     .wrap { max-width: 1220px; margin: 0 auto; display: grid; gap: 12px; padding-top: 40px; }
     .hero, .panel {
       border: 1px solid var(--line);
@@ -86,22 +85,10 @@
     .hero p { color: var(--muted); line-height: 1.62; font-size: 14px; max-width: 900px; }
     .chips { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
     .chip { border: 1px solid var(--line); background: var(--card2); border-radius: 999px; font-size: 12px; font-weight: 700; padding: 4px 10px; }
-    .tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-    .tab {
-      border: 1px solid var(--line);
-      background: var(--card);
-      color: var(--text);
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 800;
-      padding: 9px 13px;
-      cursor: pointer;
-    }
-    .tab.active { background: linear-gradient(105deg, var(--a1), #0ea5e9); color: #fff; border-color: transparent; }
-    .panel { display: none; padding: 12px; gap: 10px; }
-    .panel.active { display: grid; animation: rise .25s ease both; }
+    .panel { display: grid; padding: 12px; gap: 12px; animation: rise .25s ease both; }
     .box { border: 1px solid var(--line); border-radius: 12px; background: var(--card2); padding: 11px; display: grid; gap: 8px; }
     .box h3 { font-size: 15px; }
+    .box-title { font-size: 17px; font-weight: 900; letter-spacing: -.02em; }
     .hint { font-size: 12px; color: var(--muted); line-height: 1.5; }
     .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px; align-items: end; }
     .f { grid-column: span 3; display: grid; gap: 5px; }
@@ -125,7 +112,7 @@
     :root[data-theme="day"] .stat { background: rgba(255, 255, 255, 0.9); }
     .k { color: var(--muted); font-size: 12px; }
     .v { font-size: 21px; font-weight: 900; font-variant-numeric: tabular-nums; margin-top: 2px; }
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .result-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th, td { border: 1px solid var(--line); padding: 7px; text-align: left; }
     th { background: rgba(15, 23, 42, 0.54); }
@@ -141,9 +128,9 @@
       .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .f { grid-column: span 4; }
       .f2 { grid-column: span 3; }
+      .result-split { grid-template-columns: 1fr; }
     }
     @media (max-width: 760px) {
-      .row2 { grid-template-columns: 1fr; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .f, .f2 { grid-column: span 6; }
     }
@@ -159,76 +146,66 @@
   <main class="wrap">
     <section class="hero">
       <h1>练兵计算站</h1>
-      <p>计算练兵耗时、得分与资源消耗，支持训练速度、加速换算与 T11/T12 减免。</p>
+      <p>一次设置兵阶与数量，同时估算练兵时间、备战/冻土得分与肉木煤铁消耗；支持 T11 减免与备战专家加成。</p>
       <div class="chips">
-        <span class="chip">练兵时间与得分</span>
-        <span class="chip">练兵资源</span>
-        <span class="chip">T11/T12 减免</span>
+        <span class="chip">我想练</span>
+        <span class="chip">时间·得分·资源</span>
+        <span class="chip">T11 减免</span>
+        <span class="chip">备战专家</span>
       </div>
     </section>
 
-    <section class="tabs">
-      <button class="tab active" data-tab="train">练兵时间与得分</button>
-      <button class="tab" data-tab="resource">练兵资源</button>
-    </section>
-
-<section class="panel active" data-panel="train">
+    <section class="panel">
       <div class="box">
-        <h3>训练速度与区间</h3>
+        <div class="box-title">我想练</div>
         <div class="grid">
           <div class="f2">
             <label>模式</label>
-            <select id="timeMode">
+            <select id="trainMode">
               <option value="train">练兵</option>
               <option value="promote">晋升士兵</option>
             </select>
           </div>
           <div class="f2"><label>训练速度 (%)</label><input id="trainSpeed" type="number" min="0" step="0.1" value="0"></div>
-          <div class="f" id="timeFromWrap"><label>起始兵阶</label><select id="timeFrom"></select></div>
-          <div class="f"><label>目标兵阶</label><select id="timeTo"></select></div>
-          <div class="f2"><label>输入数量 (万)</label><input id="countWan" type="number" min="0" step="0.1" value="0"></div>
-          <div class="f2"><label>输入加速 (天)</label><input id="accDays" type="number" min="0" step="0.1" value="0"></div>
-        </div>
-        <div class="hint">按训练速度与区间，计算加速消耗与可练数量。</div>
-      </div>
-      <div class="stats">
-        <div class="stat"><div class="k">消耗加速 (天)</div><div class="v" id="needDays">0</div></div>
-        <div class="stat"><div class="k">备战分数 (万)</div><div class="v" id="prepByCount">0</div></div>
-        <div class="stat"><div class="k">冻土分数 (万)</div><div class="v" id="frostByCount">0</div></div>
-        <div class="stat"><div class="k">可练兵数量 (万)</div><div class="v" id="canTrain">0</div></div>
-        <div class="stat"><div class="k">加速对应备战</div><div class="v" id="prepByAcc">0</div></div>
-        <div class="stat"><div class="k">加速对应冻土</div><div class="v" id="frostByAcc">0</div></div>
-      </div>
-      <div class="status" id="trainStatus">就绪</div>
-    </section>
-
-<section class="panel" data-panel="resource">
-      <div class="box">
-        <h3>练兵资源计算</h3>
-        <div class="grid">
+          <div class="f" id="fromWrap"><label>起始兵阶</label><select id="fromTier"></select></div>
+          <div class="f"><label>目标兵阶</label><select id="toTier"></select></div>
           <div class="f2">
-            <label>模式</label>
-            <select id="resMode">
-              <option value="train">练兵</option>
-              <option value="promote">晋升士兵</option>
-            </select>
+            <label>备战专家等级</label>
+            <select id="prepExpertLevel"></select>
           </div>
-          <div class="f" id="resFromWrap"><label>起始兵阶</label><select id="resFrom"></select></div>
-          <div class="f"><label>目标兵阶</label><select id="resTo"></select></div>
-          <div class="f2"><label>盾数量 (万)</label><input id="shieldWan" type="number" min="0" step="0.1" value="0"></div>
-          <div class="f2"><label>矛数量 (万)</label><input id="spearWan" type="number" min="0" step="0.1" value="0"></div>
-          <div class="f2"><label>弓数量 (万)</label><input id="bowWan" type="number" min="0" step="0.1" value="0"></div>
-          <div class="f2"><label>盾减免 (%)</label><input id="shieldR" type="number" min="0" max="100" step="0.1" value="0"></div>
-          <div class="f2"><label>矛减免 (%)</label><input id="spearR" type="number" min="0" max="100" step="0.1" value="0"></div>
-          <div class="f2"><label>弓减免 (%)</label><input id="bowR" type="number" min="0" max="100" step="0.1" value="0"></div>
         </div>
-        <div class="hint">结果自动换算单位：≥1亿显示“亿”，<1亿显示“万”。目标为 T11/T12 时减免生效。</div>
+        <div class="hint">单兵时间/分数见表内累计值；T11→T12 晋升为 8 秒/兵。直接练 T12 为 215 秒/兵。</div>
       </div>
-      <div class="row2">
+
+      <div class="result-split">
         <div class="box">
-          <h3>资源消耗</h3>
-          <table>
-            <thead><tr><th>项目</th><th>结果（自动：亿/万）</th></tr></thead>
+          <h3>数量与时间</h3>
+          <div class="grid">
+            <div class="f2"><label>练兵数量 (万)</label><input id="countWan" type="number" min="0" step="0.1" value="0"></div>
+            <div class="f2"><label>已有加速 (天)</label><input id="accDays" type="number" min="0" step="0.1" value="0"></div>
+          </div>
+          <div class="stats" style="margin-top:8px;grid-template-columns:repeat(2,minmax(0,1fr));">
+            <div class="stat"><div class="k">消耗加速 (天)</div><div class="v" id="needDays">0</div></div>
+            <div class="stat"><div class="k">可练兵数量 (万)</div><div class="v" id="canTrain">0</div></div>
+            <div class="stat"><div class="k">备战分数 (万)</div><div class="v" id="prepByCount">0</div></div>
+            <div class="stat"><div class="k">冻土分数 (万)</div><div class="v" id="frostByCount">0</div></div>
+            <div class="stat"><div class="k">加速对应备战</div><div class="v" id="prepByAcc">0</div></div>
+            <div class="stat"><div class="k">加速对应冻土</div><div class="v" id="frostByAcc">0</div></div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>兵种数量与减免</h3>
+          <div class="grid">
+            <div class="f2"><label>盾数量 (万)</label><input id="shieldWan" type="number" min="0" step="0.1" value="0"></div>
+            <div class="f2"><label>矛数量 (万)</label><input id="spearWan" type="number" min="0" step="0.1" value="0"></div>
+            <div class="f2"><label>弓数量 (万)</label><input id="bowWan" type="number" min="0" step="0.1" value="0"></div>
+            <div class="f2"><label>盾减免 (%)</label><input id="shieldR" type="number" min="0" max="100" step="0.1" value="0"></div>
+            <div class="f2"><label>矛减免 (%)</label><input id="spearR" type="number" min="0" max="100" step="0.1" value="0"></div>
+            <div class="f2"><label>弓减免 (%)</label><input id="bowR" type="number" min="0" max="100" step="0.1" value="0"></div>
+          </div>
+          <table style="margin-top:8px;">
+            <thead><tr><th>资源</th><th>消耗（亿/万）</th></tr></thead>
             <tbody>
               <tr><td><span class="res-name"><img src="../Scores/rou.png" alt="肉">肉</span></td><td id="rA">0</td></tr>
               <tr><td><span class="res-name"><img src="../Scores/mutou.png" alt="木头">木头</span></td><td id="rB">0</td></tr>
@@ -236,9 +213,11 @@
               <tr><td><span class="res-name"><img src="../Scores/tie.png" alt="铁">铁</span></td><td id="rD">0</td></tr>
             </tbody>
           </table>
+          <p class="hint" style="margin-top:6px;">仅目标为 T11 时减免生效；T12 无减免。</p>
         </div>
       </div>
-      <div class="status" id="resourceStatus">就绪（单位自动：亿/万）</div>
+
+      <div class="status" id="calcStatus">就绪</div>
     </section>
   </main>
 
@@ -256,144 +235,170 @@
           ["T9",131,45,30,[1394,1046,244,51],[1220,1151,237,55],[872,1290,217,70]],
           ["T10",152,60,39,[2788,2091,488,102],[2440,2301,474,109],[1743,2579,433,140]],
           ["T11",180,75,49,[6970,5228,1220,253],[6099,5751,1185,271],[4357,6448,1081,349]],
-          ["T12",215,"待定","待定",[10376,7753,1824,380],["待定","待定","待定","待定"],["待定","待定","待定","待定"]]
-        ].map((x)=>({lv:x[0],time:x[1],prep:x[2],frost:x[3],s:x[4],p:x[5],b:x[6]}));
+          ["T12",215,150,98,[13940,10456,2440,506],[12198,11502,2370,542],[8714,12896,2162,698],8]
+        ].map((x)=>({lv:x[0],time:x[1],prep:x[2],frost:x[3],s:x[4],p:x[5],b:x[6],promoteTime:x[7]}));
 
     const troopMap = new Map(TROOP.map((x) => [x.lv, x]));
-
-
+    const tierIndex = (lv) => TROOP.findIndex((x) => x.lv === lv);
 
     const N = (v)=>{ const n = Number(v); return Number.isFinite(n) ? n : null; };
-        const F = (v,d=2)=>Number.isFinite(v) ? v.toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d}) : "--";
-        const I = (v)=>Number.isFinite(v) ? v.toLocaleString("zh-CN") : "--";
-        const YW = (yiVal)=>{
-          if(!Number.isFinite(yiVal)) return "--";
-          if(yiVal >= 1) return `${yiVal.toFixed(1)}亿`;
-          return `${(yiVal * 10000).toFixed(1)}万`;
-        };
-        const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
-        const txt = (id,v)=>{ const el = document.getElementById(id); if(el) el.textContent = String(v); };
-        const sumRange = (s,e,fn)=>{ let t=0; if(e<=s) return 0; for(let i=s+1;i<=e;i++) t+=fn(i); return t; };
-
-
+    const F = (v,d=2)=>Number.isFinite(v) ? v.toLocaleString("zh-CN",{minimumFractionDigits:d,maximumFractionDigits:d}) : "--";
+    const YW = (yiVal)=>{
+      if(!Number.isFinite(yiVal)) return "--";
+      if(yiVal >= 1) return `${yiVal.toFixed(1)}亿`;
+      return `${(yiVal * 10000).toFixed(1)}万`;
+    };
+    const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+    const prepExpertBonus = (level)=>1 + clamp(Math.floor(N(level) ?? 0), 0, 10) * 0.02;
+    const txt = (id,v)=>{ const el = document.getElementById(id); if(el) el.textContent = String(v); };
 
     function initSelect(el, opts, def){ el.innerHTML = opts.map(o=>`<option value="${o.v}">${o.l}</option>`).join(""); el.value = String(def); }
-        function hideZeroDirectOption(selectId){
-          const sel = document.getElementById(selectId);
-          if(!sel) return;
-          const opt = [...sel.options].find((o)=>o.value === "0，直接练");
-          if(!opt) return;
-          opt.hidden = true;
-          opt.style.display = "none";
-        }
-        function applyMode(modeId, fromWrapId, fromId){
-          const modeEl = document.getElementById(modeId);
-          const fromWrap = document.getElementById(fromWrapId);
-          const fromEl = document.getElementById(fromId);
-          if(!modeEl || !fromWrap || !fromEl) return;
-          const isTrain = modeEl.value === "train";
-          if(isTrain){
-            fromEl.value = "0，直接练";
-            fromEl.disabled = true;
-            fromWrap.style.display = "none";
-          } else {
-            fromEl.disabled = false;
-            fromWrap.style.display = "grid";
-          }
-        }
 
+    function hideZeroDirectOption(selectId){
+      const sel = document.getElementById(selectId);
+      if(!sel) return;
+      const opt = [...sel.options].find((o)=>o.value === "0，直接练");
+      if(!opt) return;
+      opt.hidden = true;
+      opt.style.display = "none";
+    }
 
+    function applyTrainMode(){
+      const modeEl = document.getElementById("trainMode");
+      const fromWrap = document.getElementById("fromWrap");
+      const fromEl = document.getElementById("fromTier");
+      if(!modeEl || !fromWrap || !fromEl) return;
+      const isTrain = modeEl.value === "train";
+      if(isTrain){
+        fromEl.value = "0，直接练";
+        fromEl.disabled = true;
+        fromWrap.style.display = "none";
+      } else {
+        fromEl.disabled = false;
+        fromWrap.style.display = "grid";
+      }
+    }
 
-    function recalcTrain(){
-          const from = troopMap.get(document.getElementById("timeFrom").value);
-          const to = troopMap.get(document.getElementById("timeTo").value);
-          const speed = Math.max(0, N(document.getElementById("trainSpeed").value) ?? 0);
-          const countWan = Math.max(0, N(document.getElementById("countWan").value) ?? 0);
-          const accDays = Math.max(0, N(document.getElementById("accDays").value) ?? 0);
-          if(!from || !to || to.time <= from.time){
-            ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc"].forEach((id)=>txt(id,"--"));
-            txt("trainStatus","目标兵阶必须高于起始兵阶");
-            document.getElementById("trainStatus").className = "status bad";
-            return;
-          }
-          const dt = to.time - from.time;
-          const rate = 1 + speed/100;
-          const needDays = (dt / rate / 86400) * countWan * 10000;
-          const canTrain = accDays * 86400 / dt * rate / 10000;
-          const prepD = (N(to.prep) ?? NaN) - (N(from.prep) ?? NaN);
-          const frostD = (N(to.frost) ?? NaN) - (N(from.frost) ?? NaN);
-          txt("needDays", F(needDays,2));
-          txt("prepByCount", F(countWan * prepD,2));
-          txt("frostByCount", F(countWan * frostD,2));
-          txt("canTrain", F(canTrain,2));
-          txt("prepByAcc", F(canTrain * prepD,2));
-          txt("frostByAcc", F(canTrain * frostD,2));
-          txt("trainStatus", `训练速度 ${F(speed,1)}%，区间 ${from.lv} -> ${to.lv}`);
-          document.getElementById("trainStatus").className = "status ok";
-        }
+    function getFromTo(){
+      return {
+        from: troopMap.get(document.getElementById("fromTier").value),
+        to: troopMap.get(document.getElementById("toTier").value)
+      };
+    }
 
+    function isValidRange(from, to){
+      if(!from || !to) return false;
+      return tierIndex(to.lv) > tierIndex(from.lv);
+    }
 
+    function trainSeconds(from, to){
+      if(!from || !to) return NaN;
+      if(from.lv === "0，直接练" || from.time === 0) return to.time;
+      const promote = N(to.promoteTime);
+      if(promote != null && promote > 0) return promote;
+      return to.time - from.time;
+    }
 
-    function recalcResource(){
-          const from = troopMap.get(document.getElementById("resFrom").value);
-          const to = troopMap.get(document.getElementById("resTo").value);
-          const qS = Math.max(0, N(document.getElementById("shieldWan").value) ?? 0);
-          const qP = Math.max(0, N(document.getElementById("spearWan").value) ?? 0);
-          const qB = Math.max(0, N(document.getElementById("bowWan").value) ?? 0);
-          const rS = clamp(Math.max(0, N(document.getElementById("shieldR").value) ?? 0), 0, 100) / 100;
-          const rP = clamp(Math.max(0, N(document.getElementById("spearR").value) ?? 0), 0, 100) / 100;
-          const rB = clamp(Math.max(0, N(document.getElementById("bowR").value) ?? 0), 0, 100) / 100;
-          if(!from || !to || to.time <= from.time){
-            ["rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
-            txt("resourceStatus","目标兵阶必须高于起始兵阶");
-            document.getElementById("resourceStatus").className = "status bad";
-            return;
-          }
-          const t11 = to.lv === "T11" || to.lv === "T12";
-          const fS = t11 ? 1-rS : 1, fP = t11 ? 1-rP : 1, fB = t11 ? 1-rB : 1;
-          const calc = (i)=>{
-            const ds = (N(to.s[i]) ?? NaN) - (N(from.s[i]) ?? NaN);
-            const dp = (N(to.p[i]) ?? NaN) - (N(from.p[i]) ?? NaN);
-            const db = (N(to.b[i]) ?? NaN) - (N(from.b[i]) ?? NaN);
-            return Number.isFinite(ds)&&Number.isFinite(dp)&&Number.isFinite(db) ? (ds*qS*fS + dp*qP*fP + db*qB*fB)/10000 : NaN;
-          };
-          const a = calc(0), b = calc(1), c = calc(2), d = calc(3);
-          txt("rA", YW(a)); txt("rB", YW(b)); txt("rC", YW(c)); txt("rD", YW(d));
-          txt("resourceStatus", t11 ? "已应用 T11/T12 减免参数（单位自动：亿/万）" : "目标非 T11/T12，减免参数不生效（单位自动：亿/万）");
-          document.getElementById("resourceStatus").className = t11 ? "status ok" : "status warn";
-        }
+    function setStatus(msg, kind){
+      txt("calcStatus", msg);
+      const el = document.getElementById("calcStatus");
+      if(el) el.className = "status " + (kind || "");
+    }
 
+    function recalcAll(){
+      const { from, to } = getFromTo();
+      const valid = isValidRange(from, to);
+      const speed = Math.max(0, N(document.getElementById("trainSpeed").value) ?? 0);
+      const countWan = Math.max(0, N(document.getElementById("countWan").value) ?? 0);
+      const accDays = Math.max(0, N(document.getElementById("accDays").value) ?? 0);
+      const prepExpert = prepExpertBonus(document.getElementById("prepExpertLevel").value);
+      const prepExpertLv = clamp(Math.floor(N(document.getElementById("prepExpertLevel").value) ?? 0), 0, 10);
 
+      if(!valid){
+        ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+        setStatus("目标兵阶必须高于起始兵阶", "bad");
+        return;
+      }
+
+      const dtRaw = trainSeconds(from, to);
+      if(!Number.isFinite(dtRaw) || dtRaw <= 0){
+        ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+        setStatus("无法计算训练时间", "bad");
+        return;
+      }
+
+      const rate = 1 + speed / 100;
+      const dt = dtRaw;
+      const needDays = (dt / rate / 86400) * countWan * 10000;
+      const canTrain = accDays * 86400 / dt * rate / 10000;
+      const prepD = (N(to.prep) ?? NaN) - (N(from.prep) ?? NaN);
+      const frostD = (N(to.frost) ?? NaN) - (N(from.frost) ?? NaN);
+      txt("needDays", F(needDays, 2));
+      txt("prepByCount", F(countWan * prepD * prepExpert, 2));
+      txt("frostByCount", F(countWan * frostD, 2));
+      txt("canTrain", F(canTrain, 2));
+      txt("prepByAcc", F(canTrain * prepD * prepExpert, 2));
+      txt("frostByAcc", F(canTrain * frostD, 2));
+
+      const qS = Math.max(0, N(document.getElementById("shieldWan").value) ?? 0);
+      const qP = Math.max(0, N(document.getElementById("spearWan").value) ?? 0);
+      const qB = Math.max(0, N(document.getElementById("bowWan").value) ?? 0);
+      const rS = clamp(Math.max(0, N(document.getElementById("shieldR").value) ?? 0), 0, 100) / 100;
+      const rP = clamp(Math.max(0, N(document.getElementById("spearR").value) ?? 0), 0, 100) / 100;
+      const rB = clamp(Math.max(0, N(document.getElementById("bowR").value) ?? 0), 0, 100) / 100;
+      const t11Discount = to.lv === "T11";
+      const fS = t11Discount ? 1 - rS : 1;
+      const fP = t11Discount ? 1 - rP : 1;
+      const fB = t11Discount ? 1 - rB : 1;
+      const calcRes = (i)=>{
+        const ds = (N(to.s[i]) ?? NaN) - (N(from.s[i]) ?? NaN);
+        const dp = (N(to.p[i]) ?? NaN) - (N(from.p[i]) ?? NaN);
+        const db = (N(to.b[i]) ?? NaN) - (N(from.b[i]) ?? NaN);
+        return Number.isFinite(ds) && Number.isFinite(dp) && Number.isFinite(db)
+          ? (ds * qS * fS + dp * qP * fP + db * qB * fB) / 10000
+          : NaN;
+      };
+      txt("rA", YW(calcRes(0)));
+      txt("rB", YW(calcRes(1)));
+      txt("rC", YW(calcRes(2)));
+      txt("rD", YW(calcRes(3));
+
+      const expertNote = prepExpertLv > 0 ? `，备战专家 Lv.${prepExpertLv}（+${prepExpertLv * 2}%）` : "";
+      const resNote = t11Discount
+        ? "T11 减免已生效"
+        : (to.lv === "T12" ? "T12 无减免" : "非 T11 无减免");
+      setStatus(`${from.lv} → ${to.lv} · 训练速度 ${F(speed, 1)}% · ${resNote}${expertNote}`, "ok");
+    }
 
     function init(){
-      const tabs = [...document.querySelectorAll(".tab")];
-      const panels = [...document.querySelectorAll(".panel")];
-      tabs.forEach((b)=>b.addEventListener("click",()=>{
-        tabs.forEach((x)=>x.classList.toggle("active", x===b));
-        panels.forEach((p)=>p.classList.toggle("active", p.dataset.panel===b.dataset.tab));
-      }));
+      const troopOpts = TROOP.map((x)=>({ v: x.lv, l: x.lv }));
+      initSelect(document.getElementById("fromTier"), troopOpts, "T1");
+      initSelect(document.getElementById("toTier"), troopOpts, "T2");
+      initSelect(document.getElementById("prepExpertLevel"), Array.from({length:11}, (_, lv)=>({
+        v: String(lv),
+        l: lv === 0 ? "0 级（无加成）" : `${lv} 级（+${lv * 2}% 备战分）`
+      })), "0");
+      hideZeroDirectOption("fromTier");
+      hideZeroDirectOption("toTier");
+      document.getElementById("trainMode").value = "promote";
+      applyTrainMode();
 
-      const troopOpts = TROOP.map((x)=>({v:x.lv,l:x.lv}));
-      initSelect(document.getElementById("timeFrom"), troopOpts, "T1");
-      initSelect(document.getElementById("timeTo"), troopOpts, "T2");
-      initSelect(document.getElementById("resFrom"), troopOpts, "0????");
-      initSelect(document.getElementById("resTo"), troopOpts, "T11");
-      hideZeroDirectOption("timeFrom");
-      hideZeroDirectOption("timeTo");
-      hideZeroDirectOption("resFrom");
-      hideZeroDirectOption("resTo");
-      document.getElementById("timeMode").value = "promote";
-      document.getElementById("resMode").value = "train";
-      applyMode("timeMode", "timeFromWrap", "timeFrom");
-      applyMode("resMode", "resFromWrap", "resFrom");
+      const inputs = [
+        "trainMode", "trainSpeed", "fromTier", "toTier", "prepExpertLevel",
+        "countWan", "accDays", "shieldWan", "spearWan", "bowWan",
+        "shieldR", "spearR", "bowR"
+      ];
+      inputs.forEach((id)=>{
+        const el = document.getElementById(id);
+        el.addEventListener("input", recalcAll);
+        el.addEventListener("change", recalcAll);
+      });
+      document.getElementById("trainMode").addEventListener("change", ()=>{
+        applyTrainMode();
+        recalcAll();
+      });
 
-      ["trainSpeed","timeFrom","timeTo","countWan","accDays"].forEach((id)=>document.getElementById(id).addEventListener("input", recalcTrain));
-      ["resFrom","resTo","shieldWan","spearWan","bowWan","shieldR","spearR","bowR"].forEach((id)=>document.getElementById(id).addEventListener("input", recalcResource));
-      document.getElementById("timeMode").addEventListener("change", ()=>{ applyMode("timeMode", "timeFromWrap", "timeFrom"); recalcTrain(); });
-      document.getElementById("resMode").addEventListener("change", ()=>{ applyMode("resMode", "resFromWrap", "resFrom"); recalcResource(); });
-
-      recalcTrain();
-      recalcResource();
+      recalcAll();
     }
     init();
   </script>

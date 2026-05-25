@@ -623,15 +623,20 @@
         <article class="control-card">
           <div class="input-stack">
             <label for="searchInput">关键词</label>
-            <input id="searchInput" type="search" placeholder="输入科技名、描述或资源关键字" />
+            <input id="searchInput" type="search" placeholder="输入科技名、技能描述或兵种名称" />
           </div>
         </article>
       </div>
       <div class="stats">
         <div class="stat"><div class="label">当前记录</div><div id="visibleRows" class="value">0</div></div>
-        <div class="stat"><div class="label">科技卡组</div><div id="visibleGroups" class="value">0</div></div>
-        <div class="stat"><div class="label">所需时间</div><div id="visibleDays" class="value">0</div></div>
+        <div class="stat"><div class="label">肉</div><div id="visibleMeat" class="value">0</div></div>
+        <div class="stat"><div class="label">木材</div><div id="visibleWood" class="value">0</div></div>
+        <div class="stat"><div class="label">煤</div><div id="visibleCoal" class="value">0</div></div>
+        <div class="stat"><div class="label">铁</div><div id="visibleIron" class="value">0</div></div>
+        <div class="stat"><div class="label">钢材</div><div id="visibleSteel" class="value">0</div></div>
+        <div class="stat"><div class="label">精炼火晶</div><div id="visibleRefinedCrystal" class="value">0</div></div>
         <div class="stat"><div class="label">火晶微粒</div><div id="visibleMicro" class="value">0</div></div>
+        <div class="stat"><div class="label">所需时间</div><div id="visibleTime" class="value">0</div></div>
       </div>
     </section>
 
@@ -774,16 +779,23 @@
       });
     }
 
+    function sumRows(rows, key) {
+      return rows.reduce((sum, item) => sum + (Number(item[key]) || 0), 0);
+    }
+
     function renderStats(rows) {
-      const groupIds = new Set(rows.map(item => item.groupId));
-      const seconds = rows.reduce((sum, item) => sum + item.seconds, 0);
-      const micro = rows.reduce((sum, item) => sum + item.microCrystal, 0);
+      const seconds = sumRows(rows, "seconds");
       document.getElementById("sourceRows").textContent = fmt(t12Data.length);
       document.getElementById("sourceGroups").textContent = fmt(t12Groups.length);
       document.getElementById("visibleRows").textContent = fmt(rows.length);
-      document.getElementById("visibleGroups").textContent = fmt(groupIds.size);
-      document.getElementById("visibleDays").textContent = fmtSmart(seconds / 86400);
-      document.getElementById("visibleMicro").textContent = fmt(micro);
+      document.getElementById("visibleMeat").textContent = fmt(sumRows(rows, "meat"));
+      document.getElementById("visibleWood").textContent = fmt(sumRows(rows, "wood"));
+      document.getElementById("visibleCoal").textContent = fmt(sumRows(rows, "coal"));
+      document.getElementById("visibleIron").textContent = fmt(sumRows(rows, "iron"));
+      document.getElementById("visibleSteel").textContent = fmt(sumRows(rows, "steel"));
+      document.getElementById("visibleRefinedCrystal").textContent = fmt(sumRows(rows, "refinedCrystal"));
+      document.getElementById("visibleMicro").textContent = fmt(sumRows(rows, "microCrystal"));
+      document.getElementById("visibleTime").textContent = fmtTime(seconds);
     }
 
     function renderDesktopRows(groupedRows) {

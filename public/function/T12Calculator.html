@@ -658,11 +658,13 @@
         <article class="control-card">
           <h3>预设方案</h3>
           <div class="btn-row" style="margin-top: 10px;">
-            <button class="btn primary" id="presetUnlockT12">解锁T12</button>
-            <button class="btn accent" id="presetAllFull">全部全满</button>
+            <button class="btn primary" id="presetUnlockSingle">解锁单路 T12</button>
+            <button class="btn accent" id="presetFullSingle">单路 T12 拉满</button>
+            <button class="btn primary" id="presetUnlockThree">解锁三路 T12</button>
+            <button class="btn accent" id="presetFullThree">三路 T12 拉满</button>
             <button class="btn" id="presetEmpty">清空</button>
           </div>
-          <p class="hint" style="margin-top: 10px;">“解锁T12”会先清空所有科技，再只设置当前兵种的五个前置科技和兵种解锁项。</p>
+          <p class="hint" style="margin-top: 10px;">单路方案作用于当前「显示兵种」；选「全部兵种」时默认按煌耀盾兵。三路方案会同时设置三个兵种并切到全部显示。</p>
         </article>
       </div>
     </section>
@@ -808,15 +810,18 @@
       });
     }
 
-    function unlockTargetGroups() {
-      const selectedTroop = document.getElementById("troopSelect").value;
-      const troops = selectedTroop === "all" ? Object.keys(unlockT12Targets) : [selectedTroop];
+    function unlockTargetGroupsForTroops(troops) {
       return troops.flatMap(troop => {
         return (unlockT12Targets[troop] || []).map(target => {
           const group = t12Groups.find(item => item.troop === troop && item.name === target.name);
           return group ? { group, target: target.target } : null;
         }).filter(Boolean);
       });
+    }
+
+    function selectedSingleTroop() {
+      const selected = document.getElementById("troopSelect").value;
+      return selected === "all" ? "煌耀盾兵" : selected;
     }
 
     function renderCards() {
@@ -955,13 +960,32 @@
     function applyPreset(type) {
       if (type === "empty") {
         resetAllTargets();
-      } else if (type === "unlockT12") {
+      } else if (type === "unlockSingle") {
         resetAllTargets();
-        unlockTargetGroups().forEach(item => {
+        const troop = selectedSingleTroop();
+        document.getElementById("troopSelect").value = troop;
+        unlockTargetGroupsForTroops([troop]).forEach(item => {
           state[item.group.id].current = 0;
           state[item.group.id].target = item.target;
         });
-      } else if (type === "allFull") {
+      } else if (type === "fullSingle") {
+        resetAllTargets();
+        const troop = selectedSingleTroop();
+        document.getElementById("troopSelect").value = troop;
+        t12Groups.filter(group => group.troop === troop).forEach(group => {
+          state[group.id].current = 0;
+          state[group.id].target = group.max;
+        });
+      } else if (type === "unlockThree") {
+        resetAllTargets();
+        document.getElementById("troopSelect").value = "all";
+        unlockTargetGroupsForTroops(Object.keys(unlockT12Targets)).forEach(item => {
+          state[item.group.id].current = 0;
+          state[item.group.id].target = item.target;
+        });
+      } else if (type === "fullThree") {
+        resetAllTargets();
+        document.getElementById("troopSelect").value = "all";
         t12Groups.forEach(group => {
           state[group.id].current = 0;
           state[group.id].target = group.max;
@@ -980,8 +1004,10 @@
         renderCards();
       });
       document.getElementById("speed").addEventListener("input", calc);
-      document.getElementById("presetUnlockT12").addEventListener("click", () => applyPreset("unlockT12"));
-      document.getElementById("presetAllFull").addEventListener("click", () => applyPreset("allFull"));
+      document.getElementById("presetUnlockSingle").addEventListener("click", () => applyPreset("unlockSingle"));
+      document.getElementById("presetFullSingle").addEventListener("click", () => applyPreset("fullSingle"));
+      document.getElementById("presetUnlockThree").addEventListener("click", () => applyPreset("unlockThree"));
+      document.getElementById("presetFullThree").addEventListener("click", () => applyPreset("fullThree"));
       document.getElementById("presetEmpty").addEventListener("click", () => applyPreset("empty"));
     }
 
