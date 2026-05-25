@@ -398,6 +398,46 @@ app.get('/api/image/thumb', async (req, res) => {
   }
 });
 
+function resolveUploadImagePathFromRequest(req, rawUrl) {
+  const urlText = String(rawUrl || '').trim();
+  if (!urlText) return { error: 'BAD_URL' };
+  const base = `${req.protocol}://${req.get('host') || 'localhost'}`;
+  let u = null;
+  try { u = new URL(urlText, base); } catch (_e) { return { error: 'BAD_URL' }; }
+  if (u.origin !== new URL(base).origin) return { error: 'FORBIDDEN_URL' };
+  if (!u.pathname.startsWith('/uploads/')) return { error: 'FORBIDDEN_PATH' };
+  const relPath = u.pathname.replace(/^\/+/, '').replace(/\//g, path.sep);
+  const normalized = path.normalize(relPath);
+  const sourcePath = path.join(__dirname, normalized);
+  if (!sourcePath.startsWith(__dirname)) return { error: 'FORBIDDEN_PATH' };
+  const ext = path.extname(sourcePath).toLowerCase();
+  if (!['.png', '.jpg', '.jpeg', '.webp', '.gif'].includes(ext)) return { error: 'BAD_TYPE' };
+  return { pathname: u.pathname, sourcePath };
+}
+
+app.get('/api/image/meta', async (req, res) => {
+  try {
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    const resolved = resolveUploadImagePathFromRequest(req, req.query.url);
+    if (resolved.error) return res.status(resolved.error === 'BAD_URL' || resolved.error === 'BAD_TYPE' ? 400 : 403).json({ error: resolved.error });
+    let stat = null;
+    try {
+      stat = await fs.promises.stat(resolved.sourcePath);
+    } catch (_e) {
+      return res.status(404).json({ error: 'NOT_FOUND' });
+    }
+    if (!stat || !stat.isFile()) return res.status(404).json({ error: 'NOT_FOUND' });
+    return res.json({
+      url: resolved.pathname,
+      size: Math.max(0, Number(stat.size || 0))
+    });
+  } catch (err) {
+    console.error('image meta get failed:', err);
+    res.setHeader('Cache-Control', 'no-store');
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
 function parseCookies(header) {
   const result = {};
   if (!header) return result;
@@ -2635,6 +2675,7 @@ app.get('/api/forum/posts', async (req, res) => {
     const page = Math.max(1, Number.isFinite(pageRaw) ? Math.floor(pageRaw) : 1);
     const pageSize = Math.max(1, Math.min(50, Number.isFinite(pageSizeRaw) ? Math.floor(pageSizeRaw) : 10));
     const offset = (page - 1) * pageSize;
+    const searchQ = String(req.query.q || req.query.search || '').trim().slice(0, 80);
     const where = ['p.status = \'approved\''];
     const params = [];
     if (section === 'migration') {
@@ -2645,10 +2686,16 @@ app.get('/api/forum/posts', async (req, res) => {
       where.push('p.section = ?');
       params.push(section);
     }
+    if (searchQ) {
+      const like = `%${searchQ.replace(/[%_]/g, ' ').trim()}%`;
+      where.push('(p.title LIKE ? OR p.content_text LIKE ? OR u.username LIKE ?)');
+      params.push(like, like, like);
+    }
     const totalRow = await queryOne(
       `
       SELECT COUNT(*) AS total
       FROM forum_posts p
+      INNER JOIN users u ON u.id = p.author_id
       WHERE ${where.join(' AND ')}
       `,
       params

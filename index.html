@@ -1960,6 +1960,14 @@
       z-index:10070;
     }
     .forum-image-lightbox.open{display:flex;}
+    .forum-image-lightbox-stage{
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      max-width:min(96vw,1400px);
+      max-height:88vh;
+    }
     .forum-image-lightbox img{
       max-width:min(96vw,1400px);
       max-height:88vh;
@@ -1970,7 +1978,29 @@
       border:1px solid rgba(148,163,184,.38);
       box-shadow:0 18px 46px rgba(0,0,0,.45);
       background:#0b1220;
+      display:block;
     }
+    .forum-image-lightbox-original{
+      position:absolute;
+      right:12px;
+      bottom:12px;
+      border:1px solid rgba(148,163,184,.45);
+      background:rgba(15,23,42,.82);
+      color:#e2e8f0;
+      border-radius:999px;
+      padding:7px 12px;
+      cursor:pointer;
+      font-size:.82rem;
+      font-weight:700;
+      backdrop-filter:blur(6px);
+      z-index:2;
+    }
+    .forum-image-lightbox-original:hover{filter:brightness(1.08);}
+    .forum-image-lightbox-original:disabled{
+      opacity:.72;
+      cursor:default;
+    }
+    .forum-image-lightbox-stage.is-original .forum-image-lightbox-original{display:none;}
     .forum-image-lightbox-close{
       position:absolute;
       top:14px;
@@ -3300,7 +3330,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.12</div>
+  <div class="version-tag">版本 V0.9.13</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -3329,10 +3359,11 @@
       <button class="tool-subitem" type="button" data-tool-tab="dataQuery">数据查询</button>
     </div>
     <div class="tab-search" id="allTabSearch" style="display:none;">
-      <input class="tab-search-input" id="allTabSearchInput" type="search" placeholder="搜索功能名、文件名，或礼包内道具关键词" autocomplete="off" />
+      <input class="tab-search-input" id="allTabSearchInput" type="search" placeholder="搜索功能名、论坛帖子、礼包道具关键词" autocomplete="off" />
       <button class="tab-search-clear" id="allTabSearchClear" type="button">清空</button>
     </div>
     <div id="giftPackSearchHint" class="gift-pack-search-hint"></div>
+    <div id="forumSearchHint" class="gift-pack-search-hint"></div>
 
     <div class="grid">
       <section class="card wide featured-tools-shell" id="featuredTools" data-tool-group="featured">
@@ -3839,6 +3870,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.13（2026-05-25）</h4>
+        <ol>
+          <li><strong>首页搜索</strong>：「全部」Tab 搜索框现可匹配<strong>论坛帖子</strong>（标题、正文、作者），并展示命中提示与帖子列表。</li>
+          <li><strong>论坛图片</strong>：点击预览图可放大查看；放大后右下角提供<strong>查看原图（文件大小）</strong>按钮，可切换为完整画质原图。</li>
+        </ol>
+
         <h4>V0.9.12（2026-05-25）</h4>
         <ol>
           <li><strong>练兵计算站</strong>：界面与计算逻辑优化，支持 T11/T12 减免；修复兵阶下拉框无法加载。</li>
@@ -4415,7 +4452,10 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 
   <div class="forum-image-lightbox" id="forumImageLightbox" aria-hidden="true">
     <button class="forum-image-lightbox-close" id="forumImageLightboxClose" type="button" aria-label="关闭图片预览">关闭</button>
-    <img id="forumImageLightboxImg" alt="图片预览" />
+    <div class="forum-image-lightbox-stage" id="forumImageLightboxStage">
+      <img id="forumImageLightboxImg" alt="图片预览" />
+      <button class="forum-image-lightbox-original" id="forumImageLightboxOriginal" type="button" style="display:none;">查看原图</button>
+    </div>
   </div>
 
   <div class="forum-view-modal user-home-modal" id="userHomeModal" aria-hidden="true">
@@ -5702,6 +5742,10 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     var forumOpenCommentMenuId = null;
     var forumActiveImage = null;
     var forumLatestPosts = [];
+    var forumHomeSearchQuery = '';
+    var forumHomeSearchPosts = [];
+    var forumHomeSearchTimer = null;
+    var forumHomeSearchSeq = 0;
     /** 首页 Tab 切换会 rerender论坛列表（renderForumPosts 读 forumLatestPosts），只改 DOM 不同步此项会又把浏览量打回旧值 */
     function mergeForumLatestPostSnapshot(patch){
       if(!patch||!Array.isArray(forumLatestPosts)||!forumLatestPosts.length||!Number.isFinite(Number(patch.id))) return;
@@ -5892,6 +5936,85 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       if(!Number.isFinite(value) || value<=0) return '0KB';
       if(value >= 1024 * 1024) return (value / 1024 / 1024).toFixed(value >= 10 * 1024 * 1024 ? 0 : 1) + 'MB';
       return Math.ceil(value / 1024) + 'KB';
+    }
+    function formatForumOriginalSizeLabel(bytes){
+      var value=Number(bytes||0);
+      if(!Number.isFinite(value) || value<=0) return '';
+      if(value >= 1024 * 1024) return (value / 1024 / 1024).toFixed(1) + 'MB';
+      return Math.max(1, Math.ceil(value / 1024)) + 'KB';
+    }
+    var forumImageMetaCache = Object.create(null);
+    function parseForumImageThumbUrl(src){
+      var val=String(src||'').trim();
+      if(!val || val.indexOf('/api/image/thumb')===-1) return '';
+      try{
+        var u=new URL(val, window.location.origin);
+        return String(u.searchParams.get('url')||'').trim();
+      }catch(_e){ return ''; }
+    }
+    function getForumImageOriginalUrl(src){
+      var fromThumb=parseForumImageThumbUrl(src);
+      if(fromThumb){
+        var safeThumb=sanitizeUrl(fromThumb);
+        if(safeThumb) return safeThumb;
+      }
+      var safe=sanitizeUrl(src);
+      if(!safe) return '';
+      if(safe.indexOf('/uploads/')===0) return safe;
+      return safe;
+    }
+    function isForumUploadImageUrl(src){
+      var orig=getForumImageOriginalUrl(src);
+      return !!(orig && orig.indexOf('/uploads/')===0);
+    }
+    function buildForumImageThumbUrl(originalSrc, width, quality){
+      var orig=getForumImageOriginalUrl(originalSrc);
+      if(!orig || orig.indexOf('/uploads/')!==0) return orig || '';
+      var qs=new URLSearchParams();
+      qs.set('url', orig);
+      qs.set('w', String(width || 480));
+      qs.set('q', String(quality || 55));
+      return '/api/image/thumb?'+qs.toString();
+    }
+    function buildForumImageTag(originalSrc, opts){
+      opts=opts||{};
+      var orig=getForumImageOriginalUrl(originalSrc);
+      if(!orig) return '';
+      var alt=opts.alt || '图片';
+      if(orig.indexOf('/uploads/')===0){
+        var preview=buildForumImageThumbUrl(orig, opts.previewWidth || 480, opts.previewQuality || 55);
+        return '<img src="'+escapeAttr(preview)+'" data-original-src="'+escapeAttr(orig)+'" alt="'+escapeAttr(alt)+'" loading="lazy" />';
+      }
+      return '<img src="'+escapeAttr(orig)+'" alt="'+escapeAttr(alt)+'" loading="lazy" />';
+    }
+    function enhanceForumImages(root, opts){
+      if(!root) return;
+      opts=opts||{};
+      var previewW=opts.previewWidth || 720;
+      var previewQ=opts.previewQuality || 58;
+      root.querySelectorAll('img').forEach(function(node){
+        if(node.getAttribute('data-original-src')) return;
+        var raw=node.getAttribute('src') || '';
+        var orig=getForumImageOriginalUrl(raw);
+        if(!orig || orig.indexOf('/uploads/')!==0) return;
+        node.setAttribute('data-original-src', orig);
+        node.setAttribute('src', buildForumImageThumbUrl(orig, previewW, previewQ));
+      });
+    }
+    async function fetchForumImageMeta(originalUrl){
+      var orig=getForumImageOriginalUrl(originalUrl);
+      if(!orig || orig.indexOf('/uploads/')!==0) return null;
+      if(forumImageMetaCache[orig]) return forumImageMetaCache[orig];
+      try{
+        var r=await fetch('/api/image/meta?url='+encodeURIComponent(orig), { method:'GET' });
+        if(!r.ok) return null;
+        var d=await r.json();
+        var meta={ size: Math.max(0, Number(d && d.size || 0)), url: orig };
+        forumImageMetaCache[orig]=meta;
+        return meta;
+      }catch(_e){
+        return null;
+      }
     }
     function getDataUrlByteSize(value){
       var text=String(value||'');
@@ -6565,11 +6688,28 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       var sourcePosts = Array.isArray(forumLatestPosts) ? forumLatestPosts : [];
       var activeHomeTab = (typeof window.getHomeTab === 'function') ? window.getHomeTab() : 'all';
       var isForumTab = activeHomeTab === 'forum';
+      var isAllSearch = activeHomeTab === 'all' && forumHomeSearchQuery;
       var goWrap=document.getElementById('forumGoWrap');
       if(goWrap) goWrap.style.display = isForumTab ? 'none' : '';
       var pager=document.getElementById('forumPagination');
       if(pager) pager.style.display = isForumTab ? '' : 'none';
-      var displayPosts = isForumTab ? sourcePosts : sourcePosts.slice(0,3);
+      var heroSub=document.getElementById('forumSectionDesc');
+      if(heroSub && isAllSearch){
+        heroSub.textContent = forumHomeSearchPosts.length
+          ? ('搜索「'+forumHomeSearchQuery+'」命中 '+forumHomeSearchPosts.length+' 篇帖子')
+          : ('搜索「'+forumHomeSearchQuery+'」暂无匹配帖子');
+      } else if(heroSub && activeHomeTab === 'all'){
+        var sectionInfo = forumSectionMap[forumSection] || {};
+        heroSub.textContent = sectionInfo.desc || '汇总展示全部分区内容。';
+      }
+      var displayPosts;
+      if(isAllSearch){
+        displayPosts = forumHomeSearchPosts.slice(0, 10);
+      } else if(isForumTab){
+        displayPosts = sourcePosts;
+      } else {
+        displayPosts = sourcePosts.slice(0,3);
+      }
       if(!displayPosts || displayPosts.length===0){
         box.innerHTML='<div class="forum-empty"><div class="forum-empty-title">暂无内容</div><div class="forum-empty-sub">成为第一个发布的人吧</div></div>';
         renderForumPagination();
@@ -6586,7 +6726,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         var cover = images.length ? images[0] : '';
         var safeCover = sanitizeUrl(cover);
         var thumb = (p.type==='image' && safeCover)
-          ? '<div class="forum-post-side"><img class="forum-post-cover" src="'+escapeAttr(safeCover)+'" alt="封面" loading="lazy" /></div>'
+          ? '<div class="forum-post-side"><img class="forum-post-cover" src="'+escapeAttr(buildForumImageThumbUrl(safeCover, 360, 52))+'" data-original-src="'+escapeAttr(safeCover)+'" alt="封面" loading="lazy" /></div>'
           : '';
         var viewCount = Number(p.viewCount || 0);
         var likeCount = Number(p.likeCount || 0);
@@ -6636,6 +6776,46 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       renderForumPosts();
     }
     window.refreshForumListView = refreshForumListView;
+    window.forumHomeSearchHasHits = function(){
+      return !!(forumHomeSearchQuery && forumHomeSearchPosts && forumHomeSearchPosts.length);
+    };
+    window.triggerForumHomeSearch = function(keyword){
+      var q = String(keyword || '').trim();
+      forumHomeSearchQuery = q;
+      if(forumHomeSearchTimer) clearTimeout(forumHomeSearchTimer);
+      if(!q){
+        forumHomeSearchPosts = [];
+        window.__forumHomeSearchPostsSnapshot = [];
+        refreshForumListView();
+        if(typeof window.__refreshHomeSearch === 'function') window.__refreshHomeSearch();
+        return;
+      }
+      forumHomeSearchTimer = setTimeout(async function(){
+        var seq = ++forumHomeSearchSeq;
+        try{
+          var qs = new URLSearchParams();
+          qs.set('section', 'all');
+          qs.set('q', q);
+          qs.set('page', '1');
+          qs.set('pageSize', '15');
+          qs.set('_', String(Date.now()));
+          var r = await apiFetch('/api/forum/posts?'+qs.toString(), { method: 'GET' });
+          if(seq !== forumHomeSearchSeq) return;
+          if(!r.ok){
+            forumHomeSearchPosts = [];
+          } else {
+            var d = await r.json();
+            forumHomeSearchPosts = Array.isArray(d) ? d : (d.posts || []);
+          }
+        }catch(_e){
+          if(seq !== forumHomeSearchSeq) return;
+          forumHomeSearchPosts = [];
+        }
+        window.__forumHomeSearchPostsSnapshot = forumHomeSearchPosts.slice();
+        refreshForumListView();
+        if(typeof window.__refreshHomeSearch === 'function') window.__refreshHomeSearch();
+      }, 280);
+    };
     async function loadForumPosts(opts){
       opts = opts || {};
       var box=document.getElementById('forumList');
@@ -6857,16 +7037,62 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       }
       await loadForumDetail(id, { recordView: true });
     }
-    function openForumImageLightbox(src, altText){
-      var safeSrc=sanitizeUrl(src);
+    var forumLightboxState = { originalUrl:'', showingOriginal:false, sizeBytes:0 };
+    function resetForumImageLightboxOriginalBtn(){
+      var btn=document.getElementById('forumImageLightboxOriginal');
+      var stage=document.getElementById('forumImageLightboxStage');
+      if(stage) stage.classList.remove('is-original');
+      if(!btn) return;
+      btn.style.display='none';
+      btn.disabled=false;
+      btn.textContent='查看原图';
+      forumLightboxState = { originalUrl:'', showingOriginal:false, sizeBytes:0 };
+    }
+    function updateForumImageLightboxOriginalBtn(meta){
+      var btn=document.getElementById('forumImageLightboxOriginal');
+      if(!btn) return;
+      if(forumLightboxState.showingOriginal || !forumLightboxState.originalUrl || forumLightboxState.originalUrl.indexOf('/uploads/')!==0){
+        btn.style.display='none';
+        return;
+      }
+      btn.style.display='';
+      var sizeLabel=formatForumOriginalSizeLabel(meta && meta.size ? meta.size : forumLightboxState.sizeBytes);
+      btn.textContent=sizeLabel ? ('查看原图（'+sizeLabel+'）') : '查看原图';
+    }
+    function openForumImageLightbox(src, altText, originalSrc){
+      var safeOriginal=getForumImageOriginalUrl(originalSrc || src);
+      var previewSrc=isForumUploadImageUrl(safeOriginal)
+        ? buildForumImageThumbUrl(safeOriginal, 1200, 75)
+        : sanitizeUrl(src);
       var modal=document.getElementById('forumImageLightbox');
       var img=document.getElementById('forumImageLightboxImg');
-      if(!modal || !img || !safeSrc) return;
-      img.src=safeSrc;
+      if(!modal || !img || !previewSrc) return;
+      resetForumImageLightboxOriginalBtn();
+      forumLightboxState.originalUrl=safeOriginal;
+      forumLightboxState.showingOriginal=false;
+      img.src=previewSrc;
       img.alt=String(altText||'图片预览');
       modal.classList.add('open');
       modal.setAttribute('aria-hidden','false');
       syncBodyNoScroll();
+      updateForumImageLightboxOriginalBtn(null);
+      if(safeOriginal && safeOriginal.indexOf('/uploads/')===0){
+        fetchForumImageMeta(safeOriginal).then(function(meta){
+          if(forumLightboxState.originalUrl!==safeOriginal || forumLightboxState.showingOriginal) return;
+          if(meta && meta.size) forumLightboxState.sizeBytes=meta.size;
+          updateForumImageLightboxOriginalBtn(meta);
+        });
+      }
+    }
+    function showForumImageLightboxOriginal(){
+      var img=document.getElementById('forumImageLightboxImg');
+      var stage=document.getElementById('forumImageLightboxStage');
+      var originalUrl=forumLightboxState.originalUrl;
+      if(!img || !originalUrl || originalUrl.indexOf('/uploads/')!==0) return;
+      forumLightboxState.showingOriginal=true;
+      img.src=originalUrl;
+      if(stage) stage.classList.add('is-original');
+      updateForumImageLightboxOriginalBtn(null);
     }
     function closeForumImageLightbox(){
       var modal=document.getElementById('forumImageLightbox');
@@ -6875,6 +7101,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       modal.classList.remove('open');
       modal.setAttribute('aria-hidden','true');
       img.removeAttribute('src');
+      resetForumImageLightboxOriginalBtn();
       syncBodyNoScroll();
     }
     function closeForumView(){
@@ -7105,14 +7332,16 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         var images = Array.isArray(post.coverImages) ? post.coverImages : parseCoverImages(post.coverImage);
         var safeImages = images.map(sanitizeUrl).filter(Boolean);
         var imgHtml = safeImages.length
-          ? '<div class="forum-image-grid">'+safeImages.map(function(src){ return '<img src="'+escapeAttr(src)+'" alt="图片" loading="lazy" />'; }).join('')+'</div>'
+          ? '<div class="forum-image-grid">'+safeImages.map(function(src){ return buildForumImageTag(src, { previewWidth: 720, previewQuality: 58, alt: '图片' }); }).join('')+'</div>'
           : '';
         var bodyHtml = post.contentHtml
           ? sanitizeHtml(post.contentHtml)
           : '<div class="forum-post-content">'+escapeHtmlWithBreaks(post.contentText||'')+'</div>';
         contentBox.innerHTML = bodyHtml + imgHtml;
+        enhanceForumImages(contentBox, { previewWidth: 720, previewQuality: 58 });
       }else{
         contentBox.innerHTML = sanitizeHtml(post.contentHtml || '');
+        enhanceForumImages(contentBox, { previewWidth: 720, previewQuality: 58 });
       }
         var pinBtn=document.getElementById('forumPinPostBtn');
         if(pinBtn){
@@ -8198,9 +8427,18 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       var img=e.target && e.target.closest ? e.target.closest('img') : null;
       if(!img) return;
       e.preventDefault();
-      openForumImageLightbox(img.getAttribute('src') || img.src || '', img.getAttribute('alt') || '图片预览');
+      openForumImageLightbox(
+        img.getAttribute('src') || img.src || '',
+        img.getAttribute('alt') || '图片预览',
+        img.getAttribute('data-original-src') || ''
+      );
     });
     document.getElementById('forumImageLightboxClose')&&document.getElementById('forumImageLightboxClose').addEventListener('click',closeForumImageLightbox);
+    document.getElementById('forumImageLightboxOriginal')&&document.getElementById('forumImageLightboxOriginal').addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      showForumImageLightboxOriginal();
+    });
     document.getElementById('forumImageLightbox')&&document.getElementById('forumImageLightbox').addEventListener('click',function(e){
       if(e.target && e.target.id==='forumImageLightbox') closeForumImageLightbox();
     });
@@ -8409,6 +8647,30 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       function escGiftHint(s){
         return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
       }
+      function renderForumSearchHints(keyword){
+        var el=document.getElementById('forumSearchHint');
+        if(!el) return;
+        if(activeTab!=='all'||!keyword){
+          el.innerHTML='';
+          el.classList.remove('open');
+          return;
+        }
+        var posts=(window.__forumHomeSearchPostsSnapshot||[]);
+        if(!posts.length){
+          el.innerHTML='';
+          el.classList.remove('open');
+          return;
+        }
+        var maxShow=8;
+        var show=posts.slice(0,maxShow);
+        var more=posts.length>maxShow?' <span class="gift-pack-search-hint-more">等 '+posts.length+' 篇帖子</span>':'';
+        var links=show.map(function(p){
+          var title=String(p.title||'无标题').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          return '<a href="#" class="forum-search-hint-link" data-post-id="'+Number(p.id)+'">'+title+'</a>';
+        }).join(' · ');
+        el.innerHTML='<div class="gift-pack-search-hint-head">论坛帖子命中</div><div class="gift-pack-search-hint-row">'+links+more+'</div>';
+        el.classList.add('open');
+      }
       function renderGiftPackHints(normQ){
         var el=document.getElementById('giftPackSearchHint');
         if(!el) return;
@@ -8476,13 +8738,19 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
             var txtHit = keyword && getSearchText(card).indexOf(keyword)>-1;
             var giftCat = card.getAttribute('data-gift-search');
             var giftHit = !!(giftCat && giftKw && giftPackCategoryHasMatch(giftCat, giftKw));
-            visible = txtHit || giftHit;
+            var forumHit = !!(keyword && typeof window.forumHomeSearchHasHits === 'function' && window.forumHomeSearchHasHits());
+            visible = txtHit || giftHit || forumHit;
           }
           card.style.display=visible?'':'none';
         });
         refreshToolGroupVisibility();
         renderGiftPackHints(giftKw);
+        renderForumSearchHints(keyword);
       }
+      window.__refreshHomeSearch = function(){
+        if(activeTab!=='all'||!searchInput) return;
+        applyTab(activeTab);
+      };
       function isValidTab(tab){
         if(!tab){ return false; }
         var btn=tabBar.querySelector('[data-tab="'+tab+'"]');
@@ -8500,6 +8768,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         if(hintEl && !show){
           hintEl.innerHTML='';
           hintEl.classList.remove('open');
+        }
+        var forumHintEl=document.getElementById('forumSearchHint');
+        if(forumHintEl && !show){
+          forumHintEl.innerHTML='';
+          forumHintEl.classList.remove('open');
+          if(typeof window.triggerForumHomeSearch === 'function') window.triggerForumHomeSearch('');
         }
       }
       function updateTabQuery(){
@@ -8552,11 +8826,16 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       });
       if(searchInput){
         searchInput.addEventListener('input',function(){
-          if(activeTab==='all') applyTab(activeTab);
+          if(activeTab==='all'){
+            var raw=String(searchInput.value||'').trim();
+            if(typeof window.triggerForumHomeSearch === 'function') window.triggerForumHomeSearch(raw);
+            applyTab(activeTab);
+          }
         });
         searchInput.addEventListener('keydown',function(e){
           if(e.key==='Escape'){
             searchInput.value='';
+            if(typeof window.triggerForumHomeSearch === 'function') window.triggerForumHomeSearch('');
             applyTab(activeTab);
           }
         });
@@ -8565,8 +8844,20 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         searchClear.addEventListener('click',function(){
           if(!searchInput) return;
           searchInput.value='';
+          if(typeof window.triggerForumHomeSearch === 'function') window.triggerForumHomeSearch('');
           applyTab(activeTab);
           searchInput.focus();
+        });
+      }
+      var forumSearchHintEl=document.getElementById('forumSearchHint');
+      if(forumSearchHintEl){
+        forumSearchHintEl.addEventListener('click',function(e){
+          var link=e.target.closest('.forum-search-hint-link');
+          if(!link) return;
+          e.preventDefault();
+          var postId=Number(link.getAttribute('data-post-id'));
+          if(!Number.isFinite(postId)||postId<=0) return;
+          if(typeof openForumView === 'function') openForumView(postId);
         });
       }
       var urlTab = '';
