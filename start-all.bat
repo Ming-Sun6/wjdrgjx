@@ -11,12 +11,13 @@ echo.
 call :port_listening 5201
 if errorlevel 1 (
   echo [1/2] Starting giftcode Flask on port 5201 ...
-  start "wjdr-giftcode" /min "%~dp0start-giftcode-min.bat"
-  call :wait_port 5201 30
+  start "wjdr-giftcode" /min /d "%~dp0" "%~dp0start-giftcode-min.bat"
+  call :wait_port 5201 90
   if errorlevel 1 (
     echo.
-    echo [ERROR] Giftcode did not start on port 5201 within 30s.
-    echo         Double-click start-giftcode.bat to see the error.
+    echo [ERROR] Giftcode did not start on port 5201 within 90s.
+    echo         First run may need pip install — see logs\giftcode.log
+    echo         Or double-click start-giftcode.bat for details.
     if exist "logs\giftcode.log" (
       echo.
       echo === giftcode.log last 12 lines ===
