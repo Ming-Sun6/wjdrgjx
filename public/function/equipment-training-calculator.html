@@ -147,11 +147,11 @@
   <main class="wrap">
     <section class="hero">
       <h1>练兵计算站</h1>
-      <p>一次设置兵阶与数量，同时估算练兵时间、备战/冻土得分与肉木煤铁消耗；支持 T11 减免与备战专家加成。</p>
+      <p>一次设置兵阶与数量，同时估算练兵时间、备战/冻土得分与肉木煤铁消耗；支持 T11/T12 减免与备战专家加成。</p>
       <div class="chips">
         <span class="chip">我想练</span>
         <span class="chip">时间·得分·资源</span>
-        <span class="chip">T11 减免</span>
+        <span class="chip">T11/T12 减免</span>
         <span class="chip">备战专家</span>
       </div>
     </section>
@@ -203,7 +203,7 @@
               <tr><td><span class="res-name"><img src="../Scores/tie.png" alt="铁">铁</span></td><td id="rD">0</td></tr>
             </tbody>
           </table>
-          <p class="hint" style="margin-top:6px;">仅目标为 T11 时减免生效；T12 无减免。分数与加速按盾+矛+弓数量合计计算。</p>
+          <p class="hint" style="margin-top:6px;">目标为 T11 或 T12 时可填减免；分数与加速按盾+矛+弓数量合计计算。</p>
         </div>
       </div>
 
@@ -253,8 +253,12 @@
       opt.style.display = "none";
     }
 
+    function hasTroopDiscount(toLv){
+      return toLv === "T11" || toLv === "T12";
+    }
+
     function applyDiscountVisibility(){
-      const show = document.getElementById("toTier")?.value === "T11";
+      const show = hasTroopDiscount(document.getElementById("toTier")?.value);
       document.querySelectorAll(".discount-field").forEach((el)=>{
         el.classList.toggle("show", show);
       });
@@ -392,10 +396,10 @@
       const rS = clamp(Math.max(0, N(document.getElementById("shieldR").value) ?? 0), 0, 100) / 100;
       const rP = clamp(Math.max(0, N(document.getElementById("spearR").value) ?? 0), 0, 100) / 100;
       const rB = clamp(Math.max(0, N(document.getElementById("bowR").value) ?? 0), 0, 100) / 100;
-      const t11Discount = to.lv === "T11";
-      const fS = t11Discount ? 1 - rS : 1;
-      const fP = t11Discount ? 1 - rP : 1;
-      const fB = t11Discount ? 1 - rB : 1;
+      const troopDiscount = hasTroopDiscount(to.lv);
+      const fS = troopDiscount ? 1 - rS : 1;
+      const fP = troopDiscount ? 1 - rP : 1;
+      const fB = troopDiscount ? 1 - rB : 1;
       const calcRes = (i)=>{
         const ds = resForRange(from, to, isTrain, "s", i);
         const dp = resForRange(from, to, isTrain, "p", i);
@@ -410,9 +414,9 @@
       txt("rD", YW(calcRes(3)));
 
       const expertNote = prepExpertLv > 0 ? `，备战专家 Lv.${prepExpertLv}（+${prepExpertLv * 2}%）` : "";
-      const resNote = t11Discount
-        ? "T11 减免已生效"
-        : (to.lv === "T12" ? "T12 无减免" : "非 T11 无减免");
+      const resNote = troopDiscount
+        ? `${to.lv} 减免已生效`
+        : "非 T11/T12 无减免";
       const modeNote = isTrain ? "直接练兵" : "逐级晋升";
       setStatus(`${from.lv} → ${to.lv} · ${modeNote} · 单兵 ${F(dt, 1)} 秒 · 训练速度 ${F(speed, 1)}% · ${resNote}${expertNote}`, "ok");
     }
