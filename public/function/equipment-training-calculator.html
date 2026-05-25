@@ -174,19 +174,19 @@
             <select id="prepExpertLevel"></select>
           </div>
         </div>
-        <div class="hint">单兵时间/分数见表内累计值；T11→T12 晋升为 8 秒/兵。直接练 T12 为 215 秒/兵。</div>
+        <p class="hint" id="timeHint">直接练兵：表内为单兵累计时间/积分/资源；晋升：时间、积分、资源均按逐级差值累加。</p>
       </div>
 
       <div class="result-split">
         <div class="box">
           <h3>数量与时间</h3>
           <div class="grid">
-            <div class="f2"><label>练兵数量 (万)</label><input id="countWan" type="number" min="0" step="0.1" value="0"></div>
+            <div class="f2"><label id="countLabel">练兵数量 (万)</label><input id="countWan" type="number" min="0" step="0.1" value="0"></div>
             <div class="f2"><label>已有加速 (天)</label><input id="accDays" type="number" min="0" step="0.1" value="0"></div>
           </div>
           <div class="stats" style="margin-top:8px;grid-template-columns:repeat(2,minmax(0,1fr));">
             <div class="stat"><div class="k">消耗加速 (天)</div><div class="v" id="needDays">0</div></div>
-            <div class="stat"><div class="k">可练兵数量 (万)</div><div class="v" id="canTrain">0</div></div>
+            <div class="stat"><div class="k" id="canTrainLabel">可练兵数量 (万)</div><div class="v" id="canTrain">0</div></div>
             <div class="stat"><div class="k">备战分数 (万)</div><div class="v" id="prepByCount">0</div></div>
             <div class="stat"><div class="k">冻土分数 (万)</div><div class="v" id="frostByCount">0</div></div>
             <div class="stat"><div class="k">加速对应备战</div><div class="v" id="prepByAcc">0</div></div>
@@ -277,6 +277,16 @@
         fromEl.disabled = false;
         fromWrap.style.display = "grid";
       }
+      const countLabel = document.getElementById("countLabel");
+      const canTrainLabel = document.getElementById("canTrainLabel");
+      const timeHint = document.getElementById("timeHint");
+      if(countLabel) countLabel.textContent = isTrain ? "练兵数量 (万)" : "晋升数量 (万)";
+      if(canTrainLabel) canTrainLabel.textContent = isTrain ? "可练兵数量 (万)" : "可晋升数量 (万)";
+      if(timeHint){
+        timeHint.textContent = isTrain
+          ? "直接练兵：表内为单兵累计时间/积分/资源（如 T12 为 215 秒/兵）。"
+          : "晋升：时间、备战分、冻土分、资源均按逐级差值累加（T11→T12 时间为 8 秒/兵）。";
+      }
     }
 
     function getFromTo(){
@@ -291,12 +301,53 @@
       return tierIndex(to.lv) > tierIndex(from.lv);
     }
 
-    function trainSeconds(from, to){
-      if(!from || !to) return NaN;
-      if(from.lv === "0，直接练" || from.time === 0) return to.time;
-      const promote = N(to.promoteTime);
+    function isDirectTrain(from, isTrain){
+      return isTrain || from.lv === "0，直接练" || from.time === 0;
+    }
+
+    function promoteRangeSum(from, to, stepFn){
+      const fromIdx = tierIndex(from.lv);
+      const toIdx = tierIndex(to.lv);
+      if(fromIdx < 0 || toIdx <= fromIdx) return NaN;
+      let total = 0;
+      for(let i = fromIdx + 1; i <= toIdx; i++){
+        const step = stepFn(TROOP[i - 1], TROOP[i]);
+        if(!Number.isFinite(step)) return NaN;
+        total += step;
+      }
+      return total;
+    }
+
+    function stepPromoteSeconds(prev, curr){
+      const promote = N(curr.promoteTime);
       if(promote != null && promote > 0) return promote;
-      return to.time - from.time;
+      return (N(curr.time) ?? NaN) - (N(prev.time) ?? NaN);
+    }
+
+    function stepPromoteMetric(prev, curr, key){
+      return (N(curr[key]) ?? NaN) - (N(prev[key]) ?? NaN);
+    }
+
+    function stepPromoteRes(prev, curr, resKey, index){
+      return (N(curr[resKey][index]) ?? NaN) - (N(prev[resKey][index]) ?? NaN);
+    }
+
+    function metricForRange(from, to, isTrain, key){
+      if(isDirectTrain(from, isTrain)) return N(to[key]) ?? NaN;
+      return promoteRangeSum(from, to, (prev, curr) => stepPromoteMetric(prev, curr, key));
+    }
+
+    function resForRange(from, to, isTrain, resKey, index){
+      if(isDirectTrain(from, isTrain)) return N(to[resKey][index]) ?? NaN;
+      return promoteRangeSum(from, to, (prev, curr) => stepPromoteRes(prev, curr, resKey, index));
+    }
+
+    function trainSeconds(from, to, isTrain){
+      if(!from || !to) return NaN;
+      if(isDirectTrain(from, isTrain)) return N(to.time) ?? NaN;
+      const total = promoteRangeSum(from, to, stepPromoteSeconds);
+      if(!Number.isFinite(total) || total <= 0) return NaN;
+      return total;
     }
 
     function setStatus(msg, kind){
@@ -320,7 +371,8 @@
         return;
       }
 
-      const dtRaw = trainSeconds(from, to);
+      const isTrain = document.getElementById("trainMode").value === "train";
+      const dtRaw = trainSeconds(from, to, isTrain);
       if(!Number.isFinite(dtRaw) || dtRaw <= 0){
         ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
         setStatus("无法计算训练时间", "bad");
@@ -331,8 +383,13 @@
       const dt = dtRaw;
       const needDays = (dt / rate / 86400) * countWan * 10000;
       const canTrain = accDays * 86400 / dt * rate / 10000;
-      const prepD = (N(to.prep) ?? NaN) - (N(from.prep) ?? NaN);
-      const frostD = (N(to.frost) ?? NaN) - (N(from.frost) ?? NaN);
+      const prepD = metricForRange(from, to, isTrain, "prep");
+      const frostD = metricForRange(from, to, isTrain, "frost");
+      if(!Number.isFinite(prepD) || !Number.isFinite(frostD)){
+        ["needDays","prepByCount","frostByCount","canTrain","prepByAcc","frostByAcc","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+        setStatus("无法计算晋升积分", "bad");
+        return;
+      }
       txt("needDays", F(needDays, 2));
       txt("prepByCount", F(countWan * prepD * prepExpert, 2));
       txt("frostByCount", F(countWan * frostD, 2));
@@ -351,9 +408,9 @@
       const fP = t11Discount ? 1 - rP : 1;
       const fB = t11Discount ? 1 - rB : 1;
       const calcRes = (i)=>{
-        const ds = (N(to.s[i]) ?? NaN) - (N(from.s[i]) ?? NaN);
-        const dp = (N(to.p[i]) ?? NaN) - (N(from.p[i]) ?? NaN);
-        const db = (N(to.b[i]) ?? NaN) - (N(from.b[i]) ?? NaN);
+        const ds = resForRange(from, to, isTrain, "s", i);
+        const dp = resForRange(from, to, isTrain, "p", i);
+        const db = resForRange(from, to, isTrain, "b", i);
         return Number.isFinite(ds) && Number.isFinite(dp) && Number.isFinite(db)
           ? (ds * qS * fS + dp * qP * fP + db * qB * fB) / 10000
           : NaN;
@@ -367,7 +424,8 @@
       const resNote = t11Discount
         ? "T11 减免已生效"
         : (to.lv === "T12" ? "T12 无减免" : "非 T11 无减免");
-      setStatus(`${from.lv} → ${to.lv} · 训练速度 ${F(speed, 1)}% · ${resNote}${expertNote}`, "ok");
+      const modeNote = isTrain ? "直接练兵" : "逐级晋升";
+      setStatus(`${from.lv} → ${to.lv} · ${modeNote} · 单兵 ${F(dt, 1)} 秒 · 训练速度 ${F(speed, 1)}% · ${resNote}${expertNote}`, "ok");
     }
 
     function init(){
