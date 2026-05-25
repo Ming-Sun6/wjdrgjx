@@ -2688,8 +2688,9 @@ app.get('/api/forum/posts', async (req, res) => {
     }
     if (searchQ) {
       const like = `%${searchQ.replace(/[%_]/g, ' ').trim()}%`;
-      where.push('(p.title LIKE ? OR p.content_text LIKE ? OR u.username LIKE ?)');
-      params.push(like, like, like);
+      const likeOp = pgDatabase ? 'ILIKE' : 'LIKE';
+      where.push(`(p.title ${likeOp} ? OR p.contentText ${likeOp} ? OR p.contentHtml ${likeOp} ? OR u.username ${likeOp} ?)`);
+      params.push(like, like, like, like);
     }
     const totalRow = await queryOne(
       `

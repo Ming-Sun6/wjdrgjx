@@ -6779,6 +6779,9 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     window.forumHomeSearchHasHits = function(){
       return !!(forumHomeSearchQuery && forumHomeSearchPosts && forumHomeSearchPosts.length);
     };
+    window.forumHomeSearchIsActive = function(){
+      return !!forumHomeSearchQuery;
+    };
     window.triggerForumHomeSearch = function(keyword){
       var q = String(keyword || '').trim();
       forumHomeSearchQuery = q;
@@ -6790,6 +6793,9 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         if(typeof window.__refreshHomeSearch === 'function') window.__refreshHomeSearch();
         return;
       }
+      window.__forumHomeSearchPostsSnapshot = [];
+      refreshForumListView();
+      if(typeof window.__refreshHomeSearch === 'function') window.__refreshHomeSearch();
       forumHomeSearchTimer = setTimeout(async function(){
         var seq = ++forumHomeSearchSeq;
         try{
@@ -8656,6 +8662,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           return;
         }
         var posts=(window.__forumHomeSearchPostsSnapshot||[]);
+        var pending=typeof window.forumHomeSearchIsActive==='function' && window.forumHomeSearchIsActive() && !posts.length;
+        if(pending){
+          el.innerHTML='<div class="gift-pack-search-hint-head">论坛帖子</div><div class="gift-pack-search-hint-row">正在搜索…</div>';
+          el.classList.add('open');
+          return;
+        }
         if(!posts.length){
           el.innerHTML='';
           el.classList.remove('open');
@@ -8738,7 +8750,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
             var txtHit = keyword && getSearchText(card).indexOf(keyword)>-1;
             var giftCat = card.getAttribute('data-gift-search');
             var giftHit = !!(giftCat && giftKw && giftPackCategoryHasMatch(giftCat, giftKw));
-            var forumHit = !!(keyword && typeof window.forumHomeSearchHasHits === 'function' && window.forumHomeSearchHasHits());
+            var forumHit = !!(keyword && typeof window.forumHomeSearchIsActive === 'function' && window.forumHomeSearchIsActive());
             visible = txtHit || giftHit || forumHit;
           }
           card.style.display=visible?'':'none';
