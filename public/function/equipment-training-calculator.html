@@ -175,7 +175,7 @@
             <select id="prepExpertLevel"></select>
           </div>
         </div>
-        <p class="hint" id="timeHint">直接练兵：表内为单兵累计时间/积分/资源；晋升：时间、积分、资源均按逐级差值累加。</p>
+        <p class="hint" id="timeHint">直接练兵：表内为单兵累计时间/积分/资源；晋升：备战分、冻土分、资源与时间均按逐级差值累加。</p>
       </div>
 
       <div class="result-split">
@@ -225,7 +225,7 @@
           ["T9",131,45,30,[1394,1046,244,51],[1220,1151,237,55],[872,1290,217,70]],
           ["T10",152,60,39,[2788,2091,488,102],[2440,2301,474,109],[1743,2579,433,140]],
           ["T11",180,75,49,[6970,5228,1220,253],[6099,5751,1185,271],[4357,6448,1081,349]],
-          ["T12",215,150,98,[13940,10456,2440,506],[12198,11502,2370,542],[8714,12896,2162,698]]
+          ["T12",215,87,57,[13940,10456,2440,506],[12198,11502,2370,542],[8714,12896,2162,698]]
         ].map((x)=>({lv:x[0],time:x[1],prep:x[2],frost:x[3],s:x[4],p:x[5],b:x[6],promoteTime:x[7]}));
 
     const troopMap = new Map(TROOP.map((x) => [x.lv, x]));
@@ -275,6 +275,9 @@
         fromEl.disabled = true;
         fromWrap.style.display = "none";
       } else {
+        if(fromEl.value === "0，直接练"){
+          fromEl.value = "T1";
+        }
         fromEl.disabled = false;
         fromWrap.style.display = "grid";
       }
@@ -299,8 +302,8 @@
       return tierIndex(to.lv) > tierIndex(from.lv);
     }
 
-    function isDirectTrain(from, isTrain){
-      return isTrain || from.lv === "0，直接练" || from.time === 0;
+    function isDirectTrain(from, isTrainMode){
+      return !!isTrainMode;
     }
 
     function promoteRangeSum(from, to, stepFn){
@@ -418,7 +421,10 @@
         ? `${to.lv} 减免已生效`
         : "非 T11/T12 无减免";
       const modeNote = isTrain ? "直接练兵" : "逐级晋升";
-      setStatus(`${from.lv} → ${to.lv} · ${modeNote} · 单兵 ${F(dt, 1)} 秒 · 训练速度 ${F(speed, 1)}% · ${resNote}${expertNote}`, "ok");
+      const scoreNote = isTrain
+        ? ""
+        : ` · 单兵备战 ${F(prepD, 1)} · 单兵冻土 ${F(frostD, 1)}`;
+      setStatus(`${from.lv} → ${to.lv} · ${modeNote} · 单兵 ${F(dt, 1)} 秒${scoreNote} · 训练速度 ${F(speed, 1)}% · ${resNote}${expertNote}`, "ok");
     }
 
     function init(){
