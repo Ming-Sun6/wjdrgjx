@@ -762,7 +762,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.13</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.14</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1415,6 +1415,14 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.14（2026-05-25）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>论坛搜索修复</strong>（<code>server.js</code>）：<code>GET /api/forum/posts</code> 搜索字段由错误的 <code>p.content_text</code> 改为 <code>p.contentText</code>，并增加 <code>p.contentHtml</code> 匹配；PostgreSQL 下使用 <code>ILIKE</code>。修复 V0.9.13 上线后帖子搜索无结果的问题。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>首页搜索联动</strong>（<code>index.html</code>）：论坛命中展示仅作用于 <code>data-category="forum"</code> 卡片，避免搜索词触发 <code>forumHit</code> 时工具卡片无法按名称筛选。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>练兵计算站</strong>（<code>public/function/equipment-training-calculator.html</code>）：移除 T12 行 <code>promoteTime: 8</code> 特例；T11→T12 晋升时间改回表内累计差 <strong>35 秒/兵</strong>（215−180），直接练 T12 仍为 <strong>215 秒/兵（3 分 35 秒）</strong>。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>首页版本号与更新日志</strong>：<code>index.html</code> 版本标签与弹窗内「首页更新日志」追加 V0.9.14 条目；管理端版本号同步为 V0.9.14。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>无管理端菜单/权限变更</strong>：未新增权限点与库表字段。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.13（2026-05-25）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>论坛列表搜索</strong>：<code>GET /api/forum/posts</code> 新增查询参数 <code>q</code> / <code>search</code>（最长 80 字符），在已审核帖子中按 <code>title</code>、<code>content_text</code>、作者 <code>username</code> 做 <code>LIKE</code> 匹配；COUNT 与列表查询均 <code>INNER JOIN users</code>。与既有 <code>section</code>、分页参数兼容。</div>
