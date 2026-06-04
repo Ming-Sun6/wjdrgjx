@@ -203,121 +203,12 @@
       <button id="clearSearchBtn" class="search-clear" type="button">清空</button>
     </div>
     <p id="searchMeta" class="search-meta"></p>
-    <section class="grid" id="heroGrid">
-      <a class="card" href="first-generation-heroes.html">
-        <h2 class="title">第一代</h2>
-        <p class="desc">查看第一代英雄完整数据：赫罗尼莫、娜塔莉亚、茉莉、津曼。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="second-generation-heroes.html">
-        <h2 class="title">第二代(开服45天)</h2>
-        <p class="desc">查看第二代英雄完整数据：弗林特、菲兰德、阿隆索。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="third-generation-heroes.html">
-        <h2 class="title">第三代(开服120天)</h2>
-        <p class="desc">查看第三代英雄完整数据：罗根、米娅、格雷格。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="fourth-generation-heroes.html">
-        <h2 class="title">第四代(开服190天)</h2>
-        <p class="desc">查看第四代英雄完整数据：阿赫莫斯、玲奈、琳恩。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="fifth-generation-heroes.html">
-        <h2 class="title">第五代(开服270天)</h2>
-        <p class="desc">查看第五代英雄完整数据：赫克托、诺拉、格温。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="sixth-generation-heroes.html">
-        <h2 class="title">第六代(开服350天)</h2>
-        <p class="desc">查看第六代英雄完整数据：无名、芮妮、韦恩。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="seventh-generation-heroes.html">
-        <h2 class="title">第七代(开服430天)</h2>
-        <p class="desc">查看第七代英雄完整数据：艾迪丝、哥顿、布拉德利。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="eighth-generation-heroes.html">
-        <h2 class="title">第八代(开服510天)</h2>
-        <p class="desc">查看第八代英雄完整数据：亨德里克、加托、索尼娅。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="ninth-generation-heroes.html">
-        <h2 class="title">第九代(开服580天)</h2>
-        <p class="desc">查看第九代英雄完整数据：马格努斯、弗雷德、修拉。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="tenth-generation-heroes.html">
-        <h2 class="title">十代英雄（开服664天）</h2>
-        <p class="desc">查看十代英雄完整数据：格里高利、布兰琪、芙蕾雅。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="eleventh-generation-heroes.html">
-        <h2 class="title">十一代英雄（开服748天）</h2>
-        <p class="desc">查看十一代英雄完整数据：埃莱奥诺拉、劳埃德、鲁弗斯。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="twelfth-generation-heroes.html">
-        <h2 class="title">十二代英雄（开服832天）</h2>
-        <p class="desc">查看十二代英雄完整数据：赫尔薇尔、加罗尔、丽姬娅。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="thirteenth-generation-heroes.html">
-        <h2 class="title">十三代英雄（开服916天）</h2>
-        <p class="desc">查看十三代英雄完整数据：吉塞拉、弗洛拉、乌尔卡努斯。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="fourteenth-generation-heroes.html">
-        <h2 class="title">十四代英雄（开服1000天）</h2>
-        <p class="desc">查看十四代英雄完整数据：艾丽芙、多米尼克、卡拉。</p>
-        <span class="tag">已上线</span>
-      </a>
-      <a class="card" href="fifteenth-generation-heroes.html">
-        <h2 class="title">十五代英雄（开服1084天）</h2>
-        <p class="desc">查看十五代英雄完整数据：汉克、艾丝黛拉、维薇卡。</p>
-        <span class="tag">已上线</span>
-      </a>
-    </section>
+    <section class="grid" id="heroGrid"></section>
     <div id="emptyState" class="empty-state">未找到匹配内容</div>
   </main>
+  <script src="hero-hub-page.js"></script>
   <script>
-    (function(){
-      const input = document.getElementById("searchInput");
-      const clearBtn = document.getElementById("clearSearchBtn");
-      const meta = document.getElementById("searchMeta");
-      const empty = document.getElementById("emptyState");
-      const cards = Array.from(document.querySelectorAll("#heroGrid .card"));
-
-      function normalize(text){
-        return (text || "").toLowerCase().trim();
-      }
-
-      function updateFilter(){
-        const keyword = normalize(input.value);
-        let visible = 0;
-
-        cards.forEach((card) => {
-          const content = normalize(card.textContent);
-          const show = !keyword || content.includes(keyword);
-          card.style.display = show ? "block" : "none";
-          if (show) visible += 1;
-        });
-
-        meta.textContent = keyword ? `匹配到 ${visible} 项` : `共 ${cards.length} 项`;
-        empty.style.display = visible > 0 ? "none" : "block";
-      }
-
-      input.addEventListener("input", updateFilter);
-      clearBtn.addEventListener("click", function(){
-        input.value = "";
-        input.focus();
-        updateFilter();
-      });
-
-      updateFilter();
-    })();
+    initHeroHubPage();
   </script>
 
   <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子、飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球、柒枫团队\A宣传大使：懒羊羊\A赞助：39 拙山枯水大江行\A\A感谢以上所有人对本攻略站的付出"}

@@ -762,7 +762,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.16</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.17</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -781,6 +781,7 @@
         <button class="side-item" type="button" data-page="users" data-admin-only="1">网站用户</button>
         <button class="side-item" type="button" data-page="calendar" data-admin-only="1">活动日历</button>
         <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
+        <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
         <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
         <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
         <button class="side-item" type="button" data-page="voices" data-admin-only="1">用户发声</button>
@@ -1339,6 +1340,28 @@
           </div>
         </section>
 
+        <section class="card page" id="page-heroes" data-page="heroes">
+          <div class="page-title">英雄数据</div>
+          <div class="calendar-admin hero-data-admin-shell">
+            <div class="form-section">
+              <div class="form-title">1–15 代英雄</div>
+              <div class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
+                在此维护英雄数据目录与各代英雄详情。保存后前台「英雄数据」目录页与各代页面立即生效，无需改代码或重新发布静态文件。
+              </div>
+              <div class="hero-toolbar">
+                <button class="btn secondary" type="button" id="heroDataReloadBtn">刷新</button>
+              </div>
+              <div class="admin-status" id="heroDataStatus"></div>
+              <div class="hero-data-admin">
+                <div class="hero-gen-list" id="heroGenList"></div>
+                <div class="gift-pack-editor" id="heroGenEditor">
+                  <div class="gift-pack-editor-empty">从左侧选择英雄代数进行编辑。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="card page" id="page-announcement" data-page="announcement">
           <div class="page-title">发布公告</div>
           <div class="calendar-admin">
@@ -1443,6 +1466,12 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.17（2026-06-04）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>英雄数据</strong>：新增后台菜单「英雄数据」，支持 1–15 代目录与各代英雄（属性、技能、获取方式等）可视化编辑与拖拽排序；数据存 <code>hero_generations</code> 表。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>接口</strong>：公开 <code>GET /api/hero-generations</code>、<code>GET /api/hero-generations/:slug</code>；管理端 <code>GET /api/admin/hero-generations</code>、<code>POST /api/admin/hero-generations/:id</code>、<code>POST /api/admin/hero-generations/reorder</code>。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>前台</strong>：<code>hero-data.html</code> 与各代英雄页改由 API 拉取；首次启动若表为空，自动从 <code>data/hero-generations-seed.json</code> 导入（15 代、46 名英雄）。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.16（2026-06-04）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>后台入口</strong>：正式管理端统一为 <code>function/_ops/console-7a9/internal/admin.html</code>；删除误放的 <code>public/function/admin.html</code>，首页「后台管理」链接同步指向内部地址。</div>
@@ -3873,6 +3902,7 @@
       }
       else if(currentPage==='calendar'){ initCalendarAdmin(); loadCalendarSchedules().then(renderCalendarView); }
       else if(currentPage==='gift-packs'){ if(typeof window.loadGiftPacksAdmin==='function') window.loadGiftPacksAdmin(); }
+      else if(currentPage==='heroes'){ if(typeof window.loadHeroesAdmin==='function') window.loadHeroesAdmin(); }
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='voices') loadUserVoices();
@@ -4135,6 +4165,7 @@
   <script src="./admin-governance.js"></script>
   <script src="./admin-users-page.js?v=9"></script>
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
+  <script src="/function/admin-heroes-page.js?v=1"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){

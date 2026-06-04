@@ -47,6 +47,11 @@ const {
   mountBearpitBackupRoutes,
   BEARPIT_BACKUPS_DDL_MYSQL
 } = require('./bearpit-backups');
+const {
+  mountHeroDataRoutes,
+  seedHeroGenerationsIfEmpty,
+  HERO_GENERATIONS_DDL_MYSQL
+} = require('./hero-data');
 
 const app = express();
 const PORT = 3000;
@@ -1367,6 +1372,13 @@ async function initDB() {
       pgDatabase
     });
     if (giftSeedPg.seeded) console.log(`Gift packs seeded: ${giftSeedPg.count}`);
+    const heroSeedPg = await seedHeroGenerationsIfEmpty({
+      queryOne,
+      execute,
+      rootDir: __dirname,
+      pgDatabase
+    });
+    if (heroSeedPg.seeded) console.log(`Hero generations seeded: ${heroSeedPg.count}`);
     return;
   }
 
@@ -1577,6 +1589,7 @@ async function initDB() {
   `);
   await execute(GIFT_PACKS_DDL_MYSQL);
   await execute(BEARPIT_BACKUPS_DDL_MYSQL);
+  await execute(HERO_GENERATIONS_DDL_MYSQL);
 
   await addColumnIfMissing('users', 'forum_publisher', 'forum_publisher TINYINT(1) NOT NULL DEFAULT 0');
   await addColumnIfMissing('users', 'is_banned', 'is_banned TINYINT(1) NOT NULL DEFAULT 0');
@@ -1616,6 +1629,14 @@ async function initDB() {
     pgDatabase
   });
   if (giftSeed.seeded) console.log(`Gift packs seeded: ${giftSeed.count}`);
+
+  const heroSeed = await seedHeroGenerationsIfEmpty({
+    queryOne,
+    execute,
+    rootDir: __dirname,
+    pgDatabase
+  });
+  if (heroSeed.seeded) console.log(`Hero generations seeded: ${heroSeed.count}`);
 }
 
 async function getPostById(postId) {
@@ -4123,6 +4144,16 @@ const bearpitBackupApi = mountBearpitBackupRoutes({
   queryOne,
   execute,
   requireAuth,
+  pgDatabase
+});
+
+mountHeroDataRoutes({
+  app,
+  queryRows,
+  queryOne,
+  execute,
+  requireAdmin,
+  auditAdminAction,
   pgDatabase
 });
 
