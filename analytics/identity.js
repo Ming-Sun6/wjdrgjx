@@ -14,7 +14,7 @@ function classifyRequestPath(pathname) {
   const path = String(pathname || '');
   const clean = path.split('?')[0] || '';
 
-  if (clean === '/function/admin.html') {
+  if (clean === '/function/_ops/console-7a9/internal/admin.html') {
     return {
       trackAsPageView: true,
       pageKey: 'function/admin',

@@ -1330,8 +1330,8 @@
             font-weight: 600;
         }
 
-        /* 导入/导出/确认弹窗 */
-        .import-modal, .export-modal, .confirm-modal {
+        /* 导入/导出/确认/备份弹窗 */
+        .import-modal, .export-modal, .confirm-modal, .backup-modal {
             position: fixed;
             inset: 0;
             display: none;
@@ -1341,8 +1341,8 @@
             z-index: 10003;
             padding: 16px;
         }
-        .import-modal.open, .export-modal.open, .confirm-modal.open { display: flex; }
-        .import-panel, .export-panel, .confirm-panel {
+        .import-modal.open, .export-modal.open, .confirm-modal.open, .backup-modal.open { display: flex; }
+        .import-panel, .export-panel, .confirm-panel, .backup-panel {
             width: 560px;
             max-width: 96vw;
             max-height: 88vh;
@@ -1357,15 +1357,16 @@
             flex-direction: column;
         }
         .confirm-panel { width: 520px; }
-        .import-title, .export-title, .confirm-title {
+        .backup-panel { width: 620px; }
+        .import-title, .export-title, .confirm-title, .backup-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 14px 14px 10px;
             border-bottom: 1px solid var(--border);
         }
-        .import-title h3, .export-title h3, .confirm-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
-        .import-close, .export-close, .confirm-close {
+        .import-title h3, .export-title h3, .confirm-title h3, .backup-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
+        .import-close, .export-close, .confirm-close, .backup-close {
             background: rgba(239, 68, 68, 0.2);
             color: #f87171;
             border: none;
@@ -1376,7 +1377,26 @@
             padding: 0;
             font-size: 1rem;
         }
-        .import-body, .export-body, .confirm-body { padding: 12px 14px; overflow: auto; }
+        .import-body, .export-body, .confirm-body, .backup-body { padding: 12px 14px; overflow: auto; }
+        .backup-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow: auto; }
+        .backup-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            cursor: pointer;
+            text-align: left;
+        }
+        .backup-list-item:hover { border-color: rgba(59, 130, 246, 0.55); background: rgba(59, 130, 246, 0.08); }
+        .backup-list-item.current { border-color: rgba(34, 197, 94, 0.45); }
+        .backup-list-main { flex: 1; min-width: 0; }
+        .backup-list-title { font-weight: 700; color: var(--text); margin-bottom: 4px; word-break: break-word; }
+        .backup-list-meta { font-size: 0.82rem; color: var(--muted); }
+        .backup-empty { color: var(--muted); font-size: 0.9rem; line-height: 1.6; padding: 8px 0; }
         .import-hint, .export-hint { margin: 0 0 10px; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
         .import-textarea, .export-textarea {
             width: 100%;
@@ -1447,6 +1467,7 @@
         <div id="woam-toolbar">
             <input id="woam-password" type="password" placeholder="编辑密码（用于保存/加载）">
             <button class="btn" id="woam-save" type="button">💾 保存/更新</button>
+            <button class="btn secondary" id="woam-save-scheme" type="button">📁 保存方案</button>
             <button class="btn secondary" id="woam-load" type="button">📥 加载</button>
             <button class="btn secondary" id="btnExportConfig" type="button">导出配置</button>
             <button class="btn secondary" id="btnImportConfig" type="button">导入配置</button>
@@ -1667,6 +1688,21 @@
             <div class="confirm-actions">
                 <button class="btn secondary" id="confirmClearCancel" type="button">取消</button>
                 <button class="btn danger" id="confirmClearDo" type="button">确认清空</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 账号备份选择弹窗 -->
+    <div class="backup-modal" id="backupLoadModal" aria-hidden="true">
+        <div class="backup-panel" role="dialog" aria-modal="true" aria-label="选择备份">
+            <div class="backup-title">
+                <h3>选择要加载的备份</h3>
+                <button class="backup-close" id="backupLoadClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="backup-body">
+                <p class="import-hint" style="margin-top:0;">以下为你在网站上的布局备份；每次「保存/更新」也会自动留档，最多保留 50 条。</p>
+                <div class="backup-list" id="backupLoadList"></div>
+                <div class="backup-empty" id="backupLoadEmpty" style="display:none;">暂无网站备份，请先保存到账号。</div>
             </div>
         </div>
     </div>
@@ -3511,11 +3547,14 @@
             } catch {}
         }
 
-        async function saveLayoutToServer() {
+        async function saveLayoutToServer(options = {}) {
             const data = serializeLayout();
+            const body = { data };
+            if (options.createBackup === false) body.createBackup = false;
+            if (options.backupTitle) body.backupTitle = String(options.backupTitle);
             const res = await apiFetch('/api/bearpit/layout', {
                 method: 'POST',
-                body: JSON.stringify({ data })
+                body: JSON.stringify(body)
             });
             if (!res.ok) {
                 let detail = '';
@@ -3533,10 +3572,166 @@
             }
         }
 
+        async function saveNamedBackupToServer(title) {
+            const data = serializeLayout();
+            const res = await apiFetch('/api/bearpit/backups', {
+                method: 'POST',
+                body: JSON.stringify({ title, data })
+            });
+            if (!res.ok) {
+                let detail = '';
+                try {
+                    const j = await res.json().catch(() => null);
+                    if (j && j.error) detail = String(j.error);
+                } catch {}
+                throw new Error(`BACKUP_FAILED_HTTP_${res.status}${detail ? `:${detail}` : ''}`);
+            }
+            await saveLayoutToServer({ createBackup: false });
+        }
+
         async function loadLayoutFromServer() {
             const res = await apiFetch('/api/bearpit/layout', { method: 'GET', headers: {} });
             const data = await res.json();
             return data?.data || null;
+        }
+
+        async function loadLayoutMetaFromServer() {
+            const res = await apiFetch('/api/bearpit/layout', { method: 'GET', headers: {} });
+            const data = await res.json();
+            return {
+                data: data?.data || null,
+                updatedAt: data?.updatedAt || null
+            };
+        }
+
+        async function loadBackupsFromServer() {
+            const res = await apiFetch('/api/bearpit/backups', { method: 'GET', headers: {} });
+            if (!res.ok) throw new Error('BACKUP_LIST_FAILED');
+            const data = await res.json();
+            return Array.isArray(data?.backups) ? data.backups : [];
+        }
+
+        async function loadBackupByIdFromServer(id) {
+            const res = await apiFetch('/api/bearpit/backups/' + encodeURIComponent(String(id)), { method: 'GET', headers: {} });
+            if (!res.ok) throw new Error('BACKUP_GET_FAILED');
+            const data = await res.json();
+            return data?.backup?.data || null;
+        }
+
+        function formatBackupTime(raw) {
+            if (!raw) return '';
+            const d = new Date(raw);
+            if (Number.isNaN(d.getTime())) return String(raw);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        function applyRemoteLayoutData(remote, sourceLabel) {
+            if (!remote || !Array.isArray(remote.items)) {
+                setStatus('没有可加载的数据', 'err');
+                return false;
+            }
+            CONFIG.restoring = true;
+            clearAll({ skipHistory: true, silentTip: true });
+            const colorBySize = BEAPIT_COLOR_BY_SIZE;
+            let okCount = 0;
+            remote.items.forEach(it => {
+                const r = parseInt(it.r, 10);
+                const c = parseInt(it.c, 10);
+                const s = parseInt(it.s, 10);
+                const n = it.n;
+                const img = it.i;
+                const nc = it.nc;
+                const nb = it.nb;
+                const ni = it.ni;
+                if (!Number.isFinite(r) || !Number.isFinite(c) || !Number.isFinite(s)) return;
+                const ok = placeItemAt(r, c, s, colorBySize[s] || '#409eff', n, img, nc, nb, ni, { skipHistory: true });
+                if (ok) okCount++;
+            });
+            CONFIG.historyStack = [];
+            pushHistorySnapshot();
+            CONFIG.restoring = false;
+            CONFIG.placedGlobalOffsetX = Number(remote.gox) || 0;
+            CONFIG.placedGlobalOffsetY = Number(remote.goy) || 0;
+            applyPlacedGlobalOffset();
+            updateActionButtons();
+            renderCoordsTable();
+            const label = sourceLabel ? `：${sourceLabel}` : '';
+            setStatus(`已加载${label}（${okCount} 个）`, 'ok');
+            return true;
+        }
+
+        function closeBackupLoadModal() {
+            const modal = document.getElementById('backupLoadModal');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        async function openBackupLoadModal() {
+            const modal = document.getElementById('backupLoadModal');
+            const listEl = document.getElementById('backupLoadList');
+            const emptyEl = document.getElementById('backupLoadEmpty');
+            if (!modal || !listEl || !emptyEl) return;
+            listEl.innerHTML = '<div class="backup-empty">加载备份列表中…</div>';
+            emptyEl.style.display = 'none';
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            try {
+                const [meta, backups] = await Promise.all([
+                    loadLayoutMetaFromServer(),
+                    loadBackupsFromServer()
+                ]);
+                listEl.innerHTML = '';
+                const hasCurrent = meta.data && Array.isArray(meta.data.items) && meta.data.items.length > 0;
+                if (!hasCurrent && backups.length === 0) {
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+                if (hasCurrent) {
+                    const currentBtn = document.createElement('button');
+                    currentBtn.type = 'button';
+                    currentBtn.className = 'backup-list-item current';
+                    currentBtn.innerHTML =
+                        '<div class="backup-list-main">' +
+                        '<div class="backup-list-title">当前存档</div>' +
+                        '<div class="backup-list-meta">' +
+                        (meta.updatedAt ? ('更新于 ' + formatBackupTime(meta.updatedAt)) : '最新保存到账号的版本') +
+                        ' · ' + meta.data.items.length + ' 个建筑</div></div>';
+                    currentBtn.addEventListener('click', () => {
+                        applyRemoteLayoutData(meta.data, '当前存档');
+                        closeBackupLoadModal();
+                    });
+                    listEl.appendChild(currentBtn);
+                }
+                backups.forEach((item) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'backup-list-item';
+                    btn.innerHTML =
+                        '<div class="backup-list-main">' +
+                        '<div class="backup-list-title">' + String(item.title || '未命名方案').replace(/</g, '&lt;') + '</div>' +
+                        '<div class="backup-list-meta">' +
+                        formatBackupTime(item.createdAt) + ' · ' + Number(item.itemCount || 0) + ' 个建筑</div></div>';
+                    btn.addEventListener('click', async () => {
+                        try {
+                            const remote = await loadBackupByIdFromServer(item.id);
+                            if (applyRemoteLayoutData(remote, item.title || '备份')) {
+                                closeBackupLoadModal();
+                            }
+                        } catch (e) {
+                            console.warn(e);
+                            setStatus('备份加载失败', 'err');
+                        }
+                    });
+                    listEl.appendChild(btn);
+                });
+            } catch (e) {
+                console.warn(e);
+                listEl.innerHTML = '';
+                emptyEl.textContent = '备份列表加载失败，请稍后重试。';
+                emptyEl.style.display = 'block';
+            }
         }
 
         async function downloadAsImage() {
@@ -4274,7 +4469,7 @@
                 }
                 try {
                     await saveLayoutToServer();
-                    setStatus('已保存到账号', 'ok');
+                    setStatus('已保存到账号（并自动留档）', 'ok');
                 } catch (e) {
                     console.warn(e);
                     // 账号保存失败时，兜底写入本机，避免数据丢失
@@ -4286,50 +4481,43 @@
                 }
             });
 
+            document.getElementById('woam-save-scheme')?.addEventListener('click', async () => {
+                if (!authChecked) await refreshMe();
+                if (!authUser) {
+                    openAuthModal();
+                    setStatus('请先登录后再保存方案', 'err');
+                    return;
+                }
+                const defaultName = '方案 ' + formatBackupTime(new Date());
+                const title = window.prompt('请输入方案名称（最多 120 字）', defaultName);
+                if (title == null) return;
+                const trimmed = String(title).trim();
+                if (!trimmed) {
+                    setStatus('方案名称不能为空', 'err');
+                    return;
+                }
+                try {
+                    await saveNamedBackupToServer(trimmed.slice(0, 120));
+                    setStatus('方案已保存到网站：' + trimmed.slice(0, 120), 'ok');
+                } catch (e) {
+                    console.warn(e);
+                    setStatus('方案保存失败', 'err');
+                }
+            });
+
             CONFIG.btnLoad?.addEventListener('click', async () => {
                 if (!authChecked) await refreshMe();
                 if (authUser) {
-                    try {
-                        const remote = await loadLayoutFromServer();
-                        if (!remote || !Array.isArray(remote.items)) {
-                            setStatus('账号暂无存档', 'err');
-                            return;
-                        }
-                        CONFIG.restoring = true;
-                        clearAll({ skipHistory: true, silentTip: true });
-                        const colorBySize = BEAPIT_COLOR_BY_SIZE;
-                        let okCount = 0;
-                        remote.items.forEach(it => {
-                            const r = parseInt(it.r, 10);
-                            const c = parseInt(it.c, 10);
-                            const s = parseInt(it.s, 10);
-                            const n = it.n;
-                            const img = it.i;
-                            const nc = it.nc;
-                            const nb = it.nb;
-                            const ni = it.ni;
-                            if (!Number.isFinite(r) || !Number.isFinite(c) || !Number.isFinite(s)) return;
-                            const ok = placeItemAt(r, c, s, colorBySize[s] || '#409eff', n, img, nc, nb, ni, { skipHistory: true });
-                            if (ok) okCount++;
-                        });
-                        CONFIG.historyStack = [];
-                        pushHistorySnapshot();
-                        CONFIG.restoring = false;
-                        CONFIG.placedGlobalOffsetX = Number(remote.gox) || 0;
-                        CONFIG.placedGlobalOffsetY = Number(remote.goy) || 0;
-                        applyPlacedGlobalOffset();
-                        updateActionButtons();
-                        renderCoordsTable();
-                        setStatus(`已从账号加载：${okCount} 个`, 'ok');
-                    } catch (e) {
-                        console.warn(e);
-                        CONFIG.restoring = false;
-                        setStatus('账号加载失败', 'err');
-                    }
+                    await openBackupLoadModal();
                 } else {
                     // 未登录仍保留本地加载
                     loadLayout();
                 }
+            });
+
+            document.getElementById('backupLoadClose')?.addEventListener('click', closeBackupLoadModal);
+            document.getElementById('backupLoadModal')?.addEventListener('click', (e) => {
+                if (e.target && e.target.id === 'backupLoadModal') closeBackupLoadModal();
             });
 
             // 进入页面先检查登录状态

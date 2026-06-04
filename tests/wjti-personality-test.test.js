@@ -17,6 +17,8 @@ test('wjti personality test page is integrated into toolbox', () => {
   assert.match(html, /function scoreAnswers/);
   assert.match(html, /name: "黑奴"/);
   assert.doesNotMatch(html, /data-theme-toggle/);
+  assert.doesNotMatch(html, /data-appreciation-link/);
+  assert.doesNotMatch(html, /赞赏/);
 });
 
 test('homepage lists the wjti personality test entry', () => {

@@ -762,7 +762,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.10</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.16</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -780,6 +780,7 @@
         <button class="side-item" type="button" data-page="blackroom" data-admin-only="1">小黑屋</button>
         <button class="side-item" type="button" data-page="users" data-admin-only="1">网站用户</button>
         <button class="side-item" type="button" data-page="calendar" data-admin-only="1">活动日历</button>
+        <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
         <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
         <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
         <button class="side-item" type="button" data-page="voices" data-admin-only="1">用户发声</button>
@@ -1311,6 +1312,33 @@
           </div>
         </section>
 
+        <section class="card page" id="page-gift-packs" data-page="gift-packs">
+          <div class="page-title">礼包管理</div>
+          <div class="calendar-admin gift-pack-admin-shell">
+            <div class="form-section">
+              <div class="form-title">常规 / 特惠礼包</div>
+              <div class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
+                在此维护前台「常规礼包」「特惠礼包」页的数据。支持拖拽左侧列表排序、表格内复制价格档位；保存后前台与首页道具搜索立即生效，无需改代码或重新发布静态文件。
+              </div>
+              <div class="type-buttons">
+                <button class="type-btn active" type="button" data-gift-category="regular">常规礼包</button>
+                <button class="type-btn" type="button" data-gift-category="special">特惠礼包</button>
+              </div>
+              <div class="gift-pack-toolbar">
+                <button class="btn" type="button" id="giftPackCreateBtn">新增礼包</button>
+                <button class="btn secondary" type="button" id="giftPackReloadBtn">刷新</button>
+              </div>
+              <div class="admin-status" id="giftPackStatus"></div>
+              <div class="gift-pack-admin">
+                <div class="gift-pack-list" id="giftPackList"></div>
+                <div class="gift-pack-editor" id="giftPackEditor">
+                  <div class="gift-pack-editor-empty">从左侧选择礼包，或新建一个礼包。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section class="card page" id="page-announcement" data-page="announcement">
           <div class="page-title">发布公告</div>
           <div class="calendar-admin">
@@ -1415,6 +1443,17 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.16（2026-06-04）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>后台入口</strong>：正式管理端统一为 <code>function/_ops/console-7a9/internal/admin.html</code>；删除误放的 <code>public/function/admin.html</code>，首页「后台管理」链接同步指向内部地址。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>熊坑排布</strong>：账号存档每次保存自动写入方案备份（最多保留 50 条）；新增「保存方案」与加载弹窗，可从网站备份列表恢复历史布局。表 <code>bearpit_layout_backups</code>；接口 <code>GET/POST /api/bearpit/backups</code>、<code>GET/DELETE /api/bearpit/backups/:id</code>；<code>GET /api/bearpit/layout</code> 响应补充 <code>updatedAt</code>。</div>
+          </div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.15（2026-06-04）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>礼包管理</strong>：新增后台菜单「礼包管理」，支持常规/特惠礼包的增删改、拖拽排序、表格编辑与复制价格档位；数据存 <code>gift_packs</code> 表。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>接口</strong>：公开 <code>GET /api/gift-packs</code>、<code>GET /api/gift-packs/search-blobs</code>；管理端 <code>GET/POST /api/admin/gift-packs</code>、<code>POST /api/admin/gift-packs/:id</code>、<code>DELETE /api/admin/gift-packs/:id</code>、<code>POST /api/admin/gift-packs/reorder</code>。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>前台</strong>：常规/特惠礼包页改由 API 拉取；首页道具搜索改读 search-blobs 接口。首次启动若表为空，自动从 <code>data/gift-packs-seed.json</code> 导入。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.10（2026-05-12）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>熊坑排布</strong>（<code>public/function/BeaPit.html</code>）：纯前端展示增强——顶栏滑块调节已摆放贴图全局不透明度（<code>localStorage</code> 键 <code>beapit_placed_sprite_opacity</code>），与既有炉子类 0.8 系数相乘；王城四角 <code>.placed-wc-corner</code> 同步；导出 PNG 时 <code>ctx.globalAlpha</code> 与画布一致。</div>
@@ -3833,6 +3872,7 @@
         if(typeof window.loadUsers==='function') window.loadUsers();
       }
       else if(currentPage==='calendar'){ initCalendarAdmin(); loadCalendarSchedules().then(renderCalendarView); }
+      else if(currentPage==='gift-packs'){ if(typeof window.loadGiftPacksAdmin==='function') window.loadGiftPacksAdmin(); }
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='voices') loadUserVoices();
@@ -4094,6 +4134,7 @@
   <script src="./admin-dashboard.js?v=0.8.9"></script>
   <script src="./admin-governance.js"></script>
   <script src="./admin-users-page.js?v=9"></script>
+  <script src="/function/admin-gift-packs-page.js?v=1"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){

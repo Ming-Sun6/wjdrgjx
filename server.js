@@ -43,6 +43,10 @@ const {
   seedGiftPacksIfEmpty,
   GIFT_PACKS_DDL_MYSQL
 } = require('./gift-packs');
+const {
+  mountBearpitBackupRoutes,
+  BEARPIT_BACKUPS_DDL_MYSQL
+} = require('./bearpit-backups');
 
 const app = express();
 const PORT = 3000;
@@ -1572,6 +1576,7 @@ async function initDB() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
   await execute(GIFT_PACKS_DDL_MYSQL);
+  await execute(BEARPIT_BACKUPS_DDL_MYSQL);
 
   await addColumnIfMissing('users', 'forum_publisher', 'forum_publisher TINYINT(1) NOT NULL DEFAULT 0');
   await addColumnIfMissing('users', 'is_banned', 'is_banned TINYINT(1) NOT NULL DEFAULT 0');
@@ -4112,14 +4117,23 @@ mountGiftPackRoutes({
   pgDatabase
 });
 
+const bearpitBackupApi = mountBearpitBackupRoutes({
+  app,
+  queryRows,
+  queryOne,
+  execute,
+  requireAuth,
+  pgDatabase
+});
+
 app.get('/api/bearpit/layout', async (req, res) => {
   try {
     const user = await requireAuth(req, res);
     if (!user) return;
-    const row = await queryOne('SELECT data_json FROM bearpit_layouts WHERE user_id = ? LIMIT 1', [user.id]);
-    if (!row) return res.json({ data: null });
+    const row = await queryOne('SELECT data_json, updated_at FROM bearpit_layouts WHERE user_id = ? LIMIT 1', [user.id]);
+    if (!row) return res.json({ data: null, updatedAt: null });
     const data = row.data_json && typeof row.data_json === 'object' ? row.data_json : safeJsonParse(String(row.data_json || 'null'), null);
-    return res.json({ data: data || null });
+    return res.json({ data: data || null, updatedAt: row.updated_at || null });
   } catch (err) {
     console.error('bearpit get failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -4154,6 +4168,13 @@ app.post('/api/bearpit/layout', async (req, res) => {
         [Number(user.id), JSON.stringify(data)]
       );
     }
+    if (req.body?.createBackup !== false) {
+      const backupTitle =
+        typeof req.body?.backupTitle === 'string' && req.body.backupTitle.trim()
+          ? req.body.backupTitle.trim()
+          : bearpitBackupApi.defaultBackupTitle();
+      await bearpitBackupApi.insertBackup(user.id, backupTitle, data);
+    }
     return res.json({ ok: true });
   } catch (err) {
     console.error('bearpit post failed:', err);
@@ -4186,6 +4207,13 @@ app.put('/api/bearpit/layout', async (req, res) => {
         `,
         [Number(user.id), JSON.stringify(data)]
       );
+    }
+    if (req.body?.createBackup !== false) {
+      const backupTitle =
+        typeof req.body?.backupTitle === 'string' && req.body.backupTitle.trim()
+          ? req.body.backupTitle.trim()
+          : bearpitBackupApi.defaultBackupTitle();
+      await bearpitBackupApi.insertBackup(user.id, backupTitle, data);
     }
     return res.json({ ok: true });
   } catch (err) {

@@ -71,7 +71,10 @@ test('regular and special gift pages load data from shared API script', () => {
 });
 
 test('admin page includes gift pack management menu and script', () => {
-  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'admin.html'), 'utf8');
+  const html = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'),
+    'utf8'
+  );
   assert.match(html, /data-page="gift-packs"/);
   assert.match(html, /admin-gift-packs-page\.js/);
   assert.match(html, /id="giftPackEditor"/);

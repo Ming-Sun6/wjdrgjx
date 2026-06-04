@@ -291,43 +291,6 @@
       cursor: pointer;
     }
 
-    .appreciation-overlay {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: calc(20px * var(--ui-scale));
-      background: var(--overlay-strong-bg);
-      backdrop-filter: blur(10px);
-      z-index: 1100;
-    }
-
-    .appreciation-overlay[hidden] {
-      display: none;
-    }
-
-    .appreciation-modal {
-      width: min(calc(420px * var(--ui-scale)), 100%);
-      padding: calc(18px * var(--ui-scale));
-      border-radius: var(--radius-xl);
-      border: 1px solid rgba(255, 190, 98, 0.24);
-      background: var(--modal-bg);
-      box-shadow: var(--shadow);
-    }
-
-    .appreciation-image {
-      display: block;
-      width: 100%;
-      border-radius: calc(16px * var(--ui-scale));
-    }
-
-    .appreciation-actions {
-      margin-top: calc(14px * var(--ui-scale));
-      display: flex;
-      justify-content: flex-end;
-    }
-
     .announcement-tag {
       display: inline-flex;
       align-items: center;
@@ -916,23 +879,8 @@
 欢迎大家关注我们~
 
 ps：2041招移民~</p>
-      <div class="announcement-link-row">
-        <button
-          class="announcement-link"
-          type="button"
-          data-appreciation-link
-        >👛点击此处赞赏作者们~</button>
-      </div>
       <div class="announcement-action">
         <button class="button" type="button" data-announcement-close>我知道啦</button>
-      </div>
-    </section>
-  </div>
-  <div class="appreciation-overlay" data-appreciation-modal hidden>
-    <section class="appreciation-modal">
-      <img class="appreciation-image" src="./wjti-test-resources/20260410151830_276_366.jpg" alt="赞赏码">
-      <div class="appreciation-actions">
-        <button class="button" type="button" data-appreciation-close>收起赞赏码</button>
       </div>
     </section>
   </div>
@@ -1441,9 +1389,6 @@ html[data-theme="day"] footer.wjdr-footer,body.theme-day footer.wjdr-footer{colo
     const announcementTriggerButton = document.querySelector("[data-announcement-trigger]");
     const announcementModalNode = document.querySelector("[data-announcement-modal]");
     const announcementCloseButton = document.querySelector("[data-announcement-close]");
-    const appreciationLinkButton = document.querySelector("[data-appreciation-link]");
-    const appreciationModalNode = document.querySelector("[data-appreciation-modal]");
-    const appreciationCloseButton = document.querySelector("[data-appreciation-close]");
     const homeArtworkTriggerButton = document.querySelector("[data-home-artwork-trigger]");
     const homeArtworkModalNode = document.querySelector("[data-home-artwork-modal]");
     const homeArtworkCloseButton = document.querySelector("[data-home-artwork-close]");
@@ -1654,14 +1599,6 @@ html[data-theme="day"] footer.wjdr-footer,body.theme-day footer.wjdr-footer{colo
 
     announcementTriggerButton.addEventListener("click", () => {
       announcementModalNode.hidden = false;
-    });
-
-    appreciationLinkButton.addEventListener("click", () => {
-      appreciationModalNode.hidden = false;
-    });
-
-    appreciationCloseButton.addEventListener("click", () => {
-      appreciationModalNode.hidden = true;
     });
 
     if (homeArtworkTriggerButton && homeArtworkModalNode) {

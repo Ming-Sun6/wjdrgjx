@@ -25,7 +25,7 @@ test('admin user update API accepts POST alongside PATCH', () => {
 
 test('profile and admin moderation flows submit updates with POST for CDN compatibility', () => {
   const indexSource = read('index.html');
-  const adminSource = read(path.join('public', 'function', 'admin.html'));
+  const adminSource = read(path.join('public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'));
   const serverSource = read('server.js');
 
   assert.match(indexSource, /apiFetch\('\/api\/profile',\{method:'POST',body:JSON\.stringify\(\{/);
