@@ -3343,7 +3343,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.14</div>
+  <div class="version-tag">版本 V0.9.18</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -3706,7 +3706,6 @@
           <div id="meSummary">正在获取账号信息…</div>
           <div class="actions" id="meActions" style="margin-top:12px;">
             <button class="btn secondary" id="profileBtn" type="button">个人资料</button>
-            <a class="btn secondary" id="adminBtn" href="function/_ops/console-7a9/internal/admin.html">后台管理</a>
           </div>
         </div>
       </section>
@@ -3892,6 +3891,15 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.18（2026-06-04）</h4>
+        <ol>
+          <li><strong>英雄数据</strong>：目录与各代详情改由接口加载；后台可<strong>新增第 16 代及以后</strong>代数，无需再新建静态页面（链接形如 <code>generation-heroes.html?slug=…</code>）。</li>
+          <li><strong>礼包参考</strong>：常规/特惠礼包数据改由接口维护，后台保存后前台与首页道具搜索即时生效。</li>
+          <li><strong>熊坑排布</strong>：登录后保存会自动留档；新增「保存方案」与加载时备份列表，可从网站历史方案恢复布局。</li>
+          <li><strong>无尽冬日人格测试</strong>：接入工具箱主题与返回入口；移除赞赏相关展示。</li>
+          <li><strong>我的</strong>：移除首页「后台管理」入口（管理员请使用已收藏的内部后台地址）。</li>
+        </ol>
+
         <h4>V0.9.14（2026-05-25）</h4>
         <ol>
           <li><strong>首页搜索</strong>：修复论坛帖子搜不到的问题；修复有搜索词时工具卡片筛选失效。</li>
@@ -8275,12 +8283,6 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       if(userHomeModal && userHomeModal.classList.contains('open')){ closeUserHome(); return; }
       var profileModal=document.getElementById('profileModal');
       if(profileModal && profileModal.classList.contains('open')) closeProfileModal();
-    });
-    document.getElementById('adminBtn')&&document.getElementById('adminBtn').addEventListener('click',function(e){
-      if(!(authUser && authUser.isAdmin)){
-        e.preventDefault();
-        showDevToast();
-      }
     });
     document.querySelectorAll('.forum-tab').forEach(function(btn){
       btn.addEventListener('click',function(){

@@ -762,7 +762,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.17</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.18</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1344,9 +1344,9 @@
           <div class="page-title">英雄数据</div>
           <div class="calendar-admin hero-data-admin-shell">
             <div class="form-section">
-              <div class="form-title">1–15 代英雄</div>
+              <div class="form-title">各代英雄</div>
               <div class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
-                在此维护英雄数据目录与各代英雄详情。保存后前台「英雄数据」目录页与各代页面立即生效，无需改代码或重新发布静态文件。
+                在此维护英雄数据目录与各代英雄详情。可<strong>新增代数</strong>（slug 如 <code>sixteenth-generation</code>），前台自动使用 <code>generation-heroes.html?slug=…</code>，无需新建静态页。保存后目录与各代页面立即生效。
               </div>
               <div class="hero-toolbar">
                 <button class="btn secondary" type="button" id="heroDataReloadBtn">刷新</button>
@@ -1467,6 +1467,12 @@
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.18（2026-06-04）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>英雄数据</strong>：后台支持<strong>新增 / 删除代数</strong>；目录链接统一为 <code>generation-heroes.html?slug=…</code>，第 16 代及以后无需再上传新的 <code>*-heroes.html</code> 静态页。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>接口</strong>：管理端新增 <code>POST /api/admin/hero-generations</code>、<code>DELETE /api/admin/hero-generations/:id</code>。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>首页</strong>：「我的」分栏已移除「后台管理」入口。</div>
+          </div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.17（2026-06-04）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>英雄数据</strong>：新增后台菜单「英雄数据」，支持 1–15 代目录与各代英雄（属性、技能、获取方式等）可视化编辑与拖拽排序；数据存 <code>hero_generations</code> 表。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>接口</strong>：公开 <code>GET /api/hero-generations</code>、<code>GET /api/hero-generations/:slug</code>；管理端 <code>GET /api/admin/hero-generations</code>、<code>POST /api/admin/hero-generations/:id</code>、<code>POST /api/admin/hero-generations/reorder</code>。</div>
@@ -1474,7 +1480,7 @@
           </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.16（2026-06-04）</div>
-            <div style="color:var(--muted);line-height:1.6;"><strong>后台入口</strong>：正式管理端统一为 <code>function/_ops/console-7a9/internal/admin.html</code>；删除误放的 <code>public/function/admin.html</code>，首页「后台管理」链接同步指向内部地址。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>后台入口</strong>：正式管理端统一为 <code>function/_ops/console-7a9/internal/admin.html</code>；删除误放的 <code>public/function/admin.html</code>。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>熊坑排布</strong>：账号存档每次保存自动写入方案备份（最多保留 50 条）；新增「保存方案」与加载弹窗，可从网站备份列表恢复历史布局。表 <code>bearpit_layout_backups</code>；接口 <code>GET/POST /api/bearpit/backups</code>、<code>GET/DELETE /api/bearpit/backups/:id</code>；<code>GET /api/bearpit/layout</code> 响应补充 <code>updatedAt</code>。</div>
           </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
@@ -4165,7 +4171,7 @@
   <script src="./admin-governance.js"></script>
   <script src="./admin-users-page.js?v=9"></script>
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
-  <script src="/function/admin-heroes-page.js?v=1"></script>
+  <script src="/function/admin-heroes-page.js?v=2"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){

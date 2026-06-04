@@ -40,7 +40,8 @@ function hdMapErr(error) {
   if (error === 'BAD_EXPEDITION_STATS') return '远征属性不能为空。';
   if (error === 'BAD_SKILL_NAME') return '技能名称不能为空。';
   if (error === 'BAD_SKILL_LINES') return '技能描述不能为空。';
-  if (error === 'NOT_FOUND') return '代数不存在，可能已被删除。';
+  if (error === 'SLUG_TAKEN') return '该 slug 已被占用，请换一个（仅小写字母、数字与连字符）。';
+  if (error === 'BAD_SLUG') return 'slug 无效：请使用小写字母、数字与连字符，如 sixteenth-generation。';
   return error || '未知错误';
 }
 
@@ -121,6 +122,25 @@ function hdNormalizeSkillList(list, textFallback) {
     } catch (_e) {}
   }
   return [{ name: '技能1', lines: ['描述'] }];
+}
+
+function hdDefaultGeneration(st) {
+  var maxNum = 0;
+  (st.generations || []).forEach(function (g) {
+    if (Number(g.generationNum) > maxNum) maxNum = Number(g.generationNum);
+  });
+  return {
+    id: null,
+    slug: '',
+    generationNum: maxNum + 1,
+    pageTitle: '新一代英雄数据',
+    hubTitle: '新一代英雄',
+    hubDesc: '查看新一代英雄完整数据。',
+    hubTag: '已上线',
+    enabled: true,
+    sortOrder: (st.generations || []).length,
+    heroes: [hdDefaultHero()]
+  };
 }
 
 function hdInstallStyles(root) {
@@ -281,11 +301,27 @@ function hdRenderEditor(root) {
 
   mount.innerHTML =
     '<div class="hero-toolbar">' +
-    '<button type="button" class="btn" id="heroGenSaveBtn">保存本代</button>' +
+    '<button type="button" class="btn" id="heroGenSaveBtn">' +
+    (st.draft.id ? '保存本代' : '创建代数') +
+    '</button>' +
+    '<button type="button" class="btn secondary" id="heroGenCreateGenBtn">新增代数</button>' +
+    '<button type="button" class="btn secondary" id="heroGenDeleteGenBtn"' +
+    (st.draft.id ? '' : ' style="display:none;"') +
+    '>删除本代</button>' +
     '<button type="button" class="btn secondary" id="heroGenAddHeroBtn">新增英雄</button>' +
     '<button type="button" class="btn secondary" id="heroGenRemoveHeroBtn">删除当前英雄</button>' +
     '</div>' +
     '<div class="hero-editor-grid">' +
+    (st.draft.id
+      ? '<div><label>slug（只读）</label><input id="heroFieldSlug" readonly value="' +
+        hdEsc(st.draft.slug) +
+        '" /></div>'
+      : '<div class="full"><label>slug（英文标识，创建后不可改）</label><input id="heroFieldSlug" placeholder="如 sixteenth-generation" value="' +
+        hdEsc(st.draft.slug) +
+        '" /></div>') +
+    '<div><label>代数序号</label><input id="heroFieldGenNum" type="number" min="1" max="99" value="' +
+    hdEsc(st.draft.generationNum) +
+    '" /></div>' +
     '<div><label>页面标题</label><input id="heroFieldPageTitle" value="' +
     hdEsc(st.draft.pageTitle) +
     '" /></div>' +
@@ -334,6 +370,18 @@ function hdRenderEditor(root) {
     hdCollectEditor(root);
     hdSaveCurrent(root);
   });
+  var createGenBtn = mount.querySelector('#heroGenCreateGenBtn');
+  if (createGenBtn) {
+    createGenBtn.addEventListener('click', function () {
+      hdStartCreateGeneration(root);
+    });
+  }
+  var deleteGenBtn = mount.querySelector('#heroGenDeleteGenBtn');
+  if (deleteGenBtn) {
+    deleteGenBtn.addEventListener('click', function () {
+      hdDeleteGeneration(root);
+    });
+  }
   mount.querySelector('#heroGenAddHeroBtn').addEventListener('click', function () {
     hdCollectEditor(root);
     st.draft.heroes.push(hdDefaultHero());
@@ -402,6 +450,10 @@ function hdCollectEditor(root) {
   st.draft.hubDesc = mount.querySelector('#heroFieldHubDesc').value;
   st.draft.hubTag = mount.querySelector('#heroFieldHubTag').value;
   st.draft.enabled = !!mount.querySelector('#heroFieldEnabled').checked;
+  var slugInput = mount.querySelector('#heroFieldSlug');
+  if (slugInput) st.draft.slug = slugInput.value;
+  var genNumInput = mount.querySelector('#heroFieldGenNum');
+  if (genNumInput) st.draft.generationNum = Number(genNumInput.value);
 
   var hero = st.draft.heroes[st.selectedHeroIndex];
   if (!hero) return;
@@ -473,15 +525,45 @@ function hdSelectGeneration(root, id) {
   hdRenderEditor(root);
 }
 
+function hdStartCreateGeneration(root) {
+  var st = hdState(root);
+  if (st.dirty && !root.confirm('当前有未保存修改，确定新建代数吗？')) return;
+  st.selectedId = null;
+  st.selectedHeroIndex = 0;
+  st.draft = hdDefaultGeneration(st);
+  st.dirty = true;
+  hdRenderList(root);
+  hdRenderEditor(root);
+  hdStatus('正在创建新代数：填写 slug 与目录信息后点击「创建代数」。前台链接为 generation-heroes.html?slug=…');
+}
+
 async function hdSaveCurrent(root) {
   var st = hdState(root);
-  if (!st.draft || !st.draft.id) return;
+  if (!st.draft) return;
   var payload = hdNormalizeDraft(st.draft);
-  hdStatus('保存中…');
+  var isNew = !st.draft.id;
+  if (isNew) {
+    payload.slug = String(st.draft.slug || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    if (!payload.slug || !/^[a-z0-9-]+$/.test(payload.slug)) {
+      hdStatus('slug 无效：请使用小写字母、数字与连字符。');
+      return;
+    }
+    payload.generationNum = Number(st.draft.generationNum) || undefined;
+  }
+  hdStatus(isNew ? '创建中…' : '保存中…');
   try {
-    var r = await apiFetch('/api/admin/hero-generations/' + encodeURIComponent(st.draft.id), {
+    var url = isNew
+      ? '/api/admin/hero-generations'
+      : '/api/admin/hero-generations/' + encodeURIComponent(st.draft.id);
+    var r = await apiFetch(url, {
       method: 'POST',
       body: JSON.stringify({
+        slug: payload.slug,
+        generationNum: payload.generationNum,
         pageTitle: payload.pageTitle,
         hubTitle: payload.hubTitle,
         hubDesc: payload.hubDesc,
@@ -495,19 +577,52 @@ async function hdSaveCurrent(root) {
       return {};
     });
     if (!r.ok) {
-      hdStatus('保存失败：' + hdMapErr((d && d.error) || r.status));
+      hdStatus((isNew ? '创建' : '保存') + '失败：' + hdMapErr((d && d.error) || r.status));
       return;
     }
     st.dirty = false;
-    hdStatus('已保存「' + payload.hubTitle + '」。');
-    var savedId = st.draft.id;
+    hdStatus(isNew ? '新代数已创建。' : '已保存「' + payload.hubTitle + '」。');
+    var savedId = isNew ? Number(d.id || 0) : st.draft.id;
     await hdLoad(root);
     if (savedId) {
       st.dirty = false;
       hdSelectGeneration(root, savedId);
     }
   } catch (err) {
-    hdStatus('保存失败：' + ((err && err.message) || '网络错误'));
+    hdStatus((isNew ? '创建' : '保存') + '失败：' + ((err && err.message) || '网络错误'));
+  }
+}
+
+async function hdDeleteGeneration(root) {
+  var st = hdState(root);
+  if (!st.draft || !st.draft.id) return;
+  if (
+    !root.confirm(
+      '确认删除代数「' +
+        (st.draft.hubTitle || st.draft.slug) +
+        '」？前台目录与详情将一并移除，此操作不可恢复。'
+    )
+  ) {
+    return;
+  }
+  try {
+    var r = await apiFetch('/api/admin/hero-generations/' + encodeURIComponent(st.draft.id), {
+      method: 'DELETE'
+    });
+    var d = await r.json().catch(function () {
+      return {};
+    });
+    if (!r.ok) {
+      hdStatus('删除失败：' + hdMapErr((d && d.error) || r.status));
+      return;
+    }
+    st.selectedId = null;
+    st.draft = null;
+    st.dirty = false;
+    hdStatus('代数已删除。');
+    await hdLoad(root);
+  } catch (err) {
+    hdStatus('删除失败：' + ((err && err.message) || '网络错误'));
   }
 }
 

@@ -350,6 +350,96 @@ function mountHeroDataRoutes(deps) {
     }
   });
 
+  app.post('/api/admin/hero-generations', async (req, res) => {
+    try {
+      const admin = await requireAdmin(req, res);
+      if (!admin) return;
+      const valid = validateHeroGenerationPayload(req.body || {}, {
+        requireSlug: true,
+        requireGenerationNum: false
+      });
+      if (valid.error) return res.status(400).json({ error: valid.error });
+      const gen = valid.value;
+      const dup = await queryOne('SELECT id FROM hero_generations WHERE slug = ? LIMIT 1', [gen.slug]);
+      if (dup) return res.status(400).json({ error: 'SLUG_TAKEN' });
+
+      let generationNum = gen.generationNum;
+      if (!Number.isFinite(generationNum) || generationNum < 1) {
+        const maxRow = await queryOne(
+          'SELECT COALESCE(MAX(generation_num), 0) AS m FROM hero_generations',
+          []
+        );
+        generationNum = Number(maxRow?.m || 0) + 1;
+      }
+
+      let sortOrder = gen.sortOrder;
+      if (!Number.isFinite(sortOrder)) {
+        const sortRow = await queryOne(
+          'SELECT COALESCE(MAX(sort_order), -1) AS m FROM hero_generations',
+          []
+        );
+        sortOrder = Number(sortRow?.m ?? -1) + 1;
+      }
+
+      const json = JSON.stringify(gen.heroes);
+      if (pgDatabase) {
+        await execute(
+          `
+          INSERT INTO hero_generations
+            (slug,generation_num,page_title,hub_title,hub_desc,hub_tag,heroes_json,sort_order,enabled,updated_at)
+          VALUES (?,?,?,?,?,?::jsonb,?,?,?,CURRENT_TIMESTAMP(3))
+          `,
+          [
+            gen.slug,
+            generationNum,
+            gen.pageTitle,
+            gen.hubTitle,
+            gen.hubDesc,
+            gen.hubTag,
+            json,
+            sortOrder,
+            gen.enabled
+          ]
+        );
+      } else {
+        await execute(
+          `
+          INSERT INTO hero_generations
+            (slug,generation_num,page_title,hub_title,hub_desc,hub_tag,heroes_json,sort_order,enabled,updated_at)
+          VALUES (?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP(3))
+          `,
+          [
+            gen.slug,
+            generationNum,
+            gen.pageTitle,
+            gen.hubTitle,
+            gen.hubDesc,
+            gen.hubTag,
+            json,
+            sortOrder,
+            gen.enabled
+          ]
+        );
+      }
+      const created = await queryOne(
+        'SELECT id FROM hero_generations WHERE slug = ? LIMIT 1',
+        [gen.slug]
+      );
+      const newId = Number(created?.id || 0);
+      await auditAdminAction(req, {
+        action: 'hero_generation_create',
+        targetType: 'hero_generation',
+        targetId: String(newId || gen.slug),
+        riskLevel: 'watch',
+        summary: `新增英雄代数 ${gen.slug}（第 ${generationNum} 代，${gen.heroes.length} 名英雄）`
+      });
+      return res.json({ ok: true, id: newId });
+    } catch (err) {
+      console.error('admin hero-generations create failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
   app.post('/api/admin/hero-generations/reorder', async (req, res) => {
     try {
       const admin = await requireAdmin(req, res);
@@ -437,6 +527,29 @@ function mountHeroDataRoutes(deps) {
       return res.json({ ok: true, id });
     } catch (err) {
       console.error('admin hero-generations update failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
+  app.delete('/api/admin/hero-generations/:id', async (req, res) => {
+    try {
+      const admin = await requireAdmin(req, res);
+      if (!admin) return;
+      const id = Number(req.params.id);
+      if (!Number.isFinite(id) || id <= 0) return res.status(400).json({ error: 'BAD_ID' });
+      const existing = await queryOne('SELECT id, slug FROM hero_generations WHERE id = ? LIMIT 1', [id]);
+      if (!existing) return res.status(404).json({ error: 'NOT_FOUND' });
+      await execute('DELETE FROM hero_generations WHERE id = ?', [id]);
+      await auditAdminAction(req, {
+        action: 'hero_generation_delete',
+        targetType: 'hero_generation',
+        targetId: String(id),
+        riskLevel: 'danger',
+        summary: `删除英雄代数 ${existing.slug}`
+      });
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error('admin hero-generations delete failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
     }
   });

@@ -42,7 +42,7 @@
 
     grid.innerHTML = generations
       .map((gen) => {
-        const href = gen.slug + '-heroes.html';
+        const href = 'generation-heroes.html?slug=' + encodeURIComponent(gen.slug);
         return (
           '<a class="card" href="' +
           escHtml(href) +

@@ -59,6 +59,21 @@ test('hero hub page loads from API script', () => {
   assert.doesNotMatch(html, /href="first-generation-heroes.html"/);
 });
 
+test('generic generation page reads slug from query string', () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', 'Zero', 'generation-heroes.html'),
+    'utf8'
+  );
+  assert.match(html, /initHeroGenerationPage\(\)/);
+  assert.match(html, /hero-generation-page\.js/);
+});
+
+test('server supports creating and deleting hero generations', () => {
+  const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'hero-data.js'), 'utf8');
+  assert.match(moduleSource, /app\.post\('\/api\/admin\/hero-generations',/);
+  assert.match(moduleSource, /app\.delete\('\/api\/admin\/hero-generations\/:id'/);
+});
+
 test('admin page includes hero data management menu and script', () => {
   const html = fs.readFileSync(
     path.join(__dirname, '..', 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'),

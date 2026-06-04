@@ -162,8 +162,16 @@
     bindSkillTabs(root, heroListEl);
   }
 
+  function resolveSlug(options) {
+    const fromOpts = options && options.slug;
+    if (fromOpts) return String(fromOpts).trim().toLowerCase();
+    if (typeof global.location === 'undefined') return '';
+    const params = new URLSearchParams(global.location.search || '');
+    return (params.get('slug') || '').trim().toLowerCase();
+  }
+
   global.initHeroGenerationPage = async function initHeroGenerationPage(options) {
-    const slug = String((options && options.slug) || '').trim().toLowerCase();
+    const slug = resolveSlug(options);
     const heroListEl = document.getElementById('heroList');
     if (!slug || !heroListEl) return;
     heroListEl.innerHTML = '<p class="small" style="margin:0;">加载中…</p>';
