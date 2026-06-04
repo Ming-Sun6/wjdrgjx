@@ -762,7 +762,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.18</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.19</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1342,22 +1342,25 @@
 
         <section class="card page" id="page-heroes" data-page="heroes">
           <div class="page-title">英雄数据</div>
-          <div class="calendar-admin hero-data-admin-shell">
-            <div class="form-section">
-              <div class="form-title">各代英雄</div>
-              <div class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
-                在此维护英雄数据目录与各代英雄详情。可<strong>新增代数</strong>（slug 如 <code>sixteenth-generation</code>），前台自动使用 <code>generation-heroes.html?slug=…</code>，无需新建静态页。保存后目录与各代页面立即生效。
-              </div>
-              <div class="hero-toolbar">
-                <button class="btn secondary" type="button" id="heroDataReloadBtn">刷新</button>
-              </div>
-              <div class="admin-status" id="heroDataStatus"></div>
-              <div class="hero-data-admin">
-                <div class="hero-gen-list" id="heroGenList"></div>
-                <div class="gift-pack-editor" id="heroGenEditor">
-                  <div class="gift-pack-editor-empty">从左侧选择英雄代数进行编辑。</div>
+          <p class="hero-data-page-tip">
+            维护目录与各代英雄详情。新增代数后前台自动使用
+            <code>generation-heroes.html?slug=…</code>，无需再建静态页。
+          </p>
+          <div class="admin-status" id="heroDataStatus"></div>
+          <div class="hero-data-admin">
+            <aside class="hero-gen-panel">
+              <div class="hero-gen-list-head">
+                <span class="hero-gen-list-meta" id="heroGenListMeta">共 0 个代数</span>
+                <div class="hero-gen-list-actions">
+                  <button class="btn secondary btn-sm" type="button" id="heroDataReloadBtn" title="重新拉取数据">刷新</button>
+                  <button class="btn btn-sm" type="button" id="heroGenCreateGenBtn">新增代数</button>
                 </div>
               </div>
+              <div class="hero-gen-list" id="heroGenList"></div>
+              <p class="hero-gen-list-hint">拖拽 ⋮⋮ 可调整目录顺序</p>
+            </aside>
+            <div class="hero-gen-editor" id="heroGenEditor">
+              <div class="hero-gen-editor-empty">从左侧选择一代英雄，或点击「新增代数」开始编辑。</div>
             </div>
           </div>
         </section>
@@ -1467,8 +1470,13 @@
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.19（2026-06-04）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>英雄数据</strong>：编辑页布局与交互优化——分区卡片、技能分 Tab 切换、粘性操作栏与「预览前台」链接；左侧代数列表显示代数徽章与拖拽把手；「新增代数」与「刷新」并入列表标题栏。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>首页</strong>：同步 V0.9.19，「基础工具」新增「甜甜的攻略站」（<code>function/tiantian-strategy-hub.html</code>，内嵌金山文档 1.0 / 2.0 / 3.0）；无新增管理端菜单、权限点或接口。</div>
+          </div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.18（2026-06-04）</div>
-            <div style="color:var(--muted);line-height:1.6;"><strong>英雄数据</strong>：后台支持<strong>新增 / 删除代数</strong>；目录链接统一为 <code>generation-heroes.html?slug=…</code>，第 16 代及以后无需再上传新的 <code>*-heroes.html</code> 静态页。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>英雄数据</strong>：后台支持<strong>新增 / 删除代数</strong>；目录链接统一为 <code>generation-heroes.html?slug=…</code>，第 16 代及以后无需再上传新的 <code>*-heroes.html</code> 静态页；英雄头像支持<strong>上传图片</strong>（复用公告插图上传接口，保存至 <code>/uploads/forum/</code>），亦可手填相对路径。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>接口</strong>：管理端新增 <code>POST /api/admin/hero-generations</code>、<code>DELETE /api/admin/hero-generations/:id</code>。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>首页</strong>：「我的」分栏已移除「后台管理」入口。</div>
           </div>
@@ -4171,7 +4179,7 @@
   <script src="./admin-governance.js"></script>
   <script src="./admin-users-page.js?v=9"></script>
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
-  <script src="/function/admin-heroes-page.js?v=2"></script>
+  <script src="/function/admin-heroes-page.js?v=6"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){

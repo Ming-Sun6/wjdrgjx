@@ -1271,6 +1271,13 @@
       font-size:1.6rem;
       line-height:1;
       flex:0 0 auto;
+      overflow:hidden;
+    }
+    .tool-tile-icon img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
     }
     .featured-tool-icon{
       width:88px;
@@ -3343,7 +3350,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.18</div>
+  <div class="version-tag">版本 V0.9.19</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -3469,6 +3476,17 @@
             </a>
             <div class="pill">BeaPit.html</div>
             <div class="desc">&#x7528;&#x4E8E;&#x718A;&#x5751;/&#x5EFA;&#x7B51;&#x6392;&#x5E03;&#x4E0E;&#x6807;&#x8BB0;&#xFF0C;&#x652F;&#x6301;&#x7F29;&#x653E;&#x3001;&#x4FDD;&#x5B58;&#x548C;&#x5BFC;&#x51FA;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="core">
+            <a class="tool-tile-link" href="function/tiantian-strategy-hub.html">
+              <div class="tool-tile-icon" aria-hidden="true">
+                <img src="Scores/tiantian.jpg" alt="" />
+              </div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span>甜甜的攻略站</div>
+            </a>
+            <div class="pill">tiantian-strategy-hub.html</div>
+            <div class="desc">攻略 1.0 / 2.0 / 3.0 金山文档内嵌查看，含活动、礼包与英雄数据索引。</div>
           </section>
 
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
@@ -3891,13 +3909,17 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.19（2026-06-04）</h4>
+        <ol>
+          <li><strong>甜甜的攻略站</strong>：「基础工具」新增入口，内含攻略 1.0 / 2.0 / 3.0 三个版本，可在页面内嵌查看金山文档；支持新窗口打开完整攻略。</li>
+        </ol>
+
         <h4>V0.9.18（2026-06-04）</h4>
         <ol>
-          <li><strong>英雄数据</strong>：目录与各代详情改由接口加载；后台可<strong>新增第 16 代及以后</strong>代数，无需再新建静态页面（链接形如 <code>generation-heroes.html?slug=…</code>）。</li>
-          <li><strong>礼包参考</strong>：常规/特惠礼包数据改由接口维护，后台保存后前台与首页道具搜索即时生效。</li>
-          <li><strong>熊坑排布</strong>：登录后保存会自动留档；新增「保存方案」与加载时备份列表，可从网站历史方案恢复布局。</li>
-          <li><strong>无尽冬日人格测试</strong>：接入工具箱主题与返回入口；移除赞赏相关展示。</li>
-          <li><strong>我的</strong>：移除首页「后台管理」入口（管理员请使用已收藏的内部后台地址）。</li>
+          <li><strong>英雄数据</strong>：目录与各代英雄详情显示逻辑优化。</li>
+          <li><strong>礼包参考</strong>：常规/特惠礼包页与首页道具搜索的数据与站点保持同步，礼包内容更新后前台即时生效。</li>
+          <li><strong>熊坑排布</strong>：登录后保存会自动保留历史版本；新增「保存方案」与加载时的备份列表，可从历史方案恢复布局。</li>
+          <li><strong>无尽冬日WJTI人格测试</strong>：娱乐功能完善重新返场！</li>
         </ol>
 
         <h4>V0.9.14（2026-05-25）</h4>

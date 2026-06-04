@@ -84,6 +84,29 @@ test('admin page includes hero data management menu and script', () => {
   assert.match(html, /id="heroGenEditor"/);
 });
 
+test('admin heroes editor supports image upload control', () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', 'admin-heroes-page.js'),
+    'utf8'
+  );
+  assert.match(source, /heroFieldImageUploadBtn/);
+  assert.match(source, /\/api\/admin\/announcement\/images/);
+});
+
+test('admin heroes page places add-generation control in list sidebar', () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'),
+    'utf8'
+  );
+  assert.match(html, /id="heroGenListMeta"/);
+  assert.match(html, /id="heroGenCreateGenBtn"/);
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', 'admin-heroes-page.js'),
+    'utf8'
+  );
+  assert.doesNotMatch(source, /id="heroGenCreateGenBtn">新增代数<\/button>'[\s\S]*heroGenSaveBtn/);
+});
+
 test('server mounts hero data routes', () => {
   const serverSource = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
   const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'hero-data.js'), 'utf8');

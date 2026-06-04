@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>甜甜的攻略站-无尽冬日工具箱</title>
+  <style>
+    :root {
+      --bg-a: #fff5f0;
+      --bg-b: #ffe8dc;
+      --panel: rgba(255, 255, 255, 0.9);
+      --text: #3d2a24;
+      --muted: #8a6f66;
+      --line: rgba(61, 42, 36, 0.12);
+      --accent: #e85d4c;
+      --accent-soft: rgba(232, 93, 76, 0.14);
+      --shadow: 0 18px 40px rgba(120, 60, 40, 0.12);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 480px at 0% -5%, rgba(255, 180, 150, 0.35), transparent 55%),
+        radial-gradient(800px 420px at 100% 0%, rgba(255, 210, 180, 0.4), transparent 50%),
+        linear-gradient(160deg, var(--bg-a), var(--bg-b));
+      padding: 56px 12px 20px;
+    }
+    .home-btn {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 30;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 8px 12px;
+      box-shadow: var(--shadow);
+    }
+    .layout {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+    .hub-intro {
+      grid-column: 1 / -1;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .hub-intro h1 {
+      font-size: 1.25rem;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+    .hub-intro p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    #guideNav {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+    }
+    .guide-nav-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--muted);
+      padding: 0 4px;
+    }
+    #guideNavMobile {
+      display: none;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      background: #fff;
+      color: var(--text);
+    }
+    .guide-nav-desktop { display: grid; gap: 10px; }
+    .guide-card {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      width: 100%;
+      border: 2px solid transparent;
+      border-radius: 14px;
+      padding: 8px;
+      background: #fff;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      color: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    }
+    .guide-card:hover {
+      border-color: rgba(232, 93, 76, 0.35);
+      box-shadow: 0 8px 20px rgba(232, 93, 76, 0.12);
+      transform: translateY(-1px);
+    }
+    .guide-card.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      box-shadow: 0 10px 24px rgba(232, 93, 76, 0.18);
+    }
+    .guide-card img {
+      width: 72px;
+      height: 96px;
+      object-fit: cover;
+      object-position: top center;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff8f4;
+    }
+    .guide-card-title {
+      font-size: 0.95rem;
+      font-weight: 900;
+      line-height: 1.35;
+    }
+    .guide-card-desc {
+      margin-top: 4px;
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .viewer {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: min(82vh, 900px);
+    }
+    .viewer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(255, 245, 240, 0.95), #fff);
+    }
+    .viewer-head h2 {
+      font-size: 1.05rem;
+      font-weight: 900;
+    }
+    .viewer-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .viewer-actions a,
+    .viewer-actions button {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+      background: #fff;
+    }
+    .viewer-actions a.primary {
+      background: linear-gradient(90deg, #e85d4c, #f07a5c);
+      border-color: transparent;
+      color: #fff;
+    }
+    .viewer-frame-wrap {
+      position: relative;
+      min-height: 70vh;
+      background: #fff;
+    }
+    #guideFrame {
+      width: 100%;
+      height: 100%;
+      min-height: 70vh;
+      border: 0;
+      display: block;
+      background: #fff;
+    }
+    .embed-fallback {
+      display: none;
+      position: absolute;
+      inset: 0;
+      padding: 24px;
+      text-align: center;
+      background: rgba(255, 252, 250, 0.96);
+      align-content: center;
+      justify-items: center;
+      gap: 12px;
+    }
+    .embed-fallback.show { display: grid; }
+    .embed-fallback p {
+      max-width: 420px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      #guideNavMobile { display: block; }
+      .guide-nav-desktop { display: none; }
+      .viewer { min-height: 72vh; }
+    }
+  </style>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../rukou.html">返回首页</a>
+  <div class="layout">
+    <header class="hub-intro">
+      <h1>甜甜的攻略站</h1>
+      <p>选择下方版本在页面内查看金山文档攻略；若内嵌无法加载，可点击「新窗口打开」。</p>
+    </header>
+    <nav id="guideNav" aria-label="攻略版本">
+      <div class="guide-nav-label">选择版本</div>
+      <select id="guideNavMobile" aria-label="攻略版本"></select>
+      <div class="guide-nav-desktop" id="guideNavDesktop"></div>
+    </nav>
+    <main class="viewer">
+      <div class="viewer-head">
+        <h2 id="viewerTitle">攻略 1.0</h2>
+        <div class="viewer-actions">
+          <a id="openExternal" class="primary" href="#" target="_blank" rel="noopener noreferrer">新窗口打开</a>
+          <button type="button" id="reloadFrame">重新加载</button>
+        </div>
+      </div>
+      <div class="viewer-frame-wrap">
+        <iframe id="guideFrame" title="金山文档攻略" allow="clipboard-read; clipboard-write" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <div class="embed-fallback" id="embedFallback">
+          <p>当前环境可能无法内嵌金山文档。请点击下方按钮在浏览器新标签页中查看完整攻略。</p>
+          <a class="primary" id="fallbackOpen" href="#" target="_blank" rel="noopener noreferrer">打开完整攻略</a>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    var GUIDES = [
+      {
+        id: "v1",
+        title: "攻略 1.0",
+        desc: "活动与礼包等基础攻略合集",
+        url: "https://www.kdocs.cn/l/cldgpTzd4shi",
+        thumb: "/function/assets/tiantian-strategy/strategy-v1.png"
+      },
+      {
+        id: "v2",
+        title: "攻略 2.0",
+        desc: "无尽冬日活动数据攻略 2.0",
+        url: "https://www.kdocs.cn/l/ckjScgTNxJ1k",
+        thumb: "/function/assets/tiantian-strategy/strategy-v2.png"
+      },
+      {
+        id: "v3",
+        title: "攻略 3.0",
+        desc: "文档目录与礼包活动索引",
+        url: "https://www.kdocs.cn/l/coxD6BjbYRsd",
+        thumb: "/function/assets/tiantian-strategy/strategy-v3.png"
+      }
+    ];
+
+    var guideNavDesktop = document.getElementById("guideNavDesktop");
+    var guideNavMobile = document.getElementById("guideNavMobile");
+    var guideFrame = document.getElementById("guideFrame");
+    var viewerTitle = document.getElementById("viewerTitle");
+    var openExternal = document.getElementById("openExternal");
+    var fallbackOpen = document.getElementById("fallbackOpen");
+    var embedFallback = document.getElementById("embedFallback");
+    var reloadFrameBtn = document.getElementById("reloadFrame");
+    var currentId = GUIDES[0].id;
+    var embedTimer = null;
+
+    function escapeHtml(v) {
+      return String(v)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function guideById(id) {
+      return GUIDES.filter(function (g) { return g.id === id; })[0] || GUIDES[0];
+    }
+
+    function embedUrl(shareUrl) {
+      var url = String(shareUrl || "").trim();
+      if (!url) return url;
+      if (url.indexOf("/office/l/") !== -1) return url;
+      return url.replace("://www.kdocs.cn/l/", "://www.kdocs.cn/office/l/");
+    }
+
+    function setActiveNav(id) {
+      guideNavDesktop.querySelectorAll(".guide-card").forEach(function (btn) {
+        btn.classList.toggle("active", btn.getAttribute("data-guide-id") === id);
+      });
+      if (guideNavMobile.value !== id) guideNavMobile.value = id;
+    }
+
+    function scheduleEmbedCheck() {
+      if (embedTimer) clearTimeout(embedTimer);
+      embedFallback.classList.remove("show");
+      embedTimer = setTimeout(function () {
+        try {
+          var doc = guideFrame.contentDocument || (guideFrame.contentWindow && guideFrame.contentWindow.document);
+          if (!doc) {
+            embedFallback.classList.add("show");
+          }
+        } catch (_e) {
+          /* cross-origin: iframe loaded, assume OK */
+        }
+      }, 4500);
+    }
+
+    function loadGuide(id) {
+      var guide = guideById(id);
+      currentId = guide.id;
+      setActiveNav(guide.id);
+      viewerTitle.textContent = guide.title;
+      openExternal.href = guide.url;
+      fallbackOpen.href = guide.url;
+      guideFrame.src = embedUrl(guide.url);
+      scheduleEmbedCheck();
+      if (typeof window.matchMedia === "function" && window.matchMedia("(max-width: 920px)").matches) {
+        var viewer = document.querySelector(".viewer");
+        if (viewer && viewer.scrollIntoView) viewer.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function renderNav() {
+      guideNavDesktop.innerHTML = GUIDES.map(function (g) {
+        return (
+          '<button type="button" class="guide-card' + (g.id === currentId ? " active" : "") + '" data-guide-id="' + g.id + '">' +
+          '<img src="' + escapeHtml(g.thumb) + '" alt="" loading="lazy" />' +
+          '<span><span class="guide-card-title">' + escapeHtml(g.title) + "</span>" +
+          '<span class="guide-card-desc">' + escapeHtml(g.desc) + "</span></span></button>"
+        );
+      }).join("");
+      guideNavMobile.innerHTML = GUIDES.map(function (g) {
+        return '<option value="' + escapeHtml(g.id) + '">' + escapeHtml(g.title) + "</option>";
+      }).join("");
+
+      guideNavDesktop.querySelectorAll(".guide-card").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          loadGuide(btn.getAttribute("data-guide-id"));
+        });
+      });
+      guideNavMobile.addEventListener("change", function () {
+        loadGuide(guideNavMobile.value);
+      });
+    }
+
+    reloadFrameBtn.addEventListener("click", function () {
+      loadGuide(currentId);
+    });
+
+    guideFrame.addEventListener("load", function () {
+      if (embedTimer) clearTimeout(embedTimer);
+    });
+
+    renderNav();
+    loadGuide(GUIDES[0].id);
+  </script>
+</body>
+</html>
