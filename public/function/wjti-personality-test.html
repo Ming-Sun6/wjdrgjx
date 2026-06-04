@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>无尽冬日人格测试-无尽冬日工具箱</title>
+  <meta name="description" content="无尽冬日 WJTI 人格测试：测测你在冰原联盟里是记者、黑奴、吃瓜群众还是气氛组。" />
+  <style>
+    :root {
+      --ui-scale: 0.88;
+      --font-scale: 0.93;
+      --bg: #07111e;
+      --bg-soft: #10243a;
+      --panel: rgba(11, 30, 48, 0.82);
+      --panel-strong: rgba(18, 43, 68, 0.95);
+      --text: #ecf6ff;
+      --muted: #9ab6d1;
+      --line: rgba(173, 210, 241, 0.18);
+      --accent: #8bd3ff;
+      --warm: #ffbe62;
+      --danger: #ff847c;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      --page-glow-warm: rgba(255, 190, 98, 0.2);
+      --page-glow-cool: rgba(139, 211, 255, 0.22);
+      --page-bg-start: #06101a;
+      --page-bg-mid: #091a2b;
+      --page-bg-end: #0f2940;
+      --hero-bg: linear-gradient(145deg, rgba(17, 38, 61, 0.95), rgba(8, 18, 30, 0.88));
+      --modal-bg: linear-gradient(180deg, rgba(13, 31, 49, 0.98), rgba(8, 20, 33, 0.98));
+      --artwork-bg: linear-gradient(180deg, rgba(14, 33, 52, 0.9), rgba(9, 21, 35, 0.82));
+      --card-bg: linear-gradient(160deg, rgba(22, 45, 70, 0.92), rgba(9, 23, 36, 0.9));
+      --card-bg-selected: linear-gradient(160deg, rgba(34, 66, 99, 0.96), rgba(12, 28, 44, 0.96));
+      --question-bg: linear-gradient(180deg, rgba(14, 33, 52, 0.96), rgba(9, 21, 35, 0.88));
+      --toolbar-bg: rgba(7, 17, 30, 0.9);
+      --overlay-bg: rgba(3, 10, 18, 0.72);
+      --overlay-strong-bg: rgba(3, 10, 18, 0.82);
+      --top-action-border: rgba(255, 190, 98, 0.28);
+      --top-action-bg: linear-gradient(180deg, rgba(17, 38, 61, 0.72), rgba(10, 24, 38, 0.62));
+      --top-action-text: #fff2d2;
+      --announcement-link-bg: rgba(255, 190, 98, 0.12);
+      --announcement-link-text: #ffe8b1;
+      --tag-bg: linear-gradient(90deg, rgba(255, 190, 98, 0.26), rgba(139, 211, 255, 0.18));
+      --tag-border: rgba(255, 190, 98, 0.3);
+      --tag-text: #fff0c9;
+      --eyebrow-bg: rgba(139, 211, 255, 0.08);
+      --eyebrow-text: #bee6ff;
+      --disclaimer-text: #ffd9a6;
+      --home-copy-text: #dbeeff;
+      --chip-bg: rgba(255, 190, 98, 0.12);
+      --chip-text: #ffd59c;
+      --back-button-bg: rgba(139, 211, 255, 0.08);
+      --back-button-text: #d8f0ff;
+      --meter-track: rgba(255, 255, 255, 0.08);
+      --answer-letter-bg: rgba(255, 255, 255, 0.08);
+      --answer-letter-text: #c7e8ff;
+      --result-subtitle-text: #a4d7f7;
+      --ghost-button-bg: rgba(255, 255, 255, 0.08);
+      --radius-xl: calc(28px * var(--ui-scale));
+      --radius-lg: calc(20px * var(--ui-scale));
+      --radius-md: calc(16px * var(--ui-scale));
+    }
+
+    html[data-theme="dark"],
+    html[data-theme="night"] {
+      color-scheme: dark;
+    }
+
+    html[data-theme="light"],
+    html[data-theme="day"] {
+      color-scheme: light;
+      --bg: #f7efe5;
+      --bg-soft: #e5edf6;
+      --panel: rgba(255, 255, 255, 0.74);
+      --panel-strong: rgba(248, 251, 255, 0.95);
+      --text: #203246;
+      --muted: #5e7894;
+      --line: rgba(94, 120, 148, 0.18);
+      --accent: #5fa9dd;
+      --warm: #e8aa4d;
+      --shadow: 0 24px 48px rgba(51, 74, 104, 0.14);
+      --page-glow-warm: rgba(255, 190, 98, 0.24);
+      --page-glow-cool: rgba(120, 176, 232, 0.24);
+      --page-bg-start: #f7eee3;
+      --page-bg-mid: #eef4fa;
+      --page-bg-end: #dde8f3;
+      --hero-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(243, 248, 253, 0.86));
+      --modal-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(242, 247, 252, 0.98));
+      --artwork-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(239, 246, 252, 0.84));
+      --card-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.86), rgba(239, 246, 252, 0.92));
+      --card-bg-selected: linear-gradient(160deg, rgba(255, 247, 230, 0.96), rgba(233, 244, 255, 0.96));
+      --question-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(239, 246, 252, 0.9));
+      --toolbar-bg: rgba(249, 252, 255, 0.88);
+      --overlay-bg: rgba(219, 229, 240, 0.7);
+      --overlay-strong-bg: rgba(219, 229, 240, 0.8);
+      --top-action-border: rgba(95, 124, 153, 0.2);
+      --top-action-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(244, 249, 253, 0.62));
+      --top-action-text: #2f4c68;
+      --announcement-link-bg: rgba(232, 170, 77, 0.16);
+      --announcement-link-text: #8b5a15;
+      --tag-bg: linear-gradient(90deg, rgba(232, 170, 77, 0.18), rgba(95, 169, 221, 0.12));
+      --tag-border: rgba(232, 170, 77, 0.26);
+      --tag-text: #8b5a15;
+      --eyebrow-bg: rgba(95, 169, 221, 0.12);
+      --eyebrow-text: #547899;
+      --disclaimer-text: #9b6b22;
+      --home-copy-text: #4f6882;
+      --chip-bg: rgba(232, 170, 77, 0.15);
+      --chip-text: #936220;
+      --back-button-bg: rgba(95, 169, 221, 0.12);
+      --back-button-text: #446b8a;
+      --meter-track: rgba(95, 124, 153, 0.14);
+      --answer-letter-bg: rgba(95, 169, 221, 0.12);
+      --answer-letter-text: #446b8a;
+      --result-subtitle-text: #5c7d9c;
+      --ghost-button-bg: rgba(95, 124, 153, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, var(--page-glow-warm), transparent 28%),
+        radial-gradient(circle at top right, var(--page-glow-cool), transparent 34%),
+        linear-gradient(180deg, var(--page-bg-start), var(--page-bg-mid) 48%, var(--page-bg-end) 100%);
+      transition: background 180ms ease, color 180ms ease;
+    }
+
+    /* 轻度水印「掩码」：不挡操作，仅增加整页盗用成本（无法替代服务端保护与压缩混淆） */
+    .view-guard-watermark {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        -18deg,
+        transparent 0,
+        transparent 72px,
+        rgba(255, 255, 255, 0.04) 72px,
+        rgba(255, 255, 255, 0.04) 73px
+      );
+      mix-blend-mode: soft-light;
+    }
+
+    html[data-theme="light"] .view-guard-watermark {
+      background-image: repeating-linear-gradient(
+        -18deg,
+        transparent 0,
+        transparent 72px,
+        rgba(32, 50, 70, 0.06) 72px,
+        rgba(32, 50, 70, 0.06) 73px
+      );
+      mix-blend-mode: multiply;
+    }
+
+    img {
+      -webkit-user-drag: none;
+      user-select: none;
+    }
+    .aaaaa{
+      color: #ff0000;
+    }
+    .page {
+      width: min(calc(1120px * var(--ui-scale)), calc(100% - 36px));
+      margin: 0 auto;
+      padding: calc(32px * var(--ui-scale)) 0 calc(64px * var(--ui-scale));
+    }
+
+    .hero {
+      padding: calc(28px * var(--ui-scale));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--hero-bg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .announcement-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(20px * var(--ui-scale));
+      background: var(--overlay-bg);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+    }
+
+    .announcement-overlay[hidden] {
+      display: none;
+    }
+
+    .top-actions {
+      position: fixed;
+      top: calc(18px * var(--ui-scale));
+      right: calc(18px * var(--ui-scale));
+      z-index: 900;
+      display: flex;
+      align-items: center;
+      gap: calc(10px * var(--ui-scale));
+    }
+
+    .top-action-button {
+      border: 1px solid var(--top-action-border);
+      background: var(--top-action-bg);
+      color: var(--top-action-text);
+      border-radius: 999px;
+      padding: calc(10px * var(--ui-scale)) calc(14px * var(--ui-scale));
+      font-size: calc(14px * var(--ui-scale) * var(--font-scale));
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+      backdrop-filter: blur(10px);
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .top-action-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 190, 98, 0.42);
+    }
+
+    .announcement-modal {
+      width: min(calc(520px * var(--ui-scale)), 100%);
+      padding: calc(24px * var(--ui-scale));
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(255, 190, 98, 0.24);
+      background: var(--modal-bg);
+      box-shadow: var(--shadow);
+    }
+
+    .announcement-title {
+      font-size: calc(28px * var(--ui-scale) * var(--font-scale));
+      line-height: 1.1;
+    }
+
+    .announcement-body {
+      margin-top: calc(16px * var(--ui-scale));
+      color: var(--muted);
+      font-size: calc(15px * var(--ui-scale) * var(--font-scale));
+      line-height: 1.85;
+      white-space: pre-line;
+    }
+
+    .announcement-action {
+      margin-top: calc(20px * var(--ui-scale));
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .announcement-link-row {
+      margin-top: calc(18px * var(--ui-scale));
+      display: flex;
+      justify-content: center;
+    }
+
+    .announcement-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(10px * var(--ui-scale)) calc(16px * var(--ui-scale));
+      border-radius: 999px;
+      border: 1px solid var(--top-action-border);
+      background: var(--announcement-link-bg);
+      color: var(--announcement-link-text);
+      text-decoration: none;
+      font-size: calc(14px * var(--ui-scale) * var(--font-scale));
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .appreciation-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(20px * var(--ui-scale));
+      background: var(--overlay-strong-bg);
+      backdrop-filter: blur(10px);
+      z-index: 1100;
+    }
+
+    .appreciation-overlay[hidden] {
+      display: none;
+    }
+
+    .appreciation-modal {
+      width: min(calc(420px * var(--ui-scale)), 100%);
+      padding: calc(18px * var(--ui-scale));
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(255, 190, 98, 0.24);
+      background: var(--modal-bg);
+      box-shadow: var(--shadow);
+    }
+
+    .appreciation-image {
+      display: block;
+      width: 100%;
+      border-radius: calc(16px * var(--ui-scale));
+    }
+
+    .appreciation-actions {
+      margin-top: calc(14px * var(--ui-scale));
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .announcement-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: calc(4px * var(--ui-scale)) calc(10px * var(--ui-scale));
+      margin: 0 calc(3px * var(--ui-scale));
+      border-radius: 999px;
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      color: var(--tag-text);
+      font-weight: 700;
+      box-shadow: 0 0 0 1px rgba(255, 190, 98, 0.08) inset;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -80px -120px auto;
+      width: calc(260px * var(--ui-scale));
+      height: calc(260px * var(--ui-scale));
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 190, 98, 0.22), transparent 70%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: calc(8px * var(--ui-scale));
+      padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
+      border-radius: 999px;
+      background: var(--eyebrow-bg);
+      color: var(--eyebrow-text);
+      font-size: calc(13px * var(--ui-scale) * var(--font-scale));
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    .hero-title {
+      margin-top: calc(18px * var(--ui-scale));
+      font-size: clamp(calc(34px * var(--ui-scale) * var(--font-scale)), calc(6vw * var(--ui-scale) * var(--font-scale)), calc(64px * var(--ui-scale) * var(--font-scale)));
+      line-height: 1.04;
+      letter-spacing: -0.04em;
+    }
+
+    .hero-copy {
+      margin-top: calc(14px * var(--ui-scale));
+      max-width: calc(700px * var(--ui-scale));
+      color: var(--muted);
+      font-size: calc(16px * var(--ui-scale) * var(--font-scale));
+      line-height: 1.7;
+    }
+
+    .disclaimer {
+      margin-top: calc(18px * var(--ui-scale));
+      color: var(--disclaimer-text);
+      font-size: calc(14px * var(--ui-scale) * var(--font-scale));
+    }
+
+    .screen {
+      margin-top: calc(24px * var(--ui-scale));
+      padding: calc(24px * var(--ui-scale));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .screen[hidden] {
+      display: none;
+    }
+
+    .modes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: calc(16px * var(--ui-scale));
+      margin-top: calc(22px * var(--ui-scale));
+    }
+
+    .home-artwork {
+      margin-top: calc(24px * var(--ui-scale));
+      padding: calc(10px * var(--ui-scale));
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      background: var(--artwork-bg);
+      box-shadow: var(--shadow);
+    }
+
+    .home-artwork-copy {
+      margin-top: calc(18px * var(--ui-scale));
+      display: grid;
+      gap: calc(6px * var(--ui-scale));
+      text-align: center;
+      color: var(--home-copy-text);
+      font-size: calc(14px * var(--ui-scale) * var(--font-scale));
+      line-height: 1.7;
+    }
+
+    .home-artwork-trigger {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: zoom-in;
+    }
+
+    .home-artwork img {
+      display: block;
+      width: 100%;
+      max-width: calc(420px * var(--ui-scale));
+      margin: 0 auto;
+      border-radius: calc(18px * var(--ui-scale));
+    }
+
+    .home-artwork-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(20px * var(--ui-scale));
+      background: var(--overlay-strong-bg);
+      backdrop-filter: blur(10px);
+      z-index: 1080;
+    }
+
+    .home-artwork-overlay[hidden] {
+      display: none;
+    }
+
+    .home-artwork-modal {
+      width: min(calc(760px * var(--ui-scale)), 100%);
+      padding: calc(18px * var(--ui-scale));
+      border-radius: var(--radius-xl);
+      border: 1px solid rgba(139, 211, 255, 0.24);
+      background: var(--modal-bg);
+      box-shadow: var(--shadow);
+    }
+
+    .home-artwork-modal img {
+      display: block;
+      width: 100%;
+      border-radius: calc(16px * var(--ui-scale));
+    }
+
+    .home-artwork-actions {
+      margin-top: calc(14px * var(--ui-scale));
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .mode-card,
+    .answer-card {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--card-bg);
+      color: var(--text);
+      text-align: left;
+      padding: calc(20px * var(--ui-scale));
+      cursor: pointer;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .mode-card:hover,
+    .answer-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 190, 98, 0.45);
+    }
+
+    .mode-card.is-selected,
+    .answer-card.is-selected {
+      border-color: rgba(255, 190, 98, 0.65);
+      background: var(--card-bg-selected);
+      box-shadow: 0 0 0 1px rgba(255, 190, 98, 0.2) inset;
+    }
+
+    .mode-card strong,
+    .answer-card strong {
+      display: block;
+      font-size: calc(22px * var(--ui-scale) * var(--font-scale));
+    }
+
+    .mode-card span,
+    .answer-card span {
+      display: block;
+      margin-top: calc(10px * var(--ui-scale));
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: calc(14px * var(--ui-scale) * var(--font-scale));
+    }
+
+    .mode-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: calc(6px * var(--ui-scale));
+      margin-bottom: calc(14px * var(--ui-scale));
+      padding: calc(6px * var(--ui-scale)) calc(10px * var(--ui-scale));
+      border-radius: 999px;
+      background: var(--chip-bg);
+      color: var(--chip-text);
+      font-size: calc(12px * var(--ui-scale) * var(--font-scale));
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .quiz-top {
+      display: flex;
+      justify-content: space-between;
+      gap: calc(16px * var(--ui-scale));
+      align-items: flex-end;
+      margin-bottom: calc(18px * var(--ui-scale));
+    }
+
+    .quiz-toolbar {
+      position: sticky;
+      top: calc(12px * var(--ui-scale));
+      z-index: 40;
+      margin-bottom: calc(12px * var(--ui-scale));
+      padding: calc(8px * var(--ui-scale)) calc(12px * var(--ui-scale));
+      border: 1px solid rgba(139, 211, 255, 0.18);
+      border-radius: var(--radius-lg);
+      background: var(--toolbar-bg);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(18px);
+    }
+
+    .quiz-toolbar-top {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: calc(14px * var(--ui-scale));
+      margin-bottom: calc(6px * var(--ui-scale));
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: calc(6px * var(--ui-scale));
+      padding: calc(7px * var(--ui-scale)) calc(12px * var(--ui-scale));
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--back-button-bg);
+      color: var(--back-button-text);
+      font-size: calc(13px * var(--ui-scale) * var(--font-scale));
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .progress-shell {
+      flex: 1;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: flex-end;
+      gap: calc(12px * var(--ui-scale));
+      font-size: calc(13px * var(--ui-scale) * var(--font-scale));
+      color: var(--muted);
+      margin-bottom: calc(4px * var(--ui-scale));
+    }
+
+    .progress-bar {
+      height: calc(8px * var(--ui-scale));
+      border-radius: 999px;
+      background: var(--meter-track);
+      overflow: hidden;
+    }
+
+    .progress-bar > div {
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--warm), var(--accent));
+    }
+
+    .question-list {
+      display: grid;
+      gap: calc(18px * var(--ui-scale));
+    }
+
+    .question-card {
+      padding: calc(24px * var(--ui-scale));
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      background: var(--question-bg);
+    }
+
+    .question-text {
+      margin-top: calc(12px * var(--ui-scale));
+      font-size: clamp(calc(24px * var(--ui-scale) * var(--font-scale)), calc(4vw * var(--ui-scale) * var(--font-scale)), calc(34px * var(--ui-scale) * var(--font-scale)));
+      line-height: 1.35;
+    }
+
+    .answers {
+      display: grid;
+      gap: calc(14px * var(--ui-scale));
+      margin-top: calc(22px * var(--ui-scale));
+    }
+
+    .answer-card small {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: calc(30px * var(--ui-scale));
+      height: calc(30px * var(--ui-scale));
+      margin-right: calc(10px * var(--ui-scale));
+      border-radius: 50%;
+      background: var(--answer-letter-bg);
+      color: var(--answer-letter-text);
+      font-size: calc(13px * var(--ui-scale) * var(--font-scale));
+      font-weight: 700;
+      vertical-align: middle;
+    }
+
+    .answer-card p {
+      display: inline;
+      font-size: calc(16px * var(--ui-scale) * var(--font-scale));
+      line-height: 1.7;
+    }
+
+    .question-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: calc(12px * var(--ui-scale));
+      color: var(--muted);
+      font-size: calc(14px * var(--ui-scale) * var(--font-scale));
+    }
+
+    .quiz-submit {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: calc(12px * var(--ui-scale));
+      margin-top: calc(22px * var(--ui-scale));
+      padding: calc(20px * var(--ui-scale));
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      background: var(--question-bg);
+    }
+
+    .button,
+    .ghost-button {
+      border: 0;
+      border-radius: 999px;
+      padding: calc(14px * var(--ui-scale)) calc(20px * var(--ui-scale));
+      font-size: calc(15px * var(--ui-scale) * var(--font-scale));
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .button:disabled,
+    .ghost-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .button {
+      background: linear-gradient(90deg, var(--warm), #ffdca0);
+      color: #1f2735;
+    }
+
+    .ghost-button {
+      background: var(--ghost-button-bg);
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .result-panel {
+      margin-top: calc(22px * var(--ui-scale));
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: calc(18px * var(--ui-scale));
+    }
+
+    .result-hero,
+    .result-side {
+      padding: calc(22px * var(--ui-scale));
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      background: var(--question-bg);
+    }
+
+    .result-name {
+      margin-top: calc(14px * var(--ui-scale));
+      font-size: clamp(calc(28px * var(--ui-scale) * var(--font-scale)), calc(5vw * var(--ui-scale) * var(--font-scale)), calc(44px * var(--ui-scale) * var(--font-scale)));
+      line-height: 1.1;
+    }
+
+    .result-subtitle {
+      margin-top: calc(10px * var(--ui-scale));
+      font-size: calc(16px * var(--ui-scale) * var(--font-scale));
+      color: var(--result-subtitle-text);
+    }
+
+    .result-summary {
+      margin-top: calc(18px * var(--ui-scale));
+      font-size: calc(18px * var(--ui-scale) * var(--font-scale));
+      line-height: 1.7;
+    }
+
+    .result-description,
+    .share-copy {
+      margin-top: calc(14px * var(--ui-scale));
+      color: var(--muted);
+      line-height: 1.8;
+      font-size: calc(15px * var(--ui-scale) * var(--font-scale));
+    }
+
+    .dimension-list {
+      display: grid;
+      gap: calc(14px * var(--ui-scale));
+      margin-top: calc(14px * var(--ui-scale));
+    }
+
+    .dimension-row {
+      display: grid;
+      gap: calc(6px * var(--ui-scale));
+    }
+
+    .dimension-row strong {
+      display: flex;
+      justify-content: space-between;
+      gap: calc(10px * var(--ui-scale));
+      font-size: calc(14px * var(--ui-scale) * var(--font-scale));
+    }
+
+    .dimension-meter {
+      height: calc(10px * var(--ui-scale));
+      border-radius: 999px;
+      background: var(--meter-track);
+      overflow: hidden;
+    }
+
+    .dimension-meter > div {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--warm));
+    }
+
+    .result-actions {
+      display: flex;
+      gap: calc(12px * var(--ui-scale));
+      margin-top: calc(22px * var(--ui-scale));
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      margin-top: calc(14px * var(--ui-scale));
+      color: var(--muted);
+      font-size: calc(13px * var(--ui-scale) * var(--font-scale));
+    }
+
+    .site-footer {
+      width: min(calc(1120px * var(--ui-scale)), calc(100% - 36px));
+      margin: calc(24px * var(--ui-scale)) auto 0;
+      padding: calc(28px * var(--ui-scale)) 0 calc(40px * var(--ui-scale));
+      border-top: 1px solid var(--line);
+      text-align: center;
+    }
+
+    .site-footer p {
+      margin: 0;
+      color: var(--muted);
+      font-size: calc(13px * var(--ui-scale) * var(--font-scale));
+      line-height: 1.75;
+    }
+
+    .site-footer p + p {
+      margin-top: calc(8px * var(--ui-scale));
+    }
+
+    .site-footer a {
+      color: var(--muted);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .site-footer a:hover {
+      color: var(--accent);
+    }
+
+    @media (max-width: 840px) {
+      .page {
+        width: min(calc(100% - 20px), calc(1120px * var(--ui-scale)));
+        padding-top: calc(20px * var(--ui-scale));
+      }
+
+      .site-footer {
+        width: min(calc(100% - 20px), calc(1120px * var(--ui-scale)));
+      }
+
+      .hero,
+      .screen,
+      .question-card,
+      .result-hero,
+      .result-side {
+        padding: calc(18px * var(--ui-scale));
+      }
+
+      .modes,
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quiz-top,
+      .quiz-submit {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    .home-btn {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 30;
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid var(--line);
+      background: var(--top-action-bg);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+
+    .home-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .home-artwork,
+    .home-artwork-overlay,
+    .home-artwork-copy {
+      display: none;
+    }
+
+    body.theme-day .wjdr-theme-fab,
+    html[data-theme="day"] .wjdr-theme-fab {
+      z-index: 40;
+    }
+  </style>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css?v=20260501-0103" />
+  <script src="/function/analytics-tracker.js" defer></script>
+  <script src="/function/theme.js?v=20260501-0103" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../rukou.html">← 返回工具箱</a>
+  <div class="view-guard-watermark" aria-hidden="true"></div>
+  <div class="top-actions" data-top-actions>
+    <button class="top-action-button announcement-trigger" type="button" data-announcement-trigger>公告</button>
+  </div>
+  <div class="announcement-overlay" data-announcement-modal>
+    <section class="announcement-modal">
+      <div class="eyebrow">公告</div>
+      <h2 class="announcement-title">欢迎来到 WJTI 测试</h2>
+      <p class="announcement-body">4月11日更新
+        WJTI<span class="announcement-tag" data-announcement-tag>2.0版</span>
+        优化了分值占比，加了白天模式和夜间模式
+题库增加到了60道题 每次测试题目不同
+  
+        本网站由<span class="announcement-tag" data-announcement-tag>茗子</span><span class="announcement-tag" data-announcement-tag>飞菇</span>共同创作，因为SBTI挺火的，就想着搞一个无尽冬日的版本，测试仅供娱乐哦~
+
+茗子抖音号：Ming200623  茗子微信：Mz0623a
+飞菇抖音号：23063101360 飞菇微信:sup990105
+欢迎大家关注我们~
+
+ps：2041招移民~</p>
+      <div class="announcement-link-row">
+        <button
+          class="announcement-link"
+          type="button"
+          data-appreciation-link
+        >👛点击此处赞赏作者们~</button>
+      </div>
+      <div class="announcement-action">
+        <button class="button" type="button" data-announcement-close>我知道啦</button>
+      </div>
+    </section>
+  </div>
+  <div class="appreciation-overlay" data-appreciation-modal hidden>
+    <section class="appreciation-modal">
+      <img class="appreciation-image" src="./wjti-test-resources/20260410151830_276_366.jpg" alt="赞赏码">
+      <div class="appreciation-actions">
+        <button class="button" type="button" data-appreciation-close>收起赞赏码</button>
+      </div>
+    </section>
+  </div>
+  <div class="home-artwork-overlay" data-home-artwork-modal hidden>
+    <section class="home-artwork-modal">
+      
+      <img src="./wjti-test-resources/4994c2625b7201ec2c6a3eb3c5f761de.png" alt="放大查看首页图片">
+      <div class="home-artwork-actions">
+        <button class="button" type="button" data-home-artwork-close>收起大图</button>
+      </div>
+    </section>
+  </div>
+
+  <main class="page">
+    <section class="hero">
+      <div class="eyebrow">WJTI · Winter Gossip Edition</div>
+      <h1 class="hero-title">无尽冬日人格测试 · 测测你在冰原联盟里是哪种人</h1>
+      <p class="hero-copy">
+        这是一个长得像 MBTI、灵魂却住在联盟群里的二创测试。
+        你可能是整理时间线的记者，也可能是被管理离不开的黑奴，
+        还可能是明明不怎么参战却永远在吃瓜第一线的围观王。
+      </p>
+      <p class="aaaaa">本站基于SBTI&MBTI进行二创，无尽冬日首创！</p>
+      <p class="disclaimer">本测试仅供整活，测出黑奴、气氛组或小丑都不许当场破防。</p>
+    </section>
+
+    <section class="screen" data-screen="home">
+      <div class="eyebrow">选择题量</div>
+      <h2 style="margin-top: calc(14px * var(--ui-scale)); font-size: calc(32px * var(--ui-scale) * var(--font-scale));">先挑一个你愿意承受的服务器拷打强度</h2>
+      <div class="modes">
+        <button class="mode-card" type="button" data-mode-card="quick">
+          <div class="mode-chip">A / 极速版</div>
+          <strong>12 题快测</strong>
+          <span>适合一口气测完立刻发群里。问题够快，梗味够浓。测试结果不准确。</span>
+        </button>
+        <button class="mode-card" type="button" data-mode-card="standard">
+          <div class="mode-chip">B / 标准版</div>
+          <strong>24 题推荐</strong>
+          <span>更像正式人格测试，能把你到底是大佬、记者还是气氛组测得更稳。测试结果还算准。</span>
+        </button>
+        <button class="mode-card" type="button" data-mode-card="deep">
+          <div class="mode-chip">C / 深度版</div>
+          <strong>36 题深扒</strong>
+          <span>从新区开荒到世界频道拱火，连你怎么吃瓜都要一并盘清楚。</span>
+        </button>
+      </div>
+      <p class="hint">默认推荐标准版。三档测试共用同一套人格体系，只是题量不同。</p>
+      <div class="home-artwork-copy" data-home-artwork-copy>
+        <p>进攻略群·看号 联系飞菇~</p>
+        <p>进聊天·吃瓜·种菜群 联系茗子~</p>
+      </div>
+      <div class="home-artwork" data-home-artwork>
+        <button class="home-artwork-trigger" type="button" data-home-artwork-trigger aria-label="放大查看首页图片">
+          <img src="./wjti-test-resources/4994c2625b7201ec2c6a3eb3c5f761de.png" alt="WJTI 首页展示图">
+        </button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="quiz" hidden>
+      <div class="quiz-toolbar" data-quiz-toolbar>
+        <div class="quiz-toolbar-top">
+          <button class="back-button" type="button" data-back-button>← 返回首页</button>
+        </div>
+        <div class="progress-shell" data-quiz-toolbar-progress>
+          <div class="progress-meta">
+            <span data-progress-remaining>还剩 24 题</span>
+          </div>
+          <div class="progress-bar"><div data-progress-fill></div></div>
+        </div>
+      </div>
+
+      <div class="question-list" data-question-list></div>
+
+      <div class="quiz-submit">
+        <div>
+          <div class="eyebrow">完成度检查</div>
+          <p class="hint" data-quiz-status>你还差 24 题，继续往下滑，看看你到底是记者还是黑奴。</p>
+        </div>
+        <button class="button" type="button" data-reveal-button disabled>查看结果</button>
+      </div>
+
+      <section class="result-panel" data-result-panel hidden>
+        <div class="result-grid">
+        <div class="result-hero">
+          <div class="eyebrow">你的 WJTI 结果</div>
+          <h2 class="result-name" data-result-name>记者</h2>
+          <p class="result-subtitle" data-result-subtitle>战地记录员</p>
+          <p class="result-summary" data-result-summary>你不一定输出最高，但一定掌握最完整的时间线。</p>
+          <p class="result-description" data-result-description>
+            你天生就爱记笔记。谁先开火、谁先退盟、哪次翻车是谁迟到，你比管理还清楚。
+          </p>
+        </div>
+        <aside class="result-side">
+          <h3 style="font-size: calc(22px * var(--ui-scale) * var(--font-scale));">人格侧写</h3>
+          <div class="dimension-list" data-dimension-list>
+            <div class="dimension-row">
+              <strong><span>吃瓜值</span><span>88</span></strong>
+              <div class="dimension-meter"><div style="width: 88%;"></div></div>
+            </div>
+          </div>
+          <p class="share-copy" data-share-copy>
+            我测出来是 WJTI 的“记者 / 战地记录员”——服务器打不打我不一定上，但时间线我一定能整理出来。
+          </p>
+          <div class="result-actions">
+            <button class="button" type="button" data-copy-button>复制结果文案</button>
+            <button class="ghost-button" type="button" data-restart-button>重新测试</button>
+          </div>
+          <p class="hint" data-copy-feedback>复制后就能直接丢到群里。</p>
+        </aside>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子、飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球、柒枫团队\A宣传大使：懒羊羊\A赞助：39 拙山枯水大江行\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--line,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;margin-top:1.75rem;padding:14px 18px 22px;text-align:center;font-size:12px;color:var(--muted,#94a3b8);border-top:1px solid var(--line,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor}
+html[data-theme="day"] footer.wjdr-footer,body.theme-day footer.wjdr-footer{color:#64748b;border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+</style>
+  <footer class="wjdr-footer">
+    <p class="site-footer-legal">
+      版权所有 © 2026 无尽冬日工具箱
+      <span aria-hidden="true"> | </span>
+      <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+    </p>
+  </footer>
+
+  <script>
+    (function setupViewSourceGuard() {
+      function isViewSourceCombo(event) {
+        if (!(event.ctrlKey || event.metaKey)) {
+          return false;
+        }
+        const key = typeof event.key === "string" ? event.key.toLowerCase() : "";
+        if (key === "u") {
+          return true;
+        }
+        return typeof event.code === "string" && event.code === "KeyU";
+      }
+
+      document.addEventListener(
+        "keydown",
+        (event) => {
+          if (isViewSourceCombo(event)) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+        },
+        true
+      );
+
+      document.addEventListener(
+        "contextmenu",
+        (event) => {
+          event.preventDefault();
+        },
+        true
+      );
+    })();
+
+    const MODES = {
+      quick: { id: "quick", label: "极速版", description: "12题，适合丢群里让人三分钟测完。", questionCount: 12 },
+      standard: { id: "standard", label: "标准版", description: "24题，最像正经人格测试的推荐版本。", questionCount: 24 },
+      deep: { id: "deep", label: "深度版", description: "36题，给你把冰原群聊生态盘个明白。", questionCount: 36 },
+    };
+
+    const DIMENSIONS = {
+      gossip: { id: "gossip", label: "吃瓜值", accent: "#ffb44d" },
+      lead: { id: "lead", label: "带队值", accent: "#7dcfff" },
+      care: { id: "care", label: "奉献值", accent: "#7ee0b5" },
+      attack: { id: "attack", label: "攻击值", accent: "#ff7a7a" },
+      social: { id: "social", label: "社交值", accent: "#f29cff" },
+      showmanship: { id: "showmanship", label: "整活值", accent: "#ffe37d" },
+    };
+
+    const RESULTS = [
+      {
+        id: "gossip",
+        name: "吃瓜群众",
+        subtitle: "围观席常驻人口",
+        summary: "你可能不在战场第一排，但一定在瓜田第一排。",
+        description: "你对区服风向的敏感度很高。谁闹翻了、谁移民了、谁又在群里吵起来了，你总能第一时间闻到味。你不一定亲自下场，但绝不会缺席任何一场热闹。",
+        shareHook: "仗我未必打，但这口瓜我一定会从头吃到尾。",
+        profile: { gossip: 100, lead: 8, care: 8, attack: 8, social: 28, showmanship: 16 },
+      },
+      {
+        id: "reporter",
+        name: "记者",
+        subtitle: "战地记录员",
+        summary: "你不一定输出最高，但一定掌握最完整的时间线。",
+        description: "你热衷于搜集截图、整理聊天记录和补齐前情提要。区里一旦出事，你往往比管理还清楚来龙去脉。别人负责打架，你负责让大家知道到底发生了什么。",
+        shareHook: "服务器打不打我不一定上，但时间线我一定能整理出来。",
+        profile: { gossip: 96, lead: 52, care: 72, attack: 8, social: 24, showmanship: 10 },
+      },
+      {
+        id: "clown",
+        name: "小丑",
+        subtitle: "公屏整活王",
+        summary: "你最大的伤害不一定打在战场上，但一定打在聊天框里。",
+        description: "你擅长接梗、拱火、阴阳和制造节目效果。只要群里一冷，你就忍不住想说点什么把场子热起来。你让人又爱又烦，但没人会说你无聊。",
+        shareHook: "能不能赢不一定，但节目效果必须拉满。",
+        profile: { gossip: 60, lead: 24, care: 16, attack: 54, social: 76, showmanship: 96 },
+      },
+      {
+        id: "worker",
+        name: "黑奴",
+        subtitle: "联盟永动机",
+        summary: "别人还在看任务表，你已经把能补的坑补完了。",
+        description: "你是联盟里最稳的执行位。飞城、补位、捐献、做表、跟活动，你往往不是最响的那个，却总是最顶用的那个。没有你，很多事能做，但会难很多。",
+        shareHook: "你们先聊，我把联盟杂活和补位先做完。",
+        profile: { gossip: 12, lead: 62, care: 94, attack: 34, social: 24, showmanship: 10 },
+      },
+      {
+        id: "cpdd",
+        name: "CPDD",
+        subtitle: "无尽冬日社交花",
+        summary: "你玩的是无尽冬日，也是人际关系模拟器。",
+        description: "你很在意互动感。无论是加好友、串群、找搭子还是接话题，你都很有存在感。你不一定最能打，但你一定是区里最容易认识人的那批人。",
+        shareHook: "资源不一定最多，但我的好友列表一定够长。",
+        profile: { gossip: 28, lead: 14, care: 34, attack: 6, social: 88, showmanship: 46 },
+      },
+      {
+        id: "jiahao",
+        name: "嘉豪",
+        subtitle: "扮猪狠人",
+        summary: "你嘴上说一般，心里其实已经把牌都算过一轮了。",
+        description: "你不喜欢太早暴露底牌。别人问你氪度、战力、想法，你通常不会全说。你擅长观察、藏线和在关键节点出手，属于平时低调、关键时刻却很能办事的那类人。",
+        shareHook: "先别急着看我表面，真正的牌我一般留到关键局才翻。",
+        profile: { gossip: 18, lead: 60, care: 8, attack: 78, social: 14, showmanship: 8 },
+      },
+      {
+        id: "boss",
+        name: "大佬",
+        subtitle: "区服压迫感来源",
+        summary: "你习惯把问题看成赢面、资源和节奏。",
+        description: "你对排名、强度和节奏非常敏感。该冲的时候你会冲，该打的时候你会打，该拍板的时候你会站出来。你不一定一直高调，但别人通常能感受到你的压迫感。",
+        shareHook: "能拿第一为什么拿第二，能打回去为什么要先忍。",
+        profile: { gossip: 14, lead: 84, care: 26, attack: 74, social: 14, showmanship: 12 },
+      },
+      {
+        id: "parent",
+        name: "妈妈/爹",
+        subtitle: "联盟监护人",
+        summary: "你不是最吵的，但经常是最会兜底的。",
+        description: "你总会下意识照顾联盟里的人。队友缺资源你会想办法，萌新问问题你会回，内部矛盾你会试着缓和。你让联盟看起来更像一个能待下去的地方。",
+        shareHook: "先别急着崩，来把情况说清楚，我看看怎么给你兜一下。",
+        profile: { gossip: 22, lead: 42, care: 92, attack: 10, social: 70, showmanship: 18 },
+      },
+      {
+        id: "vibes",
+        name: "气氛组",
+        subtitle: "群聊暖场员",
+        summary: "你的强项不是压人，而是让大家还有心情继续玩。",
+        description: "你很会读空气。赢了会接梗，输了会暖场，大家沉默时你会主动抛话题。你未必是联盟最硬的战力，但你常常是那个把气氛救回来的人。",
+        shareHook: "输赢先放一边，群里的温度不能先掉下去。",
+        profile: { gossip: 34, lead: 20, care: 60, attack: 4, social: 78, showmanship: 70 },
+      },
+    ];
+
+    const q = (id, text, options) => ({ id, text, options });
+    const o = (text, scores) => ({ text, scores });
+    const QUESTION_BUCKET_IDS = {
+      info: ["q01", "q02", "q10", "q18", "q27", "q39", "q47", "q49", "q51"],
+      ops: ["q03", "q11", "q13", "q16", "q21", "q25", "q29", "q40", "q48", "q53", "q60"],
+      combat: ["q04", "q06", "q08", "q09", "q14", "q31", "q35", "q38", "q43", "q55", "q58"],
+      social: ["q15", "q20", "q26", "q37", "q45", "q46", "q57", "q59"],
+      atmosphere: ["q12", "q17", "q19", "q24", "q33", "q34", "q36", "q42"],
+      economy: ["q05", "q28", "q41", "q54", "q56"],
+      politics: ["q07", "q22", "q23", "q30", "q32", "q44", "q50", "q52"],
+    };
+    const MODE_BUCKET_QUOTAS = {
+      quick: { info: 2, ops: 2, combat: 2, social: 2, atmosphere: 2, economy: 1, politics: 1 },
+      standard: { info: 4, ops: 4, combat: 4, social: 3, atmosphere: 3, economy: 3, politics: 3 },
+      deep: { info: 6, ops: 6, combat: 6, social: 5, atmosphere: 5, economy: 4, politics: 4 },
+    };
+    const QUESTIONS = [
+      q("q01", "你为了吃瓜可以做到什么地步", [o("到瓜主区里去建号，不惜卧薪尝胆速拉7级装萌新，只为加入瓜主的联盟", { gossip: 4, social: 2 }), o("在各大吃瓜群蹲守前线记者的第一手资料", { gossip: 4, care: 1 }), o("吃瓜好无聊，我从来不吃瓜", { gossip: 0 })]),
+      q("q02", "你是否会为了吃瓜，去加很多好友和群了解瓜的真相？", [o("谁说我是为了吃瓜？多个朋友多条路！", { social: 4, gossip: 2 }), o("那得看这个瓜的炸裂程度", { gossip: 4 }), o("吃瓜好无聊，我从来不吃瓜", { gossip: 0 })]),
+      q("q03", "你是否愿意为了联盟和区服发展去做各种管理、做表？", [o("掌控盟友的感觉让我心潮澎湃，做点文书工作甘之如饴", { lead: 4, care: 2 }), o("如果盟主给我发红包的话可以考虑", { care: 2, lead: 1 }), o("现实生活中当数据螺丝工还不够累吗？！", { care: 0 })]),
+      q("q04", "当你看到自己的盟友挨揍的时候，你会选择？", [o("氪服困难帮他报仇", { attack: 4, lead: 1 }), o("用外交手段帮他讨回公道", { care: 4, social: 1 }), o("在他起火的时候装不在线，事后狠狠嘲笑他", { gossip: 3 })]),
+      q("q05", "当你盟友资源不够想找你借点资源，你会选择？", [o("兄弟之间哪有什么借不借的？我的就是你的！", { care: 4, social: 1 }), o("哪怕自己也没有资源，也愿意慷慨解囊，兄弟，借了记得还！", { care: 4, lead: 1 }), o("除非TA要跟我CPDD，不然不借", { social: 4 })]),
+      q("q06", "当你看到自己战力被敌对压了一头，你会选择？", [o("怒发冲冠，礼包拉满，反超对方", { attack: 4, lead: 1 }), o("为了提升战力到处乞讨", { care: 3, social: 1 }), o("我知道你很强，但我无心与你一较高下，再见", { gossip: 1 })]),
+      q("q07", "当有人移民到你们区，因不服管理四处打架点火时，你会选择？", [o("棍棒底下出孝子，吃俺老孙一棍", { attack: 4, lead: 1 }), o("我知道你很强，但我无心与你一较高下，自己移民飞走", { social: 2 }), o("求求他别打了", { care: 4 })]),
+      q("q08", "当你看到有新区一直在打架时，是否会去创号跟着去打架？", [o("战斗爽！这榜一只有我能当！", { attack: 4, showmanship: 1 }), o("去的人多我就去", { attack: 2, social: 1 }), o("为什么你们总想着打打杀杀的，这不是种田游戏吗", { attack: 0 })]),
+      q("q09", "你是否会觉得这游戏最大的乐趣在于打架、兵工厂、王城这种活动？", [o("战斗爽！这榜一只有我能当！", { attack: 4 }), o("遇到特别装的对手，给他松松筋骨也不错", { attack: 3, showmanship: 1 }), o("为什么你们总想着打打杀杀的，这不是种田游戏吗", { attack: 0 })]),
+      q("q10", "当你们区服爆出大瓜时，你会选择？", [o("我就是这个大瓜的风暴中心！", { showmanship: 4, gossip: 2 }), o("吃瓜终于吃到自己区了，好吃爱吃", { gossip: 4 }), o("为了一点小事就吵吵吵吵吵，不堪其扰，移民离开", { social: 1 })]),
+      q("q11", "你是否会为了联盟补位，专门熬夜守活动？", [o("联盟离了我就不能转，我不能辜负大家的期待！", { care: 4, lead: 1 }), o("看情况", { care: 2 }), o("不行，我从来不熬夜", { care: 0 })]),
+      q("q12", "世界频道有人吵起来时，你更像？", [o("吃瓜雷达已开启，必须截图录屏发吃瓜群里", { gossip: 4, care: 1 }), o("唯恐天下不乱，上去拱火", { showmanship: 4, attack: 1 }), o("为了一点小事就吵吵吵吵吵，无聊", { attack: 0 })]),
+      q("q13", "联盟缺人做统计和排表时，你一般？", [o("掌控盟友的感觉让我心潮澎湃，做点文书工作甘之如饴", { care: 4, lead: 1 }), o("真正的领导者永远都是幕后Boss，安排别人来做", { lead: 4, social: 1 }), o("装死不见", { gossip: 1 })]),
+      q("q14", "看到敌对高战落单，你会？", [o("他双拳难敌四手，直接摇人围上去把他当熊打", { attack: 4, lead: 1 }), o("恐怕有诈，先报点，看管理怎么说", { lead: 4, care: 1 }), o("当没看见，我不惹事也怕事", { attack: 0 })]),
+      q("q15", "公屏有人疯狂找 CPDD，你更像？", [o("哥哥/姐姐你看我行吗", { social: 4, showmanship: 2 }), o("默默吃瓜看戏", { gossip: 4 }), o("CPDD啥意思？", { social: 0 })]),
+      q("q16", "低战萌新来问你配队时，你会？", [o("无尽中的孔子，有教无类，帮助萌新的感觉太爽了", { care: 4, social: 1 }), o("随口回答", { care: 2 }), o("厌蠢症发作，当没看见", { care: 0 })]),
+      q("q17", "联盟打输了，群里很冷，你会？", [o("输了游戏又不是输了人生，管他三七二十一的，带头嗨起来！", { showmanship: 4, social: 2 }), o("认真复盘问题，主动背锅，扛下所有", { lead: 4, care: 2 }), o("输了还有脸说话？直接把群禁言", { attack: 3, lead: 1 })]),
+      q("q18", "世界频道出现新瓜，你第一反应是？", [o("吃瓜雷达已开启，必须截图录屏掌握第一手资料", { gossip: 4, care: 1 }), o("看看吃瓜群有没有人发", { gossip: 3, social: 1 }), o("“豆包，帮我总结一下这个瓜”", { gossip: 2 })]),
+      q("q19", "别人问你氪了多少、战力多少，你通常？", [o("行得端坐的正，我凭本事氪的，恨不得昭告天下", { showmanship: 4, attack: 1 }), o("你问这个干什么？！", { attack: 2 }), o("故意报低一点，低调是我的本色", { attack: 1, lead: 1 })]),
+      q("q20", "别区有人邀请你跳槽时，你更像？", [o("邀请我跳槽？你们这个区的优势是什么", { lead: 4 }), o("摇摆不定，问平时关系好的盟友", { social: 3, care: 1 }), o("令人心动的offer！", { social: 4 })]),
+      q("q21", "联盟活动快截止了，你会？", [o("就没有我做不完的任务，无尽劳模！", { care: 4, lead: 1 }), o("量力而行", { care: 2 }), o("关我啥事啊？（懵懂）", { gossip: 0 })]),
+      q("q22", "看到有人在公屏骗资源，你会？", [o("正义使者，直接挂证据曝光", { care: 4, lead: 1 }), o("私下提醒自己人避雷", { care: 3, social: 1 }), o("关我啥事啊？（懵懂）", { gossip: 2 })]),
+      q("q23", "合服前你最像在干嘛？", [o("准备一场酣畅淋漓的战斗，当囤囤鼠囤兵囤资源", { attack: 4, lead: 2 }), o("我不惹事也不怕事，打听新区情报", { gossip: 4 }), o("关我啥事啊？（懵懂）", { gossip: 0 })]),
+      q("q24", "被敌对点火挑衅时，你一般？", [o("世界频道文曲星就是我，骂人300条不带重样的", { showmanship: 4, attack: 2 }), o("找个传话筒", { social: 3, care: 1 }), o("求求你别针对我了！", { care: 2 })]),
+      q("q25", "你是否愿意为了王城、兵工厂这类活动长期当执行位？", [o("游戏的乐趣就在于此，我愿意", { lead: 4, attack: 1 }), o("不忙的话可以", { care: 1 }), o("大佬，求求你带我赢！", { social: 2 })]),
+      q("q26", "联盟有人退盟反水时，你更像？", [o("像个绝望的农民一样问TA：这都是为啥啊", { care: 3, gossip: 1 }), o("把TA的ID记到小本本上", { attack: 2, lead: 1 }), o("打开群聊：woc你知不知道那个谁。。。", { gossip: 4, social: 1 })]),
+      q("q27", "你是否会专门潜进别的群看戏？", [o("我这个人最大的爱好就是碟中谍中谍中谍", { gossip: 4, social: 1 }), o("得看这个瓜的炸裂程度", { gossip: 3 }), o("这样不好吧，被拆穿了多尴尬", { gossip: 0 })]),
+      q("q28", "要塞炸了，当事人发红包时，你会？", [o("都是盟友说这些干啥，安慰ta，给他发个更大的红包", { care: 4, social: 1 }), o("先抢再说", { showmanship: 3, gossip: 1 }), o("假装没看见，这种事我才不掺和", { social: 0 })]),
+      q("q29", "管理天天 @ 你做事时，你最像？", [o("领导器重我，说明我有能力！管理，来，鱼头对着您！", { lead: 4, care: 1 }), o("尽量参与，不想被管理层排挤", { care: 2, social: 1 }), o("开始发疯：你天天艾特我干啥啊？", { showmanship: 2, attack: 1 })]),
+      q("q30", "有人找你借兵打架时，你一般？", [o("还有这种好事？我也要参加！", { attack: 3, social: 1 }), o("爱莫能助，帮他联系别的大佬", { social: 3, care: 1 }), o("爱兵如子，坚决不借", { care: 2 })]),
+      q("q31", "看到敌对战力压境时，你会？", [o("此时不氪什么时候氪？战斗爽！", { attack: 4 }), o("摇人！我也不是好欺负的", { lead: 2, attack: 1 }), o("天王老子来了拿我的8小时防护罩也没办法", { attack: 0 })]),
+      q("q32", "你是否愿意为了区服大势去和别人谈判协商？", [o("模拟联合国-无尽版，没有我聊不下来的合作", { lead: 4, social: 2 }), o("观望看看对方是不是好说话的人", { social: 1 }), o("大不了死区了移民走", { attack: 1 })]),
+      q("q33", "你在联盟群里更像哪种人？", [o("管理全局，盟友保姆", { lead: 3, care: 2 }), o("游戏在线2小时，群聊22小时", { social: 4, showmanship: 1 }), o("只看重要通知消息，潜水ing", { gossip: 0 })]),
+      q("q34", "面对区服内部管理冲突时，你更像？", [o("和事佬：好了好了大家别吵了听我说两句", { care: 4, lead: 1 }), o("跟哪边关系好就帮哪边", { social: 2, attack: 2 }), o("为了一点小事就吵吵吵吵吵。。。", { showmanship: 2, attack: 1 })]),
+      q("q35", "你是否会为了打架跨时差熬夜？", [o("时差算什么，我的心永远和盟友在一起", { attack: 4, care: 1 }), o("偷袭的时候可以考虑，人在干坏事的时候是不会觉得累的", { attack: 3 }), o("还是睡个好觉更重要", { attack: 0 })]),
+      q("q36", "你最享受无尽冬日里的哪种瞬间？", [o("吃到惊天大瓜", { gossip: 4 }), o("带队拿下活动，一览众山小", { lead: 4, attack: 1 }), o("把群气氛救活，和大家快乐聊天", { showmanship: 4, social: 2 })]),
+      q("q37", "打开无尽冬日，你的第一件事通常是？", [o("看看世界频道今天谁又吵起来了", { gossip: 4 }), o("直奔资源点，该采的采该屯的屯", { care: 4 }), o("打开频道找人唠嗑，先看看谁在线", { social: 4, showmanship: 1 })]),
+      q("q38", "无尽冬日里有人掏你炉子，你会？", [o("立刻全频道喊人来帮忙", { lead: 4, social: 2 }), o("立刻掏回去", { attack: 4 }), o("先截图发群里，等着看后续发展", { gossip: 4 })]),
+      q("q39", "无尽冬日更新了一个复杂的新玩法，你会？", [o("第一时间研究透彻，然后整理思路教大家", { care: 4, lead: 2 }), o("花很久反复测试每个细节，想把机制吃透", { lead: 4, care: 1 }), o("先看看频道里大家怎么讨论，等热闹和结论都出来", { gossip: 4 })]),
+      q("q40", "无尽冬日联盟里来了个萌新，你会？", [o("主动教他怎么玩，从零开始带上手", { care: 4, social: 1 }), o("先看能不能培养成打手，安排到该去的位置", { lead: 3, attack: 2 }), o("先跟他多聊两句，熟了再说", { social: 4 })]),
+      q("q41", "你的无尽冬日仓库状态通常是？", [o("满满当当，什么都舍不得用", { care: 4 }), o("每天都要整理一遍，仓库管理也是日常", { care: 3, lead: 1 }), o("资源都拿去打架消耗了，留不住", { attack: 4 })]),
+      q("q42", "无尽冬日世界频道突然爆发骂战，你会？", [o("立刻加入战局，输出拉满", { showmanship: 4, attack: 2 }), o("搬好小板凳津津有味围观，顺手留证据", { gossip: 4, care: 1 }), o("关掉频道，跟我没关系", { attack: 0 })]),
+      q("q43", "无尽冬日国战前，你通常会做什么准备？", [o("提前囤资源和加速，把后勤准备拉满", { care: 4, lead: 1 }), o("提醒大家如何备战，顺手把分工安排好", { lead: 4, care: 1 }), o("把能氪的礼包都氪了，先把硬实力顶上去", { attack: 3, lead: 1 })]),
+      q("q44", "盟友说“我被围攻了”，你的第一反应是？", [o("提醒他先保命，开罩子、躲资源、稳住", { care: 4 }), o("立刻拉部队去支援，打回去再说", { attack: 4, lead: 1 }), o("发一句加油，然后继续做自己的事", { care: 0 })]),
+      q("q45", "如果无尽冬日里有人在世界频道秀恩爱，你会？", [o("疯狂磕 cp，希望他们赶紧在一起", { social: 4, showmanship: 1 }), o("觉得有点甜，默默围观顺便吃瓜", { gossip: 4 }), o("上去调侃两句，节目效果先拉满", { showmanship: 4, social: 1 })]),
+      q("q46", "你在无尽冬日的账号打理方式更像？", [o("一个号就够了，安安静静把自己养起来", { care: 3 }), o("大号、小号、踩点号各司其职，分工明确", { lead: 4, gossip: 1 }), o("想起来就上，没什么固定节奏", { gossip: 0 })]),
+      q("q47", "联盟群里突然有人说要退盟，你会？", [o("先分析前因后果，这里面一定有瓜", { gossip: 4 }), o("去世界频道跟对方理论，先把话说清楚", { showmanship: 3, attack: 1 }), o("走就走吧，来去自由，不想管太多", { care: 0 })]),
+      q("q48", "你在无尽冬日里最享受哪种时刻？", [o("看到仓库资源爆满，心里特别踏实", { care: 4 }), o("日常任务全部刷完，成就感拉满", { care: 4, lead: 1 }), o("成功摇来一群人把敌人击退", { lead: 4, attack: 2 })]),
+      q("q49", "无尽冬日开移民了，你的第一反应是？", [o("看看又能吃到什么新瓜", { gossip: 4 }), o("去敌对区开个小号踩点，先摸清情况", { gossip: 3, lead: 1 }), o("准备给自己区招人，先把人脉铺开", { social: 4, lead: 1 })]),
+      q("q50", "无尽冬日里两个联盟发生冲突，你会？", [o("搬好小板凳，边看边截图记录", { gossip: 4 }), o("选一边加入战斗，先打了再说", { attack: 4 }), o("赶紧通知联盟所有人做好准备", { lead: 4, care: 1 })]),
+      q("q51", "你在无尽冬日世界频道看到两个人互动很亲密，你会？", [o("疯狂磕 cp，还想拉大家一起来围观", { social: 4, showmanship: 1 }), o("截图发群，新瓜到手", { gossip: 4 }), o("上去调侃两句，顺手凑个热闹", { showmanship: 4, gossip: 1 })]),
+      q("q52", "你在无尽冬日里最怕听到什么？", [o("我们和敌对和谈了", { attack: 4 }), o("你被撞矿了", { care: 3 }), o("XX 和 XX 分手了", { social: 4, gossip: 1 })]),
+      q("q53", "你在无尽冬日联盟里的日常更像？", [o("给盟友发红包，热热闹闹就对了", { care: 4, social: 1 }), o("帮联盟把集体任务肝完，活别落地上", { care: 4, lead: 1 }), o("随时准备摇人支援，谁被打就上", { lead: 4, attack: 1 })]),
+      q("q54", "你会怎么处理无尽冬日里的多余资源？", [o("不存在多余，全部囤起来", { care: 4 }), o("给 cp 开仓，资源就是拿来维系关系的", { social: 4, care: 1 }), o("给全区开仓，大家一起富起来", { lead: 4, social: 1 })]),
+      q("q55", "你在无尽冬日国战里通常更像什么角色？", [o("冲锋在前的主力输出", { attack: 4 }), o("负责协调各方力量，安排人员调度", { lead: 4, care: 1 }), o("分析阵容和弱点，给大家定战术", { lead: 4, gossip: 1 })]),
+      q("q56", "在无尽冬日里氪金这件事上，你更像？", [o("一分钱不花，全靠肝也能玩", { care: 3 }), o("适当投入，但一定要算清性价比", { lead: 3, care: 1 }), o("直接充，战力和排名就是底气", { attack: 4, lead: 1 })]),
+      q("q57", "你在无尽冬日世界频道的发言风格更像？", [o("偶尔发点好看的图，刷个存在感", { showmanship: 4, social: 1 }), o("专门发攻略和数据分析，能帮一个是一个", { gossip: 3, care: 1 }), o("有机会就顺手招人，把关系网做大", { social: 4, lead: 1 })]),
+      q("q58", "在无尽冬日的集结战里，你通常？", [o("当车头，集结我来开", { attack: 4, lead: 1 }), o("负责战前招募和组队，把人先凑齐", { social: 4, lead: 1 }), o("分析数据，定最优集结方案", { lead: 4, care: 1 })]),
+      q("q59", "无尽冬日开放新进度开始，你通常会先做什么规划？", [o("制定详细发展路线图，节奏要先定下来", { lead: 4, care: 1 }), o("先冲战力，抢榜才是第一优先级", { attack: 4, lead: 1 }), o("去别的联盟看看有没有能挖的人", { social: 4, lead: 1 })]),
+      q("q60", "无尽冬日联盟缺人了，你会怎么做？", [o("亲自去世界频道挖人", { social: 4, lead: 1 }), o("发一波红包把人气拉起来，顺便吸引人来", { care: 4, social: 1 }), o("先把内部节奏稳住，再安排后续补位", { care: 4, lead: 1 })]),
+    ];
+
+    const QUESTION_MAP = new Map(QUESTIONS.map((question) => [question.id, question]));
+    const DIMENSION_KEYS = Object.keys(DIMENSIONS);
+    const ANSWER_LETTERS = ["A", "B", "C"];
+
+    function createZeroDimensions() {
+      return Object.fromEntries(DIMENSION_KEYS.map((key) => [key, 0]));
+    }
+
+    function createSeededRandom(seedInput) {
+      let seed = 0;
+      const source = String(seedInput);
+
+      for (let index = 0; index < source.length; index += 1) {
+        seed = (seed * 31 + source.charCodeAt(index)) >>> 0;
+      }
+
+      return () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 2 ** 32;
+      };
+    }
+
+    function shuffle(values, random) {
+      const output = [...values];
+
+      for (let index = output.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(random() * (index + 1));
+        [output[index], output[swapIndex]] = [output[swapIndex], output[index]];
+      }
+
+      return output;
+    }
+
+    function getQuestionIdsForMode(modeId, seed = `${modeId}:default`) {
+      const mode = MODES[modeId];
+
+      if (!mode) {
+        throw new Error(`Unknown mode: ${modeId}`);
+      }
+
+      const quotas = MODE_BUCKET_QUOTAS[modeId];
+
+      if (!quotas) {
+        throw new Error(`Unknown mode bucket set: ${modeId}`);
+      }
+
+      const random = createSeededRandom(seed);
+      const selectedIds = [];
+
+      Object.entries(quotas).forEach(([bucket, count]) => {
+        const bucketIds = QUESTION_BUCKET_IDS[bucket];
+
+        if (!bucketIds || bucketIds.length < count) {
+          throw new Error(`Bucket ${bucket} does not have enough questions for mode ${modeId}`);
+        }
+
+        selectedIds.push(...shuffle(bucketIds, random).slice(0, count));
+      });
+
+      return shuffle(selectedIds, random);
+    }
+
+    function getQuestionsForMode(modeId, seed = `${modeId}:default`) {
+      return getQuestionIdsForMode(modeId, seed).map((id) => {
+        const question = QUESTION_MAP.get(id);
+
+        if (!question) {
+          throw new Error(`Unknown question id: ${id}`);
+        }
+
+        return question;
+      });
+    }
+
+    function scoreAnswers(modeId, answers, seed = `${modeId}:default`) {
+      const questions = getQuestionsForMode(modeId, seed);
+      const totals = createZeroDimensions();
+      const maximums = createZeroDimensions();
+
+      questions.forEach((question, index) => {
+        DIMENSION_KEYS.forEach((key) => {
+          maximums[key] += Math.max(...question.options.map((option) => option.scores[key] || 0));
+        });
+
+        const option = question.options[answers[index]];
+        if (!option) {
+          return;
+        }
+
+        DIMENSION_KEYS.forEach((key) => {
+          totals[key] += option.scores[key] || 0;
+        });
+      });
+
+      return {
+        dimensions: Object.fromEntries(
+          DIMENSION_KEYS.map((key) => {
+            const max = maximums[key];
+            const value = max === 0 ? 0 : Math.round((totals[key] / max) * 100);
+            return [key, value];
+          }),
+        ),
+      };
+    }
+
+    function pickResult(dimensions) {
+      return RESULTS.reduce((best, current) => {
+        const currentDistance = DIMENSION_KEYS.reduce((sum, key) => sum + Math.abs((dimensions[key] || 0) - current.profile[key]), 0);
+        if (!best) {
+          return { result: current, distance: currentDistance };
+        }
+        return currentDistance < best.distance ? { result: current, distance: currentDistance } : best;
+      }, null).result;
+    }
+
+    function buildShareText(result) {
+      return `我测出来是 WJTI 的“${result.name} / ${result.subtitle}”——${result.shareHook}`;
+    }
+
+    function getProgress(currentIndex, total) {
+      return total <= 0 ? 0 : Math.round(((currentIndex + 1) / total) * 100);
+    }
+
+    function getDimensionDisplayData(dimensions) {
+      return DIMENSION_KEYS.map((key) => ({
+        id: key,
+        label: DIMENSIONS[key].label,
+        accent: DIMENSIONS[key].accent,
+        value: dimensions[key] || 0,
+      }));
+    }
+
+    function canAdvance(answers, currentIndex) {
+      return Number.isInteger(answers[currentIndex]);
+    }
+
+    const state = {
+      screen: "home",
+      modeId: null,
+      questionSeed: null,
+      currentIndex: 0,
+      answers: [],
+      result: null,
+      dimensions: null,
+    };
+
+    const screenNodes = Array.from(document.querySelectorAll("[data-screen]"));
+    const modeCards = Array.from(document.querySelectorAll("[data-mode-card]"));
+    const quizToolbarProgressNode = document.querySelector("[data-quiz-toolbar-progress]");
+    const progressRemainingNode = document.querySelector("[data-progress-remaining]");
+    const progressFillNode = document.querySelector("[data-progress-fill]");
+    const questionListNode = document.querySelector("[data-question-list]");
+    const quizStatusNode = document.querySelector("[data-quiz-status]");
+    const revealButton = document.querySelector("[data-reveal-button]");
+    const backButton = document.querySelector("[data-back-button]");
+    const resultPanelNode = document.querySelector("[data-result-panel]");
+    const resultNameNode = document.querySelector("[data-result-name]");
+    const resultSubtitleNode = document.querySelector("[data-result-subtitle]");
+    const resultSummaryNode = document.querySelector("[data-result-summary]");
+    const resultDescriptionNode = document.querySelector("[data-result-description]");
+    const dimensionListNode = document.querySelector("[data-dimension-list]");
+    const shareCopyNode = document.querySelector("[data-share-copy]");
+    const copyButton = document.querySelector("[data-copy-button]");
+    const restartButton = document.querySelector("[data-restart-button]");
+    const copyFeedbackNode = document.querySelector("[data-copy-feedback]");
+    const announcementTriggerButton = document.querySelector("[data-announcement-trigger]");
+    const announcementModalNode = document.querySelector("[data-announcement-modal]");
+    const announcementCloseButton = document.querySelector("[data-announcement-close]");
+    const appreciationLinkButton = document.querySelector("[data-appreciation-link]");
+    const appreciationModalNode = document.querySelector("[data-appreciation-modal]");
+    const appreciationCloseButton = document.querySelector("[data-appreciation-close]");
+    const homeArtworkTriggerButton = document.querySelector("[data-home-artwork-trigger]");
+    const homeArtworkModalNode = document.querySelector("[data-home-artwork-modal]");
+    const homeArtworkCloseButton = document.querySelector("[data-home-artwork-close]");
+
+    function showScreen(screen) {
+      state.screen = screen;
+      screenNodes.forEach((node) => {
+        node.hidden = node.dataset.screen !== screen;
+      });
+    }
+
+    function getAnsweredCount(answers) {
+      return answers.filter((answer) => Number.isInteger(answer)).length;
+    }
+
+    function getAnsweredProgress(answers, total) {
+      return total <= 0 ? 0 : Math.round((getAnsweredCount(answers) / total) * 100);
+    }
+
+    function canRevealResult(answers, total) {
+      return total > 0 && getAnsweredCount(answers) === total;
+    }
+
+    function createQuestionSeed(modeId) {
+      return `${modeId}:${Date.now()}:${Math.random().toString(16).slice(2)}`;
+    }
+
+    function renderHome() {
+      modeCards.forEach((card) => {
+        card.classList.toggle("is-selected", state.modeId === card.dataset.modeCard && state.screen === "home");
+      });
+    }
+
+    function renderResult() {
+      if (!state.result || !state.dimensions) {
+        resultPanelNode.hidden = true;
+        return;
+      }
+
+      resultPanelNode.hidden = false;
+      resultNameNode.textContent = state.result.name;
+      resultSubtitleNode.textContent = state.result.subtitle;
+      resultSummaryNode.textContent = state.result.summary;
+      resultDescriptionNode.textContent = state.result.description;
+      shareCopyNode.textContent = buildShareText(state.result);
+      copyFeedbackNode.textContent = "复制后就能直接丢到群里。";
+      dimensionListNode.innerHTML = "";
+
+      getDimensionDisplayData(state.dimensions).forEach((dimension) => {
+        const rowNode = document.createElement("div");
+        rowNode.className = "dimension-row";
+        rowNode.innerHTML = `
+          <strong><span>${dimension.label}</span><span>${dimension.value}</span></strong>
+          <div class="dimension-meter"><div style="width: ${dimension.value}%; background: linear-gradient(90deg, ${dimension.accent}, var(--warm));"></div></div>
+        `;
+        dimensionListNode.appendChild(rowNode);
+      });
+    }
+
+    function renderQuiz() {
+      if (state.screen !== "quiz" || !state.modeId) {
+        return;
+      }
+
+      const mode = MODES[state.modeId];
+      const questions = getQuestionsForMode(state.modeId, state.questionSeed ?? `${state.modeId}:default`);
+      const answeredCount = getAnsweredCount(state.answers);
+      const remainingCount = questions.length - answeredCount;
+      const progress = getAnsweredProgress(state.answers, questions.length);
+      const revealReady = canRevealResult(state.answers, questions.length);
+
+      quizToolbarProgressNode.hidden = Boolean(state.result);
+      progressRemainingNode.textContent = `还剩 ${remainingCount} 题`;
+      progressFillNode.style.width = `${progress}%`;
+      questionListNode.innerHTML = "";
+
+      questions.forEach((question, questionIndex) => {
+        const card = document.createElement("article");
+        card.className = "question-card";
+        const selectedAnswer = state.answers[questionIndex];
+
+        const answersHtml = question.options.map((option, optionIndex) => {
+          const selectedClass = selectedAnswer === optionIndex ? " is-selected" : "";
+          const pressed = selectedAnswer === optionIndex ? "true" : "false";
+          return `
+            <button class="answer-card${selectedClass}" type="button" data-question-index="${questionIndex}" data-answer-index="${optionIndex}" aria-pressed="${pressed}">
+              <small>${ANSWER_LETTERS[optionIndex]}</small>
+              <p>${option.text}</p>
+            </button>
+          `;
+        }).join("");
+
+        card.innerHTML = `
+          <div class="question-meta">
+            <span class="eyebrow">第 ${questionIndex + 1} 题</span>
+            <span>${selectedAnswer === undefined ? "未作答" : `已选 ${ANSWER_LETTERS[selectedAnswer]}`}</span>
+          </div>
+          <p class="question-text">${question.text}</p>
+          <div class="answers">${answersHtml}</div>
+        `;
+        questionListNode.appendChild(card);
+      });
+
+      revealButton.disabled = !revealReady;
+      quizStatusNode.textContent = revealReady
+        ? "已经全部答完了。你可以手动点一下“查看结果”，看看自己在无尽冬日里到底是哪路人。"
+        : `你还差 ${questions.length - answeredCount} 题，继续往下滑，看看你到底是记者还是黑奴。`;
+
+      renderResult();
+    }
+
+    function render() {
+      renderHome();
+      renderQuiz();
+    }
+
+    function startMode(modeId) {
+      state.modeId = modeId;
+      state.questionSeed = createQuestionSeed(modeId);
+      state.currentIndex = 0;
+      state.answers = [];
+      state.result = null;
+      state.dimensions = null;
+      showScreen("quiz");
+      render();
+    }
+
+    function revealResult() {
+      const total = getQuestionsForMode(state.modeId, state.questionSeed ?? `${state.modeId}:default`).length;
+      if (!canRevealResult(state.answers, total)) {
+        return;
+      }
+
+      const scored = scoreAnswers(state.modeId, state.answers, state.questionSeed ?? `${state.modeId}:default`);
+      state.dimensions = scored.dimensions;
+      state.result = pickResult(scored.dimensions);
+      render();
+      resultPanelNode.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    modeCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        const modeId = card.dataset.modeCard;
+
+        if (state.modeId === modeId && state.answers.length > 0) {
+          state.questionSeed = state.questionSeed || createQuestionSeed(modeId);
+          showScreen("quiz");
+          render();
+          return;
+        }
+
+        startMode(modeId);
+      });
+    });
+
+    questionListNode.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-question-index][data-answer-index]");
+      if (!button) {
+        return;
+      }
+
+      const questionIndex = Number(button.dataset.questionIndex);
+      const answerIndex = Number(button.dataset.answerIndex);
+      state.answers[questionIndex] = answerIndex;
+      state.result = null;
+      state.dimensions = null;
+      renderQuiz();
+    });
+
+    revealButton.addEventListener("click", () => {
+      revealResult();
+    });
+
+    backButton.addEventListener("click", () => {
+      showScreen("home");
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    restartButton.addEventListener("click", () => {
+      state.modeId = null;
+      state.questionSeed = null;
+      state.currentIndex = 0;
+      state.answers = [];
+      state.result = null;
+      state.dimensions = null;
+      resultPanelNode.hidden = true;
+      showScreen("home");
+      render();
+    });
+
+    copyButton.addEventListener("click", async () => {
+      if (!state.result) {
+        return;
+      }
+
+      try {
+        await navigator.clipboard.writeText(buildShareText(state.result));
+        copyFeedbackNode.textContent = "已复制，去群里发吧。";
+      } catch (error) {
+        copyFeedbackNode.textContent = "复制失败了，你可以手动长按这段文案。";
+      }
+    });
+
+    announcementCloseButton.addEventListener("click", () => {
+      announcementModalNode.hidden = true;
+    });
+
+    announcementTriggerButton.addEventListener("click", () => {
+      announcementModalNode.hidden = false;
+    });
+
+    appreciationLinkButton.addEventListener("click", () => {
+      appreciationModalNode.hidden = false;
+    });
+
+    appreciationCloseButton.addEventListener("click", () => {
+      appreciationModalNode.hidden = true;
+    });
+
+    if (homeArtworkTriggerButton && homeArtworkModalNode) {
+      homeArtworkTriggerButton.addEventListener("click", () => {
+        homeArtworkModalNode.hidden = false;
+      });
+    }
+
+    if (homeArtworkCloseButton && homeArtworkModalNode) {
+      homeArtworkCloseButton.addEventListener("click", () => {
+        homeArtworkModalNode.hidden = true;
+      });
+    }
+
+    resultPanelNode.hidden = true;
+    showScreen("home");
+    render();
+  </script>
+</body>
+</html>

@@ -38,6 +38,11 @@ const {
   buildBatchResetUsername
 } = require('./admin-user-management');
 const { mountGiftcodeProxy, GIFTCODE_URL_PREFIX, GIFTCODE_SERVICE_URL, GIFTCODE_UI_MODE } = require('./giftcode-proxy');
+const {
+  mountGiftPackRoutes,
+  seedGiftPacksIfEmpty,
+  GIFT_PACKS_DDL_MYSQL
+} = require('./gift-packs');
 
 const app = express();
 const PORT = 3000;
@@ -1351,6 +1356,13 @@ async function initDB() {
     // 默认开启论坛自动审核（如果没设置过）
     const hasAuto = await queryOne('SELECT 1 AS ok FROM site_settings WHERE key = ? LIMIT 1', ['forum_auto_approve']);
     if (!hasAuto) await setForumAutoApprove(true);
+    const giftSeedPg = await seedGiftPacksIfEmpty({
+      queryOne,
+      execute,
+      rootDir: __dirname,
+      pgDatabase
+    });
+    if (giftSeedPg.seeded) console.log(`Gift packs seeded: ${giftSeedPg.count}`);
     return;
   }
 
@@ -1559,6 +1571,7 @@ async function initDB() {
       KEY idx_release_checks_risk (risk_level, created_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
+  await execute(GIFT_PACKS_DDL_MYSQL);
 
   await addColumnIfMissing('users', 'forum_publisher', 'forum_publisher TINYINT(1) NOT NULL DEFAULT 0');
   await addColumnIfMissing('users', 'is_banned', 'is_banned TINYINT(1) NOT NULL DEFAULT 0');
@@ -1590,6 +1603,14 @@ async function initDB() {
     const def = await queryOne('SELECT id FROM users WHERE login_id = ? LIMIT 1', [DEFAULT_ADMIN_LOGIN_ID]);
     if (def) await execute('UPDATE users SET is_admin = 1 WHERE id = ?', [def.id]);
   }
+
+  const giftSeed = await seedGiftPacksIfEmpty({
+    queryOne,
+    execute,
+    rootDir: __dirname,
+    pgDatabase
+  });
+  if (giftSeed.seeded) console.log(`Gift packs seeded: ${giftSeed.count}`);
 }
 
 async function getPostById(postId) {
@@ -4079,6 +4100,16 @@ app.delete('/api/calendar/schedules/:originalId', async (req, res) => {
     console.error('calendar delete failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
+});
+
+mountGiftPackRoutes({
+  app,
+  queryRows,
+  queryOne,
+  execute,
+  requireAdmin,
+  auditAdminAction,
+  pgDatabase
 });
 
 app.get('/api/bearpit/layout', async (req, res) => {

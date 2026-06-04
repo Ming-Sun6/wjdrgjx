@@ -3598,6 +3598,15 @@
             <div class="desc">&#x540C;&#x671F;&#x5206;&#x7EC4;&#x8868;&#xFF08;&#x5206;&#x7EC4;&#x521D;&#x672B;&#xFF09;+&#x9884;&#x6D4B;&#x5F00;&#x653E;&#x65E5;&#xFF0C;&#x5E76;&#x663E;&#x793A;&#x4ECA;&#x65E5;&#x8FDB;&#x5EA6;&#x4E0E;&#x4E0B;&#x671F;&#x6863;&#x4F4D;&#x3002;</div>
           </section>
 
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
+            <a class="tool-tile-link" href="function/wjti-personality-test.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9EA;</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span>&#x65E0;&#x5C3D;&#x51AC;&#x65E5;&#x4EBA;&#x683C;&#x6D4B;&#x8BD5;</div>
+            </a>
+            <div class="pill">wjti-personality-test.html</div>
+            <div class="desc">WJTI &#x4EBA;&#x683C;&#x6D4B;&#x8BD5;&#xFF1A;&#x6781;&#x901F;/&#x6807;&#x51C6;/&#x6DF1;&#x5EA6;&#x4E09;&#x6863;&#xFF0C;&#x6D4B;&#x51FA;&#x4F60;&#x662F;&#x8BB0;&#x8005;&#x3001;&#x9ED1;&#x5974;&#x3001;&#x5403;&#x74DC;&#x7FA4;&#x4F17;&#x8FD8;&#x662F;&#x6C14;&#x6C1B;&#x7EC4;&#x3002;</div>
+          </section>
+
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-gift-search="regular">
             <a class="tool-tile-link" href="function/Zero/regular-gift-data.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4E6;</div>
@@ -4563,7 +4572,19 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 
   <div class="dev-toast" id="devToast" aria-live="polite">开发中...</div>
 
-  <script src="/function/Zero/gift-pack-search-blobs.js"></script>
+  <script>
+    window.__giftPackSearchBlobs = null;
+    window.__giftPackSearchBlobsPromise = fetch('/api/gift-packs/search-blobs', { credentials: 'same-origin' })
+      .then(function(r){ return r.json().then(function(d){ if(!r.ok) throw new Error(d&&d.error||r.status); return d; }); })
+      .then(function(d){
+        window.__giftPackSearchBlobs = (d && d.blobs) ? d.blobs : { regular: [], special: [] };
+        return window.__giftPackSearchBlobs;
+      })
+      .catch(function(){
+        window.__giftPackSearchBlobs = { regular: [], special: [] };
+        return window.__giftPackSearchBlobs;
+      });
+  </script>
   <script>
     // 登录/注册（JWT HttpOnly Cookie）
     let authUser=null,authChecked=false;
@@ -8705,9 +8726,19 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       function renderGiftPackHints(normQ){
         var el=document.getElementById('giftPackSearchHint');
         if(!el) return;
-        if(activeTab!=='all'||!normQ||!window.__giftPackSearchBlobs){
+        if(activeTab!=='all'||!normQ){
           el.innerHTML='';
           el.classList.remove('open');
+          return;
+        }
+        if(!window.__giftPackSearchBlobs){
+          el.innerHTML='<div class="gift-pack-search-hint-head">礼包道具命中</div><div class="gift-pack-search-hint-row">正在加载礼包索引…</div>';
+          el.classList.add('open');
+          if(window.__giftPackSearchBlobsPromise){
+            window.__giftPackSearchBlobsPromise.then(function(){
+              if(typeof window.__refreshHomeSearch==='function') window.__refreshHomeSearch();
+            });
+          }
           return;
         }
         var r=collectGiftPackMatches('regular',normQ);
