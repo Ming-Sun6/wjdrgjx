@@ -186,61 +186,145 @@
       gap: 8px;
       flex-wrap: wrap;
     }
-    .viewer-actions a,
-    .viewer-actions button {
+    .viewer-actions a {
       appearance: none;
-      border: 1px solid var(--line);
+      border: 1px solid transparent;
       border-radius: 10px;
-      padding: 8px 12px;
-      font-size: 0.82rem;
+      padding: 9px 14px;
+      font-size: 0.86rem;
       font-weight: 800;
       font-family: inherit;
       cursor: pointer;
       text-decoration: none;
-      color: var(--text);
-      background: #fff;
-    }
-    .viewer-actions a.primary {
-      background: linear-gradient(90deg, #e85d4c, #f07a5c);
-      border-color: transparent;
       color: #fff;
+      background: linear-gradient(90deg, #e85d4c, #f07a5c);
+      box-shadow: 0 8px 18px rgba(232, 93, 76, 0.28);
     }
-    .viewer-frame-wrap {
-      position: relative;
+    .viewer-actions a:hover {
+      filter: brightness(1.05);
+    }
+    .guide-preview-wrap {
+      display: flex;
+      flex-direction: column;
       min-height: 70vh;
+      background: #fffaf7;
+    }
+    .guide-preview-notice {
+      margin: 12px 14px 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(232, 93, 76, 0.25);
+      background: rgba(255, 237, 230, 0.9);
+      font-size: 0.84rem;
+      line-height: 1.6;
+      color: var(--text);
+    }
+    .guide-intro {
+      margin: 10px 14px 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
       background: #fff;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      color: var(--text);
     }
-    #guideFrame {
-      width: 100%;
-      height: 100%;
-      min-height: 70vh;
-      border: 0;
-      display: block;
-      background: #fff;
-    }
-    .embed-fallback {
-      display: none;
-      position: absolute;
-      inset: 0;
-      padding: 24px;
-      text-align: center;
-      background: rgba(255, 252, 250, 0.96);
-      align-content: center;
-      justify-items: center;
-      gap: 12px;
-    }
-    .embed-fallback.show { display: grid; }
-    .embed-fallback p {
-      max-width: 420px;
-      color: var(--muted);
+    .guide-intro-title {
+      font-weight: 900;
       font-size: 0.9rem;
-      line-height: 1.65;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+    .guide-intro-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 16px;
+    }
+    .guide-intro-grid.single { grid-template-columns: 1fr; }
+    .guide-intro-col h4 {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .guide-intro-col ul {
+      margin: 0;
+      padding-left: 1.15em;
+    }
+    .guide-intro-col li {
+      margin-bottom: 4px;
+    }
+    .guide-intro-col li span.sub {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    @media (max-width: 640px) {
+      .guide-intro-grid { grid-template-columns: 1fr; }
+    }
+    .guide-preview-scroll {
+      flex: 1;
+      overflow: auto;
+      padding: 12px 14px 16px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .guide-preview-link {
+      display: block;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #fff;
+      box-shadow: 0 10px 28px rgba(61, 42, 36, 0.1);
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.15s;
+    }
+    .guide-preview-link:hover {
+      box-shadow: 0 14px 32px rgba(232, 93, 76, 0.18);
+      transform: translateY(-1px);
+    }
+    .guide-preview-link img {
+      width: 100%;
+      height: auto;
+      display: block;
+      vertical-align: top;
+    }
+    .guide-preview-hint {
+      padding: 10px 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px dashed var(--line);
+      background: #fff;
+    }
+    .guide-preview-footer {
+      padding: 0 14px 14px;
+      display: flex;
+      justify-content: center;
+    }
+    .guide-open-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: min(100%, 320px);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      text-decoration: none;
+      color: #fff;
+      background: linear-gradient(90deg, #e85d4c, #f07a5c);
+      box-shadow: 0 10px 22px rgba(232, 93, 76, 0.3);
+    }
+    .guide-open-btn:hover {
+      filter: brightness(1.05);
     }
     @media (max-width: 920px) {
       .layout { grid-template-columns: 1fr; }
       #guideNavMobile { display: block; }
       .guide-nav-desktop { display: none; }
-      .viewer { min-height: 72vh; }
+      .viewer { min-height: auto; }
+      .guide-preview-wrap { min-height: 50vh; }
     }
   </style>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
@@ -253,7 +337,7 @@
   <div class="layout">
     <header class="hub-intro">
       <h1>甜甜的攻略站</h1>
-      <p>选择下方版本在页面内查看金山文档攻略；若内嵌无法加载，可点击「新窗口打开」。</p>
+      <p>金山文档不允许在其它网站内嵌显示。请选择版本后，点击「打开完整攻略」或预览图，将在新标签页打开可正常浏览的文档。</p>
     </header>
     <nav id="guideNav" aria-label="攻略版本">
       <div class="guide-nav-label">选择版本</div>
@@ -264,15 +348,22 @@
       <div class="viewer-head">
         <h2 id="viewerTitle">攻略 1.0</h2>
         <div class="viewer-actions">
-          <a id="openExternal" class="primary" href="#" target="_blank" rel="noopener noreferrer">新窗口打开</a>
-          <button type="button" id="reloadFrame">重新加载</button>
+          <a id="openExternal" href="#" target="_blank" rel="noopener noreferrer">打开完整攻略</a>
         </div>
       </div>
-      <div class="viewer-frame-wrap">
-        <iframe id="guideFrame" title="金山文档攻略" allow="clipboard-read; clipboard-write" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        <div class="embed-fallback" id="embedFallback">
-          <p>当前环境可能无法内嵌金山文档。请点击下方按钮在浏览器新标签页中查看完整攻略。</p>
-          <a class="primary" id="fallbackOpen" href="#" target="_blank" rel="noopener noreferrer">打开完整攻略</a>
+      <div class="guide-preview-wrap">
+        <p class="guide-preview-notice" id="guideNotice">
+          下方为攻略目录预览。完整表格与跳转链接请在金山文档中查看。
+        </p>
+        <div class="guide-intro" id="guideIntro" aria-live="polite"></div>
+        <div class="guide-preview-scroll">
+          <a class="guide-preview-link" id="previewLink" href="#" target="_blank" rel="noopener noreferrer">
+            <img id="guidePreviewImg" src="/function/assets/tiantian-strategy/strategy-v1.png" alt="攻略预览" loading="lazy" />
+            <div class="guide-preview-hint">点击预览图也可打开金山文档</div>
+          </a>
+        </div>
+        <div class="guide-preview-footer">
+          <a class="guide-open-btn" id="openExternalBottom" href="#" target="_blank" rel="noopener noreferrer">打开完整攻略（金山文档）</a>
         </div>
       </div>
     </main>
@@ -282,36 +373,133 @@
       {
         id: "v1",
         title: "攻略 1.0",
-        desc: "活动与礼包等基础攻略合集",
+        desc: "英雄 / 装备 / 建筑科技 / 活动地图等数据总表",
         url: "https://www.kdocs.cn/l/cldgpTzd4shi",
-        thumb: "/function/assets/tiantian-strategy/strategy-v1.png"
+        thumb: "/function/assets/tiantian-strategy/strategy-v1.png",
+        introTitle: "文档主要内容（目录）",
+        introCols: [
+          {
+            items: [
+              "英雄图鉴",
+              "英雄星级、专武、基础加成",
+              "1–6 代宠物技能资料",
+              "1–5 代宠物推荐",
+              "宝石",
+              "领主装备",
+              "英雄装备升级",
+              "英雄装备专精",
+              "工程站",
+              "战争学院科技",
+              "火晶建筑",
+              "战争学院建筑",
+              "科技",
+              "1–30 建筑",
+              "火晶建筑明细"
+            ]
+          },
+          {
+            items: [
+              "活动攻略",
+              "峡谷会战",
+              "燃霜地图",
+              "兵工厂地图",
+              "霜龙霸主",
+              "霜龙问答",
+              "统帅",
+              "商店推荐汇总",
+              "堡垒要塞奖励",
+              "专家",
+              "宠物突破洗炼"
+            ],
+            notes: [
+              "活动攻略含：峡谷会战、猎熊行动、佣兵荣耀、燃霜矿区、最强王国、烈日城堡、Buff 效果表等",
+              "含各代英雄、消耗 / 加成 / 评分，火晶 1–10、战争学院 1–8 等分项"
+            ]
+          }
+        ]
       },
       {
         id: "v2",
         title: "攻略 2.0",
         desc: "无尽冬日活动数据攻略 2.0",
         url: "https://www.kdocs.cn/l/ckjScgTNxJ1k",
-        thumb: "/function/assets/tiantian-strategy/strategy-v2.png"
+        thumb: "/function/assets/tiantian-strategy/strategy-v2.png",
+        introTitle: "文档主要内容（目录）",
+        introCols: [
+          {
+            items: [
+              "移民",
+              "最强领主",
+              "最强王国",
+              "冻土之王",
+              "联盟总动员",
+              "联盟大作战",
+              "烈焰与獠牙，火晶激活",
+              "兵数值",
+              "英雄数据",
+              "常规小活动合集",
+              "礼包周期 / 活动周期",
+              "特惠礼包",
+              "常规礼包",
+              "周卡月卡",
+              "弹窗礼包",
+              "活动礼包",
+              "活动奖励",
+              "材料消耗不同活动积分",
+              "里程碑",
+              { text: "晨曦岛", sub: "生命之树，伐木小屋" },
+              { text: "晨曦岛问答", sub: "注意事项" },
+              "晨曦岛建筑图鉴"
+            ]
+          }
+        ]
       },
       {
         id: "v3",
         title: "攻略 3.0",
-        desc: "文档目录与礼包活动索引",
+        desc: "活动、商铺与礼包文档索引（21 项）",
         url: "https://www.kdocs.cn/l/coxD6BjbYRsd",
-        thumb: "/function/assets/tiantian-strategy/strategy-v3.png"
+        thumb: "/function/assets/tiantian-strategy/strategy-v3.png",
+        introTitle: "文档内容（点击跳转）",
+        introCols: [
+          {
+            items: [
+              "1. 秘宝猎人",
+              "2. 逐光之旅",
+              "3. 雪原大冒险",
+              "4. 喀莎许愿屋",
+              "5. 节日活动道具礼包",
+              "6. 宴席活动 + 加餐礼包",
+              "7. 海岛皮肤礼包",
+              "8. 银霜商铺",
+              "9. 特惠礼包合集",
+              "10. 常规礼包合集",
+              "11. 霜龙行军和宴席",
+              "12. 龙裔商旅",
+              "13. 万象杂货铺",
+              "14. 2025 元宵礼包",
+              "15. 2025 情人节商铺",
+              "16. 遗失的珍宝",
+              "17. 钓鱼套装",
+              "18. 冰封的宝藏",
+              "19. 除雪礼包",
+              "20. 弹窗礼包",
+              "21. 周卡"
+            ]
+          }
+        ]
       }
     ];
 
     var guideNavDesktop = document.getElementById("guideNavDesktop");
     var guideNavMobile = document.getElementById("guideNavMobile");
-    var guideFrame = document.getElementById("guideFrame");
     var viewerTitle = document.getElementById("viewerTitle");
     var openExternal = document.getElementById("openExternal");
-    var fallbackOpen = document.getElementById("fallbackOpen");
-    var embedFallback = document.getElementById("embedFallback");
-    var reloadFrameBtn = document.getElementById("reloadFrame");
+    var openExternalBottom = document.getElementById("openExternalBottom");
+    var previewLink = document.getElementById("previewLink");
+    var guidePreviewImg = document.getElementById("guidePreviewImg");
+    var guideIntro = document.getElementById("guideIntro");
     var currentId = GUIDES[0].id;
-    var embedTimer = null;
 
     function escapeHtml(v) {
       return String(v)
@@ -325,11 +513,49 @@
       return GUIDES.filter(function (g) { return g.id === id; })[0] || GUIDES[0];
     }
 
-    function embedUrl(shareUrl) {
-      var url = String(shareUrl || "").trim();
-      if (!url) return url;
-      if (url.indexOf("/office/l/") !== -1) return url;
-      return url.replace("://www.kdocs.cn/l/", "://www.kdocs.cn/office/l/");
+    function setOpenLinks(url, title) {
+      openExternal.href = url;
+      openExternalBottom.href = url;
+      previewLink.href = url;
+      openExternal.textContent = "打开「" + title + "」";
+      openExternalBottom.textContent = "打开完整攻略（金山文档）";
+    }
+
+    function renderIntro(guide) {
+      if (!guideIntro) return;
+      var cols = guide.introCols || [];
+      var gridClass = cols.length > 1 ? "guide-intro-grid" : "guide-intro-grid single";
+      var html =
+        '<div class="guide-intro-title">' +
+        escapeHtml(guide.introTitle || "文档目录") +
+        "</div><div class=\"" +
+        gridClass +
+        '">';
+      cols.forEach(function (col) {
+        html += '<div class="guide-intro-col"><ul>';
+        (col.items || []).forEach(function (item, idx) {
+          if (typeof item === "string") {
+            html += "<li>" + escapeHtml(item) + "</li>";
+          } else if (item && item.text) {
+            html +=
+              "<li>" +
+              escapeHtml(item.text) +
+              (item.sub ? ' <span class="sub">（' + escapeHtml(item.sub) + "）</span>" : "") +
+              "</li>";
+          }
+        });
+        html += "</ul>";
+        if (col.notes && col.notes.length) {
+          html += '<ul style="margin-top:8px;list-style:none;padding-left:0;">';
+          col.notes.forEach(function (note) {
+            html += '<li style="margin-bottom:6px;color:var(--muted);font-size:0.78rem;">※ ' + escapeHtml(note) + "</li>";
+          });
+          html += "</ul>";
+        }
+        html += "</div>";
+      });
+      html += "</div>";
+      guideIntro.innerHTML = html;
     }
 
     function setActiveNav(id) {
@@ -339,30 +565,15 @@
       if (guideNavMobile.value !== id) guideNavMobile.value = id;
     }
 
-    function scheduleEmbedCheck() {
-      if (embedTimer) clearTimeout(embedTimer);
-      embedFallback.classList.remove("show");
-      embedTimer = setTimeout(function () {
-        try {
-          var doc = guideFrame.contentDocument || (guideFrame.contentWindow && guideFrame.contentWindow.document);
-          if (!doc) {
-            embedFallback.classList.add("show");
-          }
-        } catch (_e) {
-          /* cross-origin: iframe loaded, assume OK */
-        }
-      }, 4500);
-    }
-
     function loadGuide(id) {
       var guide = guideById(id);
       currentId = guide.id;
       setActiveNav(guide.id);
       viewerTitle.textContent = guide.title;
-      openExternal.href = guide.url;
-      fallbackOpen.href = guide.url;
-      guideFrame.src = embedUrl(guide.url);
-      scheduleEmbedCheck();
+      guidePreviewImg.src = guide.thumb;
+      guidePreviewImg.alt = guide.title + " 目录预览";
+      setOpenLinks(guide.url, guide.title);
+      renderIntro(guide);
       if (typeof window.matchMedia === "function" && window.matchMedia("(max-width: 920px)").matches) {
         var viewer = document.querySelector(".viewer");
         if (viewer && viewer.scrollIntoView) viewer.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -391,14 +602,6 @@
         loadGuide(guideNavMobile.value);
       });
     }
-
-    reloadFrameBtn.addEventListener("click", function () {
-      loadGuide(currentId);
-    });
-
-    guideFrame.addEventListener("load", function () {
-      if (embedTimer) clearTimeout(embedTimer);
-    });
 
     renderNav();
     loadGuide(GUIDES[0].id);
