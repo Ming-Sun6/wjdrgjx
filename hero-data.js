@@ -387,7 +387,7 @@ function mountHeroDataRoutes(deps) {
           `
           INSERT INTO hero_generations
             (slug,generation_num,page_title,hub_title,hub_desc,hub_tag,heroes_json,sort_order,enabled,updated_at)
-          VALUES (?,?,?,?,?,?::jsonb,?,?,?,CURRENT_TIMESTAMP(3))
+          VALUES (?,?,?,?,?,?,?::jsonb,?,?,CURRENT_TIMESTAMP(3))
           `,
           [
             gen.slug,

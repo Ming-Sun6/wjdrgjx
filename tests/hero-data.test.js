@@ -72,6 +72,10 @@ test('server supports creating and deleting hero generations', () => {
   const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'hero-data.js'), 'utf8');
   assert.match(moduleSource, /app\.post\('\/api\/admin\/hero-generations',/);
   assert.match(moduleSource, /app\.delete\('\/api\/admin\/hero-generations\/:id'/);
+  assert.match(
+    moduleSource,
+    /INSERT INTO hero_generations[\s\S]*hub_tag,heroes_json[\s\S]*VALUES \(\?,\?,\?,\?,\?,\?,\?::jsonb,\?,\?,CURRENT_TIMESTAMP\(3\)\)/
+  );
 });
 
 test('admin page includes hero data management menu and script', () => {
