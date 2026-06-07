@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script id="wjdr-force-https">
+  (function(){
+    if(window.__wjdrForceHttps)return;
+    window.__wjdrForceHttps=true;
+    if(location.protocol!=='http:')return;
+    var host=location.hostname;
+    if(host==='localhost'||host==='127.0.0.1')return;
+    location.replace('https://'+location.host+location.pathname+location.search+location.hash);
+  })();
+  </script>
   <script id="wjdr-block-ctrl-u">
   (function(){
     if(window.__wjdrBlockCtrlU)return;
@@ -779,6 +789,7 @@
         <button class="side-item" type="button" data-page="review" data-moderator-only="1">审核中心</button>
         <button class="side-item" type="button" data-page="blackroom" data-admin-only="1">小黑屋</button>
         <button class="side-item" type="button" data-page="users" data-admin-only="1">网站用户</button>
+        <button class="side-item" type="button" data-page="activation-codes" data-admin-only="1">激活码</button>
         <button class="side-item" type="button" data-page="calendar" data-admin-only="1">活动日历</button>
         <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
         <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
@@ -1405,6 +1416,76 @@
           </div>
         </section>
 
+        <section class="card page" id="page-activation-codes" data-page="activation-codes">
+          <div class="page-title">激活码管理</div>
+          <p class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
+            创建积分激活码或会员激活码。用户可在「我的信息」页面兑换；每个用户对同一激活码仅可使用一次。
+          </p>
+          <div class="activation-create-grid">
+            <div class="form-group ac-span-3">
+              <label for="activationCodeType">类型</label>
+              <select id="activationCodeType">
+                <option value="points">积分激活码</option>
+                <option value="membership">会员激活码</option>
+              </select>
+            </div>
+            <div class="form-group ac-span-3" id="activationPointsWrap">
+              <label for="activationPointsAmount">积分数量</label>
+              <input id="activationPointsAmount" type="number" min="1" max="1000000" step="1" value="10" />
+            </div>
+            <div class="form-group ac-span-3" id="activationMembershipWrap" style="display:none;">
+              <label for="activationMembershipDays">会员时长</label>
+              <select id="activationMembershipDays">
+                <option value="30">30 天</option>
+                <option value="90">90 天</option>
+                <option value="180">180 天</option>
+                <option value="365">365 天</option>
+                <option value="lifetime">永久会员</option>
+              </select>
+            </div>
+            <div class="form-group ac-span-3">
+              <label for="activationMaxUses">可用次数</label>
+              <input id="activationMaxUses" type="number" min="1" max="100000" step="1" value="1" />
+            </div>
+            <div class="form-group ac-span-4">
+              <label for="activationExpiresAt">过期时间（可选）</label>
+              <input id="activationExpiresAt" type="datetime-local" />
+            </div>
+            <div class="form-group ac-span-4">
+              <label for="activationCustomCode">自定义码（留空自动生成）</label>
+              <input id="activationCustomCode" maxlength="32" placeholder="例如：WJDR2026VIP" />
+            </div>
+            <div class="form-group ac-span-12">
+              <label for="activationNote">备注</label>
+              <input id="activationNote" maxlength="120" placeholder="例如：春节活动码" />
+            </div>
+            <div class="form-group ac-span-12" style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn" id="activationCreateBtn" type="button">创建激活码</button>
+              <button class="btn secondary" id="activationReloadBtn" type="button">刷新列表</button>
+            </div>
+          </div>
+          <div class="admin-status" id="activationCodesStatus"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:180px;">激活码</th>
+                  <th style="width:90px;">类型</th>
+                  <th style="width:120px;">面值</th>
+                  <th style="width:100px;">已用/总量</th>
+                  <th style="width:150px;">过期时间</th>
+                  <th style="min-width:120px;">备注</th>
+                  <th style="width:150px;">创建时间</th>
+                  <th style="width:90px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="activationCodesTbody">
+                <tr><td colspan="8" style="color:var(--muted);">请先登录管理员账号。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="card page" id="page-announcement" data-page="announcement">
           <div class="page-title">发布公告</div>
           <div class="calendar-admin">
@@ -1967,21 +2048,93 @@
         sel.addRange(range);
       }
     }
-    function wrapSelectionWithSpanStyle(styleText){
+    var savedAnnouncementSelection=null;
+    function saveAnnouncementSelection(){
+      var editor=document.getElementById('announcementContent');
+      var sel=window.getSelection && window.getSelection();
+      if(!editor || !sel || !sel.rangeCount) return;
+      var range=sel.getRangeAt(0);
+      if(!editor.contains(range.commonAncestorContainer)) return;
+      savedAnnouncementSelection=range.cloneRange();
+    }
+    function restoreAnnouncementSelection(){
+      if(!savedAnnouncementSelection) return false;
+      var sel=window.getSelection && window.getSelection();
+      if(!sel) return false;
+      sel.removeAllRanges();
+      sel.addRange(savedAnnouncementSelection);
+      return true;
+    }
+    function parseInlineStyleText(styleText){
+      var map={};
+      String(styleText||'').split(';').forEach(function(part){
+        var idx=part.indexOf(':');
+        if(idx<0) return;
+        var key=part.slice(0,idx).trim().toLowerCase();
+        var val=part.slice(idx+1).trim();
+        if(key && val) map[key]=val;
+      });
+      return map;
+    }
+    function inlineStyleMapToText(map){
+      return Object.keys(map).map(function(key){ return key+':'+map[key]; }).join(';');
+    }
+    function mergeInlineStyleText(existing, addition){
+      var base=parseInlineStyleText(existing);
+      var add=typeof addition==='string' ? parseInlineStyleText(addition) : addition;
+      Object.keys(add||{}).forEach(function(key){ base[key]=add[key]; });
+      return inlineStyleMapToText(base);
+    }
+    function applyAnnouncementEditorStyle(styleText){
+      var editor=document.getElementById('announcementContent');
+      if(!editor) return false;
+      editor.focus();
+      restoreAnnouncementSelection();
       var sel=window.getSelection && window.getSelection();
       if(!sel || !sel.rangeCount) return false;
       var range=sel.getRangeAt(0);
       if(range.collapsed) return false;
-      var span=document.createElement('span');
-      span.setAttribute('style', styleText);
-      try{
-        range.surroundContents(span);
-        return true;
-      }catch(e){
-        var html='<span style="'+String(styleText||'').replace(/"/g,'&quot;')+'">'+sel.toString().replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</span>';
-        insertHtmlAtCursor(html);
+      if(!editor.contains(range.commonAncestorContainer)) return false;
+      var styleMap=parseInlineStyleText(styleText);
+      if(styleMap.color){
+        try{
+          document.execCommand('styleWithCSS',false,true);
+          document.execCommand('foreColor',false,styleMap.color);
+          delete styleMap.color;
+          if(!Object.keys(styleMap).length){
+            saveAnnouncementSelection();
+            return true;
+          }
+          restoreAnnouncementSelection();
+          sel=window.getSelection();
+          if(!sel || !sel.rangeCount) return false;
+          range=sel.getRangeAt(0);
+          if(range.collapsed) return false;
+        }catch(_e){}
+      }
+      var contents;
+      try{ contents=range.extractContents(); }catch(_e){ return false; }
+      var single=contents.childNodes.length===1 ? contents.firstChild : null;
+      if(single && single.nodeType===1 && single.tagName==='SPAN'){
+        single.setAttribute('style',mergeInlineStyleText(single.getAttribute('style')||'',styleMap));
+        range.insertNode(single);
+        range.selectNodeContents(single);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        saveAnnouncementSelection();
         return true;
       }
+      var span=document.createElement('span');
+      span.setAttribute('style',inlineStyleMapToText(styleMap));
+      span.appendChild(contents);
+      range.insertNode(span);
+      range.selectNodeContents(span);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      saveAnnouncementSelection();
+      return true;
     }
 
     async function publishAnnouncement(){
@@ -3978,6 +4131,7 @@
       else if(currentPage==='gift-packs'){ if(typeof window.loadGiftPacksAdmin==='function') window.loadGiftPacksAdmin(); }
       else if(currentPage==='heroes'){ if(typeof window.loadHeroesAdmin==='function') window.loadHeroesAdmin(); }
       else if(currentPage==='bearpit-data'){ if(typeof window.loadBearpitAdmin==='function') window.loadBearpitAdmin(); }
+      else if(currentPage==='activation-codes'){ if(typeof window.loadActivationCodesAdmin==='function') window.loadActivationCodesAdmin(); }
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='voices') loadUserVoices();
@@ -4165,6 +4319,9 @@
       if(editor){
         editor.addEventListener('input',function(){ updateAnnouncementCount(); });
         editor.addEventListener('blur',function(){ updateAnnouncementCount(); });
+        editor.addEventListener('mouseup',saveAnnouncementSelection);
+        editor.addEventListener('keyup',saveAnnouncementSelection);
+        editor.addEventListener('focus',saveAnnouncementSelection);
         updateAnnouncementCount();
       }
       if(toolbar){
@@ -4180,23 +4337,28 @@
         });
       }
       if(fontSize){
+        fontSize.addEventListener('mousedown',function(){ saveAnnouncementSelection(); });
         fontSize.addEventListener('change',function(){
           var v=String(this.value||'').trim();
           if(!v) return;
-          if(editor) editor.focus();
-          wrapSelectionWithSpanStyle('font-size:'+v+';');
+          applyAnnouncementEditorStyle('font-size:'+v+';');
           this.value='';
           updateAnnouncementCount();
         });
       }
       if(color){
-        color.addEventListener('change',function(){
-          var v=String(this.value||'').trim();
-          if(!v) return;
-          if(editor) editor.focus();
-          wrapSelectionWithSpanStyle('color:'+v+';');
-          updateAnnouncementCount();
+        color.addEventListener('mousedown',function(e){
+          saveAnnouncementSelection();
+          e.preventDefault();
         });
+        function applyAnnouncementColor(){
+          var v=String(color.value||'').trim();
+          if(!v) return;
+          applyAnnouncementEditorStyle('color:'+v+';');
+          updateAnnouncementCount();
+        }
+        color.addEventListener('input',applyAnnouncementColor);
+        color.addEventListener('change',applyAnnouncementColor);
       }
       if(insertImageBtn && picker){
         insertImageBtn.addEventListener('click',function(){
@@ -4242,6 +4404,7 @@
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
   <script src="/function/admin-heroes-page.js?v=6"></script>
   <script src="/function/admin-bearpit-page.js?v=1"></script>
+  <script src="/function/admin-activation-codes-page.js?v=1"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){

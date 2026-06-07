@@ -439,16 +439,14 @@
 
   .tool-tile-name {
     font-size:.78rem !important;
-    line-height:1.16 !important;
+    line-height:1.28 !important;
     width:100%;
   }
 
-  .tool-tile-title-text {
-    font-size:inherit !important;
-    line-height:inherit !important;
-    -webkit-line-clamp:2 !important;
+  .tool-tile-name-inner {
+    max-width:100%;
     word-break:keep-all;
-    overflow-wrap:anywhere;
+    overflow-wrap:break-word;
   }
 
   .changelog-btn {

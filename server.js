@@ -53,6 +53,7 @@ const {
   seedHeroGenerationsIfEmpty,
   HERO_GENERATIONS_DDL_MYSQL
 } = require('./hero-data');
+const { mountUserRewardsRoutes, ensureUserRewardsSchema } = require('./user-rewards');
 
 const app = express();
 const PORT = 3000;
@@ -110,6 +111,34 @@ let analyticsService = null;
 let dashboardHandlers = null;
 let governanceService = null;
 
+function isHttpsRequest(req) {
+  if (req && req.secure) return true;
+  const xfProto = String(req?.headers?.['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
+  return xfProto === 'https';
+}
+
+function shouldForceHttps(req) {
+  const flag = String(process.env.FORCE_HTTPS || '1').trim().toLowerCase();
+  if (flag === '0' || flag === 'false' || flag === 'off') return false;
+  const host = String(req?.headers?.host || '').split(':')[0].trim().toLowerCase();
+  if (!host || host === 'localhost' || host === '127.0.0.1') return false;
+  return !isHttpsRequest(req);
+}
+
+app.use((req, res, next) => {
+  if (shouldForceHttps(req)) {
+    const host = String(req.headers.host || '').trim();
+    if (host) {
+      const target = `https://${host}${req.originalUrl || req.url || '/'}`;
+      return res.redirect(301, target);
+    }
+  }
+  if (isHttpsRequest(req)) {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
 const giftcodeStaticDir = path.join(__dirname, 'public', 'giftcode');
 if (GIFTCODE_UI_MODE !== 'live') {
   app.get(['/giftcode', '/giftcode/'], (_req, res) => {
@@ -120,12 +149,6 @@ if (GIFTCODE_UI_MODE !== 'live') {
 mountGiftcodeProxy(app);
 app.use(express.json({ limit: '8mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
-
-function isHttpsRequest(req) {
-  if (req && req.secure) return true;
-  const xfProto = String(req?.headers?.['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
-  return xfProto === 'https';
-}
 
 // 避免中间层/浏览器把“带登录态”的 API 响应缓存，导致不同用户看到同一份响应（典型表现：打开网站像是登录了别人）。
 // 如需对个别公共接口做缓存，应该在对应 handler 里显式覆盖 Cache-Control。
@@ -855,6 +878,7 @@ function toUserPayload(row) {
     forumPublisher: Number(row.forum_publisher) === 1,
     isBanned: Number(row.is_banned) === 1,
     mutedUntil: row.muted_until || null,
+    points: Math.max(0, Number(row.points || 0)),
     createdAt: row.created_at || null
   };
 }
@@ -1380,6 +1404,7 @@ async function initDB() {
       pgDatabase
     });
     if (heroSeedPg.seeded) console.log(`Hero generations seeded: ${heroSeedPg.count}`);
+    await ensureUserRewardsSchema({ execute, pgDatabase, addColumnIfMissing });
     return;
   }
 
@@ -1638,6 +1663,8 @@ async function initDB() {
     pgDatabase
   });
   if (heroSeed.seeded) console.log(`Hero generations seeded: ${heroSeed.count}`);
+
+  await ensureUserRewardsSchema({ execute, pgDatabase, addColumnIfMissing });
 }
 
 async function getPostById(postId) {
@@ -4164,6 +4191,20 @@ mountHeroDataRoutes({
   execute,
   requireAdmin,
   auditAdminAction,
+  pgDatabase
+});
+
+mountUserRewardsRoutes({
+  app,
+  queryRows,
+  queryOne,
+  execute,
+  requireAuth,
+  requireAdmin,
+  auditAdminAction,
+  formatSqlDateTime,
+  toUserPayload,
+  attachFollowCountsToUserPayload,
   pgDatabase
 });
 

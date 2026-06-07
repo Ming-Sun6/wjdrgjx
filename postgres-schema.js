@@ -62,6 +62,7 @@ const POSTGRES_SCHEMA_SQL = [
     gender varchar(16) NOT NULL DEFAULT 'unknown',
     birthday date NULL,
     birthday_public smallint NOT NULL DEFAULT 0,
+    points integer NOT NULL DEFAULT 0,
     created_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
   )
   `,

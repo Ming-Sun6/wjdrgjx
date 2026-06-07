@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script id="wjdr-force-https">
+  (function(){
+    if(window.__wjdrForceHttps)return;
+    window.__wjdrForceHttps=true;
+    if(location.protocol!=='http:')return;
+    var host=location.hostname;
+    if(host==='localhost'||host==='127.0.0.1')return;
+    location.replace('https://'+location.host+location.pathname+location.search+location.hash);
+  })();
+  </script>
   <script id="wjdr-block-ctrl-u">
   (function(){
     if(window.__wjdrBlockCtrlU)return;
@@ -23,14 +33,14 @@
   <meta property="og:site_name" content="无尽冬日工具箱" />
   <meta property="og:title" content="无尽冬日工具箱" />
   <meta property="og:description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
-  <meta property="og:url" content="http://wjgl.store/" />
-  <meta property="og:image" content="http://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
+  <meta property="og:url" content="https://wjgl.store/" />
+  <meta property="og:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="675" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="无尽冬日工具箱" />
   <meta name="twitter:description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
-  <meta name="twitter:image" content="http://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
+  <meta name="twitter:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
   <meta name="baidu-site-verification" content="codeva-BN4sg0Yffy" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>无尽冬日工具箱</title>
@@ -1330,37 +1340,24 @@
     }
     .tool-tile-name{
       font-size:.92rem;
-      line-height:1.25;
+      line-height:1.32;
       color:#0f172a;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
-      gap:0;
-      flex-wrap:wrap;
-      max-width:100%;
+      width:100%;
+      text-align:center;
       text-shadow:none;
     }
-    .tool-tile-title-text{
-      min-width:0;
+    .tool-tile-name-inner{
+      display:inline-block;
       max-width:100%;
-      flex:1 1 0;
-      display:-webkit-box;
-      -webkit-line-clamp:2;
-      -webkit-box-orient:vertical;
-      overflow:hidden;
       text-align:center;
-    }
-    .tool-tile-title-text::before{
-      content:"\00a0";
-      float:left;
-      width:0;
+      vertical-align:top;
     }
     .tool-tile-name .new-badge{
       display:inline-flex;
       align-items:center;
       justify-content:center;
       padding:2px 6px;
-      margin-right:0;
+      margin:0 4px 0 0;
       border-radius:999px;
       background:#ef4444;
       color:#fff;
@@ -1369,7 +1366,8 @@
       line-height:1.1;
       box-shadow:0 8px 18px rgba(239,68,68,.25);
       vertical-align:middle;
-      flex:0 0 auto;
+      position:relative;
+      top:-1px;
     }
     .tool-tile-card .pill,
     .tool-tile-card .desc,
@@ -1573,6 +1571,38 @@
     @media (max-width:760px){
       .me-collection-summary{grid-template-columns:1fr;}
     }
+    .me-rewards-summary{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .me-rewards-stat{
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:12px;
+      padding:10px 12px;
+      background:rgba(15,23,42,.22);
+    }
+    .me-rewards-stat-label{font-size:.78rem;color:#94a3b8;margin-bottom:4px;}
+    .me-rewards-stat-value{font-size:1.15rem;font-weight:800;color:#e2e8f0;}
+    .me-rewards-hint{margin:0 0 12px;color:#94a3b8;font-size:.84rem;line-height:1.6;}
+    .me-redeem-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+    .me-redeem-row input{
+      flex:1 1 180px;
+      min-width:0;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid rgba(148,163,184,.28);
+      background:rgba(15,23,42,.35);
+      color:#e2e8f0;
+      font:inherit;
+    }
+    body.theme-day .me-rewards-stat{background:rgba(255,255,255,.55);border-color:rgba(15,23,42,.12);}
+    body.theme-day .me-rewards-stat-label{color:#64748b;}
+    body.theme-day .me-rewards-stat-value{color:#0f172a;}
+    body.theme-day .me-rewards-hint{color:#64748b;}
+    body.theme-day .me-redeem-row input{background:#fff;border-color:rgba(15,23,42,.14);color:#0f172a;}
+    @media (max-width:720px){.me-rewards-summary{grid-template-columns:1fr;}}
 
     /* 赞助 */
     .sponsor-section{margin-top:10px;padding-top:12px;border-top:1px solid var(--border);}
@@ -3056,13 +3086,19 @@
         align-items:flex-start;
         gap:6px;
       }
-      .card:not(.wide) .card-title{
+      .card:not(.wide) .card-title:not(.tool-tile-name){
         font-size:.94rem;
         line-height:1.25;
         display:-webkit-box;
         -webkit-line-clamp:2;
         -webkit-box-orient:vertical;
         overflow:hidden;
+      }
+      .tool-tile-name.card-title{
+        display:block;
+        overflow:visible;
+        -webkit-line-clamp:unset;
+        -webkit-box-orient:unset;
       }
       .card:not(.wide) .pill{
         font-size:.72rem;
@@ -3161,6 +3197,7 @@
       }
       .tool-tile-name{
         font-size:.8rem;
+        line-height:1.28;
       }
     }
     @media (min-width: 769px){
@@ -3501,7 +3538,7 @@
               <div class="tool-tile-icon" aria-hidden="true">
                 <img src="Scores/tiantian.jpg" alt="" />
               </div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">甜甜的 攻略站</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>甜甜的<wbr>攻略站</span></div>
             </a>
             <div class="pill">tiantian-strategy-hub.html</div>
             <div class="desc">攻略 1.0 / 2.0 / 3.0 目录预览，一键跳转金山文档查看完整攻略。</div>
@@ -3510,7 +3547,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
             <a class="tool-tile-link" href="function/refine-crystal-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F525;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">精炼 提炼计算器</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>精炼提炼<wbr>计算器</span></div>
             </a>
             <div class="pill">refine-crystal-calculator.html</div>
             <div class="desc">按概率表计算精炼火晶期望产出与火晶消耗，支持周策略。</div>
@@ -3519,7 +3556,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
             <a class="tool-tile-link" href="function/refine-crystal-simulator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">精炼 提炼模拟器</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>精炼提炼<wbr>模拟器</span></div>
             </a>
             <div class="pill">refine-crystal-simulator.html</div>
             <div class="desc">真实随机模拟每次提炼爆率与奖励，支持蒙特卡洛批量模拟。</div>
@@ -3573,7 +3610,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
             <a class="tool-tile-link" href="function/T12Calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EE;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">热</span><span class="tool-tile-title-text">T12 科技计算器</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">热</span>T12<wbr>科技计算器</span></div>
             </a>
             <div class="pill">T12Calculator.html</div>
             <div class="desc">&#x6309;&#x5F53;&#x524D;/&#x76EE;&#x6807;&#x7B49;&#x7EA7;&#x6C47;&#x603B;&#x6240;&#x9700;&#x8D44;&#x6E90;&#x4E0E;&#x65F6;&#x95F4;&#x3002;</div>
@@ -3601,7 +3638,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
             <a class="tool-tile-link" href="function/T12DataOverview.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4CA;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">热</span><span class="tool-tile-title-text">T12 数据总览</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">热</span>T12<wbr>数据总览</span></div>
             </a>
             <div class="pill">T12DataOverview.html</div>
             <div class="desc">T12 &#x714C;&#x8000;&#x7CFB;&#x5217;&#x6570;&#x636E;&#x603B;&#x89C8;&#xFF0C;&#x652F;&#x6301;&#x5175;&#x79CD;&#x7B5B;&#x9009;&#x4E0E;&#x641C;&#x7D22;&#x3002;</div>
@@ -3628,7 +3665,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
             <a class="tool-tile-link" href="function/migration-prediction.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F52E;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">移民 预测</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>移民<wbr>预测</span></div>
             </a>
             <div class="pill">migration-prediction.html</div>
             <div class="desc">&#x540C;&#x671F;&#x5206;&#x7EC4;&#x8868;&#xFF08;&#x5206;&#x7EC4;&#x521D;&#x672B;&#xFF09;+&#x9884;&#x6D4B;&#x5F00;&#x653E;&#x65E5;&#xFF0C;&#x5E76;&#x663E;&#x793A;&#x4ECA;&#x65E5;&#x8FDB;&#x5EA6;&#x4E0E;&#x4E0B;&#x671F;&#x6863;&#x4F4D;&#x3002;</div>
@@ -3637,7 +3674,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
             <a class="tool-tile-link" href="function/wjti-personality-test.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EA;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">无尽冬日 人格测试</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>无尽冬日<wbr>人格测试</span></div>
             </a>
             <div class="pill">wjti-personality-test.html</div>
             <div class="desc">WJTI &#x4EBA;&#x683C;&#x6D4B;&#x8BD5;&#xFF1A;&#x6781;&#x901F;/&#x6807;&#x51C6;/&#x6DF1;&#x5EA6;&#x4E09;&#x6863;&#xFF0C;&#x6D4B;&#x51FA;&#x4F60;&#x662F;&#x8BB0;&#x8005;&#x3001;&#x9ED1;&#x5974;&#x3001;&#x5403;&#x74DC;&#x7FA4;&#x4F17;&#x8FD8;&#x662F;&#x6C14;&#x6C1B;&#x7EC4;&#x3002;</div>
@@ -3743,6 +3780,43 @@
           <div class="actions" id="meActions" style="margin-top:12px;">
             <button class="btn secondary" id="profileBtn" type="button">个人资料</button>
           </div>
+        </div>
+      </section>
+
+      <section class="card wide" data-category="my">
+        <div class="card-title">每日签到</div>
+        <div class="card-body">
+          <div class="me-rewards-summary">
+            <div class="me-rewards-stat">
+              <div class="me-rewards-stat-label">我的积分</div>
+              <div class="me-rewards-stat-value" id="mePointsValue">—</div>
+            </div>
+            <div class="me-rewards-stat">
+              <div class="me-rewards-stat-label">连续签到</div>
+              <div class="me-rewards-stat-value" id="meStreakValue">—</div>
+            </div>
+            <div class="me-rewards-stat">
+              <div class="me-rewards-stat-label">今日可得</div>
+              <div class="me-rewards-stat-value" id="meNextRewardValue">—</div>
+            </div>
+          </div>
+          <p class="me-rewards-hint" id="meRewardsHint">每日签到 +2 积分；连续签到 7 天当日额外 +5 积分。</p>
+          <div class="actions">
+            <button class="btn" id="meCheckInBtn" type="button" disabled>签到领取积分</button>
+          </div>
+          <div class="admin-status" id="meRewardsStatus" style="margin-top:10px;display:none;"></div>
+        </div>
+      </section>
+
+      <section class="card wide" data-category="my">
+        <div class="card-title">激活码</div>
+        <div class="card-body">
+          <p class="me-rewards-hint">输入管理员发放的激活码，可兑换积分或会员时长。</p>
+          <div class="me-redeem-row">
+            <input id="meRedeemCodeInput" maxlength="32" placeholder="请输入激活码" autocomplete="off" />
+            <button class="btn secondary" id="meRedeemCodeBtn" type="button" disabled>兑换</button>
+          </div>
+          <div class="admin-status" id="meRedeemStatus" style="margin-top:10px;display:none;"></div>
         </div>
       </section>
 
@@ -4787,6 +4861,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
               '<div class="me-profile-id">ID：'+safeShowId+'</div>'+
             '</div>'+
           '</div>'+
+          '<div class="info-row"><span class="info-label">我的积分</span><span class="info-value" id="meSummaryPoints">'+escapeHtml(String(Math.max(0, Number(authUser.points||0))))+'</span></div>'+
           '<div class="info-row"><span class="info-label">会员状态</span><span class="info-value">'+safeStatus+'</span></div>'+
           '<div class="info-row"><span class="info-label">到期时间</span><span class="info-value">'+safeExp+'</span></div>'+
           '<div class="info-row"><span class="info-label">用户名修改</span><span class="info-value">'+safeChange+'</span></div>'+
@@ -4795,6 +4870,178 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
             '<button class="btn secondary me-social-btn" type="button" data-me-open="following">我的关注：'+followingCount+'</button>'+
             '<button class="btn secondary me-social-btn" type="button" data-me-open="followers">我的粉丝：'+followerCount+'</button>'+
           '</div>';
+      }
+      renderMeRewards();
+    }
+    var meRewardsState={loading:false,rewards:null};
+    function setMeRewardsStatus(message,isError){
+      var el=document.getElementById('meRewardsStatus');
+      if(!el) return;
+      if(message){
+        el.textContent=message;
+        el.style.display='';
+        el.style.color=isError?'#fca5a5':'#86efac';
+      }else{
+        el.textContent='';
+        el.style.display='none';
+      }
+    }
+    function setMeRedeemStatus(message,isError){
+      var el=document.getElementById('meRedeemStatus');
+      if(!el) return;
+      if(message){
+        el.textContent=message;
+        el.style.display='';
+        el.style.color=isError?'#fca5a5':'#86efac';
+      }else{
+        el.textContent='';
+        el.style.display='none';
+      }
+    }
+    function renderMeRewards(){
+      var pointsEl=document.getElementById('mePointsValue');
+      var streakEl=document.getElementById('meStreakValue');
+      var nextEl=document.getElementById('meNextRewardValue');
+      var hintEl=document.getElementById('meRewardsHint');
+      var checkBtn=document.getElementById('meCheckInBtn');
+      var redeemBtn=document.getElementById('meRedeemCodeBtn');
+      var redeemInput=document.getElementById('meRedeemCodeInput');
+      if(!authUser){
+        if(pointsEl) pointsEl.textContent='—';
+        if(streakEl) streakEl.textContent='—';
+        if(nextEl) nextEl.textContent='—';
+        if(hintEl) hintEl.textContent='请先登录后参与签到与兑换。';
+        if(checkBtn){ checkBtn.disabled=true; checkBtn.textContent='签到领取积分'; }
+        if(redeemBtn) redeemBtn.disabled=true;
+        if(redeemInput) redeemInput.disabled=true;
+        return;
+      }
+      if(redeemInput) redeemInput.disabled=false;
+      if(redeemBtn) redeemBtn.disabled=false;
+      var r=meRewardsState.rewards;
+      if(meRewardsState.loading || !r){
+        if(pointsEl) pointsEl.textContent='...';
+        if(streakEl) streakEl.textContent='...';
+        if(nextEl) nextEl.textContent='...';
+        if(checkBtn){ checkBtn.disabled=true; checkBtn.textContent='加载中...'; }
+        return;
+      }
+      var points=Math.max(0, Number(r.points||authUser.points||0));
+      if(pointsEl) pointsEl.textContent=String(points);
+      var summaryPoints=document.getElementById('meSummaryPoints');
+      if(summaryPoints) summaryPoints.textContent=String(points);
+      authUser.points=points;
+      var streak=r.checkedToday ? Number(r.currentStreak||0) : Number(r.currentStreak||0);
+      if(streakEl) streakEl.textContent=(r.checkedToday?String(streak):String(streak))+' 天';
+      if(nextEl) nextEl.textContent='+'+String(r.nextRewardPoints||2)+' 积分';
+      if(hintEl){
+        if(r.checkedToday){
+          var earned=Number(r.todayPointsEarned||0);
+          hintEl.textContent='今日已签到，获得 '+earned+' 积分。连续签到满 7 天当日额外 +5 积分。';
+        }else{
+          hintEl.textContent='每日签到 +2 积分；连续签到 7 天当日额外 +5 积分（今日可得 '+String(r.nextRewardPoints||2)+' 积分）。';
+        }
+      }
+      if(checkBtn){
+        checkBtn.disabled=!!r.checkedToday;
+        checkBtn.textContent=r.checkedToday?'今日已签到':'签到领取积分';
+      }
+    }
+    async function loadMeRewards(){
+      if(!authUser){
+        meRewardsState.rewards=null;
+        renderMeRewards();
+        return;
+      }
+      meRewardsState.loading=true;
+      renderMeRewards();
+      try{
+        var r=await apiFetch('/api/me/rewards',{method:'GET'});
+        var d=await r.json().catch(function(){ return {}; });
+        if(!r.ok){
+          meRewardsState.rewards=null;
+          setMeRewardsStatus('签到信息加载失败','error');
+          return;
+        }
+        meRewardsState.rewards=d.rewards||null;
+        setMeRewardsStatus('','');
+      }catch(e){
+        meRewardsState.rewards=null;
+        setMeRewardsStatus('签到信息加载失败：'+(e.message||'网络错误'),'error');
+      }finally{
+        meRewardsState.loading=false;
+        renderMeRewards();
+      }
+    }
+    async function doMeCheckIn(){
+      if(!authUser){ showDevToast('请先登录'); return; }
+      var btn=document.getElementById('meCheckInBtn');
+      if(btn) btn.disabled=true;
+      setMeRewardsStatus('签到中...','');
+      try{
+        var r=await apiFetch('/api/me/check-in',{method:'POST',body:'{}'});
+        var d=await r.json().catch(function(){ return {}; });
+        if(!r.ok){
+          var msg='签到失败';
+          if(d&&d.error==='ALREADY_CHECKED_IN') msg='今日已签到';
+          setMeRewardsStatus(msg,'error');
+          return;
+        }
+        if(d&&d.rewards) meRewardsState.rewards=d.rewards;
+        if(d&&d.checkIn){
+          var earned=Number(d.checkIn.pointsEarned||0);
+          var bonus=d.checkIn.bonusAwarded?'（含连续7天奖励）':'';
+          setMeRewardsStatus('签到成功，获得 '+earned+' 积分'+bonus,'');
+          showDevToast('签到成功 +' + earned + ' 积分');
+        }
+        if(d&&d.rewards&&d.rewards.points!=null) authUser.points=d.rewards.points;
+        renderMe();
+      }catch(e){
+        setMeRewardsStatus('签到失败：'+(e.message||'网络错误'),'error');
+      }finally{
+        renderMeRewards();
+      }
+    }
+    async function doMeRedeemCode(){
+      if(!authUser){ showDevToast('请先登录'); return; }
+      var input=document.getElementById('meRedeemCodeInput');
+      var code=String(input&&input.value||'').trim();
+      if(!code){ setMeRedeemStatus('请输入激活码','error'); return; }
+      var btn=document.getElementById('meRedeemCodeBtn');
+      if(btn) btn.disabled=true;
+      setMeRedeemStatus('兑换中...','');
+      try{
+        var r=await apiFetch('/api/me/redeem-code',{method:'POST',body:JSON.stringify({code:code})});
+        var d=await r.json().catch(function(){ return {}; });
+        if(!r.ok){
+          var map={
+            BAD_CODE:'激活码格式无效',
+            CODE_NOT_FOUND:'激活码不存在',
+            CODE_EXPIRED:'激活码已过期',
+            CODE_EXHAUSTED:'激活码已被用完',
+            CODE_ALREADY_USED:'您已使用过该激活码'
+          };
+          setMeRedeemStatus(map[d.error]||'兑换失败','error');
+          return;
+        }
+        if(d&&d.user) authUser=d.user;
+        if(d&&d.rewards) meRewardsState.rewards=d.rewards;
+        var msg='兑换成功';
+        if(d&&d.redemption){
+          if(d.redemption.type==='points') msg='兑换成功，获得 '+Number(d.redemption.pointsAdded||0)+' 积分';
+          else if(d.redemption.type==='membership'){
+            msg=d.redemption.membershipStatus==='lifetime'?'兑换成功，已开通永久会员':'兑换成功，会员已延长';
+          }
+        }
+        setMeRedeemStatus(msg,'');
+        showDevToast(msg);
+        if(input) input.value='';
+        renderMe();
+        renderMeRewards();
+      }catch(e){
+        setMeRedeemStatus('兑换失败：'+(e.message||'网络错误'),'error');
+      }finally{
+        if(btn) btn.disabled=false;
       }
     }
     function setMyCollectionCard(kind, count, hint, disabled){
@@ -7984,6 +8231,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       updateAuthUI();
       renderMe();
       loadMyCollections();
+      loadMeRewards();
       if(authUser){
         syncChatSeenAtFromStorage();
         updateChatEntryCard();
@@ -8034,6 +8282,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           updateAuthUI();
           renderMe();
           loadMyCollections();
+          loadMeRewards();
           syncChatSeenAtFromStorage();
           updateChatEntryCard();
           loadChatConversations();
@@ -8101,6 +8350,8 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       closeMyCollectionModal();
       updateAuthUI();
       renderMe();
+      meRewardsState.rewards=null;
+      renderMeRewards();
       clearMyCollections();
       if(chatPollingTimer){ clearInterval(chatPollingTimer); chatPollingTimer=null; }
       resetChatState();
@@ -8116,6 +8367,11 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     document.getElementById('registerClose')&&document.getElementById('registerClose').addEventListener('click',closeRegisterModal);
     document.getElementById('registerModal')&&document.getElementById('registerModal').addEventListener('click',function(e){ if(e.target&&e.target.id==='registerModal')closeRegisterModal(); });
     document.getElementById('profileBtn')&&document.getElementById('profileBtn').addEventListener('click',openProfileModal);
+    document.getElementById('meCheckInBtn')&&document.getElementById('meCheckInBtn').addEventListener('click',doMeCheckIn);
+    document.getElementById('meRedeemCodeBtn')&&document.getElementById('meRedeemCodeBtn').addEventListener('click',doMeRedeemCode);
+    document.getElementById('meRedeemCodeInput')&&document.getElementById('meRedeemCodeInput').addEventListener('keydown',function(e){
+      if(e.key==='Enter'){ e.preventDefault(); doMeRedeemCode(); }
+    });
     document.getElementById('profileClose')&&document.getElementById('profileClose').addEventListener('click',closeProfileModal);
     document.getElementById('profileAvatarUpload')&&document.getElementById('profileAvatarUpload').addEventListener('click',uploadProfileAvatar);
     document.getElementById('profileAvatarInput')&&document.getElementById('profileAvatarInput').addEventListener('change',handleProfileAvatarFileChange);
@@ -8914,6 +9170,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         });
         if(typeof window.refreshForumListView === 'function') window.refreshForumListView();
         if (window.updateForumFab) window.updateForumFab(activeTab);
+        if(activeTab==='my' && authUser) loadMeRewards();
         updateTabQuery();
       }
       window.setHomeTab = setActiveTab;
