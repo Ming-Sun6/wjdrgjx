@@ -1603,6 +1603,25 @@
     body.theme-day .me-rewards-hint{color:#64748b;}
     body.theme-day .me-redeem-row input{background:#fff;border-color:rgba(15,23,42,.14);color:#0f172a;}
     @media (max-width:720px){.me-rewards-summary{grid-template-columns:1fr;}}
+    .me-shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+    .me-shop-card{
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:14px;
+      padding:14px;
+      background:rgba(15,23,42,.22);
+      display:flex;flex-direction:column;gap:8px;min-height:180px;
+    }
+    .me-shop-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+    .me-shop-card-title{font-size:1rem;font-weight:800;color:#e2e8f0;line-height:1.35;}
+    .me-shop-card-badge{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(59,130,246,.22);color:#93c5fd;white-space:nowrap;}
+    .me-shop-card-desc{font-size:.82rem;color:#94a3b8;line-height:1.55;flex:1;}
+    .me-shop-card-meta{font-size:.8rem;color:#cbd5e1;}
+    .me-shop-card-price{font-size:1.05rem;font-weight:800;color:#fbbf24;}
+    .me-shop-card .btn{align-self:flex-start;}
+    body.theme-day .me-shop-card{background:rgba(255,255,255,.55);border-color:rgba(15,23,42,.12);}
+    body.theme-day .me-shop-card-title{color:#0f172a;}
+    body.theme-day .me-shop-card-desc{color:#64748b;}
+    body.theme-day .me-shop-card-meta{color:#475569;}
 
     /* 赞助 */
     .sponsor-section{margin-top:10px;padding-top:12px;border-top:1px solid var(--border);}
@@ -3813,10 +3832,21 @@
         <div class="card-body">
           <p class="me-rewards-hint">输入管理员发放的激活码，可兑换积分或会员时长。</p>
           <div class="me-redeem-row">
-            <input id="meRedeemCodeInput" maxlength="32" placeholder="请输入激活码" autocomplete="off" />
+            <input id="meRedeemCodeInput" maxlength="48" placeholder="请输入激活码" autocomplete="off" />
             <button class="btn secondary" id="meRedeemCodeBtn" type="button" disabled>兑换</button>
           </div>
           <div class="admin-status" id="meRedeemStatus" style="margin-top:10px;display:none;"></div>
+        </div>
+      </section>
+
+      <section class="card wide" data-category="my">
+        <div class="card-title">积分商城</div>
+        <div class="card-body">
+          <p class="me-rewards-hint" id="meShopHint">使用积分兑换会员等道具。请先登录后查看商城。</p>
+          <div class="me-shop-grid" id="meShopGrid">
+            <div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">加载中...</div>
+          </div>
+          <div class="admin-status" id="meShopStatus" style="margin-top:10px;display:none;"></div>
         </div>
       </section>
 
@@ -5018,8 +5048,11 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
             BAD_CODE:'激活码格式无效',
             CODE_NOT_FOUND:'激活码不存在',
             CODE_EXPIRED:'激活码已过期',
+            CODE_NOT_STARTED:'激活码尚未生效',
+            CODE_DISABLED:'激活码已停用',
             CODE_EXHAUSTED:'激活码已被用完',
-            CODE_ALREADY_USED:'您已使用过该激活码'
+            CODE_ALREADY_USED:'您已达到该激活码的使用上限',
+            SHOP_ITEM_NOT_FOUND:'关联商城道具不存在'
           };
           setMeRedeemStatus(map[d.error]||'兑换失败','error');
           return;
@@ -5031,6 +5064,10 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           if(d.redemption.type==='points') msg='兑换成功，获得 '+Number(d.redemption.pointsAdded||0)+' 积分';
           else if(d.redemption.type==='membership'){
             msg=d.redemption.membershipStatus==='lifetime'?'兑换成功，已开通永久会员':'兑换成功，会员已延长';
+          } else if(d.redemption.type==='combo'){
+            msg='兑换成功，获得 '+Number(d.redemption.pointsAdded||0)+' 积分并延长会员';
+          } else if(d.redemption.type==='shop_item'){
+            msg='兑换成功：'+(d.redemption.shopItemName||'商城道具');
           }
         }
         setMeRedeemStatus(msg,'');
@@ -5042,6 +5079,101 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         setMeRedeemStatus('兑换失败：'+(e.message||'网络错误'),'error');
       }finally{
         if(btn) btn.disabled=false;
+      }
+    }
+    var meShopState={loading:false,items:[]};
+    function shopRewardText(item){
+      if(!item) return '';
+      if(item.itemType==='points') return '获得 '+item.pointsReward+' 积分';
+      if(item.itemType==='membership') return item.membershipDays===0?'永久会员':item.membershipDays+' 天会员';
+      if(item.itemType==='combo'){
+        var mem=item.membershipDays===0?'永久会员':item.membershipDays+' 天会员';
+        return '+'+item.pointsReward+' 积分 + '+mem;
+      }
+      return '';
+    }
+    function setMeShopStatus(message,isError){
+      var el=document.getElementById('meShopStatus');
+      if(!el) return;
+      if(message){ el.textContent=message; el.style.display=''; el.style.color=isError?'#fca5a5':'#86efac'; }
+      else { el.textContent=''; el.style.display='none'; }
+    }
+    function renderMeShop(){
+      var grid=document.getElementById('meShopGrid');
+      var hint=document.getElementById('meShopHint');
+      if(!grid) return;
+      if(!authUser){
+        if(hint) hint.textContent='请先登录后使用积分商城。';
+        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">登录后可兑换道具</div>';
+        return;
+      }
+      if(meShopState.loading){
+        if(hint) hint.textContent='正在加载商城道具...';
+        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">加载中...</div>';
+        return;
+      }
+      var items=meShopState.items||[];
+      if(hint) hint.textContent=items.length?'使用积分兑换以下道具。':'商城暂无在售道具，请稍后再来。';
+      if(!items.length){
+        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">暂无商品</div>';
+        return;
+      }
+      grid.innerHTML=items.map(function(item){
+        var stock=item.remainingStock==null?'库存充足':'剩余 '+item.remainingStock;
+        return '<div class="me-shop-card" data-shop-item-id="'+item.id+'">'+
+          '<div class="me-shop-card-head">'+
+            '<div class="me-shop-card-title">'+escapeHtml(item.name)+'</div>'+
+            (item.badgeText?'<span class="me-shop-card-badge">'+escapeHtml(item.badgeText)+'</span>':'')+
+          '</div>'+
+          '<div class="me-shop-card-desc">'+escapeHtml(item.description||shopRewardText(item))+'</div>'+
+          '<div class="me-shop-card-meta">'+escapeHtml(shopRewardText(item))+' · '+escapeHtml(stock)+'</div>'+
+          '<div class="me-shop-card-price">'+escapeHtml(String(item.pricePoints))+' 积分</div>'+
+          '<button class="btn secondary me-shop-buy-btn" type="button" data-item-id="'+item.id+'">立即兑换</button>'+
+        '</div>';
+      }).join('');
+      grid.querySelectorAll('.me-shop-buy-btn').forEach(function(btn){
+        btn.addEventListener('click',function(){ doMeShopPurchase(Number(btn.getAttribute('data-item-id'))); });
+      });
+    }
+    async function loadMeShop(){
+      if(!authUser){ meShopState.items=[]; renderMeShop(); return; }
+      meShopState.loading=true; renderMeShop();
+      try{
+        var r=await apiFetch('/api/shop/items',{method:'GET'});
+        var d=await r.json().catch(function(){ return {}; });
+        meShopState.items=r.ok && Array.isArray(d.items)?d.items:[];
+        setMeShopStatus('','');
+      }catch(e){
+        meShopState.items=[];
+        setMeShopStatus('商城加载失败：'+(e.message||'网络错误'),'error');
+      }finally{
+        meShopState.loading=false;
+        renderMeShop();
+      }
+    }
+    async function doMeShopPurchase(itemId){
+      if(!authUser){ showDevToast('请先登录'); return; }
+      if(!Number.isFinite(itemId)||itemId<=0) return;
+      setMeShopStatus('兑换中...','');
+      try{
+        var r=await apiFetch('/api/shop/purchase',{method:'POST',body:JSON.stringify({itemId:itemId})});
+        var d=await r.json().catch(function(){ return {}; });
+        if(!r.ok){
+          var map={INSUFFICIENT_POINTS:'积分不足',ITEM_NOT_AVAILABLE:'商品已下架',ITEM_SOLD_OUT:'商品已售罄',BAD_ITEM_ID:'商品无效'};
+          setMeShopStatus(map[d.error]||'兑换失败','error');
+          showDevToast(map[d.error]||'兑换失败');
+          return;
+        }
+        if(d&&d.user) authUser=d.user;
+        if(d&&d.purchase){
+          setMeShopStatus('兑换成功：'+((d.purchase.item&&d.purchase.item.name)||'道具'),'');
+          showDevToast('兑换成功');
+        }
+        renderMe();
+        renderMeRewards();
+        await loadMeShop();
+      }catch(e){
+        setMeShopStatus('兑换失败：'+(e.message||'网络错误'),'error');
       }
     }
     function setMyCollectionCard(kind, count, hint, disabled){
@@ -8232,6 +8364,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       renderMe();
       loadMyCollections();
       loadMeRewards();
+      loadMeShop();
       if(authUser){
         syncChatSeenAtFromStorage();
         updateChatEntryCard();
@@ -8283,6 +8416,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           renderMe();
           loadMyCollections();
           loadMeRewards();
+          loadMeShop();
           syncChatSeenAtFromStorage();
           updateChatEntryCard();
           loadChatConversations();
@@ -8351,7 +8485,9 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       updateAuthUI();
       renderMe();
       meRewardsState.rewards=null;
+      meShopState.items=[];
       renderMeRewards();
+      renderMeShop();
       clearMyCollections();
       if(chatPollingTimer){ clearInterval(chatPollingTimer); chatPollingTimer=null; }
       resetChatState();
@@ -9170,7 +9306,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         });
         if(typeof window.refreshForumListView === 'function') window.refreshForumListView();
         if (window.updateForumFab) window.updateForumFab(activeTab);
-        if(activeTab==='my' && authUser) loadMeRewards();
+        if(activeTab==='my' && authUser){ loadMeRewards(); loadMeShop(); }
         updateTabQuery();
       }
       window.setHomeTab = setActiveTab;

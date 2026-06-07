@@ -54,6 +54,12 @@ const {
   HERO_GENERATIONS_DDL_MYSQL
 } = require('./hero-data');
 const { mountUserRewardsRoutes, ensureUserRewardsSchema } = require('./user-rewards');
+const {
+  mountShopRoutes,
+  ensureShopSchema,
+  applyShopItemToUser,
+  mapShopItemRow
+} = require('./shop');
 
 const app = express();
 const PORT = 3000;
@@ -1405,6 +1411,7 @@ async function initDB() {
     });
     if (heroSeedPg.seeded) console.log(`Hero generations seeded: ${heroSeedPg.count}`);
     await ensureUserRewardsSchema({ execute, pgDatabase, addColumnIfMissing });
+    await ensureShopSchema({ execute, pgDatabase });
     return;
   }
 
@@ -1665,6 +1672,7 @@ async function initDB() {
   if (heroSeed.seeded) console.log(`Hero generations seeded: ${heroSeed.count}`);
 
   await ensureUserRewardsSchema({ execute, pgDatabase, addColumnIfMissing });
+  await ensureShopSchema({ execute, pgDatabase });
 }
 
 async function getPostById(postId) {
@@ -4205,7 +4213,22 @@ mountUserRewardsRoutes({
   formatSqlDateTime,
   toUserPayload,
   attachFollowCountsToUserPayload,
+  applyShopItemToUser,
+  mapShopItemRow,
   pgDatabase
+});
+
+mountShopRoutes({
+  app,
+  queryRows,
+  queryOne,
+  execute,
+  requireAuth,
+  requireAdmin,
+  auditAdminAction,
+  formatSqlDateTime,
+  toUserPayload,
+  attachFollowCountsToUserPayload
 });
 
 app.get('/api/bearpit/layout', async (req, res) => {

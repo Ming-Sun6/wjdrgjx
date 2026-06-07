@@ -9,7 +9,9 @@ const {
   computeNextStreakDay,
   computeCheckinReward,
   normalizeActivationCodeInput,
+  normalizeBatchActivationInput,
   normalizeRedeemCodeInput,
+  activationValueLabel,
   applyMembershipFromCode,
   generateActivationCode,
   mapActivationCodeRow
@@ -58,8 +60,36 @@ test('normalizeActivationCodeInput validates points and membership payloads', ()
   const lifetime = normalizeActivationCodeInput({ type: 'membership', membershipDays: 0 });
   assert.equal(lifetime.membershipDays, 0);
 
+  const combo = normalizeActivationCodeInput({ type: 'combo', pointsAmount: 10, membershipDays: 7, maxUses: 0 });
+  assert.equal(combo.type, 'combo');
+  assert.equal(combo.maxUses, 0);
+  assert.equal(combo.perUserLimit, 1);
+
   const bad = normalizeActivationCodeInput({ type: 'points', pointsAmount: 0 });
   assert.equal(bad.error, 'BAD_POINTS_AMOUNT');
+});
+
+test('normalizeBatchActivationInput parses batch options', () => {
+  const batch = normalizeBatchActivationInput({
+    count: 5,
+    codeLength: 10,
+    prefix: 'VIP',
+    type: 'points',
+    pointsAmount: 20
+  });
+  assert.equal(batch.count, 5);
+  assert.equal(batch.prefix, 'VIP');
+  assert.equal(batch.template.pointsAmount, 20);
+});
+
+test('activationValueLabel supports combo', () => {
+  const label = activationValueLabel({
+    type: 'combo',
+    pointsAmount: 30,
+    membershipDays: 0
+  });
+  assert.match(label, /30 积分/);
+  assert.match(label, /永久会员/);
 });
 
 test('normalizeRedeemCodeInput uppercases and trims', () => {
@@ -102,6 +132,8 @@ test('server mounts user rewards routes and pages include UI hooks', () => {
   assert.match(serverSource, /ensureUserRewardsSchema\(/);
   assert.match(indexHtml, /meCheckInBtn/);
   assert.match(indexHtml, /meRedeemCodeBtn/);
+  assert.match(indexHtml, /meShopGrid/);
   assert.match(adminHtml, /data-page="activation-codes"/);
+  assert.match(adminHtml, /activationBatchCreateBtn/);
   assert.match(adminHtml, /admin-activation-codes-page\.js/);
 });
