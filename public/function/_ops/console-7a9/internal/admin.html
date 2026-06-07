@@ -762,7 +762,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.19</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.20</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -782,6 +782,7 @@
         <button class="side-item" type="button" data-page="calendar" data-admin-only="1">活动日历</button>
         <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
         <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
+        <button class="side-item" type="button" data-page="bearpit-data" data-admin-only="1">熊坑数据</button>
         <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
         <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
         <button class="side-item" type="button" data-page="voices" data-admin-only="1">用户发声</button>
@@ -1365,6 +1366,45 @@
           </div>
         </section>
 
+        <section class="card page" id="page-bearpit" data-page="bearpit-data">
+          <div class="page-title">熊坑数据</div>
+          <p class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
+            查看用户保存在站点的熊坑排布数据（当前存档与历史备份）。支持按用户 ID / 登录 ID / 用户名搜索，并可导出 CSV 表格。
+          </p>
+          <div class="bearpit-admin-toolbar">
+            <input id="bearpitSearchInput" type="search" placeholder="搜索用户 ID / 登录 ID / 用户名" />
+            <select id="bearpitSourceFilter" aria-label="数据类型">
+              <option value="current">仅当前存档</option>
+              <option value="backup">仅历史备份</option>
+              <option value="all">全部</option>
+            </select>
+            <input id="bearpitMinItemsFilter" type="number" min="0" step="1" placeholder="最少物品数" style="max-width:120px;" />
+            <button class="btn" type="button" id="bearpitReloadBtn">搜索 / 刷新</button>
+            <button class="btn secondary" type="button" id="bearpitExportBtn">导出表格</button>
+          </div>
+          <div class="admin-status" id="bearpitDataStatus"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:80px;">用户ID</th>
+                  <th style="width:160px;">登录ID</th>
+                  <th style="width:160px;">用户名</th>
+                  <th style="width:100px;">类型</th>
+                  <th style="width:160px;">方案名称</th>
+                  <th style="width:80px;">物品数</th>
+                  <th style="width:160px;">时间</th>
+                  <th style="min-width:220px;">数据摘要</th>
+                  <th style="width:120px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="bearpitDataTbody">
+                <tr><td colspan="9" style="color:var(--muted);">请先登录管理员账号。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="card page" id="page-announcement" data-page="announcement">
           <div class="page-title">发布公告</div>
           <div class="calendar-admin">
@@ -1469,6 +1509,12 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.20（2026-06-04）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>熊坑数据</strong>：新增后台菜单「熊坑数据」，可查看用户当前存档与历史备份（用户名、用户 ID、JSON 数据）；支持搜索 / 筛选 / 一键导出 CSV。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>接口</strong>：<code>GET /api/admin/bearpit-layouts</code>、<code>GET /api/admin/bearpit-layouts/:recordId</code>、<code>GET /api/admin/bearpit-layouts-export.csv</code>。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>修复</strong>：PostgreSQL 下「英雄数据 → 新增代数」INSERT 缺少 <code>hub_tag</code> 占位符导致 <code>INTERNAL_ERROR</code>。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.19（2026-06-04）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>英雄数据</strong>：编辑页布局与交互优化——分区卡片、技能分 Tab 切换、粘性操作栏与「预览前台」链接；左侧代数列表显示代数徽章与拖拽把手；「新增代数」与「刷新」并入列表标题栏。</div>
@@ -1672,6 +1718,20 @@
   </div>
 
   <div class="auth-modal user-detail-modal" id="userDetailModal" aria-hidden="true"></div>
+  <div class="auth-modal" id="bearpitDataModal" aria-hidden="true">
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-label="熊坑 JSON 数据" style="width:min(920px,calc(100vw - 28px));max-height:min(90vh,900px);display:flex;flex-direction:column;">
+      <div class="auth-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <h3 id="bearpitDataModalTitle" style="margin:0;font-size:1rem;">熊坑数据</h3>
+        <button class="auth-close" id="bearpitDataModalClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="auth-body" style="padding:12px 16px 16px;overflow:auto;">
+        <textarea id="bearpitDataModalJson" class="bearpit-json-box" readonly></textarea>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+          <button class="btn secondary" type="button" id="bearpitDataModalCopy">复制 JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <script>
     let authUser=null,authChecked=false;
@@ -3917,6 +3977,7 @@
       else if(currentPage==='calendar'){ initCalendarAdmin(); loadCalendarSchedules().then(renderCalendarView); }
       else if(currentPage==='gift-packs'){ if(typeof window.loadGiftPacksAdmin==='function') window.loadGiftPacksAdmin(); }
       else if(currentPage==='heroes'){ if(typeof window.loadHeroesAdmin==='function') window.loadHeroesAdmin(); }
+      else if(currentPage==='bearpit-data'){ if(typeof window.loadBearpitAdmin==='function') window.loadBearpitAdmin(); }
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='voices') loadUserVoices();
@@ -4180,6 +4241,7 @@
   <script src="./admin-users-page.js?v=9"></script>
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
   <script src="/function/admin-heroes-page.js?v=6"></script>
+  <script src="/function/admin-bearpit-page.js?v=1"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){

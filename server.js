@@ -47,6 +47,7 @@ const {
   mountBearpitBackupRoutes,
   BEARPIT_BACKUPS_DDL_MYSQL
 } = require('./bearpit-backups');
+const { mountBearpitAdminRoutes } = require('./bearpit-admin');
 const {
   mountHeroDataRoutes,
   seedHeroGenerationsIfEmpty,
@@ -4144,6 +4145,15 @@ const bearpitBackupApi = mountBearpitBackupRoutes({
   queryOne,
   execute,
   requireAuth,
+  pgDatabase
+});
+
+mountBearpitAdminRoutes({
+  app,
+  queryRows,
+  queryOne,
+  requireAdmin,
+  auditAdminAction,
   pgDatabase
 });
 

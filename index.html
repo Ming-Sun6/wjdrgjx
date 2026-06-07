@@ -1332,26 +1332,44 @@
       font-size:.92rem;
       line-height:1.25;
       color:#0f172a;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      gap:0;
+      flex-wrap:wrap;
+      max-width:100%;
+      text-shadow:none;
+    }
+    .tool-tile-title-text{
+      min-width:0;
+      max-width:100%;
+      flex:1 1 0;
       display:-webkit-box;
       -webkit-line-clamp:2;
       -webkit-box-orient:vertical;
       overflow:hidden;
-      text-shadow:none;
+      text-align:center;
+    }
+    .tool-tile-title-text::before{
+      content:"\00a0";
+      float:left;
+      width:0;
     }
     .tool-tile-name .new-badge{
       display:inline-flex;
       align-items:center;
       justify-content:center;
       padding:2px 6px;
-      margin-right:6px;
+      margin-right:0;
       border-radius:999px;
       background:#ef4444;
       color:#fff;
       font-size:.72rem;
       font-weight:800;
-      line-height:1;
+      line-height:1.1;
       box-shadow:0 8px 18px rgba(239,68,68,.25);
       vertical-align:middle;
+      flex:0 0 auto;
     }
     .tool-tile-card .pill,
     .tool-tile-card .desc,
@@ -3483,7 +3501,7 @@
               <div class="tool-tile-icon" aria-hidden="true">
                 <img src="Scores/tiantian.jpg" alt="" />
               </div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span>甜甜的 攻略站</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">甜甜的 攻略站</span></div>
             </a>
             <div class="pill">tiantian-strategy-hub.html</div>
             <div class="desc">攻略 1.0 / 2.0 / 3.0 目录预览，一键跳转金山文档查看完整攻略。</div>
@@ -3492,7 +3510,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
             <a class="tool-tile-link" href="function/refine-crystal-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F525;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span>精炼 提炼计算器</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">精炼 提炼计算器</span></div>
             </a>
             <div class="pill">refine-crystal-calculator.html</div>
             <div class="desc">按概率表计算精炼火晶期望产出与火晶消耗，支持周策略。</div>
@@ -3501,7 +3519,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
             <a class="tool-tile-link" href="function/refine-crystal-simulator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span>精炼 提炼模拟器</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">精炼 提炼模拟器</span></div>
             </a>
             <div class="pill">refine-crystal-simulator.html</div>
             <div class="desc">真实随机模拟每次提炼爆率与奖励，支持蒙特卡洛批量模拟。</div>
@@ -3555,7 +3573,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
             <a class="tool-tile-link" href="function/T12Calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EE;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">热</span>T12 &#x79D1;&#x6280;&#x8BA1;&#x7B97;&#x5668;</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">热</span><span class="tool-tile-title-text">T12 科技计算器</span></div>
             </a>
             <div class="pill">T12Calculator.html</div>
             <div class="desc">&#x6309;&#x5F53;&#x524D;/&#x76EE;&#x6807;&#x7B49;&#x7EA7;&#x6C47;&#x603B;&#x6240;&#x9700;&#x8D44;&#x6E90;&#x4E0E;&#x65F6;&#x95F4;&#x3002;</div>
@@ -3583,7 +3601,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
             <a class="tool-tile-link" href="function/T12DataOverview.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4CA;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">热</span>T12 &#x6570;&#x636E;&#x603B;&#x89C8;</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">热</span><span class="tool-tile-title-text">T12 数据总览</span></div>
             </a>
             <div class="pill">T12DataOverview.html</div>
             <div class="desc">T12 &#x714C;&#x8000;&#x7CFB;&#x5217;&#x6570;&#x636E;&#x603B;&#x89C8;&#xFF0C;&#x652F;&#x6301;&#x5175;&#x79CD;&#x7B5B;&#x9009;&#x4E0E;&#x641C;&#x7D22;&#x3002;</div>
@@ -3610,7 +3628,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
             <a class="tool-tile-link" href="function/migration-prediction.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F52E;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span>&#x79FB;&#x6C11;&#x9884;&#x6D4B;</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">移民 预测</span></div>
             </a>
             <div class="pill">migration-prediction.html</div>
             <div class="desc">&#x540C;&#x671F;&#x5206;&#x7EC4;&#x8868;&#xFF08;&#x5206;&#x7EC4;&#x521D;&#x672B;&#xFF09;+&#x9884;&#x6D4B;&#x5F00;&#x653E;&#x65E5;&#xFF0C;&#x5E76;&#x663E;&#x793A;&#x4ECA;&#x65E5;&#x8FDB;&#x5EA6;&#x4E0E;&#x4E0B;&#x671F;&#x6863;&#x4F4D;&#x3002;</div>
@@ -3619,7 +3637,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
             <a class="tool-tile-link" href="function/wjti-personality-test.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EA;</div>
-              <div class="card-title tool-tile-name"><span class="new-badge">新</span>无尽冬日 人格测试</div>
+              <div class="card-title tool-tile-name"><span class="new-badge">新</span><span class="tool-tile-title-text">无尽冬日 人格测试</span></div>
             </a>
             <div class="pill">wjti-personality-test.html</div>
             <div class="desc">WJTI &#x4EBA;&#x683C;&#x6D4B;&#x8BD5;&#xFF1A;&#x6781;&#x901F;/&#x6807;&#x51C6;/&#x6DF1;&#x5EA6;&#x4E09;&#x6863;&#xFF0C;&#x6D4B;&#x51FA;&#x4F60;&#x662F;&#x8BB0;&#x8005;&#x3001;&#x9ED1;&#x5974;&#x3001;&#x5403;&#x74DC;&#x7FA4;&#x4F17;&#x8FD8;&#x662F;&#x6C14;&#x6C1B;&#x7EC4;&#x3002;</div>

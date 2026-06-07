@@ -440,6 +440,12 @@
   .tool-tile-name {
     font-size:.78rem !important;
     line-height:1.16 !important;
+    width:100%;
+  }
+
+  .tool-tile-title-text {
+    font-size:inherit !important;
+    line-height:inherit !important;
     -webkit-line-clamp:2 !important;
     word-break:keep-all;
     overflow-wrap:anywhere;
