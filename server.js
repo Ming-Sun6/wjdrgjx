@@ -53,7 +53,7 @@ const {
   seedHeroGenerationsIfEmpty,
   HERO_GENERATIONS_DDL_MYSQL
 } = require('./hero-data');
-const { mountUserRewardsRoutes, ensureUserRewardsSchema } = require('./user-rewards');
+const { mountUserRewardsRoutes, ensureUserRewardsSchema, repairUserRewardsSchema } = require('./user-rewards');
 const {
   mountShopRoutes,
   ensureShopSchema,
@@ -1112,6 +1112,23 @@ async function getUserPublicProfileById(targetUserId, currentUserId) {
 }
 
 async function hasColumn(tableName, columnName) {
+  const table = String(tableName || '').trim();
+  const column = String(columnName || '').trim();
+  if (!table || !column) return false;
+  if (pgDatabase) {
+    const row = await queryOne(
+      `
+      SELECT 1 AS ok
+      FROM information_schema.columns
+      WHERE table_schema = current_schema()
+        AND lower(table_name) = lower(?)
+        AND lower(column_name) = lower(?)
+      LIMIT 1
+      `,
+      [table, column]
+    );
+    return !!row;
+  }
   const row = await queryOne(
     `
     SELECT 1 AS ok
@@ -1119,13 +1136,17 @@ async function hasColumn(tableName, columnName) {
     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?
     LIMIT 1
     `,
-    [tableName, columnName]
+    [table, column]
   );
   return !!row;
 }
 
 async function addColumnIfMissing(tableName, columnName, ddl) {
   if (await hasColumn(tableName, columnName)) return;
+  if (pgDatabase) {
+    await execute(`ALTER TABLE ${tableName} ADD COLUMN IF NOT EXISTS ${ddl}`);
+    return;
+  }
   await execute(`ALTER TABLE \`${tableName}\` ADD COLUMN ${ddl}`);
 }
 
@@ -4385,9 +4406,17 @@ app.listen(PORT, async () => {
     }
     console.log(`Giftcode API proxy -> ${GIFTCODE_SERVICE_URL}`);
     console.log(`Auth check: http://localhost:${PORT}/api/auth/me`);
-    console.log('MySQL connected and API routes initialized.');
+    console.log(pgDatabase ? 'PostgreSQL connected and API routes initialized.' : 'MySQL connected and API routes initialized.');
   } catch (err) {
     console.error('Database init failed:', err);
+    if (pgDatabase || db) {
+      const repaired = await repairUserRewardsSchema({
+        execute,
+        pgDatabase,
+        addColumnIfMissing
+      });
+      if (repaired) console.log('User rewards schema repaired after init failure.');
+    }
   }
 });
 

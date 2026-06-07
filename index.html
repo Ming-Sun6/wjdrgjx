@@ -4979,7 +4979,11 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         var d=await r.json().catch(function(){ return {}; });
         if(!r.ok){
           meRewardsState.rewards=null;
-          setMeRewardsStatus('签到信息加载失败','error');
+          if(d&&d.error==='SCHEMA_NOT_READY'){
+            setMeRewardsStatus('签到功能正在升级，请稍后刷新或联系管理员重启服务','error');
+          }else{
+            setMeRewardsStatus('签到信息加载失败','error');
+          }
           return;
         }
         meRewardsState.rewards=d.rewards||null;

@@ -392,7 +392,9 @@ function acMapError(code) {
     BAD_MAX_USES: '总可用次数无效',
     BAD_SHOP_ITEM: '请选择商城道具',
     CODE_TAKEN: '激活码已存在',
-    BATCH_CREATE_FAILED: '批量创建失败，请重试'
+    BATCH_CREATE_FAILED: '批量创建失败，请重试',
+    SCHEMA_NOT_READY: '数据库未就绪，请重启 Node 服务后再试',
+    INTERNAL_ERROR: '服务器内部错误，请查看 Node 日志'
   };
   return map[code] || String(code || '未知错误');
 }

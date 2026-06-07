@@ -540,6 +540,10 @@ function mountUserRewardsRoutes(deps) {
       return res.json({ rewards: status });
     } catch (err) {
       console.error('me rewards get failed:', err);
+      const msg = String(err?.message || err || '');
+      if (/column.*points|points.*does not exist|Unknown column/i.test(msg)) {
+        return res.status(503).json({ error: 'SCHEMA_NOT_READY' });
+      }
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
     }
   });
@@ -689,19 +693,33 @@ function mountUserRewardsRoutes(deps) {
       const created = [];
       const maxAttempts = batch.count * 20;
       let attempts = 0;
+      let lastInsertError = null;
       while (created.length < batch.count && attempts < maxAttempts) {
         attempts += 1;
         const code = generateActivationCode(batch.codeLength, batch.prefix);
-        const result = await insertActivationCode(
-          { queryOne, execute },
-          admin.id,
-          batch.template,
-          code,
-          formatSqlDateTime
-        );
-        if (!result.error && result.code) created.push(result.code);
+        try {
+          const result = await insertActivationCode(
+            { queryOne, execute },
+            admin.id,
+            batch.template,
+            code,
+            formatSqlDateTime
+          );
+          if (!result.error && result.code) created.push(result.code);
+          else if (result.error === 'CODE_TAKEN') lastInsertError = result.error;
+          else if (result.error) lastInsertError = result.error;
+        } catch (insertErr) {
+          lastInsertError = insertErr;
+          console.error('activation batch insert failed:', insertErr);
+        }
       }
-      if (!created.length) return res.status(500).json({ error: 'BATCH_CREATE_FAILED' });
+      if (!created.length) {
+        const msg = String(lastInsertError?.message || lastInsertError || '');
+        if (/column|does not exist|Unknown column/i.test(msg)) {
+          return res.status(503).json({ error: 'SCHEMA_NOT_READY' });
+        }
+        return res.status(500).json({ error: 'BATCH_CREATE_FAILED' });
+      }
 
       if (auditAdminAction) {
         await auditAdminAction(req, {
@@ -816,6 +834,16 @@ async function ensureUserRewardsSchema(deps) {
   await migrateActivationCodesSchema(deps);
 }
 
+async function repairUserRewardsSchema(deps) {
+  try {
+    await ensureUserRewardsSchema(deps);
+    return true;
+  } catch (err) {
+    console.error('user rewards schema repair failed:', err);
+    return false;
+  }
+}
+
 module.exports = {
   USER_REWARDS_DDL_MYSQL,
   USER_REWARDS_DDL_PG,
@@ -838,5 +866,6 @@ module.exports = {
   applyCodeRewards,
   validateActivationCodeAvailability,
   ensureUserRewardsSchema,
+  repairUserRewardsSchema,
   mountUserRewardsRoutes
 };
