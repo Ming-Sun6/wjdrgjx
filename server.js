@@ -123,22 +123,8 @@ function isHttpsRequest(req) {
   return xfProto === 'https';
 }
 
-function shouldForceHttps(req) {
-  const flag = String(process.env.FORCE_HTTPS || '1').trim().toLowerCase();
-  if (flag === '0' || flag === 'false' || flag === 'off') return false;
-  const host = String(req?.headers?.host || '').split(':')[0].trim().toLowerCase();
-  if (!host || host === 'localhost' || host === '127.0.0.1') return false;
-  return !isHttpsRequest(req);
-}
-
+// HTTPS 跳转只在 IIS / CDN 层做。Node 在 IIS 反代后收到的是 HTTP，若在此 301 到 HTTPS 会死循环。
 app.use((req, res, next) => {
-  if (shouldForceHttps(req)) {
-    const host = String(req.headers.host || '').trim();
-    if (host) {
-      const target = `https://${host}${req.originalUrl || req.url || '/'}`;
-      return res.redirect(301, target);
-    }
-  }
   if (isHttpsRequest(req)) {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
