@@ -1592,7 +1592,17 @@
     body.theme-day .me-rewards-stat-value{color:#0f172a;}
     body.theme-day .me-rewards-hint{color:#64748b;}
     body.theme-day .me-redeem-row input{background:#fff;border-color:rgba(15,23,42,.14);color:#0f172a;}
-    @media (max-width:720px){.me-rewards-summary{grid-template-columns:1fr;}}
+    .me-points-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    .me-hub-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+    .me-hub-grid .chat-entry-card{margin-bottom:0;}
+    @media (max-width:720px){
+      .me-rewards-summary{grid-template-columns:1fr;}
+      .me-hub-grid{grid-template-columns:1fr;}
+    }
     .me-shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
     .me-shop-card{
       border:1px solid rgba(148,163,184,.22);
@@ -3414,7 +3424,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.19</div>
+  <div class="version-tag">版本 V0.9.21</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -3793,7 +3803,7 @@
       </section>
 
       <section class="card wide" data-category="my">
-        <div class="card-title">每日签到</div>
+        <div class="card-title">积分中心</div>
         <div class="card-body">
           <div class="me-rewards-summary">
             <div class="me-rewards-stat">
@@ -3810,52 +3820,26 @@
             </div>
           </div>
           <p class="me-rewards-hint" id="meRewardsHint">每日签到 +2 积分；连续签到 7 天当日额外 +5 积分。</p>
-          <div class="actions">
+          <div class="actions me-points-actions">
             <button class="btn" id="meCheckInBtn" type="button" disabled>签到领取积分</button>
+            <button class="btn secondary" id="openMeShopModalBtn" type="button">积分商城</button>
+            <button class="btn secondary" id="openMeRedeemModalBtn" type="button">激活码兑换</button>
           </div>
           <div class="admin-status" id="meRewardsStatus" style="margin-top:10px;display:none;"></div>
         </div>
       </section>
 
       <section class="card wide" data-category="my">
-        <div class="card-title">激活码</div>
+        <div class="card-title">我的互动</div>
         <div class="card-body">
-          <div class="me-redeem-row">
-            <input id="meRedeemCodeInput" maxlength="48" placeholder="请输入激活码" autocomplete="off" />
-            <button class="btn secondary" id="meRedeemCodeBtn" type="button" disabled>兑换</button>
-          </div>
-          <div class="admin-status" id="meRedeemStatus" style="margin-top:10px;display:none;"></div>
-        </div>
-      </section>
-
-      <section class="card wide" data-category="my">
-        <div class="card-title">积分商城</div>
-        <div class="card-body">
-          <p class="me-rewards-hint" id="meShopHint">使用积分兑换会员等道具。请先登录后查看商城。</p>
-          <div class="me-shop-grid" id="meShopGrid">
-            <div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">加载中...</div>
-          </div>
-          <div class="admin-status" id="meShopStatus" style="margin-top:10px;display:none;"></div>
-        </div>
-      </section>
-
-      <section class="card wide" data-category="my">
-        <div class="card-title">聊天</div>
-        <div class="card-body">
-          <div class="chat-entry-wrap" id="chatEntryWrap">
-            <button class="chat-entry-card" id="chatEntryBtn" type="button">
-              <div class="chat-entry-title">聊天</div>
-              <div class="chat-entry-count"><strong id="chatUnreadCount">0</strong>条未读会话</div>
-              <div class="chat-entry-hint" id="chatEntryHint">点击查看好友列表</div>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section class="card wide" data-category="my">
-        <div class="card-title">我的收藏与点赞</div>
-        <div class="card-body">
-          <div class="me-collection-summary">
+          <div class="me-hub-grid">
+            <div class="chat-entry-wrap" id="chatEntryWrap">
+              <button class="chat-entry-card" id="chatEntryBtn" type="button">
+                <div class="chat-entry-title">聊天</div>
+                <div class="chat-entry-count"><strong id="chatUnreadCount">0</strong>条未读会话</div>
+                <div class="chat-entry-hint" id="chatEntryHint">点击查看好友列表</div>
+              </button>
+            </div>
             <button class="me-collection-card" id="meFavoritesCard" type="button" data-me-collection="favorites">
               <div class="me-collection-card-title">收藏条目</div>
               <div class="me-collection-card-count" id="meFavoritesCount">—</div>
@@ -3871,17 +3855,10 @@
       </section>
 
       <section class="card wide" data-category="my">
-        <div class="card-title">联系我们</div>
-        <div class="desc">如需联系站点管理员，可通过邮箱联系。</div>
+        <div class="card-title">反馈与支持</div>
+        <div class="desc">联系管理员，或提交攻略投稿、工具建议与纠错说明。</div>
         <div class="actions">
           <button class="btn secondary" id="openContactModalBtn" type="button">联系我们</button>
-        </div>
-      </section>
-
-      <section class="card wide" data-category="my">
-        <div class="card-title">攻略、工具投稿 | 攻略、工具建议 | 纠错</div>
-        <div class="desc">欢迎提交攻略投稿、纠错说明与工具建议。</div>
-        <div class="actions">
           <button class="btn secondary" id="openContributionModalBtn" type="button">攻略投稿/纠错</button>
         </div>
       </section>
@@ -4020,6 +3997,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.21（2026-06-04）</h4>
+        <ol>
+          <li><strong>我的信息</strong>：页面布局重构——「积分中心」整合每日签到、积分商城与激活码兑换（商城与激活码改为二级弹层）；聊天、收藏与点赞合并为「我的互动」；联系与投稿合并为「反馈与支持」。</li>
+          <li><strong>积分中心</strong>：登录后可每日签到领积分（连续 7 天当日额外 +5）；积分商城可兑换会员等道具；激活码支持兑换积分、会员或组合奖励。</li>
+        </ol>
+
         <h4>V0.9.19（2026-06-04）</h4>
         <ol>
           <li><strong>甜甜的攻略站</strong>：「基础工具」新增入口，内含攻略 1.0 / 2.0 / 3.0 三个版本；展示目录预览，点击打开金山文档完整攻略（金山文档不支持其它网站内嵌）。</li>
@@ -4648,6 +4631,43 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     </div>
   </div>
 
+  <div class="forum-view-modal user-home-modal" id="meShopModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="积分商城">
+      <div class="forum-head">
+        <h3>积分商城</h3>
+        <div class="forum-head-actions">
+          <button class="forum-close" id="meShopModalClose" type="button" aria-label="关闭">关闭</button>
+        </div>
+      </div>
+      <div class="forum-body">
+        <p class="me-rewards-hint" id="meShopHint">使用积分兑换会员等道具。请先登录后查看商城。</p>
+        <div class="me-shop-grid" id="meShopGrid">
+          <div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">加载中...</div>
+        </div>
+        <div class="admin-status" id="meShopStatus" style="margin-top:10px;display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-view-modal user-home-modal" id="meRedeemModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="激活码兑换">
+      <div class="forum-head">
+        <h3>激活码兑换</h3>
+        <div class="forum-head-actions">
+          <button class="forum-close" id="meRedeemModalClose" type="button" aria-label="关闭">关闭</button>
+        </div>
+      </div>
+      <div class="forum-body">
+        <p class="me-rewards-hint">输入激活码可兑换积分、会员或商城道具。</p>
+        <div class="me-redeem-row">
+          <input id="meRedeemCodeInput" maxlength="48" placeholder="请输入激活码" autocomplete="off" />
+          <button class="btn" id="meRedeemCodeBtn" type="button" disabled>兑换</button>
+        </div>
+        <div class="admin-status" id="meRedeemStatus" style="margin-top:10px;display:none;"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="forum-view-modal user-home-modal" id="meCollectionModal" aria-hidden="true">
     <div class="forum-panel" role="dialog" aria-modal="true" aria-label="我的收藏与点赞">
       <div class="forum-head">
@@ -4880,7 +4900,6 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
               '<div class="me-profile-id">ID：'+safeShowId+'</div>'+
             '</div>'+
           '</div>'+
-          '<div class="info-row"><span class="info-label">我的积分</span><span class="info-value" id="meSummaryPoints">'+escapeHtml(String(Math.max(0, Number(authUser.points||0))))+'</span></div>'+
           '<div class="info-row"><span class="info-label">会员状态</span><span class="info-value">'+safeStatus+'</span></div>'+
           '<div class="info-row"><span class="info-label">到期时间</span><span class="info-value">'+safeExp+'</span></div>'+
           '<div class="info-row"><span class="info-label">用户名修改</span><span class="info-value">'+safeChange+'</span></div>'+
@@ -4925,6 +4944,8 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       var checkBtn=document.getElementById('meCheckInBtn');
       var redeemBtn=document.getElementById('meRedeemCodeBtn');
       var redeemInput=document.getElementById('meRedeemCodeInput');
+      var shopBtn=document.getElementById('openMeShopModalBtn');
+      var redeemModalBtn=document.getElementById('openMeRedeemModalBtn');
       if(!authUser){
         if(pointsEl) pointsEl.textContent='—';
         if(streakEl) streakEl.textContent='—';
@@ -4933,8 +4954,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         if(checkBtn){ checkBtn.disabled=true; checkBtn.textContent='签到领取积分'; }
         if(redeemBtn) redeemBtn.disabled=true;
         if(redeemInput) redeemInput.disabled=true;
+        if(shopBtn) shopBtn.disabled=true;
+        if(redeemModalBtn) redeemModalBtn.disabled=true;
         return;
       }
+      if(shopBtn) shopBtn.disabled=false;
+      if(redeemModalBtn) redeemModalBtn.disabled=false;
       if(redeemInput) redeemInput.disabled=false;
       if(redeemBtn) redeemBtn.disabled=false;
       var r=meRewardsState.rewards;
@@ -4947,8 +4972,6 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       }
       var points=Math.max(0, Number(r.points||authUser.points||0));
       if(pointsEl) pointsEl.textContent=String(points);
-      var summaryPoints=document.getElementById('meSummaryPoints');
-      if(summaryPoints) summaryPoints.textContent=String(points);
       authUser.points=points;
       var streak=r.checkedToday ? Number(r.currentStreak||0) : Number(r.currentStreak||0);
       if(streakEl) streakEl.textContent=(r.checkedToday?String(streak):String(streak))+' 天';
@@ -5033,6 +5056,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       var btn=document.getElementById('meRedeemCodeBtn');
       if(btn) btn.disabled=true;
       setMeRedeemStatus('兑换中...','');
+      var successMsg='';
       try{
         var r=await apiFetch('/api/me/redeem-code',{method:'POST',body:JSON.stringify({code:code})});
         var d=await r.json().catch(function(){ return {}; });
@@ -5052,27 +5076,30 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         }
         if(d&&d.user) authUser=d.user;
         if(d&&d.rewards) meRewardsState.rewards=d.rewards;
-        var msg='兑换成功';
+        successMsg='兑换成功';
         if(d&&d.redemption){
-          if(d.redemption.type==='points') msg='兑换成功，获得 '+Number(d.redemption.pointsAdded||0)+' 积分';
+          if(d.redemption.type==='points') successMsg='兑换成功，获得 '+Number(d.redemption.pointsAdded||0)+' 积分';
           else if(d.redemption.type==='membership'){
-            msg=d.redemption.membershipStatus==='lifetime'?'兑换成功，已开通永久会员':'兑换成功，会员已延长';
+            successMsg=d.redemption.membershipStatus==='lifetime'?'兑换成功，已开通永久会员':'兑换成功，会员已延长';
           } else if(d.redemption.type==='combo'){
-            msg='兑换成功，获得 '+Number(d.redemption.pointsAdded||0)+' 积分并延长会员';
+            successMsg='兑换成功，获得 '+Number(d.redemption.pointsAdded||0)+' 积分并延长会员';
           } else if(d.redemption.type==='shop_item'){
-            msg='兑换成功：'+(d.redemption.shopItemName||'商城道具');
+            successMsg='兑换成功：'+(d.redemption.shopItemName||'商城道具');
           }
         }
-        setMeRedeemStatus(msg,'');
-        showDevToast(msg);
-        if(input) input.value='';
-        renderMe();
-        renderMeRewards();
       }catch(e){
         setMeRedeemStatus('兑换失败：'+(e.message||'网络错误'),'error');
+        return;
       }finally{
         if(btn) btn.disabled=false;
       }
+      setMeRedeemStatus(successMsg,'');
+      showDevToast(successMsg);
+      if(input) input.value='';
+      try{
+        renderMe();
+        renderMeRewards();
+      }catch(e){}
     }
     var meShopState={loading:false,items:[]};
     function shopRewardText(item){
@@ -5128,17 +5155,18 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         btn.addEventListener('click',function(){ doMeShopPurchase(Number(btn.getAttribute('data-item-id'))); });
       });
     }
-    async function loadMeShop(){
+    async function loadMeShop(opts){
+      opts=opts||{};
       if(!authUser){ meShopState.items=[]; renderMeShop(); return; }
       meShopState.loading=true; renderMeShop();
       try{
         var r=await apiFetch('/api/shop/items',{method:'GET'});
         var d=await r.json().catch(function(){ return {}; });
         meShopState.items=r.ok && Array.isArray(d.items)?d.items:[];
-        setMeShopStatus('','');
+        if(!opts.silent) setMeShopStatus('','');
       }catch(e){
         meShopState.items=[];
-        setMeShopStatus('商城加载失败：'+(e.message||'网络错误'),'error');
+        if(!opts.silent) setMeShopStatus('商城加载失败：'+(e.message||'网络错误'),'error');
       }finally{
         meShopState.loading=false;
         renderMeShop();
@@ -5148,6 +5176,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       if(!authUser){ showDevToast('请先登录'); return; }
       if(!Number.isFinite(itemId)||itemId<=0) return;
       setMeShopStatus('兑换中...','');
+      var successMsg='';
       try{
         var r=await apiFetch('/api/shop/purchase',{method:'POST',body:JSON.stringify({itemId:itemId})});
         var d=await r.json().catch(function(){ return {}; });
@@ -5158,16 +5187,53 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           return;
         }
         if(d&&d.user) authUser=d.user;
-        if(d&&d.purchase){
-          setMeShopStatus('兑换成功：'+((d.purchase.item&&d.purchase.item.name)||'道具'),'');
-          showDevToast('兑换成功');
-        }
-        renderMe();
-        renderMeRewards();
-        await loadMeShop();
+        successMsg='兑换成功：'+((d.purchase&&d.purchase.item&&d.purchase.item.name)||'道具');
       }catch(e){
         setMeShopStatus('兑换失败：'+(e.message||'网络错误'),'error');
+        showDevToast('兑换失败');
+        return;
       }
+      setMeShopStatus(successMsg,'');
+      showDevToast('兑换成功');
+      try{
+        renderMe();
+        renderMeRewards();
+        await loadMeShop({ silent:true });
+      }catch(e){}
+    }
+    function openMeShopModal(){
+      if(!authUser){ showDevToast('请先登录'); return; }
+      var modal=document.getElementById('meShopModal');
+      if(!modal) return;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+      syncBodyNoScroll();
+      loadMeShop();
+    }
+    function closeMeShopModal(){
+      var modal=document.getElementById('meShopModal');
+      if(!modal) return;
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+      syncBodyNoScroll();
+    }
+    function openMeRedeemModal(){
+      if(!authUser){ showDevToast('请先登录'); return; }
+      var modal=document.getElementById('meRedeemModal');
+      if(!modal) return;
+      setMeRedeemStatus('','');
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+      syncBodyNoScroll();
+      var input=document.getElementById('meRedeemCodeInput');
+      if(input) setTimeout(function(){ input.focus(); },0);
+    }
+    function closeMeRedeemModal(){
+      var modal=document.getElementById('meRedeemModal');
+      if(!modal) return;
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+      syncBodyNoScroll();
     }
     function setMyCollectionCard(kind, count, hint, disabled){
       var countEl=document.getElementById(kind==='favorites'?'meFavoritesCount':'meLikesCount');
@@ -6634,12 +6700,16 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       var forumViewModal=document.getElementById('forumViewModal');
       var userHomeModal=document.getElementById('userHomeModal');
       var meCollectionModal=document.getElementById('meCollectionModal');
+      var meShopModal=document.getElementById('meShopModal');
+      var meRedeemModal=document.getElementById('meRedeemModal');
       var chatModal=document.getElementById('chatModal');
       var forumImageLightbox=document.getElementById('forumImageLightbox');
       var keepLocked = !!(
         (forumViewModal && forumViewModal.classList.contains('open')) ||
         (userHomeModal && userHomeModal.classList.contains('open')) ||
         (meCollectionModal && meCollectionModal.classList.contains('open')) ||
+        (meShopModal && meShopModal.classList.contains('open')) ||
+        (meRedeemModal && meRedeemModal.classList.contains('open')) ||
         (chatModal && chatModal.classList.contains('open')) ||
         (forumImageLightbox && forumImageLightbox.classList.contains('open'))
       );
@@ -8357,7 +8427,6 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       renderMe();
       loadMyCollections();
       loadMeRewards();
-      loadMeShop();
       if(authUser){
         syncChatSeenAtFromStorage();
         updateChatEntryCard();
@@ -8409,7 +8478,6 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
           renderMe();
           loadMyCollections();
           loadMeRewards();
-          loadMeShop();
           syncChatSeenAtFromStorage();
           updateChatEntryCard();
           loadChatConversations();
@@ -8475,6 +8543,8 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       authUser=null;
       closeUserHome();
       closeMyCollectionModal();
+      closeMeShopModal();
+      closeMeRedeemModal();
       updateAuthUI();
       renderMe();
       meRewardsState.rewards=null;
@@ -8497,6 +8567,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     document.getElementById('registerModal')&&document.getElementById('registerModal').addEventListener('click',function(e){ if(e.target&&e.target.id==='registerModal')closeRegisterModal(); });
     document.getElementById('profileBtn')&&document.getElementById('profileBtn').addEventListener('click',openProfileModal);
     document.getElementById('meCheckInBtn')&&document.getElementById('meCheckInBtn').addEventListener('click',doMeCheckIn);
+    document.getElementById('openMeShopModalBtn')&&document.getElementById('openMeShopModalBtn').addEventListener('click',openMeShopModal);
+    document.getElementById('openMeRedeemModalBtn')&&document.getElementById('openMeRedeemModalBtn').addEventListener('click',openMeRedeemModal);
+    document.getElementById('meShopModalClose')&&document.getElementById('meShopModalClose').addEventListener('click',closeMeShopModal);
+    document.getElementById('meShopModal')&&document.getElementById('meShopModal').addEventListener('click',function(e){ if(e.target&&e.target.id==='meShopModal') closeMeShopModal(); });
+    document.getElementById('meRedeemModalClose')&&document.getElementById('meRedeemModalClose').addEventListener('click',closeMeRedeemModal);
+    document.getElementById('meRedeemModal')&&document.getElementById('meRedeemModal').addEventListener('click',function(e){ if(e.target&&e.target.id==='meRedeemModal') closeMeRedeemModal(); });
     document.getElementById('meRedeemCodeBtn')&&document.getElementById('meRedeemCodeBtn').addEventListener('click',doMeRedeemCode);
     document.getElementById('meRedeemCodeInput')&&document.getElementById('meRedeemCodeInput').addEventListener('keydown',function(e){
       if(e.key==='Enter'){ e.preventDefault(); doMeRedeemCode(); }
@@ -8704,6 +8780,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       if(contributionModal && contributionModal.classList.contains('open')){ closeContributionModal(); return; }
       var chatModal=document.getElementById('chatModal');
       if(chatModal && chatModal.classList.contains('open')){ closeChatModal(); return; }
+      var meShopModal=document.getElementById('meShopModal');
+      if(meShopModal && meShopModal.classList.contains('open')){ closeMeShopModal(); return; }
+      var meRedeemModal=document.getElementById('meRedeemModal');
+      if(meRedeemModal && meRedeemModal.classList.contains('open')){ closeMeRedeemModal(); return; }
+      var meCollectionModal=document.getElementById('meCollectionModal');
+      if(meCollectionModal && meCollectionModal.classList.contains('open')){ closeMyCollectionModal(); return; }
       var userHomeModal=document.getElementById('userHomeModal');
       if(userHomeModal && userHomeModal.classList.contains('open')){ closeUserHome(); return; }
       var profileModal=document.getElementById('profileModal');
@@ -9299,7 +9381,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         });
         if(typeof window.refreshForumListView === 'function') window.refreshForumListView();
         if (window.updateForumFab) window.updateForumFab(activeTab);
-        if(activeTab==='my' && authUser){ loadMeRewards(); loadMeShop(); }
+        if(activeTab==='my' && authUser){ loadMeRewards(); }
         updateTabQuery();
       }
       window.setHomeTab = setActiveTab;

@@ -762,7 +762,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.20</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.21</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1738,6 +1738,14 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.21（2026-06-04）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>积分商城</strong>：新增后台菜单「积分商城」，支持上架积分/会员/组合类道具，设置价格、库存、排序与上下架；公开 <code>GET /api/shop/items</code>、<code>POST /api/shop/purchase</code>；管理端 <code>GET/POST /api/admin/shop-items</code> 等 CRUD。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>激活码</strong>：新增后台菜单「激活码」，支持积分/会员/组合/商城道具类型，批量生成、每人限次、生效/过期时间与不限次（<code>maxUses=0</code>）；公开 <code>POST /api/me/redeem-code</code>；管理端批量创建与列表管理。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>签到与积分</strong>：用户表新增 <code>points</code>；每日签到 +2 积分、连续 7 天当日额外 +5；公开 <code>GET /api/me/rewards</code>、<code>POST /api/me/check-in</code>；用户详情页展示积分。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>修复</strong>：PostgreSQL 下 <code>addColumnIfMissing</code> / <code>hasColumn</code> 迁移兼容，修复签到加载失败与激活码批量创建 <code>INTERNAL_ERROR</code>；首页兑换成功后不再被商城刷新误覆盖为失败提示。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>首页</strong>：同步 V0.9.21，「我的信息」重构为积分中心 + 二级弹层（商城/激活码）、我的互动、反馈与支持。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.20（2026-06-04）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>熊坑数据</strong>：新增后台菜单「熊坑数据」，可查看用户当前存档与历史备份（用户名、用户 ID、JSON 数据）；支持搜索 / 筛选 / 一键导出 CSV。</div>
