@@ -32,7 +32,7 @@ class SettlementModal {
         this.dataAnalysisBtn = document.getElementById('data-analysis-btn');
 
         if (this.newGameBtn) {
-            this.newGameBtn.textContent = '返回房间';
+            this.newGameBtn.textContent = '返回主页';
         }
 
         this.bindEvents();
@@ -46,7 +46,7 @@ class SettlementModal {
             });
         }
 
-        // 返回房间按钮事件
+        // 返回主页按钮事件
         if (this.newGameBtn) {
             this.newGameBtn.addEventListener('click', () => {
                 this.returnToRoom();
@@ -848,7 +848,7 @@ class SettlementModal {
     }
 
     /**
-     * 返回房间
+     * 返回主页
      */
     returnToRoom() {
         // 清理历史数据，释放内存

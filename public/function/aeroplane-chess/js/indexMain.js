@@ -819,6 +819,7 @@ class PlayerSetup {
                 if (configTitle) configTitle.textContent = '房间列表';
                 if (mainMenuContainer) mainMenuContainer.style.display = 'none';
                 if (playerConfigWrapper) playerConfigWrapper.style.display = 'block';
+                this.setToolboxHomeLinkVisible(false);
                 this.showOnlineMultiplayerConfig();
             });
         }
@@ -830,6 +831,7 @@ class PlayerSetup {
                 if (configTitle) configTitle.textContent = '人机对战设置';
                 if (mainMenuContainer) mainMenuContainer.style.display = 'none';
                 if (playerConfigWrapper) playerConfigWrapper.style.display = 'block';
+                this.setToolboxHomeLinkVisible(false);
                 this.showConfigPanel();
                 this.showAIConfig();
             });
@@ -842,6 +844,7 @@ class PlayerSetup {
                 if (configTitle) configTitle.textContent = '本地多人设置';
                 if (mainMenuContainer) mainMenuContainer.style.display = 'none';
                 if (playerConfigWrapper) playerConfigWrapper.style.display = 'block';
+                this.setToolboxHomeLinkVisible(false);
                 this.showConfigPanel();
                 this.hideAIConfig();
             });
@@ -853,6 +856,7 @@ class PlayerSetup {
                 console.log('点击规则说明按钮');
                 if (mainMenuContainer) mainMenuContainer.style.display = 'none';
                 if (rulesPanelWrapper) rulesPanelWrapper.style.display = 'block';
+                this.setToolboxHomeLinkVisible(false);
             });
         }
 
@@ -868,7 +872,15 @@ class PlayerSetup {
             rulesBackBtn.addEventListener('click', () => {
                 if (rulesPanelWrapper) rulesPanelWrapper.style.display = 'none';
                 if (mainMenuContainer) mainMenuContainer.style.display = 'flex';
+                this.setToolboxHomeLinkVisible(true);
             });
+        }
+    }
+
+    setToolboxHomeLinkVisible(visible) {
+        const homeLink = document.querySelector('.toolbox-home-link');
+        if (homeLink) {
+            homeLink.style.display = visible ? 'inline-flex' : 'none';
         }
     }
 
@@ -880,6 +892,7 @@ class PlayerSetup {
         if (mainMenuContainer) mainMenuContainer.style.display = 'flex';
         if (playerConfigWrapper) playerConfigWrapper.style.display = 'none';
         if (rulesPanelWrapper) rulesPanelWrapper.style.display = 'none';
+        this.setToolboxHomeLinkVisible(true);
 
         this.currentMode = null;
         this.resetAllConfigPanels();
@@ -893,6 +906,7 @@ class PlayerSetup {
         if (mainMenuContainer) mainMenuContainer.style.display = 'none';
         if (playerConfigWrapper) playerConfigWrapper.style.display = 'block';
         if (playerConfigPanel) playerConfigPanel.style.display = 'flex';
+        this.setToolboxHomeLinkVisible(false);
 
         // 强制浏览器执行 Layout，确保后续动画平滑
         playerConfigPanel.offsetHeight; 
@@ -1091,6 +1105,7 @@ class PlayerSetup {
         if (mainMenuContainer) mainMenuContainer.style.display = 'none';
         if (playerConfigWrapper) playerConfigWrapper.style.display = 'block';
         if (playerConfigPanel) playerConfigPanel.style.display = 'flex';
+        this.setToolboxHomeLinkVisible(false);
 
         // 隐藏其他配置面板
         const localConfig = document.getElementById('localMultiplayerConfig');

@@ -214,6 +214,23 @@ class MultiplayerManager {
         });
     }
 
+    bindLobbyNicknamePersistence() {
+        const input = document.getElementById('lobbyNicknameInput');
+        if (!input || input.dataset.nicknamePersistenceBound === 'true') return;
+
+        input.dataset.nicknamePersistenceBound = 'true';
+        input.addEventListener('input', () => {
+            const nickname = String(input.value || '').trim().slice(0, 8);
+            if (window.playerIdManager) {
+                window.playerIdManager.saveNickname(nickname);
+            }
+            this.applyLobbyNicknameToRoomInput();
+        });
+        input.addEventListener('blur', () => {
+            input.value = String(input.value || '').trim().slice(0, 8);
+        });
+    }
+
     updateConfigHeaderTitle() {
         const titleEl = document.getElementById('configTitle');
         const roomNameInput = document.getElementById('roomNameInput');
@@ -290,6 +307,7 @@ class MultiplayerManager {
     bindEvents() {
         // 恢复保存的昵称到输入框
         this.restoreSavedNickname();
+        this.bindLobbyNicknamePersistence();
 
         // 移除之前的事件监听器，避免重复绑定
         if (this.eventHandler) {
@@ -446,7 +464,7 @@ class MultiplayerManager {
             });
         }
 
-        const takeoffRuleContainer = document.querySelector('.takeoff-rule-selector');
+        const takeoffRuleContainer = document.querySelector('#hostSettings .takeoff-rule-selector');
         if (takeoffRuleContainer) {
             takeoffRuleContainer.addEventListener('click', (e) => {
                 const option = e.target.closest('.takeoff-rule-option');
@@ -3554,7 +3572,7 @@ class MultiplayerManager {
     }
 
     getSelectedTakeoffRule() {
-        const selected = document.querySelector('.takeoff-rule-option.selected');
+        const selected = document.querySelector('#hostSettings .takeoff-rule-option.selected');
         return this.normalizeTakeoffRule(selected?.dataset?.takeoffRule || this.currentRoom?.settings?.takeoffRule || this.takeoffRule);
     }
 

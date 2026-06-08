@@ -345,6 +345,44 @@ test('polling service clears finished rooms from reconnect info after settlement
   assert.equal(service.rooms.has(created.room.code), false);
 });
 
+test('polling service clears room ownership when settlement page returns to lobby', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  await service.handleMessage({
+    type: 'add_ai_player',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    data: { colorIndex: 2, difficulty: 'easy' }
+  });
+
+  await service.handleMessage({
+    type: 'startGame',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  });
+
+  const left = (await service.handleMessage({
+    type: 'returnToRoom',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  })).events.find((event) => event.type === 'roomLeft' || event.type === 'roomClosed');
+
+  assert.ok(left);
+
+  const reconnectInfo = (await service.handleMessage({
+    type: 'getReconnectInfo',
+    playerId: 'host-1'
+  })).events.find((event) => event.type === 'reconnectInfo');
+
+  assert.equal(reconnectInfo.roomCode, null);
+  assert.equal(service.rooms.has(created.room.code), false);
+});
+
 test('polling service replays all audio loaded status to real players that missed the broadcast', async () => {
   const service = createAeroplaneChessPollingService();
   const created = (await service.handleMessage({

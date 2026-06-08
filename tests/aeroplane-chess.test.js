@@ -187,7 +187,7 @@ test('aeroplane chess home page has toolbox return link and no qq feedback', () 
     const mainMenuStart = html.indexOf('id="mainMenuContainer"');
     const mainMenuEnd = html.indexOf('id="playerConfigWrapper"');
     const linkIndex = html.indexOf('class="toolbox-home-link"');
-    assert.ok(linkIndex > mainMenuStart && linkIndex < mainMenuEnd);
+    assert.ok(linkIndex < mainMenuStart);
     assert.doesNotMatch(html, /wjdr\.store/);
     assert.doesNotMatch(html, /Bug反馈QQ群/);
     assert.doesNotMatch(html, /1097294452/);
@@ -199,6 +199,21 @@ test('aeroplane chess home page has toolbox return link and no qq feedback', () 
     assert.match(css, /\.toolbox-home-link/);
     assert.doesNotMatch(css, /\.footer-feedback/);
     assert.doesNotMatch(css, /\.qq-group-number/);
+  }
+});
+
+test('toolbox return link is shown only on the aeroplane chess main menu', () => {
+  const indexMainFiles = [
+    path.join(gameDir, 'js', 'indexMain.js'),
+    path.join(publicGameDir, 'js', 'indexMain.js')
+  ];
+
+  for (const file of indexMainFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /setToolboxHomeLinkVisible\(visible\)/);
+    assert.match(source, /showMainMenu\(\)[\s\S]*this\.setToolboxHomeLinkVisible\(true\)/);
+    assert.match(source, /showConfigPanel\(\)[\s\S]*this\.setToolboxHomeLinkVisible\(false\)/);
+    assert.match(source, /showOnlineMultiplayerConfig\(\)[\s\S]*this\.setToolboxHomeLinkVisible\(false\)/);
   }
 });
 
@@ -301,6 +316,10 @@ test('aeroplane chess rooms support configurable takeoff rules', () => {
     const source = fs.readFileSync(file, 'utf8');
     assert.match(source, /getSelectedTakeoffRule/);
     assert.match(source, /setTakeoffRule/);
+    assert.match(source, /document\.querySelector\('#hostSettings \.takeoff-rule-option\.selected'\)/);
+    assert.match(source, /document\.querySelector\('#hostSettings \.takeoff-rule-selector'\)/);
+    assert.doesNotMatch(source, /document\.querySelector\('\.takeoff-rule-selector'\)/);
+    assert.doesNotMatch(source, /document\.querySelector\('\.takeoff-rule-option\.selected'\)/);
     assert.match(source, /takeoffRule:\s*this\.getSelectedTakeoffRule\(\)/);
     assert.match(source, /settings:\s*{[\s\S]*takeoffRule:\s*rule/);
   }
@@ -431,6 +450,36 @@ test('aeroplane chess room chat identifies player colors, spectators, and custom
     assert.match(css, /\.player-3-name/);
     assert.match(css, /\.player-4-name/);
     assert.match(css, /\.room-chat-spectator-name/);
+  }
+});
+
+test('aeroplane chess lobby nickname is mobile friendly and cached while typing', () => {
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerManager.js')
+  ];
+  const styleFiles = [
+    path.join(gameDir, 'css', 'style.css'),
+    path.join(publicGameDir, 'css', 'style.css')
+  ];
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /bindLobbyNicknamePersistence\(\)/);
+    assert.match(source, /this\.bindLobbyNicknamePersistence\(\)/);
+    assert.match(source, /document\.getElementById\('lobbyNicknameInput'\)/);
+    assert.match(source, /addEventListener\('input'/);
+    assert.match(source, /window\.playerIdManager\.saveNickname\(nickname\)/);
+    assert.match(source, /this\.applyLobbyNicknameToRoomInput\(\)/);
+  }
+
+  for (const file of styleFiles) {
+    const css = fs.readFileSync(file, 'utf8');
+    assert.match(css, /\.lobby-nickname-setting\s*\{[\s\S]*width:\s*min\(360px,\s*calc\(100%\s*-\s*24px\)\)/);
+    assert.match(css, /\.lobby-nickname-input\s*\{[\s\S]*box-sizing:\s*border-box/);
+    assert.match(css, /\.lobby-nickname-input\s*\{[\s\S]*font-size:\s*16px/);
+    assert.match(css, /@media\s*\(max-width:\s*520px\)\s*\{[\s\S]*\.lobby-nickname-setting\s*\{[\s\S]*width:\s*100%/);
+    assert.match(css, /@media\s*\(max-width:\s*520px\)\s*\{[\s\S]*\.lobby-nickname-input\s*\{[\s\S]*height:\s*42px/);
   }
 });
 

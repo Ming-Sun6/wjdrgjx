@@ -568,6 +568,25 @@ function createAeroplaneChessPollingService(options = {}) {
       return { events };
     }
 
+    if (type === 'returnToRoom') {
+      const sessionId = message.gameSessionId || data.gameSessionId || room.gameSessionId;
+      const event = {
+        type: 'roomClosed',
+        roomCode: room.code,
+        gameSessionId: sessionId,
+        reason: 'settlement_return',
+        timestamp: message.timestamp || data.timestamp || Date.now()
+      };
+      broadcastRoom(room, event, playerId);
+      send({ type: 'roomLeft', roomCode: room.code });
+      if (room.gameSessionId) gameSessions.delete(room.gameSessionId);
+      room.gameSessionId = null;
+      room.gameState = 'finished';
+      clearRoomMappings(room);
+      rooms.delete(room.code);
+      return { events };
+    }
+
     if (type === 'gameEnd' || type === 'forceSettlement') {
       const sessionId = message.gameSessionId || data.gameSessionId || room.gameSessionId;
       const session = sessionId ? gameSessions.get(sessionId) : null;
