@@ -12,6 +12,13 @@ wjdr-giftcode/node_modules/
 wjdr-giftcode/__pycache__/
 wjdr-giftcode/.env
 
+# Imported aeroplane chess project
+aeroplane-chess/node_modules/
+aeroplane-chess/frontend/node_modules/
+aeroplane-chess/backend/node_modules/
+aeroplane-chess/frontend/dist/
+aeroplane-chess/frontend/assets/违规词库.txt
+
 # Executables
 *.swf
 *.air

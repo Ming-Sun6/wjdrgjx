@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const express = require('express');
+const { spawn } = require('child_process');
 let sanitizeHtml = null;
 try { sanitizeHtml = require('sanitize-html'); } catch (_e) { sanitizeHtml = null; }
 let mysql = null;
@@ -60,7 +61,6 @@ const {
   applyShopItemToUser,
   mapShopItemRow
 } = require('./shop');
-const { mountLudoRoutes } = require('./ludo-routes');
 
 const app = express();
 const PORT = 3000;
@@ -117,6 +117,27 @@ try {
 let analyticsService = null;
 let dashboardHandlers = null;
 let governanceService = null;
+let aeroplaneChessBackendProcess = null;
+
+function startAeroplaneChessBackend() {
+  if (aeroplaneChessBackendProcess || process.env.AEROPLANE_CHESS_BACKEND === 'external') return;
+  const backendDir = path.join(__dirname, 'aeroplane-chess', 'backend');
+  const backendEntry = path.join(backendDir, 'server.cjs');
+  if (!fs.existsSync(backendEntry)) {
+    console.warn('Aeroplane chess backend not found:', backendEntry);
+    return;
+  }
+  aeroplaneChessBackendProcess = spawn(process.execPath, [backendEntry], {
+    cwd: backendDir,
+    env: { ...process.env, PORT: process.env.AEROPLANE_CHESS_PORT || '3001' },
+    stdio: 'inherit',
+    windowsHide: true
+  });
+  aeroplaneChessBackendProcess.on('exit', (code, signal) => {
+    console.warn(`Aeroplane chess backend exited: code=${code ?? ''} signal=${signal ?? ''}`);
+    aeroplaneChessBackendProcess = null;
+  });
+}
 
 function isHttpsRequest(req) {
   if (req && req.secure) return true;
@@ -141,6 +162,14 @@ if (GIFTCODE_UI_MODE !== 'live') {
 
 mountGiftcodeProxy(app);
 app.use(express.json({ limit: '8mb' }));
+app.use(
+  '/function/aeroplane-chess',
+  express.static(path.join(__dirname, 'aeroplane-chess', 'frontend', 'public'))
+);
+app.use(
+  '/function/aeroplane-chess',
+  express.static(path.join(__dirname, 'aeroplane-chess', 'frontend'))
+);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 避免中间层/浏览器把“带登录态”的 API 响应缓存，导致不同用户看到同一份响应（典型表现：打开网站像是登录了别人）。
@@ -4239,16 +4268,6 @@ mountShopRoutes({
   attachFollowCountsToUserPayload
 });
 
-mountLudoRoutes({
-  app,
-  queryRows,
-  queryOne,
-  execute,
-  requireAuth,
-  formatSqlDateTime,
-  pgDatabase
-});
-
 app.get('/api/bearpit/layout', async (req, res) => {
   try {
     const user = await requireAuth(req, res);
@@ -4408,6 +4427,7 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, async () => {
+  startAeroplaneChessBackend();
   try {
     await initDB();
     console.log('Local server started.');

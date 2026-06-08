@@ -1,0 +1,837 @@
+/* 管理面板样式 - 米色系设计风格 */
+
+:root {
+    /* 玩家颜色变量 - 低饱和度扁平色彩 */
+    --player-1-color: #a6d8b7;
+    --player-2-color: #ecbd99;
+    --player-3-color: #afccea;
+    --player-4-color: #f7a099;
+
+    /* 填充颜色变量 */
+    --player-1-fill: #d4ede3;
+    --player-2-fill: #f5dcc8;
+    --player-3-fill: #dce8f5;
+    --player-4-fill: #fcc9c6;
+
+    /* 边框颜色变量 */
+    --player-1-border: #93c8b2;
+    --player-2-border: #e9b489;
+    --player-3-border: #a3bfdc;
+    --player-4-border: #dd9793;
+
+    /* 背景颜色变量 - 米色系 */
+    --bg-light-1: #f5f2ed;
+    --bg-light-2: #ebe8e3;
+    --bg-medium: rgba(255, 253, 250, 0.8);
+    --bg-soft: rgba(255, 253, 250, 0.6);
+    --bg-faint: rgba(255, 253, 250, 0.4);
+
+    --border-light: rgba(61, 53, 45, 0.9);
+    --border-medium: rgba(61, 53, 45, 0.6);
+    --border-soft: rgba(61, 53, 45, 0.4);
+
+    --radius-base: 8px;
+    --radius-full: 50%;
+
+    --modal-shadow: 0 2px 8px rgba(92, 83, 78, 0.15);
+
+    --text-primary: #2d241f;
+    --text-secondary: #2d241f;
+    --text-gray: rgba(92, 83, 78, 1);
+    --font-faint: rgba(92, 83, 78, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--bg-dark-1);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-faint);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-medium);
+    border: 2.5px solid transparent;
+    background-clip: padding-box;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-light);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.table-container::-webkit-scrollbar {
+    height: 2px;
+}
+
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* 头部 */
+.admin-header {
+    margin-bottom: 30px;
+}
+
+.admin-header h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.status-bar {
+    display: flex;
+    width: 60%;
+    margin-left: 20%;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-soft);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-base);
+    padding: 15px 20px;
+    box-shadow: var(--modal-shadow);
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-label {
+    color: var(--text-gray);
+    font-size: 14px;
+}
+
+.status-value {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.status-value.online {
+    color: var(--player-1-border);
+}
+
+.status-value.offline {
+    color: var(--player-4-border);
+}
+
+/* 按钮 */
+.refresh-btn {
+    background: var(--bg-soft);
+    border: 1.5px solid var(--border-light);
+    color: var(--text-primary);
+    padding: 8px 20px;
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+    box-shadow: var(--modal-shadow);
+}
+
+.refresh-btn:hover {
+    background: var(--bg-medium);
+    border-color: var(--border-medium);
+    transform: translateY(-1px);
+    box-shadow: var(--modal-shadow);
+}
+
+.auto-refresh-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.auto-refresh-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* 统计卡片 */
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--bg-soft);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-base);
+    padding: 20px;
+    display: flex;
+    gap: 15px;
+    transition: all 0.3s;
+    box-shadow: var(--modal-shadow);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--modal-shadow);
+    background: var(--bg-medium);
+}
+
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--text-gray);
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.stat-detail {
+    font-size: 12px;
+    color: var(--text-gray);
+    display: flex;
+    gap: 15px;
+}
+
+/* 数据区域 */
+.data-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 24px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.table-container {
+    background: var(--bg-soft);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-base);
+    overflow: hidden;
+    box-shadow: var(--modal-shadow);
+}
+
+/* 表格 */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* 在线用户展示样式 */
+.online-users-container {
+    background: var(--bg-soft);
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-base);
+    padding: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 60px;
+    box-shadow: var(--modal-shadow);
+}
+
+.user-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg-medium);
+    border: 1px solid var(--border-medium);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.user-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.user-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+/* 不同状态的颜色 */
+.status-idle .user-status-dot { background-color: #999; } /* 首页/空闲 - 灰色 */
+.status-in_room .user-status-dot { background-color: #3498db; } /* 房间中 - 蓝色 */
+.status-playing .user-status-dot { background-color: #2ecc71; } /* 游戏中 - 绿色 */
+.status-spectating .user-status-dot { background-color: #f1c40f; } /* 观战中 - 黄色 */
+
+.user-nickname {
+    font-weight: 600;
+}
+
+.user-status-text {
+    font-size: 8px;
+    opacity: 0.7;
+    background: rgba(0,0,0,0.05);
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.empty-message {
+    width: 100%;
+    text-align: center;
+    color: var(--text-gray);
+    padding: 0px;
+    font-style: italic;
+}
+
+.data-table thead {
+    background: var(--bg-medium);
+}
+
+.data-table th {
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-light);
+    white-space: nowrap;
+}
+
+.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border-soft);
+    font-size: 14px;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+/* 允许玩家列表列水平排列，不换行 */
+.data-table td:last-child {
+    white-space: nowrap;
+    min-width: 200px;
+}
+
+.data-table tbody tr {
+    transition: background 0.2s;
+}
+
+.data-table tbody tr:hover {
+    background: var(--bg-faint);
+}
+
+.empty-message {
+    text-align: center;
+    color: var(--text-gray);
+    padding: 0px;
+}
+
+/* 徽章样式 */
+.room-code {
+    display: inline-block;
+    background: var(--player-4-fill);
+    color: var(--text-primary);
+    padding: 4px 10px;
+    border-radius: var(--radius-base);
+    font-weight: bold;
+    border: 1px solid var(--player-4-border);
+}
+
+.session-id {
+    display: inline-block;
+    background: var(--player-3-fill);
+    color: var(--text-primary);
+    padding: 10px;
+    border-radius: var(--radius-base);
+    font-weight: bold;
+    font-size: 15px;
+    border: 1px solid var(--player-3-border);
+    text-decoration: none;
+}
+
+a.session-id:hover {
+    background: var(--player-3-border);
+    transform: translateY(-1px);
+    box-shadow: var(--modal-shadow);
+}
+
+.player-id {
+    font-size: 12px;
+    color: var(--text-gray);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-badge.waiting {
+    background: var(--player-2-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-2-border);
+}
+
+.status-badge.playing {
+    background: var(--player-1-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-1-border);
+}
+
+.status-badge.cleanup {
+    background: var(--player-4-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-4-border);
+}
+
+.status-badge.finished {
+    background: var(--bg-faint);
+    color: var(--text-gray);
+    border: 1px solid var(--border-soft);
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge.enabled {
+    background: var(--player-1-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-1-border);
+}
+
+.badge.disabled {
+    background: var(--bg-faint);
+    color: var(--text-gray);
+    border: 1px solid var(--border-soft);
+}
+
+.player-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.player-badge.player-1 {
+    background: var(--player-1-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-1-border);
+}
+
+.player-badge.player-2 {
+    background: var(--player-2-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-2-border);
+}
+
+.player-badge.player-3 {
+    background: var(--player-3-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-3-border);
+}
+
+.player-badge.player-4 {
+    background: var(--player-4-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-4-border);
+}
+
+.phase-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: var(--radius-base);
+    font-size: 12px;
+    background: var(--bg-faint);
+    color: var(--text-primary);
+    border: 1px solid var(--border-soft);
+}
+
+.winner-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    background: var(--player-2-fill);
+    color: var(--text-primary);
+    border: 1px solid var(--player-2-border);
+}
+
+/* 玩家列表 */
+.player-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 8px;
+    margin: 2px;
+    border-radius: var(--radius-base);
+    font-size: 12px;
+    background: var(--bg-faint);
+    border: 1.5px solid var(--border-soft);
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.player-item.online {
+    border-color: var(--player-1-border);
+}
+
+.player-item.offline {
+    border-color: var(--border-soft);
+    opacity: 0.6;
+}
+
+.player-item.ai {
+    background: var(--player-4-fill);
+    border-color: var(--player-4-border);
+}
+
+/* 玩家颜色 */
+.player-item.player-1 .player-name {
+    color: var(--text-primary);
+}
+
+.player-item.player-2 .player-name {
+    color: var(--text-primary);
+}
+
+.player-item.player-3 .player-name {
+    color: var(--text-primary);
+}
+
+.player-item.player-4 .player-name {
+    color: var(--text-primary);
+}
+
+.player-item.player-1 {
+    background: var(--player-1-fill);
+    border-color: var(--player-1-border);
+    color: var(--text-primary);
+}
+
+.player-item.player-2 {
+    background: var(--player-2-fill);
+    border-color: var(--player-2-border);
+    color: var(--text-primary);
+}
+
+.player-item.player-3 {
+    background: var(--player-3-fill);
+    border-color: var(--player-3-border);
+    color: var(--text-primary);
+}
+
+.player-item.player-4 {
+    background: var(--player-4-fill);
+    border-color: var(--player-4-border);
+    color: var(--text-primary);
+}
+
+/* 离线灰色样式 */
+.player-item.offline-gray {
+    background: var(--bg-faint);
+    border-color: var(--border-soft);
+    color: var(--text-gray);
+    opacity: 0.7;
+}
+
+.player-name {
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.player-number {
+    font-family: 'Courier New', monospace;
+    color: var(--text-gray);
+}
+
+.host-badge {
+    color: #4e334c;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* 在线状态 */
+.online-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.online-status.all-online {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border: 1px solid #4caf50;
+}
+
+.online-status.partial-online {
+    background: rgba(233, 207, 89, 0.2);
+    color: var(--warning-color);
+    border: 1px solid var(--warning-color);
+}
+
+/* 游戏时长 */
+.duration {
+    color: var(--text-white);
+    font-size: 15px;
+}
+
+/* 响应式设计 */
+@media (max-width: 1220px) {
+    .status-bar {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        min-width: 800px;
+    }
+}
+
+/* 平板端优化 */
+@media (max-width: 768px) {
+    .admin-header h1 {
+        font-size: 24px;
+    }
+
+    .status-bar {
+        width: 100%;
+        margin-left: 0;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 12px;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .stat-detail {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .online-users-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .user-tag {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .user-status-text {
+        font-size: 8px;
+        padding: 1px 4px;
+    }
+}
+
+/* 手机端优化 */
+@media (max-width: 360px) {
+    body {
+        padding: 10px;
+    }
+
+    .admin-container {
+        max-width: 100%;
+    }
+
+    .admin-header h1 {
+        font-size: 22px;
+        margin-bottom: 15px;
+    }
+
+    .status-bar {
+        width: 100%;
+        margin-left: 0;
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .status-label {
+        font-size: 12px;
+    }
+
+    .status-value {
+        font-size: 14px;
+    }
+
+    .refresh-btn {
+        padding: 6px 16px;
+        font-size: 13px;
+        width: 100%;
+    }
+
+    .auto-refresh-toggle {
+        font-size: 12px;
+    }
+
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+    }
+
+    .stat-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+    }
+
+    .stat-detail {
+        font-size: 11px;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        margin-bottom: 12px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .data-table {
+        min-width: 600px;
+        font-size: 12px;
+    }
+
+    .data-table th {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+
+    .data-table td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+
+    .room-code,
+    .session-id {
+        padding: 3px 8px;
+        font-size: 11px;
+    }
+
+    .status-badge,
+    .badge,
+    .player-badge,
+    .phase-badge,
+    .winner-badge {
+        padding: 2px 8px;
+        font-size: 10px;
+    }
+
+    .player-item {
+        padding: 3px 6px;
+        font-size: 11px;
+    }
+
+    .duration {
+        font-size: 13px;
+    }
+}
+
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-light-2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-soft);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--border-medium);
+}
