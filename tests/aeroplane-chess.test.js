@@ -90,6 +90,23 @@ test('aeroplane chess frontend uses http polling transport in source and public 
   }
 });
 
+test('polling websocket compatibility client keeps bindable lifecycle handlers', () => {
+  const sourceFiles = [
+    path.join(gameDir, 'js', 'websocketClient.js'),
+    path.join(publicGameDir, 'js', 'websocketClient.js')
+  ];
+
+  for (const file of sourceFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /onOpen\(event\)/);
+    assert.match(source, /onClose\(event\)/);
+    assert.match(source, /onError\(error\)/);
+    assert.doesNotMatch(source, /this\.onOpen\s*=\s*null/);
+    assert.doesNotMatch(source, /this\.onClose\s*=\s*null/);
+    assert.doesNotMatch(source, /this\.onError\s*=\s*null/);
+  }
+});
+
 test('create room errors never render undefined', () => {
   const source = fs.readFileSync(path.join(gameDir, 'js', 'multiplayerManager.js'), 'utf8');
   const publicSource = fs.readFileSync(path.join(publicGameDir, 'js', 'multiplayerManager.js'), 'utf8');

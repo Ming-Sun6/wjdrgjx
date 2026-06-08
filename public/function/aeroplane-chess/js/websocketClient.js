@@ -10,9 +10,6 @@ export class WebSocketClient {
         this.playerId = playerIdManager.getPlayerId();
         this.isHost = false;
         this.serverUrl = getPollingServerUrl();
-        this.onOpen = null;
-        this.onClose = null;
-        this.onError = null;
     }
 
     get readyState() {
@@ -189,6 +186,18 @@ export class WebSocketClient {
         } catch (error) {
             console.error('解析轮询消息失败:', error);
         }
+    }
+
+    onOpen(_event) {
+        this.isConnected = true;
+    }
+
+    onClose(_event) {
+        this.isConnected = false;
+    }
+
+    onError(error) {
+        console.error('轮询连接错误:', error);
     }
 
     getConnectionState() {
