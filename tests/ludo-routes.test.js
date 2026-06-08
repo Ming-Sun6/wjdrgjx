@@ -17,3 +17,17 @@ test('ludo route module exposes DDL and mount function', () => {
   assert.match(ludo.LUDO_DDL_PG, /ludo_match_history/);
   assert.match(ludo.LUDO_DDL_PG, /ludo_match_players/);
 });
+
+test('standalone ludo page contains core app nodes', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'ludo.html'), 'utf8');
+  assert.match(html, /id="ludoApp"/);
+  assert.match(html, /id="ludoRoomList"/);
+  assert.match(html, /id="ludoBoard"/);
+  assert.match(html, /\/api\/ludo\/rooms/);
+});
+
+test('home page links to standalone ludo page without embedding game app', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  assert.match(html, /function\/ludo\.html/);
+  assert.doesNotMatch(html, /id="ludoBoard"/);
+});

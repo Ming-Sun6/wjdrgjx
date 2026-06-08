@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>飞行棋联机对战 - 无尽冬日工具箱</title>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style>
+    :root{
+      --bg:#101820;
+      --panel:#18232d;
+      --panel2:#20303d;
+      --line:rgba(255,255,255,.12);
+      --text:#f3f7fb;
+      --muted:#9fb0bf;
+      --accent:#2fbf8f;
+      --accent2:#e0b84b;
+      --danger:#e66055;
+      --red:#e94f5f;
+      --yellow:#f2c94c;
+      --blue:#4b8df7;
+      --green:#38b26d;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:"Microsoft YaHei",system-ui,-apple-system,Segoe UI,sans-serif;
+      color:var(--text);
+      background:
+        linear-gradient(115deg, rgba(47,191,143,.14), transparent 35%),
+        radial-gradient(800px 520px at 80% 10%, rgba(224,184,75,.16), transparent 58%),
+        linear-gradient(145deg,#0d141a,#17212a 58%,#111a22);
+    }
+    a{color:inherit}
+    button,input,select{font:inherit}
+    .page{width:min(1220px,100%);margin:0 auto;padding:20px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+    .brand{display:flex;flex-direction:column;gap:4px}
+    .brand h1{font-size:26px;line-height:1.1;margin:0;font-weight:900}
+    .brand span{color:var(--muted);font-size:13px}
+    .top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background:linear-gradient(180deg,#2fbf8f,#249974);
+      color:#07110d;
+      font-weight:800;
+      border-radius:8px;
+      padding:9px 12px;
+      cursor:pointer;
+      min-height:38px;
+    }
+    .btn.secondary{background:rgba(255,255,255,.06);color:var(--text)}
+    .btn.danger{background:linear-gradient(180deg,#f06b5f,#cf453b);color:#fff}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .shell{display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:start}
+    .panel{
+      background:rgba(24,35,45,.88);
+      border:1px solid var(--line);
+      border-radius:8px;
+      box-shadow:0 18px 50px rgba(0,0,0,.28);
+      overflow:hidden;
+    }
+    .panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:13px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.035)}
+    .panel-title{font-weight:900;font-size:15px}
+    .panel-body{padding:14px}
+    .field{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+    .field label{font-size:12px;color:var(--muted)}
+    .field input,.field select{
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid var(--line);
+      background:#111b23;
+      color:var(--text);
+      outline:none;
+    }
+    .field input:focus,.field select:focus{border-color:rgba(47,191,143,.8);box-shadow:0 0 0 3px rgba(47,191,143,.15)}
+    .status{padding:10px 12px;border-radius:8px;background:rgba(255,255,255,.06);color:var(--muted);font-size:13px;line-height:1.5}
+    .status.error{color:#ffd4d0;background:rgba(230,96,85,.14)}
+    .room-list{display:flex;flex-direction:column;gap:8px;max-height:390px;overflow:auto}
+    .room-card{width:100%;text-align:left;border:1px solid var(--line);background:#14202a;color:var(--text);border-radius:8px;padding:10px;cursor:pointer}
+    .room-card:hover{border-color:rgba(47,191,143,.6)}
+    .room-name{font-weight:900;margin-bottom:6px}
+    .room-meta{display:flex;flex-wrap:wrap;gap:6px;color:var(--muted);font-size:12px}
+    .tag{display:inline-flex;align-items:center;border:1px solid var(--line);background:rgba(255,255,255,.05);padding:3px 7px;border-radius:999px}
+    .workspace{display:grid;grid-template-rows:auto auto;gap:14px}
+    .room-toolbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+    .players{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+    .player{border:1px solid var(--line);border-left-width:5px;background:rgba(255,255,255,.045);border-radius:8px;padding:9px;min-height:86px}
+    .player.red{border-left-color:var(--red)}
+    .player.yellow{border-left-color:var(--yellow)}
+    .player.blue{border-left-color:var(--blue)}
+    .player.green{border-left-color:var(--green)}
+    .player-name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .player-meta{margin-top:6px;color:var(--muted);font-size:12px;display:flex;flex-wrap:wrap;gap:5px}
+    .game-grid{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
+    .board-wrap{padding:14px}
+    .board{
+      width:100%;
+      display:grid;
+      grid-template-columns:repeat(15,1fr);
+      aspect-ratio:1;
+      gap:3px;
+      padding:8px;
+      background:#0f171f;
+      border:1px solid var(--line);
+      border-radius:8px;
+    }
+    .cell{position:relative;border-radius:5px;background:rgba(255,255,255,.04);min-width:0}
+    .cell.track{background:#d9e3e7}
+    .cell.home-red{background:rgba(233,79,95,.28)}
+    .cell.home-yellow{background:rgba(242,201,76,.28)}
+    .cell.home-blue{background:rgba(75,141,247,.28)}
+    .cell.home-green{background:rgba(56,178,109,.28)}
+    .cell.center{background:linear-gradient(135deg,rgba(47,191,143,.45),rgba(224,184,75,.45))}
+    .piece{
+      width:52%;
+      aspect-ratio:1;
+      border-radius:999px;
+      border:2px solid rgba(0,0,0,.38);
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      box-shadow:0 2px 8px rgba(0,0,0,.35);
+    }
+    .piece.red{background:var(--red)}
+    .piece.yellow{background:var(--yellow)}
+    .piece.blue{background:var(--blue)}
+    .piece.green{background:var(--green)}
+    .side-stack{display:flex;flex-direction:column;gap:14px}
+    .dice{font-size:48px;font-weight:900;text-align:center;line-height:1;padding:18px;border-radius:8px;background:#111b23;border:1px solid var(--line)}
+    .move-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    .log{max-height:190px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+    .log-item{font-size:12px;color:var(--muted);padding:7px 8px;background:rgba(255,255,255,.045);border-radius:7px}
+    .history{display:flex;flex-direction:column;gap:8px;max-height:260px;overflow:auto}
+    .history-item{padding:9px;border-radius:8px;background:rgba(255,255,255,.045);border:1px solid var(--line);font-size:13px;color:var(--muted)}
+    .hidden{display:none!important}
+    @media (max-width:900px){
+      .shell,.game-grid{grid-template-columns:1fr}
+      .players{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width:520px){
+      .page{padding:12px}
+      .topbar{align-items:flex-start;flex-direction:column}
+      .players{grid-template-columns:1fr}
+      .board{gap:2px;padding:5px}
+    }
+  </style>
+</head>
+<body>
+  <main class="page" id="ludoApp">
+    <div class="topbar">
+      <div class="brand">
+        <h1>飞行棋联机对战</h1>
+        <span id="authStatus">正在检查登录状态...</span>
+      </div>
+      <div class="top-actions">
+        <a class="btn secondary" href="/">返回首页</a>
+        <button class="btn secondary" id="refreshRoomsBtn" type="button">刷新大厅</button>
+      </div>
+    </div>
+
+    <div class="shell">
+      <aside class="panel">
+        <div class="panel-head">
+          <div class="panel-title">房间大厅</div>
+          <span class="tag" id="roomCountTag">0 个房间</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label for="roomNameInput">房间名</label>
+            <input id="roomNameInput" maxlength="40" placeholder="我的飞行棋房间" />
+          </div>
+          <div class="field">
+            <label for="roomPasswordInput">房间密码（可选）</label>
+            <input id="roomPasswordInput" maxlength="32" placeholder="不填则公开" />
+          </div>
+          <div class="field">
+            <label for="takeoffModeSelect">起飞规则</label>
+            <select id="takeoffModeSelect">
+              <option value="six">仅 6 起飞</option>
+              <option value="even">2/4/6 起飞</option>
+            </select>
+          </div>
+          <div class="top-actions">
+            <button class="btn" id="createRoomBtn" type="button">创建并入座</button>
+            <button class="btn secondary" id="loadHistoryBtn" type="button">历史战绩</button>
+          </div>
+          <div class="status" id="ludoStatus" style="margin-top:10px;">登录后可创建或加入房间。</div>
+          <div class="room-list" id="ludoRoomList" style="margin-top:12px;"></div>
+        </div>
+      </aside>
+
+      <section class="workspace">
+        <div class="panel" id="roomPanel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title" id="currentRoomTitle">尚未进入房间</div>
+              <div class="room-meta" id="currentRoomMeta"></div>
+            </div>
+            <div class="top-actions">
+              <button class="btn secondary" id="joinSpectatorBtn" type="button" disabled>观战</button>
+              <button class="btn secondary" id="readyBtn" type="button" disabled>准备</button>
+              <button class="btn" id="startBtn" type="button" disabled>开始</button>
+              <button class="btn secondary" id="leaveBtn" type="button" disabled>离开</button>
+              <button class="btn danger" id="surrenderBtn" type="button" disabled>认输</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="players" id="playerList"></div>
+          </div>
+        </div>
+
+        <div class="game-grid">
+          <section class="panel board-wrap">
+            <div class="board" id="ludoBoard"></div>
+          </section>
+          <aside class="side-stack">
+            <section class="panel">
+              <div class="panel-head"><div class="panel-title">当前回合</div></div>
+              <div class="panel-body">
+                <div class="dice" id="diceBox">-</div>
+                <div class="status" id="turnHint" style="margin:10px 0;">等待进入房间。</div>
+                <button class="btn" id="rollBtn" type="button" style="width:100%;" disabled>掷骰</button>
+                <div class="move-list" id="moveButtons" style="margin-top:10px;"></div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><div class="panel-title">操作日志</div></div>
+              <div class="panel-body">
+                <div class="log" id="logList"></div>
+              </div>
+            </section>
+            <section class="panel">
+              <div class="panel-head"><div class="panel-title">历史战绩</div></div>
+              <div class="panel-body">
+                <div class="history" id="historyList"></div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (function(){
+      var authUser=null;
+      var currentRoom=null;
+      var lobbyTimer=null;
+      var roomTimer=null;
+      var lastLegalMoves=[];
+      var trackCoords=[
+        [6,0],[7,0],[8,0],[8,1],[8,2],[8,3],[8,4],[9,4],[10,4],[11,4],[12,4],[13,4],[14,4],
+        [14,6],[14,7],[14,8],[13,8],[12,8],[11,8],[10,8],[10,9],[10,10],[10,11],[10,12],[10,13],[10,14],
+        [8,14],[7,14],[6,14],[6,13],[6,12],[6,11],[6,10],[5,10],[4,10],[3,10],[2,10],[1,10],[0,10],
+        [0,8],[0,7],[0,6],[1,6],[2,6],[3,6],[4,6],[4,5],[4,4],[4,3],[4,2],[4,1],[4,0]
+      ];
+      function $(id){return document.getElementById(id);}
+      function escapeHtml(text){
+        return String(text==null?'':text).replace(/[&<>"']/g,function(ch){
+          return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];
+        });
+      }
+      async function apiFetch(url,opts){
+        return fetch(url,{credentials:'include',cache:'no-store',headers:{'Content-Type':'application/json'},...(opts||{})});
+      }
+      function setStatus(text,type){
+        var el=$('ludoStatus');
+        el.textContent=text||'';
+        el.className='status'+(type?' '+type:'');
+      }
+      function takeoffText(mode){return mode==='even'?'2/4/6 起飞':'仅 6 起飞';}
+      function colorText(color){return {red:'红色',yellow:'黄色',blue:'蓝色',green:'绿色'}[color]||color;}
+      function stopRoomPolling(){if(roomTimer){clearInterval(roomTimer);roomTimer=null;}}
+      function startLobbyPolling(){if(lobbyTimer)clearInterval(lobbyTimer);lobbyTimer=setInterval(loadRooms,3000);}
+      function startRoomPolling(){
+        stopRoomPolling();
+        if(!currentRoom)return;
+        roomTimer=setInterval(function(){loadRoom(currentRoom.id,true);},1500);
+      }
+      async function checkAuth(){
+        try{
+          var r=await apiFetch('/api/auth/me');
+          var d=await r.json();
+          authUser=d&&d.authenticated?d.user:null;
+          $('authStatus').textContent=authUser?'已登录：'+(authUser.username||authUser.loginId):'未登录，请先在首页登录后再进入飞行棋。';
+          setControls();
+          await loadRooms();
+          await loadHistory();
+          startLobbyPolling();
+        }catch(e){
+          $('authStatus').textContent='登录状态检查失败';
+          setStatus('无法检查登录状态，请稍后重试。','error');
+        }
+      }
+      async function loadRooms(){
+        if(!authUser){renderRooms([]);return;}
+        try{
+          var r=await apiFetch('/api/ludo/rooms');
+          var d=await r.json();
+          if(!r.ok)throw new Error(d.error||'LOAD_FAILED');
+          renderRooms(d.rooms||[]);
+        }catch(e){
+          setStatus('房间列表加载失败：'+e.message,'error');
+        }
+      }
+      function renderRooms(rooms){
+        $('roomCountTag').textContent=rooms.length+' 个房间';
+        var box=$('ludoRoomList');
+        if(!rooms.length){box.innerHTML='<div class="status">暂无房间，创建一个开始吧。</div>';return;}
+        box.innerHTML=rooms.map(function(room){
+          return '<button class="room-card" type="button" data-room-id="'+escapeHtml(room.id)+'">'
+            +'<div class="room-name">'+escapeHtml(room.name)+' · '+escapeHtml(room.id)+'</div>'
+            +'<div class="room-meta">'
+            +'<span class="tag">'+(room.status==='playing?'进行中':'等待中')+'</span>'
+            +'<span class="tag">玩家 '+room.playerCount+'/'+room.maxPlayers+'</span>'
+            +'<span class="tag">观战 '+room.spectatorCount+'</span>'
+            +'<span class="tag">'+takeoffText(room.takeoffMode)+'</span>'
+            +(room.hasPassword?'<span class="tag">有密码</span>':'')
+            +'</div></button>';
+        }).join('');
+      }
+      async function createRoom(){
+        if(!authUser){setStatus('请先登录。','error');return;}
+        var payload={
+          name:$('roomNameInput').value.trim(),
+          password:$('roomPasswordInput').value,
+          takeoffMode:$('takeoffModeSelect').value,
+          joinAs:'player'
+        };
+        try{
+          var r=await apiFetch('/api/ludo/rooms',{method:'POST',body:JSON.stringify(payload)});
+          var d=await r.json();
+          if(!r.ok)throw new Error(d.error||'CREATE_FAILED');
+          currentRoom=d.room;
+          lastLegalMoves=[];
+          renderRoom();
+          startRoomPolling();
+          loadRooms();
+          setStatus('房间创建成功。');
+        }catch(e){setStatus('创建失败：'+e.message,'error');}
+      }
+      async function joinRoom(roomId,joinAs){
+        var room=(await getRoomFromList(roomId))||{};
+        var password='';
+        if(room.hasPassword){
+          password=window.prompt('请输入房间密码')||'';
+        }
+        try{
+          var r=await apiFetch('/api/ludo/rooms/'+encodeURIComponent(roomId)+'/join',{method:'POST',body:JSON.stringify({joinAs:joinAs||'player',password:password})});
+          var d=await r.json();
+          if(!r.ok)throw new Error(d.error||'JOIN_FAILED');
+          currentRoom=d.room;
+          lastLegalMoves=[];
+          renderRoom();
+          startRoomPolling();
+          setStatus(joinAs==='spectator'?'已进入观战席。':'已加入玩家席。');
+        }catch(e){setStatus('加入失败：'+e.message,'error');}
+      }
+      async function getRoomFromList(roomId){
+        try{
+          var r=await apiFetch('/api/ludo/rooms');
+          var d=await r.json();
+          return (d.rooms||[]).find(function(item){return String(item.id)===String(roomId);});
+        }catch(e){return null;}
+      }
+      async function loadRoom(roomId,silent){
+        if(!roomId)return;
+        try{
+          var r=await apiFetch('/api/ludo/rooms/'+encodeURIComponent(roomId));
+          var d=await r.json();
+          if(!r.ok)throw new Error(d.error||'LOAD_ROOM_FAILED');
+          currentRoom=d.room;
+          renderRoom();
+          if(!silent)setStatus('房间已刷新。');
+        }catch(e){
+          if(!silent)setStatus('房间刷新失败：'+e.message,'error');
+        }
+      }
+      async function postRoom(path,payload){
+        if(!currentRoom)return;
+        var r=await apiFetch('/api/ludo/rooms/'+encodeURIComponent(currentRoom.id)+path,{method:'POST',body:JSON.stringify(payload||{})});
+        var d=await r.json();
+        if(!r.ok)throw new Error(d.error||'REQUEST_FAILED');
+        if(d.legalMoves)lastLegalMoves=d.legalMoves;
+        if(d.room)currentRoom=d.room;
+        renderRoom();
+        loadRooms();
+        if(currentRoom&&currentRoom.status==='finished')loadHistory();
+      }
+      async function setReady(){try{await postRoom('/ready',{ready:true});}catch(e){setStatus('准备失败：'+e.message,'error');}}
+      async function startGame(){try{await postRoom('/start',{});}catch(e){setStatus('开始失败：'+e.message,'error');}}
+      async function rollDice(){try{await postRoom('/roll',{});}catch(e){setStatus('掷骰失败：'+e.message,'error');}}
+      async function movePiece(index){try{await postRoom('/move',{pieceIndex:index});lastLegalMoves=[];}catch(e){setStatus('走棋失败：'+e.message,'error');}}
+      async function leaveRoom(){try{await postRoom('/leave',{});currentRoom=null;lastLegalMoves=[];stopRoomPolling();renderRoom();loadRooms();}catch(e){setStatus('离开失败：'+e.message,'error');}}
+      async function surrender(){try{await postRoom('/surrender',{});loadHistory();}catch(e){setStatus('认输失败：'+e.message,'error');}}
+      async function joinSpectator(){
+        if(!currentRoom)return;
+        try{await postRoom('/seat',{joinAs:'spectator'});}catch(e){setStatus('切换观战失败：'+e.message,'error');}
+      }
+      async function loadHistory(){
+        if(!authUser){$('historyList').innerHTML='<div class="status">登录后查看历史战绩。</div>';return;}
+        try{
+          var r=await apiFetch('/api/ludo/history');
+          var d=await r.json();
+          if(!r.ok)throw new Error(d.error||'HISTORY_FAILED');
+          renderHistory(d.history||[]);
+        }catch(e){$('historyList').innerHTML='<div class="status error">历史战绩加载失败</div>';}
+      }
+      function renderHistory(items){
+        var box=$('historyList');
+        if(!items.length){box.innerHTML='<div class="status">暂无历史战绩。</div>';return;}
+        box.innerHTML=items.map(function(item){
+          return '<div class="history-item"><strong>'+escapeHtml(item.roomName||item.roomId)+'</strong><br>'
+            +'名次：'+(item.rank||'-')+' · 规则：'+takeoffText(item.takeoffMode)+' · 回合：'+item.roundCount+'<br>'
+            +escapeHtml(item.finishedAt||'')+'</div>';
+        }).join('');
+      }
+      function renderRoom(){
+        var room=currentRoom;
+        if(!room){
+          $('currentRoomTitle').textContent='尚未进入房间';
+          $('currentRoomMeta').innerHTML='';
+          $('playerList').innerHTML='<div class="status">从左侧选择或创建房间。</div>';
+          $('turnHint').textContent='等待进入房间。';
+          $('diceBox').textContent='-';
+          $('moveButtons').innerHTML='';
+          $('logList').innerHTML='<div class="log-item">暂无日志</div>';
+          renderBoard(null);
+          setControls();
+          return;
+        }
+        $('currentRoomTitle').textContent=room.name+' · '+room.id;
+        $('currentRoomMeta').innerHTML='<span class="tag">'+(room.status==='playing?'进行中':room.status==='finished?'已结束':'等待中')+'</span>'
+          +'<span class="tag">'+takeoffText(room.takeoffMode)+'</span>'
+          +'<span class="tag">观战 '+room.spectatorCount+'</span>';
+        renderPlayers(room.players||[]);
+        renderBoard(room);
+        renderTurn(room);
+        renderLog(room.log||[]);
+        setControls();
+      }
+      function renderPlayers(players){
+        var colors=['red','yellow','blue','green'];
+        $('playerList').innerHTML=colors.map(function(color,seat){
+          var player=players.find(function(item){return Number(item.seat)===seat;});
+          if(!player)return '<div class="player '+color+'"><div class="player-name">'+colorText(color)+' 空位</div><div class="player-meta"><span class="tag">等待加入</span></div></div>';
+          return '<div class="player '+color+'"><div class="player-name">'+escapeHtml(player.username)+'</div><div class="player-meta">'
+            +'<span class="tag">'+colorText(color)+'</span>'
+            +'<span class="tag">'+(player.ready?'已准备':'未准备')+'</span>'
+            +(player.managedByAi?'<span class="tag">AI 托管</span>':'')
+            +(player.rank?'<span class="tag">第 '+player.rank+' 名</span>':'')
+            +'</div></div>';
+        }).join('');
+      }
+      function renderBoard(room){
+        var cells=[];
+        for(var r=0;r<15;r++){
+          for(var c=0;c<15;c++){
+            var cls='cell';
+            var idx=trackCoords.findIndex(function(p){return p[0]===r&&p[1]===c;});
+            if(idx>=0)cls+=' track';
+            if(r>=6&&r<=8&&c>=6&&c<=8)cls+=' center';
+            cells.push('<div class="'+cls+'" data-pos="'+idx+'"></div>');
+          }
+        }
+        $('ludoBoard').innerHTML=cells.join('');
+        if(!room||!room.game)return;
+        (room.players||[]).forEach(function(player){
+          var pieces=(room.game.pieces&&room.game.pieces[player.seat])||[];
+          pieces.forEach(function(piece,i){
+            if(piece.state!=='track')return;
+            var coord=trackCoords[Number(piece.position)%trackCoords.length];
+            if(!coord)return;
+            var cell=$('ludoBoard').children[coord[0]*15+coord[1]];
+            var el=document.createElement('button');
+            el.className='piece '+player.color;
+            el.type='button';
+            el.title=player.username+' '+(i+1);
+            el.addEventListener('click',function(){movePiece(i);});
+            cell.appendChild(el);
+          });
+        });
+      }
+      function renderTurn(room){
+        var game=room.game;
+        $('diceBox').textContent=game&&game.dice?String(game.dice):'-';
+        if(!game){$('turnHint').textContent=room.status==='waiting'?'等待房主开始。':'对局已结束。';$('moveButtons').innerHTML='';return;}
+        var current=(room.players||[]).find(function(p){return Number(p.seat)===Number(game.turnSeat);});
+        $('turnHint').textContent=current?'当前：'+current.username+(current.managedByAi?'（AI 托管）':''):'等待回合';
+        var mine=room.viewer&&room.viewer.isPlayer&&current&&Number(current.userId)===Number(authUser&&authUser.id);
+        if(mine&&game.awaitingMove){
+          var buttons=(lastLegalMoves.length?lastLegalMoves:[0,1,2,3]).map(function(i){
+            return '<button class="btn secondary" type="button" data-move="'+i+'">棋子 '+(i+1)+'</button>';
+          }).join('');
+          $('moveButtons').innerHTML=buttons||'<div class="status">没有可走棋子。</div>';
+        }else{
+          $('moveButtons').innerHTML='';
+        }
+      }
+      function renderLog(log){
+        var box=$('logList');
+        if(!log.length){box.innerHTML='<div class="log-item">暂无日志</div>';return;}
+        box.innerHTML=log.slice(-20).reverse().map(function(item){
+          return '<div class="log-item">'+escapeHtml(item.username||'系统')+' '+escapeHtml(item.type||'操作')+'</div>';
+        }).join('');
+      }
+      function setControls(){
+        var room=currentRoom;
+        var logged=!!authUser;
+        $('createRoomBtn').disabled=!logged;
+        $('refreshRoomsBtn').disabled=!logged;
+        $('loadHistoryBtn').disabled=!logged;
+        $('joinSpectatorBtn').disabled=!logged||!room||room.status!=='waiting'||!(room.viewer&&room.viewer.isPlayer);
+        $('readyBtn').disabled=!logged||!room||room.status!=='waiting'||!(room.viewer&&room.viewer.isPlayer);
+        $('startBtn').disabled=!logged||!room||room.status!=='waiting'||!(room.viewer&&room.viewer.isHost);
+        $('leaveBtn').disabled=!logged||!room;
+        $('surrenderBtn').disabled=!logged||!room||room.status!=='playing'||!(room.viewer&&room.viewer.isPlayer);
+        var game=room&&room.game;
+        var current=game&&(room.players||[]).find(function(p){return Number(p.seat)===Number(game.turnSeat);});
+        $('rollBtn').disabled=!(logged&&room&&room.status==='playing'&&room.viewer&&room.viewer.isPlayer&&current&&Number(current.userId)===Number(authUser.id)&&!game.awaitingMove);
+      }
+      $('createRoomBtn').addEventListener('click',createRoom);
+      $('refreshRoomsBtn').addEventListener('click',loadRooms);
+      $('loadHistoryBtn').addEventListener('click',loadHistory);
+      $('readyBtn').addEventListener('click',setReady);
+      $('startBtn').addEventListener('click',startGame);
+      $('rollBtn').addEventListener('click',rollDice);
+      $('leaveBtn').addEventListener('click',leaveRoom);
+      $('surrenderBtn').addEventListener('click',surrender);
+      $('joinSpectatorBtn').addEventListener('click',joinSpectator);
+      $('ludoRoomList').addEventListener('click',function(e){
+        var btn=e.target.closest('[data-room-id]');
+        if(!btn)return;
+        var roomId=btn.getAttribute('data-room-id');
+        var joinAs=window.confirm('确定加入玩家席？取消则进入观战席。')?'player':'spectator';
+        joinRoom(roomId,joinAs);
+      });
+      $('moveButtons').addEventListener('click',function(e){
+        var btn=e.target.closest('[data-move]');
+        if(btn)movePiece(Number(btn.getAttribute('data-move')));
+      });
+      window.addEventListener('beforeunload',function(){stopRoomPolling();if(lobbyTimer)clearInterval(lobbyTimer);});
+      renderRoom();
+      checkAuth();
+    })();
+  </script>
+</body>
+</html>
