@@ -48,6 +48,7 @@ class MultiplayerManager {
         this.roomChatMaxCount = 50;
         this.roomChatOpen = false;
         this.roomChatUnreadCount = 0;
+        this.takeoffRule = 'even';
 
 
 
@@ -437,6 +438,16 @@ class MultiplayerManager {
             });
         }
 
+        const takeoffRuleContainer = document.querySelector('.takeoff-rule-selector');
+        if (takeoffRuleContainer) {
+            takeoffRuleContainer.addEventListener('click', (e) => {
+                const option = e.target.closest('.takeoff-rule-option');
+                if (option && this.isHost) {
+                    this.setTakeoffRule(option.dataset.takeoffRule);
+                }
+            });
+        }
+
         // 房间号输入框事件（使用事件委托）
         document.addEventListener('input', (e) => {
             if (e.target.id === 'roomCodeInput') {
@@ -707,7 +718,10 @@ class MultiplayerManager {
         return '系统';
     }
 
-    getRoomChatNameColorClass(playerNumber) {
+    getRoomChatNameColorClass(playerNumber, isSpectator = false) {
+        if (isSpectator) {
+            return 'room-chat-spectator-name';
+        }
         const colorIndex = Number(playerNumber);
         if ([1, 2, 3, 4].includes(colorIndex)) {
             return `player-${colorIndex}-name`;
@@ -716,7 +730,7 @@ class MultiplayerManager {
     }
 
     appendRoomChatMessage(
-        { playerName, playerNumber = null, playerId = null, message = '', isSystem = false, timestamp = Date.now() },
+        { playerName, playerNumber = null, playerId = null, message = '', isSystem = false, isSpectator = false, timestamp = Date.now() },
         options = {}
     ) {
         const text = String(message || '').trim();
@@ -727,7 +741,7 @@ class MultiplayerManager {
             : null;
 
         const name = isSystem ? '系统' : this.getRoomChatPlayerName(playerName, normalizedPlayerNumber, playerId);
-        this.roomChatMessages.push({ name, message: text, playerNumber: normalizedPlayerNumber, isSystem, timestamp });
+        this.roomChatMessages.push({ name, message: text, playerNumber: normalizedPlayerNumber, isSystem, isSpectator, timestamp });
         if (this.roomChatMessages.length > this.roomChatMaxCount) {
             this.roomChatMessages = this.roomChatMessages.slice(-this.roomChatMaxCount);
         }
@@ -762,8 +776,11 @@ class MultiplayerManager {
             const safeText = this.escapeHtml(item.message);
             if (item.isSystem) {
                 row.innerHTML = `<span class="system-message-text">${safeText}</span>`;
+            } else if (item.isSpectator) {
+                const nameColorClass = this.getRoomChatNameColorClass(item.playerNumber, item.isSpectator);
+                row.innerHTML = `<span class="room-chat-name ${nameColorClass}">${safeName}(观众)：</span><span>${safeText}</span>`;
             } else {
-                const nameColorClass = this.getRoomChatNameColorClass(item.playerNumber);
+                const nameColorClass = this.getRoomChatNameColorClass(item.playerNumber, item.isSpectator);
                 row.innerHTML = `<span class="room-chat-name ${nameColorClass}">${safeName}:</span><span>${safeText}</span>`;
             }
             container.appendChild(row);
@@ -1275,6 +1292,7 @@ class MultiplayerManager {
                         skillModeCheckbox.checked = roomData.settings.skillMode || false;
                         console.log('[配置] 创建房间时初始化道具模式:', roomData.settings.skillMode);
                     }
+                    this.updateTakeoffRuleDisplay(roomData.settings?.takeoffRule || 'even');
                     this.updateRoomPrivacyToggleUI(!!roomData.isPrivate);
 
                     // 确保房主颜色选择器正确高亮
@@ -1443,6 +1461,7 @@ class MultiplayerManager {
                     skillModeCheckbox.checked = data.room.settings.skillMode || false;
                     console.log('[配置] 加入房间时同步道具模式:', data.room.settings.skillMode);
                 }
+                this.updateTakeoffRuleDisplay(data.room.settings?.takeoffRule || 'even');
 
                 this.updateRoomPrivacyToggleUI(!!data.room.isPrivate);
 
@@ -1995,7 +2014,8 @@ class MultiplayerManager {
                     playerNumber: data.playerNumber,
                     playerId: data.playerId,
                     message: data.message,
-                    isSystem: data.playerNumber == null
+                    isSystem: data.playerNumber == null && !data.isSpectator,
+                    isSpectator: !!data.isSpectator
                 }, {
                     markUnread: !isLocalMessage
                 });
@@ -2025,6 +2045,9 @@ class MultiplayerManager {
                 if (skillModeCheckbox && data.settings.skillMode !== undefined) {
                     skillModeCheckbox.checked = data.settings.skillMode;
                     console.log('[配置] 道具模式复选框已更新:', data.settings.skillMode);
+                }
+                if (data.settings.takeoffRule !== undefined) {
+                    this.updateTakeoffRuleDisplay(data.settings.takeoffRule);
                 }
 
                 // 更新房间信息显示（包括游戏配置）
@@ -2097,6 +2120,11 @@ class MultiplayerManager {
         const el = document.getElementById('roomConfig');
         if (!el) return false;
         return window.getComputedStyle(el).display !== 'none';
+    }
+
+    getCreateRoomName() {
+        const input = document.getElementById('createRoomNameInput');
+        return input ? String(input.value || '').trim().slice(0, 16) : '';
     }
 
     getGameStateText(state) {
@@ -2246,10 +2274,19 @@ class MultiplayerManager {
                 return;
             }
 
+            let nickname = '';
+            if (window.playerIdManager) {
+                nickname = window.playerIdManager.getSavedNickname() || '';
+            }
+            if (!nickname) {
+                const nicknameInput = document.getElementById('multiplayerPlayerUsername');
+                nickname = nicknameInput ? nicknameInput.value.trim() : '';
+            }
+
             console.log('发送观战请求:', code);
 
             // 发送观战请求
-            this.wsClient.spectateRoom(code);
+            this.wsClient.spectateRoom(code, { nickname });
 
         } catch (error) {
             console.error('加入观战失败:', error);
@@ -2520,10 +2557,12 @@ class MultiplayerManager {
 
                 // 使用WebSocketClient的createRoom方法，传递nickname和emoji
                 this.wsClient.createRoom({
+                    name: this.getCreateRoomName(),
                     nickname: nickname,
                     emoji: this.selectedEmoji,
                     maxPlayers: 4,
-                    gameMode: 'multiplayer'
+                    gameMode: 'multiplayer',
+                    takeoffRule: this.getSelectedTakeoffRule()
                 });
 
                 // 设置超时处理
@@ -2586,10 +2625,12 @@ class MultiplayerManager {
 
             // 使用WebSocketClient的createRoom方法
             this.wsClient.createRoom({
+                name: this.getCreateRoomName(),
                 maxPlayers: 4,
                 gameMode: 'multiplayer',
                 nickname: nickname, // 使用保存的昵称，如果为空，服务器会生成默认昵称
-                emoji: this.selectedEmoji
+                emoji: this.selectedEmoji,
+                takeoffRule: this.getSelectedTakeoffRule()
             });
 
         } catch (error) {
@@ -3026,7 +3067,9 @@ class MultiplayerManager {
             const skillMode = (this.currentRoom && this.currentRoom.settings && this.currentRoom.settings.skillMode)
                 ? this.currentRoom.settings.skillMode : false;
             const modeText = skillMode ? '道具模式' : '标准模式';
-            gameConfigInfo.textContent = `${pieceCount}棋子 - ${modeText}`;
+            const takeoffRule = this.normalizeTakeoffRule(this.currentRoom?.settings?.takeoffRule || this.takeoffRule);
+            const takeoffText = takeoffRule === 'six' ? '仅6起飞' : '2/4/6起飞';
+            gameConfigInfo.textContent = `${pieceCount}棋子 - ${modeText} - ${takeoffText}`;
         }
 
         this.updateConfigHeaderTitle();
@@ -3482,6 +3525,43 @@ class MultiplayerManager {
 
         // 立即更新房间信息显示
         this.updateRoomInfo();
+    }
+
+    normalizeTakeoffRule(rule) {
+        return String(rule || '').toLowerCase() === 'six' ? 'six' : 'even';
+    }
+
+    getSelectedTakeoffRule() {
+        const selected = document.querySelector('.takeoff-rule-option.selected');
+        return this.normalizeTakeoffRule(selected?.dataset?.takeoffRule || this.currentRoom?.settings?.takeoffRule || this.takeoffRule);
+    }
+
+    setTakeoffRule(nextRule) {
+        if (!this.isHost || !this.wsClient) return;
+        const rule = this.normalizeTakeoffRule(nextRule);
+        if (!this.currentRoom) {
+            this.currentRoom = { settings: {} };
+        }
+        if (!this.currentRoom.settings) {
+            this.currentRoom.settings = {};
+        }
+        this.currentRoom.settings.takeoffRule = rule;
+        this.takeoffRule = rule;
+        this.updateTakeoffRuleDisplay(rule);
+        this.wsClient.sendMessage('updateSettings', {
+            settings: {
+                takeoffRule: rule
+            }
+        });
+        this.updateRoomInfo();
+    }
+
+    updateTakeoffRuleDisplay(rule) {
+        const normalized = this.normalizeTakeoffRule(rule);
+        this.takeoffRule = normalized;
+        document.querySelectorAll('.takeoff-rule-option').forEach(option => {
+            option.classList.toggle('selected', this.normalizeTakeoffRule(option.dataset.takeoffRule) === normalized);
+        });
     }
 
     setRoomPrivacy(isPrivate) {
@@ -4094,12 +4174,14 @@ class MultiplayerManager {
             ? gameData.skillMode
             : (this.currentRoom?.settings?.skillMode || false);
         console.log('[配置] 道具模式:', skillModeEnabled, '(isHost:', this.isHost, ')');
+        const takeoffRule = this.normalizeTakeoffRule(gameData.takeoffRule || gameData.gameData?.takeoffRule || this.currentRoom?.settings?.takeoffRule || this.takeoffRule);
 
         // 设置正确的gameConfig，确保按钮显示正确
         const gameConfig = {
             mode: 'online_multiplayer',
             playerCount: allPlayers.length,
             pieceCount: gameData.pieceCount || 4,
+            takeoffRule,
             skillMode: skillModeEnabled // 使用读取到的道具模式配置
         };
 
@@ -4113,6 +4195,7 @@ class MultiplayerManager {
             currentPlayer: allPlayers[0], // 按颜色排序后的第一个玩家（颜色最小）
             gameSessionId: gameSessionId, // 使用服务器传来的游戏会话ID
             isHost: this.isHost,
+            takeoffRule,
             skillMode: skillModeEnabled, // 明确添加道具模式配置
             wsClient: {
                 playerId: this.wsClient.playerId,
@@ -4195,12 +4278,14 @@ class MultiplayerManager {
             ? gameData.skillMode
             : (this.currentRoom?.settings?.skillMode || false);
         console.log('[配置] 重连时道具模式:', skillModeEnabled);
+        const takeoffRule = this.normalizeTakeoffRule(gameData.takeoffRule || data.room?.settings?.takeoffRule || this.currentRoom?.settings?.takeoffRule || this.takeoffRule);
 
         // 设置正确的gameConfig，确保按钮显示正确
         const gameConfig = {
             mode: 'online_multiplayer',
             playerCount: allPlayers.length,
             pieceCount: gameData.pieceCount || 4,
+            takeoffRule,
             skillMode: skillModeEnabled // 添加道具模式配置
         };
         sessionStorage.setItem('gameConfig', JSON.stringify(gameConfig));
@@ -4213,6 +4298,7 @@ class MultiplayerManager {
             gameSessionId: gameSessionId,
             isHost: this.isHost,
             isReconnecting: true, // 标记为重连
+            takeoffRule,
             skillMode: skillModeEnabled, // 明确添加道具模式配置
             wsClient: {
                 playerId: this.wsClient.playerId,

@@ -267,8 +267,8 @@ class Dice {
         // 记录骰子投掷（用于称号统计）
         this.gameState.recordDiceRollForTitle(this.gameState.currentPlayer, this.gameState.diceValue, isRemoteDice);
 
-        // 检查是否可以出发（偶数）或移动棋子
-        const canLaunch = this.gameState.diceValue % 2 === 0;
+        // 检查是否可以按当前规则出发或移动棋子
+        const canLaunch = this.gameState.canTakeoff(this.gameState.diceValue);
 
         // 检查是否有棋子可以移动
         const hasMovableChess = this.gameState.playerChess[this.gameState.currentPlayer].some(chess => {

@@ -32,6 +32,80 @@ test('polling service creates rooms in memory and lists them without database wr
   assert.deepEqual(historyWrites, []);
 });
 
+test('polling service persists takeoff rule in room settings and game start payload', async () => {
+  const service = createAeroplaneChessPollingService();
+
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host', takeoffRule: 'six' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  assert.equal(created.room.settings.takeoffRule, 'six');
+
+  const listed = (await service.handleMessage({
+    type: 'listRooms',
+    playerId: 'guest-1'
+  })).events.find((event) => event.type === 'roomsList');
+
+  assert.equal(listed.rooms[0].takeoffRule, 'six');
+
+  await service.handleMessage({
+    type: 'join_room',
+    playerId: 'guest-1',
+    data: { roomCode: created.room.code, nickname: 'Guest' }
+  });
+
+  const started = (await service.handleMessage({
+    type: 'startGame',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  })).events.find((event) => event.type === 'gameStarted');
+
+  assert.equal(started.room.settings.takeoffRule, 'six');
+  assert.equal(started.takeoffRule, 'six');
+  assert.equal(started.gameData.takeoffRule, 'six');
+});
+
+test('polling service decorates player and spectator chat messages', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host', name: '联盟娱乐局' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  assert.equal(created.room.name, '联盟娱乐局');
+
+  const playerChat = (await service.handleMessage({
+    type: 'chatMessage',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    data: { message: '开局啦' }
+  })).events.find((event) => event.type === 'chatMessage');
+
+  assert.equal(playerChat.playerName, 'Host');
+  assert.equal(playerChat.playerNumber, 1);
+  assert.equal(playerChat.isSpectator, false);
+
+  await service.handleMessage({
+    type: 'spectate_room',
+    playerId: 'spectator-1',
+    data: { roomCode: created.room.code, nickname: '小明' }
+  });
+
+  const spectatorChat = (await service.handleMessage({
+    type: 'chatMessage',
+    playerId: 'spectator-1',
+    roomCode: created.room.code,
+    data: { message: '我来观战' }
+  })).events.find((event) => event.type === 'chatMessage');
+
+  assert.equal(spectatorChat.playerName, '小明');
+  assert.equal(spectatorChat.playerNumber, null);
+  assert.equal(spectatorChat.isSpectator, true);
+});
+
 test('polling service queues room events for other players', async () => {
   const service = createAeroplaneChessPollingService();
   const created = (await service.handleMessage({
@@ -51,6 +125,41 @@ test('polling service queues room events for other players', async () => {
 
   const hostEvents = service.pollEvents({ playerId: 'host-1', since: 0 });
   assert.ok(hostEvents.events.some((event) => event.type === 'playerJoined'));
+});
+
+test('polling service lets host kick a real player from the room', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  await service.handleMessage({
+    type: 'join_room',
+    playerId: 'guest-1',
+    data: { roomCode: created.room.code, nickname: 'Guest' }
+  });
+
+  const kickResult = await service.handleMessage({
+    type: 'kickPlayer',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    data: { playerId: 'guest-1' }
+  });
+
+  const kicked = kickResult.events.find((event) => event.type === 'playerKicked');
+  assert.equal(kicked.playerId, 'guest-1');
+  assert.equal(kicked.room.players.some((player) => player.id === 'guest-1'), false);
+
+  const guestEvents = service.pollEvents({ playerId: 'guest-1', since: 0 });
+  assert.ok(guestEvents.events.some((event) => event.type === 'kicked'));
+
+  const roomsList = (await service.handleMessage({
+    type: 'listRooms',
+    playerId: 'host-1'
+  })).events.find((event) => event.type === 'roomsList');
+  assert.equal(roomsList.rooms[0].playerCount, 1);
 });
 
 test('polling service starts games and records history only when game ends', async () => {

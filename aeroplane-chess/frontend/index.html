@@ -229,6 +229,11 @@
                                                 style="display: none;">暂无可加入的房间</div>
                                         </div>
 
+                                        <div class="create-room-name-setting">
+                                            <input id="createRoomNameInput" class="create-room-name-input" type="text"
+                                                maxlength="16" placeholder="设置游戏名" autocomplete="off">
+                                        </div>
+
                                         <div class="public-room-actions-bar">
                                             <div class="mode-buttons mode-buttons-bottom">
                                                 <button class="mode-btn" id="createRoomBtn">
@@ -378,6 +383,16 @@
                                                             <div class="count-circle">4</div>
                                                         </div>
                                                     </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="takeoff-rule-setting">
+                                                <h4>起飞规则</h4>
+                                                <div class="takeoff-rule-selector">
+                                                    <button class="takeoff-rule-option selected" id="takeoffRuleEven"
+                                                        type="button" data-takeoff-rule="even">2/4/6 起飞</button>
+                                                    <button class="takeoff-rule-option" id="takeoffRuleSix"
+                                                        type="button" data-takeoff-rule="six">仅 6 起飞</button>
                                                 </div>
                                             </div>
 

@@ -32,6 +32,7 @@ class GameState {
 
         // 棋子数量配置
         this.pieceCount = 4; // 默认每个玩家4个棋子
+        this.takeoffRule = 'even'; // even: 2/4/6 起飞, six: 仅 6 起飞
 
         // 电脑玩家配置
         this.botPlayers = new Set(); // 存储电脑玩家编号的集合
@@ -130,6 +131,23 @@ class GameState {
                 });
             }
         }
+    }
+
+    normalizeTakeoffRule(rule) {
+        return String(rule || '').toLowerCase() === 'six' ? 'six' : 'even';
+    }
+
+    setTakeoffRule(rule) {
+        this.takeoffRule = this.normalizeTakeoffRule(rule);
+    }
+
+    getTakeoffRule() {
+        return this.normalizeTakeoffRule(this.takeoffRule);
+    }
+
+    canTakeoff(diceValue) {
+        const value = Number(diceValue);
+        return this.takeoffRule === 'six' ? value === 6 : (value === 2 || value === 4 || value === 6);
     }
 
     generateMainTrack() {
@@ -288,6 +306,7 @@ class GameState {
         this.currentPlayer = null;
         this.gamePhase = 'waiting';
         this.diceValue = 0;
+        this.takeoffRule = 'even';
         this.selectedChess = null;
         this.winner = null;
         this.isRolling = false;
@@ -423,9 +442,9 @@ class GameState {
             // 如果棋子已完成，跳过
             if (chess.finished) continue;
 
-            // 如果棋子在起始区域，只有投出6才能出发
+            // 如果棋子在起始区域，按当前房间起飞规则判断
             if (chess.position === -1) {
-                if (diceValue === 6) {
+                if (this.canTakeoff(diceValue)) {
                     movableChess.push(i);
                 }
             }

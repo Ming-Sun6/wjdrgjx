@@ -234,6 +234,10 @@ class EventHandler {
                 else if (currentPlayer !== localPlayerNumber) {
                     return;
                 }
+
+                if (currentPlayer === localPlayerNumber && isCurrentPlayerAITakeover) {
+                    this.gameInstance.multiplayerGameManager.clearLocalAITakeoverForManualAction('manual_dice_click');
+                }
             }
 
             // 执行掷骰子
@@ -533,6 +537,10 @@ class EventHandler {
                 // 如果是真实玩家，必须是本地玩家才能操作
                 else if (currentPlayer !== localPlayerNumber) {
                     return;
+                }
+
+                if (currentPlayer === localPlayerNumber && isCurrentPlayerAITakeover) {
+                    this.gameInstance.multiplayerGameManager.clearLocalAITakeoverForManualAction('manual_chess_click');
                 }
             }
 

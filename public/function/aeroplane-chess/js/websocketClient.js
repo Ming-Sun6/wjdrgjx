@@ -118,8 +118,8 @@ export class WebSocketClient {
         this.sendMessage('listRooms');
     }
 
-    spectateRoom(roomCode) {
-        this.sendMessage('spectate_room', { roomCode });
+    spectateRoom(roomCode, options = {}) {
+        this.sendMessage('spectate_room', { roomCode, ...options });
     }
 
     leaveRoom() {

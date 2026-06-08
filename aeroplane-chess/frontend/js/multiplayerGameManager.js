@@ -154,6 +154,9 @@ class MultiplayerGameManager {
 
         // 无论是否观战，都设置全局变量引用
         this.setGlobalReferences();
+        if (gameState?.setTakeoffRule) {
+            gameState.setTakeoffRule(multiplayerGameData.takeoffRule || multiplayerGameData.gameData?.takeoffRule || 'even');
+        }
 
         // 无论是否观战，都确保 audioManager 处于正确模式
         if (window.audioManager) {
@@ -997,6 +1000,9 @@ class MultiplayerGameManager {
 
         // 确保设置在线多人模式标志（重连时可能被resetGameState重置）
         gameState.setIsOnlineMultiplayer(true);
+        if (gameState.setTakeoffRule) {
+            gameState.setTakeoffRule(gameData.takeoffRule || 'even');
+        }
 
         // 首先检查并应用棋子个数配置
         if (gameData.pieceCount !== undefined && gameData.pieceCount !== gameState.pieceCount) {
@@ -1109,7 +1115,7 @@ class MultiplayerGameManager {
             // 检查是否有可移动的棋子
             const currentPlayer = gameData.currentPlayer || gameState.getCurrentPlayer();
             const playerChess = gameState.getPlayerChess();
-            const canLaunch = gameData.diceValue % 2 === 0;
+            const canLaunch = gameState.canTakeoff(gameData.diceValue);
 
             const hasMovableChess = playerChess[currentPlayer].some(chess => {
                 if (chess.finished) return false;
@@ -3959,6 +3965,57 @@ class MultiplayerGameManager {
             }
         } catch (error) {
             console.error('处理AI托管状态变化失败:', error);
+        }
+    }
+
+    clearLocalAITakeoverForManualAction(reason = 'manual_action') {
+        try {
+            if (this.isSpectator || !this.playerId || !this.gameInstance?.gameState) {
+                return false;
+            }
+
+            const currentPlayer = this.gameInstance.gameState.getCurrentPlayer();
+            const localPlayerNumber = this.getPlayerNumberByPlayerId(this.playerId);
+            if (!localPlayerNumber || currentPlayer !== localPlayerNumber) {
+                return false;
+            }
+
+            const playerData = this.players.get(this.playerId);
+            const isTakeoverActive = this.aiTakeoverPlayers.has(this.playerId) ||
+                playerData?.isAITakeover ||
+                this.gameInstance.gameState.getIsAITakeover?.();
+
+            if (!isTakeoverActive) {
+                return false;
+            }
+
+            this.aiTakeoverPlayers.delete(this.playerId);
+            if (playerData) {
+                playerData.isAITakeover = false;
+            }
+            this.updatePlayerAITakeoverDisplay(this.playerId, false);
+
+            if (window.aiTakeoverManager && typeof window.aiTakeoverManager.applyRemoteTakeoverState === 'function') {
+                window.aiTakeoverManager.applyRemoteTakeoverState(false);
+            } else if (typeof this.gameInstance.gameState.setAITakeover === 'function') {
+                this.gameInstance.gameState.setAITakeover(false);
+            }
+
+            if (this.isConnected && typeof this.sendMessage === 'function') {
+                this.sendMessage('aiTakeoverChange', {
+                    playerId: this.playerId,
+                    isActive: false,
+                    auto: true,
+                    timestamp: Date.now(),
+                    reason: reason || 'manual_action'
+                });
+            }
+
+            console.log(`[AI托管] 本地玩家手动操作，关闭托管: ${reason || 'manual_action'}`);
+            return true;
+        } catch (error) {
+            console.error('手动恢复本地玩家控制失败:', error);
+            return false;
         }
     }
 

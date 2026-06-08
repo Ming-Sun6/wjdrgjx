@@ -2441,6 +2441,29 @@ use[href="#checkmark"] {
     position: relative;
 }
 
+.create-room-name-setting {
+    width: min(320px, 100%);
+    margin: 12px auto 0;
+}
+
+.create-room-name-input {
+    width: 100%;
+    height: 34px;
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-base);
+    background: rgba(255, 255, 255, 0.22);
+    color: #2d241f;
+    font-size: 14px;
+    padding: 0 10px;
+    text-align: center;
+    outline: none;
+}
+
+.create-room-name-input:focus {
+    border-color: #6e7bb0;
+    box-shadow: 0 0 0 2px rgba(110, 123, 176, 0.18);
+}
+
 .room-selection,
 .room-config {
     width: 100%;
@@ -3066,6 +3089,10 @@ use[href="#checkmark"] {
 .room-chat-name {
     font-weight: bold;
     margin-right: 4px;
+}
+
+.room-chat-spectator-name {
+    color: rgba(45, 36, 31, 0.68);
 }
 
 .room-chat-input-wrap {
@@ -4512,6 +4539,7 @@ use[href="#checkmark"] {
 .color-selection h4,
 .username-setting h4,
 .piece-count-setting h4,
+.takeoff-rule-setting h4,
 .bot-players-preview h4,
 .player-count-setting h4,
 .rules-content h4 {
@@ -4798,6 +4826,42 @@ use[href="#checkmark"] {
     display: flex;
     flex-direction: column;
     gap: 12px;
+}
+
+.takeoff-rule-setting {
+    margin-top: 10px;
+}
+
+.takeoff-rule-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 5px 0px;
+    flex-wrap: wrap;
+}
+
+.takeoff-rule-option {
+    min-width: 98px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--border-light);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    font-size: 14px;
+    color: #2d241f;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.takeoff-rule-option:hover,
+.takeoff-rule-option.selected {
+    border: 2px solid #6e7bb0;
+    background: #bec7e9;
+    box-shadow: 0 1px 3px rgba(40, 40, 40, 0.6);
 }
 
 .piece-count-options {

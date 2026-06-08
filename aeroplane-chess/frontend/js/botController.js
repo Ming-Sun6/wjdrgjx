@@ -534,8 +534,8 @@ class BotController {
                 }
             }
 
-            // 特殊决策：偶数移动且有棋子在终点通道时，优先起飞基地棋子
-            if (diceValue % 2 === 0 && diceValue !== 6) { // 偶数点数但不是6
+            // 特殊决策：可起飞且不是6时，有棋子在终点通道则优先起飞基地棋子
+            if (gameState.canTakeoff(diceValue) && diceValue !== 6) {
                 const playerChess = gameState.getPlayerChess()[player];
 
                 // 检查是否有棋子在安全轨道（51-56）
@@ -624,9 +624,9 @@ class BotController {
             consequences: []
         };
 
-        // 如果棋子在基地，检查是否可以起飞
+        // 如果棋子在基地，检查是否可以按当前规则起飞
         if (currentPosition === -1) {
-            if (diceValue % 2 === 0) { // 偶数可以起飞
+            if (gameState.canTakeoff(diceValue)) {
                 analysis.consequences.push('takeoff');
             }
             return analysis;

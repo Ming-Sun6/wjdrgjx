@@ -93,10 +93,10 @@ class ChessPiece {
             return; // 不是最顶层棋子，不能选择
         }
 
-        const canLaunch = this.gameState.diceValue % 2 === 0;
+        const canLaunch = this.gameState.canTakeoff(this.gameState.diceValue);
 
         if (chess.position === -1) {
-            // 棋子在起始区域，只有偶数才能出发
+            // 棋子在起始区域，按当前起飞规则判断
             if (!canLaunch) return;
         } else {
             // 棋子在轨道上，检查是否可以移动
@@ -1241,9 +1241,9 @@ class ChessPiece {
             return false;
         }
 
-        // 如果棋子在起始区域（position === -1），只有偶数才能出发
+        // 如果棋子在起始区域（position === -1），按当前起飞规则判断
         if (chess.position === -1) {
-            return diceValue % 2 === 0;
+            return this.gameState.canTakeoff(diceValue);
         }
 
         // 棋子在轨道上，检查是否可以移动

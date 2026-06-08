@@ -250,3 +250,136 @@ test('online inactivity timeout enables ai takeover after one minute', () => {
     assert.doesNotMatch(source, /允许无限等待直到首发玩家操作/);
   }
 });
+
+test('aeroplane chess rooms support configurable takeoff rules', () => {
+  const homeFiles = [
+    path.join(gameDir, 'index.html'),
+    path.join(publicGameDir, 'index.html')
+  ];
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerManager.js')
+  ];
+  const gameStateFiles = [
+    path.join(gameDir, 'js', 'gameState.js'),
+    path.join(publicGameDir, 'js', 'gameState.js')
+  ];
+  const movementFiles = [
+    path.join(gameDir, 'js', 'chessPiece.js'),
+    path.join(gameDir, 'js', 'dice.js'),
+    path.join(gameDir, 'js', 'uiUpdater.js'),
+    path.join(gameDir, 'js', 'multiplayerGameManager.js'),
+    path.join(gameDir, 'js', 'botController.js'),
+    path.join(publicGameDir, 'js', 'chessPiece.js'),
+    path.join(publicGameDir, 'js', 'dice.js'),
+    path.join(publicGameDir, 'js', 'uiUpdater.js'),
+    path.join(publicGameDir, 'js', 'multiplayerGameManager.js'),
+    path.join(publicGameDir, 'js', 'botController.js')
+  ];
+
+  for (const file of homeFiles) {
+    const html = fs.readFileSync(file, 'utf8');
+    assert.match(html, /id="takeoffRuleSix"/);
+    assert.match(html, /id="takeoffRuleEven"/);
+    assert.match(html, /data-takeoff-rule="six"/);
+    assert.match(html, /data-takeoff-rule="even"/);
+  }
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /getSelectedTakeoffRule/);
+    assert.match(source, /setTakeoffRule/);
+    assert.match(source, /takeoffRule:\s*this\.getSelectedTakeoffRule\(\)/);
+    assert.match(source, /settings:\s*{[\s\S]*takeoffRule:\s*rule/);
+  }
+
+  for (const file of gameStateFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /this\.takeoffRule\s*=\s*'even'/);
+    assert.match(source, /setTakeoffRule\(rule\)/);
+    assert.match(source, /canTakeoff\(diceValue\)/);
+    assert.match(source, /this\.takeoffRule\s*===\s*'six'\s*\?\s*value\s*===\s*6\s*:\s*\(value\s*===\s*2\s*\|\|\s*value\s*===\s*4\s*\|\|\s*value\s*===\s*6\)/);
+  }
+
+  for (const file of movementFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /canTakeoff\(/);
+    assert.doesNotMatch(source, /diceValue\s*%\s*2\s*===\s*0/);
+    assert.doesNotMatch(source, /gameData\.diceValue\s*%\s*2\s*===\s*0/);
+  }
+});
+
+test('aeroplane chess room chat identifies player colors, spectators, and custom game names', () => {
+  const homeFiles = [
+    path.join(gameDir, 'index.html'),
+    path.join(publicGameDir, 'index.html')
+  ];
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerManager.js')
+  ];
+  const styleFiles = [
+    path.join(gameDir, 'css', 'style.css'),
+    path.join(publicGameDir, 'css', 'style.css')
+  ];
+
+  for (const file of homeFiles) {
+    const html = fs.readFileSync(file, 'utf8');
+    assert.match(html, /id="createRoomNameInput"/);
+    assert.match(html, /placeholder="设置游戏名"/);
+  }
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /getCreateRoomName\(\)/);
+    assert.match(source, /name:\s*this\.getCreateRoomName\(\)/);
+    assert.match(source, /isSpectator/);
+    assert.match(source, /\$\{safeName\}\(观众\)：/);
+    assert.match(source, /room-chat-spectator-name/);
+    assert.match(source, /getRoomChatNameColorClass\(item\.playerNumber, item\.isSpectator\)/);
+  }
+
+  for (const file of styleFiles) {
+    const css = fs.readFileSync(file, 'utf8');
+    assert.match(css, /\.player-1-name/);
+    assert.match(css, /\.player-2-name/);
+    assert.match(css, /\.player-3-name/);
+    assert.match(css, /\.player-4-name/);
+    assert.match(css, /\.room-chat-spectator-name/);
+  }
+});
+
+test('online ai takeover lets the local player resume manual control on their own turn', () => {
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerGameManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerGameManager.js')
+  ];
+  const eventHandlerFiles = [
+    path.join(gameDir, 'js', 'eventHandler.js'),
+    path.join(publicGameDir, 'js', 'eventHandler.js')
+  ];
+  const uiFiles = [
+    path.join(gameDir, 'js', 'uiUpdater.js'),
+    path.join(publicGameDir, 'js', 'uiUpdater.js')
+  ];
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /clearLocalAITakeoverForManualAction\(/);
+    assert.match(source, /reason:\s*reason\s*\|\|\s*'manual_action'/);
+    assert.match(source, /applyRemoteTakeoverState\(false\)/);
+  }
+
+  for (const file of eventHandlerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /clearLocalAITakeoverForManualAction\('manual_dice_click'\)/);
+    assert.match(source, /clearLocalAITakeoverForManualAction\('manual_chess_click'\)/);
+  }
+
+  for (const file of uiFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /const isActualBotPlayer = gameState\.isBotPlayer\(currentPlayer\)/);
+    assert.match(source, /\(isActualBotPlayer && !isCurrentPlayerLocal\)/);
+    assert.doesNotMatch(source, /const shouldDisable = gamePhase !== 'rolling' \|\| isRolling \|\| isBot \|\| !canControl/);
+  }
+});

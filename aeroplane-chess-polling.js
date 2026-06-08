@@ -19,6 +19,10 @@ function makeRoomCode(existingCodes) {
   throw new Error('ROOM_CODE_EXHAUSTED');
 }
 
+function normalizeTakeoffRule(rule) {
+  return String(rule || '').toLowerCase() === 'six' ? 'six' : 'even';
+}
+
 function publicPlayer(player) {
   return {
     id: player.id,
@@ -37,6 +41,7 @@ function createAeroplaneChessPollingService(options = {}) {
   const rooms = new Map();
   const playerRooms = new Map();
   const playerSpectatingRooms = new Map();
+  const spectatorProfiles = new Map();
   const playerEvents = new Map();
   const gameSessions = new Map();
   const recordHistory = typeof options.recordHistory === 'function' ? options.recordHistory : async () => {};
@@ -64,6 +69,7 @@ function createAeroplaneChessPollingService(options = {}) {
       spectators: Array.from(room.spectators),
       settings: {
         pieceCount: room.settings.pieceCount,
+        takeoffRule: normalizeTakeoffRule(room.settings.takeoffRule),
         skillMode: !!room.settings.skillMode,
         aiPlayers: room.settings.aiPlayers.map(publicPlayer)
       },
@@ -83,6 +89,7 @@ function createAeroplaneChessPollingService(options = {}) {
           code: room.code,
           name: room.name,
           pieceCount: room.settings.pieceCount,
+          takeoffRule: normalizeTakeoffRule(room.settings.takeoffRule),
           skillMode: !!room.settings.skillMode,
           playerCount,
           maxPlayers: 4,
@@ -178,6 +185,27 @@ function createAeroplaneChessPollingService(options = {}) {
     return player;
   }
 
+  function normalizeChatMessage(room, playerId, message, data) {
+    const player = room.players.get(playerId) || null;
+    const isSpectator = room.spectators.has(playerId) && !player;
+    const spectator = spectatorProfiles.get(playerId) || {};
+    const baseName = player
+      ? player.nickname
+      : String(data.playerName || data.senderName || spectator.nickname || defaultPlayerName(playerId)).trim();
+    return {
+      ...message,
+      ...data,
+      type: 'chatMessage',
+      playerId,
+      roomCode: room.code,
+      message: String(data.message || message.message || '').trim(),
+      playerName: baseName,
+      playerNumber: player ? player.color : null,
+      isSpectator,
+      timestamp: message.timestamp || data.timestamp || Date.now()
+    };
+  }
+
   async function handleMessage(rawMessage) {
     const message = rawMessage || {};
     const type = message.type;
@@ -219,6 +247,7 @@ function createAeroplaneChessPollingService(options = {}) {
         spectators: new Set(),
         settings: {
           pieceCount: Number(data.pieceCount || 4),
+          takeoffRule: normalizeTakeoffRule(data.takeoffRule),
           skillMode: !!data.skillMode,
           aiPlayers: []
         },
@@ -263,6 +292,9 @@ function createAeroplaneChessPollingService(options = {}) {
     if (type === 'spectate_room') {
       room.spectators.add(playerId);
       playerSpectatingRooms.set(playerId, room.code);
+      spectatorProfiles.set(playerId, {
+        nickname: String(data.nickname || message.nickname || defaultPlayerName(playerId)).trim()
+      });
       const session = room.gameSessionId ? gameSessions.get(room.gameSessionId) : null;
       send({
         type: 'spectateJoined',
@@ -274,11 +306,50 @@ function createAeroplaneChessPollingService(options = {}) {
       return { events };
     }
 
+    if (type === 'kickPlayer' || type === 'kick_player') {
+      if (room.hostId !== playerId) {
+        error('只有房主可以踢出玩家');
+        return { events };
+      }
+      const targetPlayerId = data.playerId || data.targetPlayerId || message.targetPlayerId;
+      if (!targetPlayerId || targetPlayerId === playerId || targetPlayerId === room.hostId) {
+        error('无法踢出该玩家');
+        return { events };
+      }
+      const targetPlayer = room.players.get(targetPlayerId);
+      if (!targetPlayer) {
+        error('玩家不在房间中');
+        return { events };
+      }
+
+      room.players.delete(targetPlayerId);
+      playerRooms.delete(targetPlayerId);
+      const roomPayload = toRoomJSON(room);
+      eventForPlayer(targetPlayerId, {
+        type: 'kicked',
+        roomCode: room.code,
+        playerId: targetPlayerId,
+        reason: 'host_kicked',
+        timestamp: Date.now()
+      });
+      const event = {
+        type: 'playerKicked',
+        playerId: targetPlayerId,
+        player: publicPlayer(targetPlayer),
+        room: roomPayload,
+        timestamp: Date.now()
+      };
+      broadcastRoom(room, event);
+      send(event);
+      return { events };
+    }
+
     if (type === 'leave_room' || type === 'leaveRoom') {
       const wasPlayer = room.players.delete(playerId);
       room.spectators.delete(playerId);
       playerRooms.delete(playerId);
       playerSpectatingRooms.delete(playerId);
+      spectatorProfiles.delete(playerId);
       send({ type: 'roomLeft', roomCode: room.code });
       if (wasPlayer) {
         if (room.hostId === playerId) {
@@ -341,6 +412,7 @@ function createAeroplaneChessPollingService(options = {}) {
 
     if (type === 'updateSettings') {
       Object.assign(room.settings, data.settings || data);
+      room.settings.takeoffRule = normalizeTakeoffRule(room.settings.takeoffRule);
       const event = { type: 'settingsUpdated', settings: room.settings, room: toRoomJSON(room) };
       broadcastRoom(room, event);
       send(event);
@@ -423,6 +495,7 @@ function createAeroplaneChessPollingService(options = {}) {
         roomCode: room.code,
         players,
         pieceCount: room.settings.pieceCount,
+        takeoffRule: normalizeTakeoffRule(room.settings.takeoffRule),
         skillMode: !!room.settings.skillMode,
         gameStartTime: Date.now(),
         progressHistory: [],
@@ -445,6 +518,7 @@ function createAeroplaneChessPollingService(options = {}) {
         gameData,
         players,
         pieceCount: room.settings.pieceCount,
+        takeoffRule: normalizeTakeoffRule(room.settings.takeoffRule),
         skillMode: !!room.settings.skillMode
       };
       broadcastRoom(room, event);
@@ -508,6 +582,14 @@ function createAeroplaneChessPollingService(options = {}) {
         players: session ? session.players : toRoomJSON(room).players,
         endedAt: event.timestamp
       });
+      return { events };
+    }
+
+    if (type === 'chatMessage') {
+      const event = normalizeChatMessage(room, playerId, message, data);
+      if (!event.message) return { events };
+      broadcastRoom(room, event, playerId);
+      send(event);
       return { events };
     }
 

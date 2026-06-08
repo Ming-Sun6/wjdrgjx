@@ -159,45 +159,42 @@ class UIUpdater {
             const currentPlayer = gameState.getCurrentPlayer();
             const isOnlineMultiplayer = gameState.getIsOnlineMultiplayer();
 
-            // 导入botController来检查当前玩家是否为bot
-            import('./botController.js').then(({ botController }) => {
-                const isBot = botController.isCurrentPlayerBot();
+            const isActualBotPlayer = gameState.isBotPlayer(currentPlayer);
 
-                // 在多人游戏中，检查当前玩家是否是本地玩家或房主代替AI托管玩家操作
-                let isCurrentPlayerLocal = true;
-                let isHostControllingAITakeover = false;
-                if (isOnlineMultiplayer && window.gameInstance && window.gameInstance.multiplayerGameManager) {
-                    const localPlayerId = window.gameInstance.multiplayerGameManager.getCurrentPlayerId();
-                    const localPlayerNumber = window.gameInstance.multiplayerGameManager.getPlayerNumberByPlayerId(localPlayerId);
-                    isCurrentPlayerLocal = (currentPlayer === localPlayerNumber);
+            // 在多人游戏中，检查当前玩家是否是本地玩家或房主代替AI托管玩家操作
+            let isCurrentPlayerLocal = true;
+            let isHostControllingAITakeover = false;
+            if (isOnlineMultiplayer && window.gameInstance && window.gameInstance.multiplayerGameManager) {
+                const localPlayerId = window.gameInstance.multiplayerGameManager.getCurrentPlayerId();
+                const localPlayerNumber = window.gameInstance.multiplayerGameManager.getPlayerNumberByPlayerId(localPlayerId);
+                isCurrentPlayerLocal = (currentPlayer === localPlayerNumber);
 
-                    // 检查当前玩家是否被AI托管且当前客户端是房主
-                    const currentPlayerId = window.gameInstance.multiplayerGameManager.getPlayerIdByPlayerNumber(currentPlayer);
-                    const currentPlayerData = window.gameInstance.multiplayerGameManager.players.get(currentPlayerId);
-                    const isCurrentPlayerAITakeover = window.gameInstance.multiplayerGameManager.aiTakeoverPlayers?.has(currentPlayerId) ||
-                        currentPlayerData?.isAITakeover || false;
-                    const isHost = window.gameInstance.multiplayerGameManager.isHost;
-                    isHostControllingAITakeover = isCurrentPlayerAITakeover && isHost && !isCurrentPlayerLocal;
-                }
+                // 检查当前玩家是否被AI托管且当前客户端是房主
+                const currentPlayerId = window.gameInstance.multiplayerGameManager.getPlayerIdByPlayerNumber(currentPlayer);
+                const currentPlayerData = window.gameInstance.multiplayerGameManager.players.get(currentPlayerId);
+                const isCurrentPlayerAITakeover = window.gameInstance.multiplayerGameManager.aiTakeoverPlayers?.has(currentPlayerId) ||
+                    currentPlayerData?.isAITakeover || false;
+                const isHost = window.gameInstance.multiplayerGameManager.isHost;
+                isHostControllingAITakeover = isCurrentPlayerAITakeover && isHost && !isCurrentPlayerLocal;
+            }
 
-                // 只有轮到当前玩家且不是bot且游戏阶段为rolling且不在掷骰中且（是本地玩家或房主代替AI托管玩家操作）时，骰子才可用
-                const canControl = isCurrentPlayerLocal || isHostControllingAITakeover;
-                const shouldDisable = gamePhase !== 'rolling' || isRolling || isBot || !canControl;
+            // 只有真实AI电脑玩家才阻止本地真人操作；被托管的本地真人点击后会恢复手动控制。
+            const canControl = isCurrentPlayerLocal || isHostControllingAITakeover;
+            const shouldDisable = gamePhase !== 'rolling' || isRolling || (isActualBotPlayer && !isCurrentPlayerLocal) || !canControl;
 
-                // 不再进行状态恢复逻辑，避免覆盖正确的骰子显示
+            // 不再进行状态恢复逻辑，避免覆盖正确的骰子显示
 
-                if (shouldDisable) {
-                    diceDisplay.classList.add('disabled');
-                } else {
-                    diceDisplay.classList.remove('disabled');
-                }
+            if (shouldDisable) {
+                diceDisplay.classList.add('disabled');
+            } else {
+                diceDisplay.classList.remove('disabled');
+            }
 
-                // 强制触发UI更新事件，确保其他组件也能响应权限变化
-                const event = new CustomEvent('dicePermissionChanged', {
-                    detail: { canRoll: !shouldDisable, currentPlayer, isCurrentPlayerLocal, isHostControllingAITakeover }
-                });
-                document.dispatchEvent(event);
+            // 强制触发UI更新事件，确保其他组件也能响应权限变化
+            const event = new CustomEvent('dicePermissionChanged', {
+                detail: { canRoll: !shouldDisable, currentPlayer, isCurrentPlayerLocal, isHostControllingAITakeover }
             });
+            document.dispatchEvent(event);
         }
     }
 
@@ -369,9 +366,9 @@ class UIUpdater {
             return false;
         }
 
-        // 如果棋子在起始区域（position === -1），只有偶数才能出发
+        // 如果棋子在起始区域（position === -1），按当前起飞规则判断
         if (chess.position === -1) {
-            return diceValue % 2 === 0;
+            return gameState.canTakeoff(diceValue);
         }
 
         // 棋子在轨道上，检查是否可以移动
