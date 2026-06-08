@@ -210,3 +210,66 @@ test('finishing all pieces records first rank and history snapshot', () => {
   assert.equal(updated.game.rankings[0].userId, 1);
   assert.equal(updated.historySnapshot.players[0].rank, 1);
 });
+
+test('offline player becomes AI managed after timeout', () => {
+  let nowMs = 0;
+  const manager = createLudoManager({
+    now: () => new Date(nowMs),
+    randomInt: sequence([777777]),
+    rollDie: sequence([2])
+  });
+  const room = manager.createRoom(user(1), { takeoffMode: 'even' });
+  manager.joinRoom(room.id, user(2), { joinAs: 'player' });
+  manager.setReady(room.id, user(1), true);
+  manager.setReady(room.id, user(2), true);
+  manager.startGame(room.id, user(1));
+  manager.markHeartbeat(room.id, user(1), 0);
+
+  nowMs = 61000;
+  manager.tick(61000);
+
+  assert.equal(manager.getRoom(room.id).players[0].managedByAi, true);
+});
+
+test('AI managed player takes deterministic turn', () => {
+  let nowMs = 0;
+  const manager = createLudoManager({
+    now: () => new Date(nowMs),
+    randomInt: sequence([888888]),
+    rollDie: sequence([2])
+  });
+  const room = manager.createRoom(user(1), { takeoffMode: 'even' });
+  manager.joinRoom(room.id, user(2), { joinAs: 'player' });
+  manager.setReady(room.id, user(1), true);
+  manager.setReady(room.id, user(2), true);
+  manager.startGame(room.id, user(1));
+
+  nowMs = 61000;
+  manager.tick(61000);
+  manager.runAiTurn(room.id);
+
+  const piece = manager.getRoom(room.id).game.pieces[0][0];
+  assert.equal(piece.state, 'track');
+  assert.equal(piece.position, 0);
+});
+
+test('heartbeat restores AI managed player', () => {
+  let nowMs = 0;
+  const manager = createLudoManager({
+    now: () => new Date(nowMs),
+    randomInt: sequence([999999]),
+    rollDie: sequence([2])
+  });
+  const room = manager.createRoom(user(1), { takeoffMode: 'even' });
+  manager.joinRoom(room.id, user(2), { joinAs: 'player' });
+  manager.setReady(room.id, user(1), true);
+  manager.setReady(room.id, user(2), true);
+  manager.startGame(room.id, user(1));
+
+  nowMs = 61000;
+  manager.tick(61000);
+  manager.markHeartbeat(room.id, user(1), 62000);
+
+  assert.equal(manager.getRoom(room.id).players[0].managedByAi, false);
+  assert.equal(manager.getRoom(room.id).players[0].online, true);
+});

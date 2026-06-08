@@ -348,15 +348,95 @@ function createLudoManager(options) {
     return room;
   }
 
+  function markHeartbeat(roomId, rawUser, nowMs) {
+    const room = getRoom(roomId);
+    const user = normalizeUser(rawUser);
+    const participant = findParticipant(room, user.userId);
+    if (!participant) throw createLudoError('NOT_IN_ROOM');
+    const at = Number.isFinite(Number(nowMs)) ? new Date(Number(nowMs)) : now();
+    participant.entry.lastSeenAt = at.toISOString();
+    participant.entry.online = true;
+    if (participant.type === 'player') participant.entry.managedByAi = false;
+    room.updatedAt = now().toISOString();
+    return room;
+  }
+
+  function tick(nowMs) {
+    const currentMs = Number.isFinite(Number(nowMs)) ? Number(nowMs) : Date.now();
+    for (const room of rooms.values()) {
+      if (room.status !== 'playing') continue;
+      room.players.forEach((player) => {
+        if (player.rank) return;
+        const seenMs = Date.parse(player.lastSeenAt || room.startedAt || room.createdAt);
+        if (!Number.isFinite(seenMs)) return;
+        const offline = currentMs - seenMs > Number(room.offlineTimeoutMs || 60000);
+        player.online = !offline;
+        if (offline) player.managedByAi = true;
+      });
+    }
+  }
+
+  function scoreAiMove(room, player, pieceIndex) {
+    const piece = room.game.pieces[player.seat][pieceIndex];
+    const dice = Number(room.game.dice || 0);
+    if (!piece) return -1;
+    if (piece.state === 'track' && Number(piece.position || 0) + dice >= 52) return 4000;
+    const landing = piece.state === 'base' ? 0 : Number(piece.position || 0) + dice;
+    let collisionScore = 0;
+    room.players.forEach((other) => {
+      if (Number(other.seat) === Number(player.seat)) return;
+      const otherPieces = room.game.pieces[other.seat] || [];
+      if (otherPieces.some((item) => item.state === 'track' && Number(item.position) === landing)) {
+        collisionScore = 3000;
+      }
+    });
+    if (collisionScore) return collisionScore + landing;
+    if (piece.state === 'base') return 2000;
+    return 1000 + landing;
+  }
+
+  function runAiTurn(roomId) {
+    const room = getRoom(roomId);
+    if (room.status !== 'playing' || !room.game) return null;
+    const player = room.players.find((item) => Number(item.seat) === Number(room.game.turnSeat));
+    if (!player || !player.managedByAi || player.rank) return null;
+    const aiUser = { id: player.userId, username: player.username, login_id: player.loginId };
+    if (!room.game.awaitingMove) rollDice(room.id, aiUser);
+    const legalMoves = getLegalMoves(room.id, aiUser);
+    if (!legalMoves.length) {
+      room.game.awaitingMove = false;
+      room.game.dice = null;
+      advanceTurn(room);
+      room.updatedAt = now().toISOString();
+      return { skipped: true };
+    }
+    const pieceIndex = legalMoves
+      .slice()
+      .sort((a, b) => scoreAiMove(room, player, b) - scoreAiMove(room, player, a))[0];
+    movePiece(room.id, aiUser, pieceIndex);
+    room.log.push({
+      type: 'ai_move',
+      userId: player.userId,
+      username: player.username,
+      pieceIndex,
+      at: now().toISOString()
+    });
+    if (room.log.length > 80) room.log = room.log.slice(-80);
+    return { pieceIndex };
+  }
+
   return {
     createRoom,
     getLegalMoves,
     joinRoom,
     getRoom,
+    markHeartbeat,
     movePiece,
+    runAiTurn,
     rollDice,
     setReady,
-    startGame
+    startGame,
+    tick
   };
 }
 
