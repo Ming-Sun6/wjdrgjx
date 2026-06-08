@@ -65,6 +65,7 @@ test('iis config proxies aeroplane chess websocket traffic', () => {
   assert.match(config, /ReverseProxyAeroplaneChessWsToNode3000/);
   assert.match(config, /<match url="\^ws\(\.\*\)"/);
   assert.match(config, /http:\/\/127\.0\.0\.1:3000\/\{R:0\}/);
+  assert.match(config, /<webSocket enabled="true"/);
 });
 
 test('main server forwards websocket upgrades to aeroplane chess backend', () => {
@@ -76,6 +77,8 @@ test('main server forwards websocket upgrades to aeroplane chess backend', () =>
   assert.match(serverSource, /AEROPLANE_CHESS_PORT/);
   assert.match(serverSource, /WEBSOCKET_UPGRADE_REQUIRED/);
   assert.match(serverSource, /\/api\/aeroplane-chess\/health/);
+  assert.match(serverSource, /ensureAeroplaneChessBackendRunning/);
+  assert.match(serverSource, /aeroplaneChessBackendLastExit/);
 });
 
 test('create room errors never render undefined', () => {

@@ -120,25 +120,49 @@ let analyticsService = null;
 let dashboardHandlers = null;
 let governanceService = null;
 let aeroplaneChessBackendProcess = null;
+let aeroplaneChessBackendLastStart = null;
+let aeroplaneChessBackendLastExit = null;
+let aeroplaneChessBackendLastStartError = null;
 
 function startAeroplaneChessBackend() {
-  if (aeroplaneChessBackendProcess || process.env.AEROPLANE_CHESS_BACKEND === 'external') return;
+  if (process.env.AEROPLANE_CHESS_BACKEND === 'external') return false;
+  if (aeroplaneChessBackendProcess) return false;
   const backendDir = path.join(__dirname, 'aeroplane-chess', 'backend');
   const backendEntry = path.join(backendDir, 'server.cjs');
   if (!fs.existsSync(backendEntry)) {
     console.warn('Aeroplane chess backend not found:', backendEntry);
-    return;
+    return false;
   }
-  aeroplaneChessBackendProcess = spawn(process.execPath, [backendEntry], {
-    cwd: backendDir,
-    env: { ...process.env, PORT: String(AEROPLANE_CHESS_PORT) },
-    stdio: 'inherit',
-    windowsHide: true
-  });
-  aeroplaneChessBackendProcess.on('exit', (code, signal) => {
-    console.warn(`Aeroplane chess backend exited: code=${code ?? ''} signal=${signal ?? ''}`);
+  try {
+    aeroplaneChessBackendLastStart = new Date().toISOString();
+    aeroplaneChessBackendLastStartError = null;
+    aeroplaneChessBackendProcess = spawn(process.execPath, [backendEntry], {
+      cwd: backendDir,
+      env: { ...process.env, PORT: String(AEROPLANE_CHESS_PORT) },
+      stdio: 'inherit',
+      windowsHide: true
+    });
+    aeroplaneChessBackendProcess.on('error', (err) => {
+      aeroplaneChessBackendLastStartError = String(err && err.message ? err.message : err);
+      console.warn('Aeroplane chess backend start failed:', aeroplaneChessBackendLastStartError);
+      aeroplaneChessBackendProcess = null;
+    });
+    aeroplaneChessBackendProcess.on('exit', (code, signal) => {
+      aeroplaneChessBackendLastExit = {
+        code,
+        signal,
+        at: new Date().toISOString()
+      };
+      console.warn(`Aeroplane chess backend exited: code=${code ?? ''} signal=${signal ?? ''}`);
+      aeroplaneChessBackendProcess = null;
+    });
+    return true;
+  } catch (err) {
+    aeroplaneChessBackendLastStartError = String(err && err.message ? err.message : err);
+    console.warn('Aeroplane chess backend start failed:', aeroplaneChessBackendLastStartError);
     aeroplaneChessBackendProcess = null;
-  });
+    return false;
+  }
 }
 
 function proxyAeroplaneChessUpgrade(req, socket, head) {
@@ -187,6 +211,29 @@ function checkAeroplaneChessBackend() {
   });
 }
 
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function ensureAeroplaneChessBackendRunning() {
+  let backendListening = await checkAeroplaneChessBackend();
+  let attemptedStart = false;
+  let started = false;
+
+  if (!backendListening && process.env.AEROPLANE_CHESS_BACKEND !== 'external') {
+    attemptedStart = true;
+    started = startAeroplaneChessBackend();
+    await wait(1200);
+    backendListening = await checkAeroplaneChessBackend();
+  }
+
+  return {
+    backendListening,
+    attemptedStart,
+    started
+  };
+}
+
 function isHttpsRequest(req) {
   if (req && req.secure) return true;
   const xfProto = String(req?.headers?.['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
@@ -232,11 +279,19 @@ app.get('/api/aeroplane-chess/health', async (_req, res) => {
   const backendDir = path.join(__dirname, 'aeroplane-chess', 'backend');
   const backendEntry = path.join(backendDir, 'server.cjs');
   const backendFileExists = fs.existsSync(backendEntry);
-  const backendListening = backendFileExists ? await checkAeroplaneChessBackend() : false;
+  const backendStatus = backendFileExists
+    ? await ensureAeroplaneChessBackendRunning()
+    : { backendListening: false, attemptedStart: false, started: false };
   res.json({
-    ok: backendFileExists && backendListening,
+    ok: backendFileExists && backendStatus.backendListening,
     backendFileExists,
-    backendListening,
+    backendListening: backendStatus.backendListening,
+    attemptedStart: backendStatus.attemptedStart,
+    started: backendStatus.started,
+    hasManagedProcess: Boolean(aeroplaneChessBackendProcess),
+    lastStart: aeroplaneChessBackendLastStart,
+    lastExit: aeroplaneChessBackendLastExit,
+    lastStartError: aeroplaneChessBackendLastStartError,
     port: AEROPLANE_CHESS_PORT,
     mode: process.env.AEROPLANE_CHESS_BACKEND === 'external' ? 'external' : 'managed'
   });
