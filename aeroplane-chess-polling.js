@@ -150,6 +150,16 @@ function createAeroplaneChessPollingService(options = {}) {
     return { room, session: gameSessions.get(room.gameSessionId) || null };
   }
 
+  function clearRoomMappings(room) {
+    for (const id of room.players.keys()) {
+      playerRooms.delete(id);
+    }
+    for (const id of room.spectators) {
+      playerSpectatingRooms.delete(id);
+      spectatorProfiles.delete(id);
+    }
+  }
+
   function isSessionAudioComplete(session, room) {
     if (!session || !session.allAudioLoadedSent) return false;
     const realPlayerIds = getRealPlayerIdsForSession(session, room);
@@ -582,6 +592,8 @@ function createAeroplaneChessPollingService(options = {}) {
         players: session ? session.players : toRoomJSON(room).players,
         endedAt: event.timestamp
       });
+      clearRoomMappings(room);
+      rooms.delete(room.code);
       return { events };
     }
 

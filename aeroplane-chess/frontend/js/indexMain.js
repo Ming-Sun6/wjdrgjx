@@ -158,12 +158,15 @@ class PlayerSetup {
         this.aiConfigInitialized = false;
         this.selectedPieceCount = 4;
         this.currentMode = null;
+        this.modeTakeoffRulesBound = new Set();
         this.init();
     }
 
     init() {
         this.setupModeSelection();
         this.setupLocalMultiplayerConfig();
+        this.bindModeTakeoffRuleSelectors('ai');
+        this.bindModeTakeoffRuleSelectors('local');
     }
 
     // 设置AI玩家配置
@@ -1163,6 +1166,35 @@ class PlayerSetup {
                 this.startGame();
             });
         }
+
+    }
+
+    normalizeTakeoffRule(rule) {
+        return String(rule || '').toLowerCase() === 'six' ? 'six' : 'even';
+    }
+
+    bindModeTakeoffRuleSelectors(mode) {
+        if (this.modeTakeoffRulesBound.has(mode)) return;
+        this.modeTakeoffRulesBound.add(mode);
+        const selector = `[data-mode="${mode}"].mode-takeoff-rule-option`;
+        document.querySelectorAll(selector).forEach(option => {
+            option.addEventListener('click', () => {
+                const rule = this.normalizeTakeoffRule(option.dataset.takeoffRule);
+                this.setModeTakeoffRule(mode, rule);
+            });
+        });
+    }
+
+    setModeTakeoffRule(mode, rule) {
+        const normalized = this.normalizeTakeoffRule(rule);
+        document.querySelectorAll(`[data-mode="${mode}"].mode-takeoff-rule-option`).forEach(option => {
+            option.classList.toggle('selected', this.normalizeTakeoffRule(option.dataset.takeoffRule) === normalized);
+        });
+    }
+
+    getSelectedModeTakeoffRule(mode) {
+        const selected = document.querySelector(`[data-mode="${mode}"].mode-takeoff-rule-option.selected`);
+        return this.normalizeTakeoffRule(selected?.dataset?.takeoffRule);
     }
 
     setupEmojiSwitcher() {
@@ -1561,6 +1593,7 @@ class PlayerSetup {
             humanEmoji: this.selectedEmoji,
             humanUsername: username,
             pieceCount: this.selectedPieceCount,
+            takeoffRule: this.getSelectedModeTakeoffRule('ai'),
             bots: Array.from(this.activeBots),
             botDifficulties: Object.fromEntries(this.botDifficulties),
             skillMode: skillMode
@@ -1575,6 +1608,7 @@ class PlayerSetup {
             selectedPlayer: this.selectedPlayer,
             selectedEmoji: this.selectedEmoji,
             selectedPieceCount: this.selectedPieceCount,
+            selectedTakeoffRule: this.getSelectedModeTakeoffRule('ai'),
             activeBots: Array.from(this.activeBots),
             botDifficulties: Object.fromEntries(this.botDifficulties),
             username: username,
@@ -1611,6 +1645,7 @@ class PlayerSetup {
             mode: 'local_multiplayer',
             playerCount: this.localMultiplayerConfig.playerCount,
             pieceCount: this.localMultiplayerConfig.pieceCount,
+            takeoffRule: this.getSelectedModeTakeoffRule('local'),
             skillMode: skillMode,
             players: this.localMultiplayerConfig.players.map(player => ({
                 id: player.id,
@@ -1650,6 +1685,7 @@ class PlayerSetup {
         const localConfigState = {
             playerCount: this.localMultiplayerConfig.playerCount,
             pieceCount: this.localMultiplayerConfig.pieceCount,
+            takeoffRule: this.getSelectedModeTakeoffRule('local'),
             players: this.localMultiplayerConfig.players,
             bots: this.localMultiplayerConfig.players.filter(p => p.isAI).map(p => p.id),
             botDifficulties: (() => {
@@ -1732,6 +1768,10 @@ class PlayerSetup {
                     this.restorePieceCountSelection();
                 }
 
+                if (config.selectedTakeoffRule) {
+                    this.setModeTakeoffRule('ai', config.selectedTakeoffRule);
+                }
+
                 // 恢复用户名
                 if (config.username) {
                     const usernameInput = document.getElementById('playerUsername');
@@ -1802,6 +1842,10 @@ class PlayerSetup {
                     this.localMultiplayerConfig.pieceCount = config.pieceCount;
                     // 调用专用的恢复方法
                     this.restoreLocalPieceCountSelection();
+                }
+
+                if (config.takeoffRule) {
+                    this.setModeTakeoffRule('local', config.takeoffRule);
                 }
 
                 // 恢复玩家配置

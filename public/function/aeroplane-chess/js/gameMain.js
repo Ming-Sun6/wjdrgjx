@@ -337,6 +337,7 @@ class FlyingChessGame {
                     mode: 'online_multiplayer',
                     playerCount: multiplayerGameData.players ? multiplayerGameData.players.length : 2,
                     pieceCount: multiplayerGameData.pieceCount || 4,
+                    takeoffRule: multiplayerGameData.takeoffRule || 'even',
                     skillMode: multiplayerGameData.skillMode || false // 添加道具模式配置
                 };
                 this.updatePageTitle(multiplayerConfig);
@@ -345,6 +346,7 @@ class FlyingChessGame {
                 if (multiplayerGameData.pieceCount) {
                     gameState.initializePlayerChess(multiplayerGameData.pieceCount);
                 }
+                gameState.setTakeoffRule(multiplayerGameData.takeoffRule || 'even');
 
                 // 设置在线多人模式标志
                 gameState.setIsOnlineMultiplayer(true);
@@ -434,6 +436,7 @@ class FlyingChessGame {
                 if (gameConfig.pieceCount) {
                     gameState.initializePlayerChess(gameConfig.pieceCount);
                 }
+                gameState.setTakeoffRule(gameConfig.takeoffRule || 'even');
 
                 // 处理本地多人模式
                 if (gameConfig.mode === 'local_multiplayer') {

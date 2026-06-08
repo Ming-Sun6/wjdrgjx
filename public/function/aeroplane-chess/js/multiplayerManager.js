@@ -249,6 +249,10 @@ class MultiplayerManager {
             if (window.playerIdManager) {
                 const savedNickname = window.playerIdManager.getSavedNickname();
                 if (savedNickname) {
+                    const lobbyNicknameInput = document.getElementById('lobbyNicknameInput');
+                    if (lobbyNicknameInput && !lobbyNicknameInput.value) {
+                        lobbyNicknameInput.value = savedNickname;
+                    }
                     const nicknameInput = document.getElementById('multiplayerPlayerUsername');
                     if (nicknameInput) {
                         nicknameInput.value = savedNickname;
@@ -260,6 +264,10 @@ class MultiplayerManager {
                             if (input) {
                                 input.value = savedNickname;
                                 console.log('[restoreSavedNickname] 延迟恢复昵称成功:', savedNickname);
+                            }
+                            const lobbyInput = document.getElementById('lobbyNicknameInput');
+                            if (lobbyInput && !lobbyInput.value) {
+                                lobbyInput.value = savedNickname;
                             }
                         }, 500);
                     }
@@ -1354,15 +1362,16 @@ class MultiplayerManager {
                             }
                         }
 
-                        // 恢复昵称（优先从localStorage）
+                        // 恢复昵称（局外昵称优先）
                         const nicknameInput = document.getElementById('multiplayerPlayerUsername');
                         if (nicknameInput) {
                             let nicknameToRestore = this.currentPlayer.nickname;
                             let shouldSyncNickname = false;
 
-                            // 优先从localStorage读取缓存的昵称
+                            // 局外昵称优先，其次从localStorage读取缓存的昵称
                             try {
-                                const cachedNickname = localStorage.getItem(`nickname_${this.roomCode}_${this.currentPlayer.id}`);
+                                const lobbyNickname = this.getLobbyNickname();
+                                const cachedNickname = lobbyNickname || localStorage.getItem(`nickname_${this.roomCode}_${this.currentPlayer.id}`);
                                 if (cachedNickname) {
                                     // 如果服务器返回的是默认昵称格式（玩家_xxxx），使用缓存
                                     const isDefaultNickname = /^玩家_[a-zA-Z0-9]{4}$/.test(this.currentPlayer.nickname);
@@ -1529,16 +1538,17 @@ class MultiplayerManager {
                     }
                 }
 
-                // 恢复昵称（优先从localStorage）
+                // 恢复昵称（局外昵称优先）
                 if (this.currentPlayer) {
                     const nicknameInput = document.getElementById('multiplayerPlayerUsername');
                     if (nicknameInput) {
                         let nicknameToRestore = this.currentPlayer.nickname;
                         let shouldSyncNickname = false;
 
-                        // 优先从localStorage读取缓存的昵称
+                        // 局外昵称优先，其次从localStorage读取缓存的昵称
                         try {
-                            const cachedNickname = localStorage.getItem(`nickname_${this.roomCode}_${this.currentPlayer.id}`);
+                            const lobbyNickname = this.getLobbyNickname();
+                            const cachedNickname = lobbyNickname || localStorage.getItem(`nickname_${this.roomCode}_${this.currentPlayer.id}`);
                             if (cachedNickname) {
                                 // 如果服务器返回的是默认昵称格式（玩家_xxxx），使用缓存
                                 const isDefaultNickname = /^玩家_[a-zA-Z0-9]{4}$/.test(this.currentPlayer.nickname);
@@ -1913,40 +1923,49 @@ class MultiplayerManager {
             case 'aiPlayerAdded':
                 console.log('AI玩家添加成功:', data.aiPlayer);
                 // 更新本地房间数据
-                if (this.currentRoom && this.currentRoom.settings) {
-                    this.currentRoom.settings.aiPlayers = data.room.settings.aiPlayers;
+                if (data.room) {
+                    this.currentRoom = data.room;
+                } else if (this.currentRoom && this.currentRoom.settings) {
+                    this.currentRoom.settings.aiPlayers = data.aiPlayers || this.currentRoom.settings.aiPlayers || [];
                 }
                 if (data.room && data.room.settings && data.room.settings.aiPlayers) {
                     this.updateAIPlayersDisplay(data.room.settings.aiPlayers);
                 }
                 // 更新房间信息显示（包含人数统计）
                 this.updateRoomInfo();
+                this.updateStartGameButton();
                 break;
 
             case 'aiPlayerRemoved':
                 console.log('AI玩家移除成功:', data.colorIndex);
                 // 更新本地房间数据
-                if (this.currentRoom && this.currentRoom.settings) {
-                    this.currentRoom.settings.aiPlayers = data.room.settings.aiPlayers;
+                if (data.room) {
+                    this.currentRoom = data.room;
+                } else if (this.currentRoom && this.currentRoom.settings) {
+                    this.currentRoom.settings.aiPlayers = data.aiPlayers || this.currentRoom.settings.aiPlayers || [];
                 }
                 if (data.room && data.room.settings && data.room.settings.aiPlayers) {
                     this.updateAIPlayersDisplay(data.room.settings.aiPlayers);
                 }
                 // 更新房间信息显示（包含人数统计）
                 this.updateRoomInfo();
+                this.updateStartGameButton();
                 break;
 
             case 'aiDifficultyUpdated':
                 console.log('AI玩家难度更新成功:', data.colorIndex, data.difficulty);
                 // 更新本地房间数据
-                if (this.currentRoom && this.currentRoom.settings) {
-                    this.currentRoom.settings.aiPlayers = data.room.settings.aiPlayers;
+                if (data.room) {
+                    this.currentRoom = data.room;
+                } else if (this.currentRoom && this.currentRoom.settings) {
+                    this.currentRoom.settings.aiPlayers = data.aiPlayers || this.currentRoom.settings.aiPlayers || [];
                 }
                 if (data.room && data.room.settings && data.room.settings.aiPlayers) {
                     this.updateAIPlayersDisplay(data.room.settings.aiPlayers);
                 }
                 // 更新房间信息显示（包含人数统计）
                 this.updateRoomInfo();
+                this.updateStartGameButton();
                 break;
 
             case 'pieceCountConfigured':
@@ -2122,9 +2141,58 @@ class MultiplayerManager {
         return window.getComputedStyle(el).display !== 'none';
     }
 
-    getCreateRoomName() {
-        const input = document.getElementById('createRoomNameInput');
-        return input ? String(input.value || '').trim().slice(0, 16) : '';
+    getLobbyNickname() {
+        const input = document.getElementById('lobbyNicknameInput');
+        return input ? String(input.value || '').trim().slice(0, 8) : '';
+    }
+
+    getRoomNicknameInputValue() {
+        const nicknameInput = document.getElementById('multiplayerPlayerUsername');
+        return nicknameInput ? String(nicknameInput.value || '').trim().slice(0, 8) : '';
+    }
+
+    getPreferredNickname() {
+        const lobbyNickname = this.getLobbyNickname();
+        if (lobbyNickname) return lobbyNickname;
+
+        if (window.playerIdManager) {
+            const savedNickname = window.playerIdManager.getSavedNickname() || '';
+            if (savedNickname) return String(savedNickname).trim().slice(0, 8);
+        }
+
+        return this.getRoomNicknameInputValue();
+    }
+
+    rememberNickname(nickname) {
+        const normalized = String(nickname || '').trim().slice(0, 8);
+        const lobbyInput = document.getElementById('lobbyNicknameInput');
+        const roomInput = document.getElementById('multiplayerPlayerUsername');
+
+        if (lobbyInput && normalized) {
+            lobbyInput.value = normalized;
+        }
+        if (roomInput && normalized) {
+            roomInput.value = normalized;
+            roomInput.placeholder = normalized;
+        }
+        if (window.playerIdManager && normalized) {
+            window.playerIdManager.saveNickname(normalized);
+        }
+
+        return normalized;
+    }
+
+    applyLobbyNicknameToRoomInput() {
+        const lobbyNickname = this.getLobbyNickname();
+        if (!lobbyNickname) return false;
+
+        this.rememberNickname(lobbyNickname);
+
+        if (this.wsClient && this.currentPlayer) {
+            this.wsClient.updateNickname(lobbyNickname, { manualInput: false });
+        }
+
+        return true;
     }
 
     getGameStateText(state) {
@@ -2237,14 +2305,7 @@ class MultiplayerManager {
 
             const emoji = this.selectedEmoji || 'smile';
 
-            let nickname = '';
-            if (window.playerIdManager) {
-                nickname = window.playerIdManager.getSavedNickname() || '';
-            }
-            if (!nickname) {
-                const nicknameInput = document.getElementById('multiplayerPlayerUsername');
-                nickname = nicknameInput ? nicknameInput.value.trim() : '';
-            }
+            const nickname = this.rememberNickname(this.getPreferredNickname());
 
             reconnectManager.updateRoomCode(code);
             this.wsClient.sendMessage('join_room', {
@@ -2274,14 +2335,7 @@ class MultiplayerManager {
                 return;
             }
 
-            let nickname = '';
-            if (window.playerIdManager) {
-                nickname = window.playerIdManager.getSavedNickname() || '';
-            }
-            if (!nickname) {
-                const nicknameInput = document.getElementById('multiplayerPlayerUsername');
-                nickname = nicknameInput ? nicknameInput.value.trim() : '';
-            }
+            const nickname = this.rememberNickname(this.getPreferredNickname());
 
             console.log('发送观战请求:', code);
 
@@ -2369,17 +2423,7 @@ class MultiplayerManager {
         try {
             const emoji = this.selectedEmoji || 'smile';
 
-            // 获取保存的昵称或使用输入框中的昵称
-            let nickname = '';
-            if (window.playerIdManager) {
-                nickname = window.playerIdManager.getSavedNickname() || '';
-            }
-
-            // 如果没有保存的昵称，从输入框获取
-            if (!nickname) {
-                const nicknameInput = document.getElementById('multiplayerPlayerUsername');
-                nickname = nicknameInput ? nicknameInput.value.trim() : '';
-            }
+            const nickname = this.rememberNickname(this.getPreferredNickname());
 
             // 将最终使用的昵称保存到本地存储，确保同一浏览器下跨局/重连昵称一致
             if (window.playerIdManager) {
@@ -2546,18 +2590,16 @@ class MultiplayerManager {
             await new Promise(resolve => setTimeout(resolve, 100));
 
             if (this.wsClient && this.wsClient.isConnected) {
-                const usernameInput = document.getElementById('multiplayerPlayerUsername');
-                const nickname = usernameInput ? (usernameInput.value || '').trim() : '';
+                const nickname = this.rememberNickname(this.getPreferredNickname());
                 // 留空让服务器生成默认昵称，不要在客户端设置默认值
 
                 // 将昵称保存到本地存储，便于下次自动恢复
-                if (window.playerIdManager) {
+                if (window.playerIdManager && nickname) {
                     window.playerIdManager.saveNickname(nickname);
                 }
 
                 // 使用WebSocketClient的createRoom方法，传递nickname和emoji
                 this.wsClient.createRoom({
-                    name: this.getCreateRoomName(),
                     nickname: nickname,
                     emoji: this.selectedEmoji,
                     maxPlayers: 4,
@@ -2611,21 +2653,10 @@ class MultiplayerManager {
                 return;
             }
 
-            // 获取保存的昵称或使用输入框中的昵称
-            let nickname = '';
-            if (window.playerIdManager) {
-                nickname = window.playerIdManager.getSavedNickname() || '';
-            }
-
-            // 如果没有保存的昵称，从输入框获取
-            if (!nickname) {
-                const nicknameInput = document.getElementById('multiplayerPlayerUsername');
-                nickname = nicknameInput ? nicknameInput.value.trim() : '';
-            }
+            const nickname = this.rememberNickname(this.getPreferredNickname());
 
             // 使用WebSocketClient的createRoom方法
             this.wsClient.createRoom({
-                name: this.getCreateRoomName(),
                 maxPlayers: 4,
                 gameMode: 'multiplayer',
                 nickname: nickname, // 使用保存的昵称，如果为空，服务器会生成默认昵称
@@ -2715,17 +2746,7 @@ class MultiplayerManager {
         try {
             const emoji = this.selectedEmoji || 'smile';
 
-            // 获取保存的昵称或使用输入框中的昵称
-            let nickname = '';
-            if (window.playerIdManager) {
-                nickname = window.playerIdManager.getSavedNickname() || '';
-            }
-
-            // 如果没有保存的昵称，从输入框获取
-            if (!nickname) {
-                const nicknameInput = document.getElementById('multiplayerPlayerUsername');
-                nickname = nicknameInput ? nicknameInput.value.trim() : '';
-            }
+            const nickname = this.rememberNickname(this.getPreferredNickname());
 
             console.log('发送加入房间请求:', { roomCode, emoji, nickname });
 
@@ -3140,6 +3161,7 @@ class MultiplayerManager {
         const currentPlayerSettings = document.getElementById('currentPlayerSettings');
         if (currentPlayerSettings) {
             currentPlayerSettings.style.display = 'block';
+            this.applyLobbyNicknameToRoomInput();
 
             // 确保表情显示被正确初始化
             if (this.currentPlayer && this.currentPlayer.emoji) {

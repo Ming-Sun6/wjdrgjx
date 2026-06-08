@@ -184,6 +184,10 @@ test('aeroplane chess home page has toolbox return link and no qq feedback', () 
     const html = fs.readFileSync(file, 'utf8');
     assert.match(html, /class="toolbox-home-link"/);
     assert.match(html, /href="https:\/\/wjgl\.store\/"/);
+    const mainMenuStart = html.indexOf('id="mainMenuContainer"');
+    const mainMenuEnd = html.indexOf('id="playerConfigWrapper"');
+    const linkIndex = html.indexOf('class="toolbox-home-link"');
+    assert.ok(linkIndex > mainMenuStart && linkIndex < mainMenuEnd);
     assert.doesNotMatch(html, /wjdr\.store/);
     assert.doesNotMatch(html, /Bug反馈QQ群/);
     assert.doesNotMatch(html, /1097294452/);
@@ -276,6 +280,14 @@ test('aeroplane chess rooms support configurable takeoff rules', () => {
     path.join(publicGameDir, 'js', 'multiplayerGameManager.js'),
     path.join(publicGameDir, 'js', 'botController.js')
   ];
+  const gameMainFiles = [
+    path.join(gameDir, 'js', 'gameMain.js'),
+    path.join(publicGameDir, 'js', 'gameMain.js')
+  ];
+  const styleFiles = [
+    path.join(gameDir, 'css', 'style.css'),
+    path.join(publicGameDir, 'css', 'style.css')
+  ];
 
   for (const file of homeFiles) {
     const html = fs.readFileSync(file, 'utf8');
@@ -307,6 +319,77 @@ test('aeroplane chess rooms support configurable takeoff rules', () => {
     assert.doesNotMatch(source, /diceValue\s*%\s*2\s*===\s*0/);
     assert.doesNotMatch(source, /gameData\.diceValue\s*%\s*2\s*===\s*0/);
   }
+
+  for (const file of gameMainFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /takeoffRule:\s*multiplayerGameData\.takeoffRule\s*\|\|\s*'even'/);
+    assert.match(source, /gameState\.setTakeoffRule\(multiplayerGameData\.takeoffRule\s*\|\|\s*'even'\)/);
+    assert.match(source, /gameState\.setTakeoffRule\(gameConfig\.takeoffRule\s*\|\|\s*'even'\)/);
+  }
+
+  for (const file of styleFiles) {
+    const css = fs.readFileSync(file, 'utf8');
+    assert.match(css, /\.takeoff-rule-selector\s*{[\s\S]*border:\s*2px solid var\(--border-light\)/);
+    assert.match(css, /\.takeoff-rule-option\.selected\s*{[\s\S]*background:\s*#e9c1df/);
+  }
+});
+
+test('ai battle and local multiplayer carry the selected takeoff rule into game config', () => {
+  const homeFiles = [
+    path.join(gameDir, 'index.html'),
+    path.join(publicGameDir, 'index.html')
+  ];
+  const indexMainFiles = [
+    path.join(gameDir, 'js', 'indexMain.js'),
+    path.join(publicGameDir, 'js', 'indexMain.js')
+  ];
+
+  for (const file of homeFiles) {
+    const html = fs.readFileSync(file, 'utf8');
+    assert.match(html, /id="aiTakeoffRuleEven"/);
+    assert.match(html, /id="aiTakeoffRuleSix"/);
+    assert.match(html, /id="localTakeoffRuleEven"/);
+    assert.match(html, /id="localTakeoffRuleSix"/);
+  }
+
+  for (const file of indexMainFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /getSelectedModeTakeoffRule\('ai'\)/);
+    assert.match(source, /getSelectedModeTakeoffRule\('local'\)/);
+    assert.match(source, /takeoffRule:\s*this\.getSelectedModeTakeoffRule\('ai'\)/);
+    assert.match(source, /takeoffRule:\s*this\.getSelectedModeTakeoffRule\('local'\)/);
+    assert.match(source, /selectedTakeoffRule:\s*this\.getSelectedModeTakeoffRule\('ai'\)/);
+    assert.match(source, /takeoffRule:\s*this\.getSelectedModeTakeoffRule\('local'\)/);
+  }
+});
+
+test('online lobby recalculates start button immediately after ai roster changes', () => {
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerManager.js')
+  ];
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /case 'aiPlayerAdded':[\s\S]*this\.currentRoom\s*=\s*data\.room[\s\S]*this\.updateStartGameButton\(\)/);
+    assert.match(source, /case 'aiPlayerRemoved':[\s\S]*this\.currentRoom\s*=\s*data\.room[\s\S]*this\.updateStartGameButton\(\)/);
+    assert.match(source, /case 'aiDifficultyUpdated':[\s\S]*this\.currentRoom\s*=\s*data\.room[\s\S]*this\.updateStartGameButton\(\)/);
+  }
+});
+
+test('online settlement return clears reconnect state instead of re-entering a finished room', () => {
+  const settlementFiles = [
+    path.join(gameDir, 'js', 'settlementModal.js'),
+    path.join(publicGameDir, 'js', 'settlementModal.js')
+  ];
+
+  for (const file of settlementFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /reconnectManager\.clearPlayerIdentity\(\)/);
+    assert.match(source, /sessionStorage\.removeItem\('multiplayerGameData'\)/);
+    assert.match(source, /sessionStorage\.removeItem\('gameConfig'\)/);
+    assert.doesNotMatch(source, /window\.location\.replace\(`\.\/\?room=\$\{roomCode\}`\)/);
+  }
 });
 
 test('aeroplane chess room chat identifies player colors, spectators, and custom game names', () => {
@@ -325,14 +408,16 @@ test('aeroplane chess room chat identifies player colors, spectators, and custom
 
   for (const file of homeFiles) {
     const html = fs.readFileSync(file, 'utf8');
-    assert.match(html, /id="createRoomNameInput"/);
-    assert.match(html, /placeholder="设置游戏名"/);
+    assert.match(html, /id="lobbyNicknameInput"/);
+    assert.match(html, /placeholder="设置昵称"/);
   }
 
   for (const file of managerFiles) {
     const source = fs.readFileSync(file, 'utf8');
-    assert.match(source, /getCreateRoomName\(\)/);
-    assert.match(source, /name:\s*this\.getCreateRoomName\(\)/);
+    assert.match(source, /getLobbyNickname\(\)/);
+    assert.match(source, /getPreferredNickname\(\)/);
+    assert.match(source, /nickname:\s*nickname/);
+    assert.doesNotMatch(source, /name:\s*this\.getCreateRoomName\(\)/);
     assert.match(source, /isSpectator/);
     assert.match(source, /\$\{safeName\}\(观众\)：/);
     assert.match(source, /room-chat-spectator-name/);

@@ -275,6 +275,76 @@ test('polling service marks audio loaded when all real players loaded and ignore
   assert.ok(hostEvents.events.some((event) => event.type === 'allAudioLoaded'));
 });
 
+test('polling service starts immediately with one real host and three ai players', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  for (const colorIndex of [2, 3, 4]) {
+    const result = await service.handleMessage({
+      type: 'add_ai_player',
+      playerId: 'host-1',
+      roomCode: created.room.code,
+      data: { colorIndex, difficulty: 'easy' }
+    });
+    assert.ok(result.events.some((event) => event.type === 'aiPlayerAdded'));
+  }
+
+  const started = (await service.handleMessage({
+    type: 'startGame',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  })).events.find((event) => event.type === 'gameStarted');
+
+  assert.ok(started);
+  assert.equal(started.players.length, 4);
+  assert.equal(started.players.filter((player) => player.isAI).length, 3);
+  assert.equal(started.players.filter((player) => !player.isAI).length, 1);
+});
+
+test('polling service clears finished rooms from reconnect info after settlement', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  await service.handleMessage({
+    type: 'add_ai_player',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    data: { colorIndex: 2, difficulty: 'easy' }
+  });
+
+  const started = (await service.handleMessage({
+    type: 'startGame',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  })).events.find((event) => event.type === 'gameStarted');
+
+  assert.ok(started);
+
+  await service.handleMessage({
+    type: 'forceSettlement',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId,
+    data: { winnerPlayer: 1, rankings: [] }
+  });
+
+  const reconnectInfo = (await service.handleMessage({
+    type: 'getReconnectInfo',
+    playerId: 'host-1'
+  })).events.find((event) => event.type === 'reconnectInfo');
+
+  assert.equal(reconnectInfo.roomCode, null);
+  assert.equal(service.rooms.has(created.room.code), false);
+});
+
 test('polling service replays all audio loaded status to real players that missed the broadcast', async () => {
   const service = createAeroplaneChessPollingService();
   const created = (await service.handleMessage({

@@ -862,7 +862,7 @@ class SettlementModal {
             window.gameInstance.multiplayerGameManager.isOnlineMode;
 
         if (isOnlineMode) {
-            console.log('[结算] 联机模式 - 返回房间');
+            console.log('[结算] 联机模式 - 返回主页并清理已结束房间');
 
             const multiplayerGameManager = window.gameInstance.multiplayerGameManager;
 
@@ -871,21 +871,10 @@ class SettlementModal {
                 multiplayerGameManager.gameSessionId = null;
             }
 
-            let roomCode = reconnectManager.roomCode;
-            if (!roomCode) {
-                try {
-                    const url = new URL(window.location.href);
-                    roomCode = url.searchParams.get('room');
-                } catch (error) {
-                    // ignore
-                }
-            }
-
-            if (roomCode) {
-                sessionStorage.setItem('aeroplaneChess_resetReadyOnRoomReturn', 'true');
-                reconnectManager.updateGameSessionId(null);
-                reconnectManager.updateRoomCode(roomCode);
-            }
+            reconnectManager.clearPlayerIdentity();
+            sessionStorage.removeItem('multiplayerGameData');
+            sessionStorage.removeItem('gameConfig');
+            sessionStorage.removeItem('aeroplaneChess_resetReadyOnRoomReturn');
 
             // 发送离开房间消息并断开连接
             try {
@@ -915,19 +904,7 @@ class SettlementModal {
         this.hide();
 
         setTimeout(() => {
-            let roomCode = reconnectManager.roomCode;
-            if (!roomCode) {
-                try {
-                    const url = new URL(window.location.href);
-                    roomCode = url.searchParams.get('room');
-                } catch (error) {
-                    // ignore
-                }
-            }
-
-            if (roomCode) {
-                window.location.replace(`./?room=${roomCode}`);
-            } else {
+            if (!isOnlineMode) {
                 // 根据当前游戏模式设置 sessionStorage 标志，以便在主页自动恢复对应面板
                 if (this.gameState && this.gameState.gameMode) {
                     if (this.gameState.gameMode === 'ai_battle') {
@@ -936,8 +913,8 @@ class SettlementModal {
                         sessionStorage.setItem('lastGameMode', 'local');
                     }
                 }
-                window.location.replace('./');
             }
+            window.location.replace('./');
         }, 50);
     }
 }

@@ -14,15 +14,6 @@
 
 <body>
     <div class="index-container">
-        <a class="toolbox-home-link" href="https://wjgl.store/" aria-label="返回主页">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M19 12H5"></path>
-                <path d="M12 19l-7-7 7-7"></path>
-            </svg>
-            <span>返回主页</span>
-        </a>
-
         <!-- 标题区域 -->
         <div class="index-title">
             <h1 class="rainbow-title">
@@ -37,6 +28,14 @@
         <div class="index-content">
             <!-- 主菜单容器 -->
             <div class="main-menu-container" id="mainMenuContainer">
+                <a class="toolbox-home-link" href="https://wjgl.store/" aria-label="返回主页">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M19 12H5"></path>
+                        <path d="M12 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>返回主页</span>
+                </a>
                 <button class="menu-card-btn" id="menuOnlineBtn">
                     <div class="menu-btn-icon" id="iconOnline">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -187,6 +186,16 @@
                                         </div>
                                     </div>
 
+                                    <div class="takeoff-rule-setting">
+                                        <h4>起飞规则</h4>
+                                        <div class="takeoff-rule-selector">
+                                            <button class="mode-takeoff-rule-option selected" id="localTakeoffRuleEven"
+                                                type="button" data-mode="local" data-takeoff-rule="even">2/4/6 起飞</button>
+                                            <button class="mode-takeoff-rule-option" id="localTakeoffRuleSix"
+                                                type="button" data-mode="local" data-takeoff-rule="six">仅 6 起飞</button>
+                                        </div>
+                                    </div>
+
                                     <!-- 道具模式设置 -->
                                     <div class="skill-mode-setting">
                                         <div class="toggle-option-group">
@@ -229,9 +238,9 @@
                                                 style="display: none;">暂无可加入的房间</div>
                                         </div>
 
-                                        <div class="create-room-name-setting">
-                                            <input id="createRoomNameInput" class="create-room-name-input" type="text"
-                                                maxlength="16" placeholder="设置游戏名" autocomplete="off">
+                                        <div class="lobby-nickname-setting">
+                                            <input id="lobbyNicknameInput" class="lobby-nickname-input" type="text"
+                                                maxlength="8" placeholder="设置昵称" autocomplete="off">
                                         </div>
 
                                         <div class="public-room-actions-bar">
@@ -561,6 +570,16 @@
                                                     <div class="count-circle">4</div>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="takeoff-rule-setting">
+                                        <h4>起飞规则</h4>
+                                        <div class="takeoff-rule-selector">
+                                            <button class="mode-takeoff-rule-option selected" id="aiTakeoffRuleEven"
+                                                type="button" data-mode="ai" data-takeoff-rule="even">2/4/6 起飞</button>
+                                            <button class="mode-takeoff-rule-option" id="aiTakeoffRuleSix"
+                                                type="button" data-mode="ai" data-takeoff-rule="six">仅 6 起飞</button>
                                         </div>
                                     </div>
 
