@@ -274,6 +274,7 @@
         el.className='status'+(type?' '+type:'');
       }
       function takeoffText(mode){return mode==='even'?'2/4/6 起飞':'仅 6 起飞';}
+      function roomStatusText(status){return status==='playing'?'进行中':status==='finished'?'已结束':'等待中';}
       function colorText(color){return {red:'红色',yellow:'黄色',blue:'蓝色',green:'绿色'}[color]||color;}
       function stopRoomPolling(){if(roomTimer){clearInterval(roomTimer);roomTimer=null;}}
       function startLobbyPolling(){if(lobbyTimer)clearInterval(lobbyTimer);lobbyTimer=setInterval(loadRooms,3000);}
@@ -316,7 +317,7 @@
           return '<button class="room-card" type="button" data-room-id="'+escapeHtml(room.id)+'">'
             +'<div class="room-name">'+escapeHtml(room.name)+' · '+escapeHtml(room.id)+'</div>'
             +'<div class="room-meta">'
-            +'<span class="tag">'+(room.status==='playing?'进行中':'等待中')+'</span>'
+            +'<span class="tag">'+roomStatusText(room.status)+'</span>'
             +'<span class="tag">玩家 '+room.playerCount+'/'+room.maxPlayers+'</span>'
             +'<span class="tag">观战 '+room.spectatorCount+'</span>'
             +'<span class="tag">'+takeoffText(room.takeoffMode)+'</span>'
@@ -435,7 +436,7 @@
           return;
         }
         $('currentRoomTitle').textContent=room.name+' · '+room.id;
-        $('currentRoomMeta').innerHTML='<span class="tag">'+(room.status==='playing?'进行中':room.status==='finished?'已结束':'等待中')+'</span>'
+        $('currentRoomMeta').innerHTML='<span class="tag">'+roomStatusText(room.status)+'</span>'
           +'<span class="tag">'+takeoffText(room.takeoffMode)+'</span>'
           +'<span class="tag">观战 '+room.spectatorCount+'</span>';
         renderPlayers(room.players||[]);

@@ -26,6 +26,17 @@ test('standalone ludo page contains core app nodes', () => {
   assert.match(html, /\/api\/ludo\/rooms/);
 });
 
+test('standalone ludo inline scripts are parseable', () => {
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'ludo.html'), 'utf8');
+  const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)]
+    .map((match) => match[1])
+    .filter((source) => source.trim());
+  assert.ok(scripts.length > 0);
+  scripts.forEach((source) => {
+    assert.doesNotThrow(() => new Function(source));
+  });
+});
+
 test('home page links to standalone ludo page without embedding game app', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   assert.match(html, /function\/ludo\.html/);
