@@ -911,7 +911,7 @@ class MultiplayerManager {
                 const wsUrl = window.location.protocol === 'https:'
                     ? `wss://${window.location.host}/ws`
                     : `ws://${window.location.host.replace(/:\d+/, ':3001')}`;
-                this.wsClient.connect(wsUrl);
+                this.wsClient.connect(wsUrl).catch(reject);
             });
         } catch (error) {
             console.error('连接服务器失败:', error);

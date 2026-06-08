@@ -74,6 +74,8 @@ test('main server forwards websocket upgrades to aeroplane chess backend', () =>
   assert.match(serverSource, /proxyAeroplaneChessUpgrade/);
   assert.match(serverSource, /\.on\('upgrade'/);
   assert.match(serverSource, /AEROPLANE_CHESS_PORT/);
+  assert.match(serverSource, /WEBSOCKET_UPGRADE_REQUIRED/);
+  assert.match(serverSource, /\/api\/aeroplane-chess\/health/);
 });
 
 test('create room errors never render undefined', () => {
@@ -87,4 +89,6 @@ test('create room errors never render undefined', () => {
   assert.match(source, /创建房间失败：无法连接联机服务器/);
   assert.match(publicSource, /normalizeCreateRoomError/);
   assert.match(publicSource, /创建房间失败：无法连接联机服务器/);
+  assert.match(source, /\.connect\(wsUrl\)\.catch\(reject\)/);
+  assert.match(publicSource, /\.connect\(wsUrl\)\.catch\(reject\)/);
 });

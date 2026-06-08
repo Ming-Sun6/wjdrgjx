@@ -172,6 +172,21 @@ function proxyAeroplaneChessUpgrade(req, socket, head) {
   socket.on('error', () => upstream.destroy());
 }
 
+function checkAeroplaneChessBackend() {
+  return new Promise((resolve) => {
+    const socket = net.connect(AEROPLANE_CHESS_PORT, '127.0.0.1');
+    const finish = (listening) => {
+      socket.removeAllListeners();
+      socket.destroy();
+      resolve(listening);
+    };
+    socket.setTimeout(800);
+    socket.on('connect', () => finish(true));
+    socket.on('timeout', () => finish(false));
+    socket.on('error', () => finish(false));
+  });
+}
+
 function isHttpsRequest(req) {
   if (req && req.secure) return true;
   const xfProto = String(req?.headers?.['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
@@ -204,6 +219,28 @@ app.use(
   express.static(path.join(__dirname, 'aeroplane-chess', 'frontend'))
 );
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/ws', (_req, res) => {
+  res.status(426).json({
+    error: 'WEBSOCKET_UPGRADE_REQUIRED',
+    message: 'This endpoint only accepts WebSocket Upgrade requests. Check IIS/CDN WebSocket forwarding.',
+    targetPort: AEROPLANE_CHESS_PORT
+  });
+});
+
+app.get('/api/aeroplane-chess/health', async (_req, res) => {
+  const backendDir = path.join(__dirname, 'aeroplane-chess', 'backend');
+  const backendEntry = path.join(backendDir, 'server.cjs');
+  const backendFileExists = fs.existsSync(backendEntry);
+  const backendListening = backendFileExists ? await checkAeroplaneChessBackend() : false;
+  res.json({
+    ok: backendFileExists && backendListening,
+    backendFileExists,
+    backendListening,
+    port: AEROPLANE_CHESS_PORT,
+    mode: process.env.AEROPLANE_CHESS_BACKEND === 'external' ? 'external' : 'managed'
+  });
+});
 
 // 避免中间层/浏览器把“带登录态”的 API 响应缓存，导致不同用户看到同一份响应（典型表现：打开网站像是登录了别人）。
 // 如需对个别公共接口做缓存，应该在对应 handler 里显式覆盖 Cache-Control。
