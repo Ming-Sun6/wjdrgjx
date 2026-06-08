@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简飞行棋管理面板</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>极简飞行棋管理面板</h1>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-label">服务器状态</span>
+                    <span class="status-value online" id="serverStatus">在线</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">最后更新</span>
+                    <span class="status-value" id="lastUpdate">--</span>
+                </div>
+                <div class="status-item">
+                    <button class="refresh-btn" id="refreshBtn">刷新</button>
+                    <label class="auto-refresh-toggle">
+                        <input type="checkbox" id="autoRefresh" checked>
+                        <span>自动刷新</span>
+                    </label>
+                </div>
+            </div>
+        </header>
+
+        <!-- 统计概览 -->
+        <section class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-content">
+                    <div class="stat-label">房间总数</div>
+                    <div class="stat-value" id="totalRooms">0</div>
+                    <div class="stat-detail">
+                        <span>等待: <span id="waitingRooms">0</span></span>
+                        <span>游戏中: <span id="playingRooms">0</span></span>
+                        <span>已结算: <span id="finishedRooms">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-content">
+                    <div class="stat-label">游戏会话</div>
+                    <div class="stat-value" id="totalSessions">0</div>
+                    <div class="stat-detail">活跃游戏数量</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-content">
+                    <div class="stat-label">玩家连接</div>
+                    <div class="stat-value" id="totalPlayers">0</div>
+                    <div class="stat-detail">
+                        <span>房间中: <span id="playersInRooms">0</span></span>
+                        <span>游戏中: <span id="playersInSessions">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-content">
+                    <div class="stat-label">等待清理</div>
+                    <div class="stat-value" id="totalTimers">0</div>
+                    <div class="stat-detail">
+                        <span>房间: <span id="roomTimers">0</span></span>
+                        <span>断线: <span id="disconnectTimers">0</span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 在线用户展示 -->
+        <section class="data-section">
+            <h2 class="section-title">实时在线用户</h2>
+            <div class="online-users-container" id="onlineUsersContainer">
+                <div class="empty-message">正在加载在线用户...</div>
+            </div>
+        </section>
+
+        <!-- 房间与会话列表 -->
+        <section class="data-section">
+            <h2 class="section-title">房间列表</h2>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>房间号</th>
+                            <th>会话ID</th>
+                            <th>状态</th>
+                            <th>玩家数</th>
+                            <th>在线</th>
+                            <th>当前回合</th>
+                            <th>游戏时长</th>
+                            <th>配置信息</th>
+                            <th>玩家列表</th>
+                        </tr>
+                    </thead>
+                    <tbody id="combinedTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-message">暂无数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <script type="module" src="./js/admin.js"></script>
+</body>
+
+</html>

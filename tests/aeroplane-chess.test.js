@@ -30,6 +30,18 @@ test('imported aeroplane chess entry and assets are present', () => {
   assert.equal(fs.existsSync(path.join(projectDir, 'backend', 'server.cjs')), true);
 });
 
+test('aeroplane chess frontend is available in public static deployment path', () => {
+  const publicDir = path.join(rootDir, 'public', 'function', 'aeroplane-chess');
+
+  assert.equal(fs.existsSync(path.join(publicDir, 'index.html')), true);
+  assert.equal(fs.existsSync(path.join(publicDir, 'game.html')), true);
+  assert.equal(fs.existsSync(path.join(publicDir, 'spectate.html')), true);
+  assert.equal(fs.existsSync(path.join(publicDir, 'css', 'style.css')), true);
+  assert.equal(fs.existsSync(path.join(publicDir, 'js', 'indexMain.js')), true);
+  assert.equal(fs.existsSync(path.join(publicDir, 'favicon.svg')), true);
+  assert.equal(fs.existsSync(path.join(publicDir, 'audio', 'move.wav')), true);
+});
+
 test('old custom ludo api integration is removed', () => {
   const serverSource = fs.readFileSync(path.join(rootDir, 'server.js'), 'utf8');
   const schemaSource = fs.readFileSync(path.join(rootDir, 'postgres-schema.js'), 'utf8');
