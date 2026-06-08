@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
 const { spawn } = require('child_process');
+const net = require('net');
 let sanitizeHtml = null;
 try { sanitizeHtml = require('sanitize-html'); } catch (_e) { sanitizeHtml = null; }
 let mysql = null;
@@ -64,6 +65,7 @@ const {
 
 const app = express();
 const PORT = 3000;
+const AEROPLANE_CHESS_PORT = Number(process.env.AEROPLANE_CHESS_PORT || 3001);
 const SESSION_COOKIE_NAME = 'auth_token';
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const AVATAR_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -129,7 +131,7 @@ function startAeroplaneChessBackend() {
   }
   aeroplaneChessBackendProcess = spawn(process.execPath, [backendEntry], {
     cwd: backendDir,
-    env: { ...process.env, PORT: process.env.AEROPLANE_CHESS_PORT || '3001' },
+    env: { ...process.env, PORT: String(AEROPLANE_CHESS_PORT) },
     stdio: 'inherit',
     windowsHide: true
   });
@@ -137,6 +139,37 @@ function startAeroplaneChessBackend() {
     console.warn(`Aeroplane chess backend exited: code=${code ?? ''} signal=${signal ?? ''}`);
     aeroplaneChessBackendProcess = null;
   });
+}
+
+function proxyAeroplaneChessUpgrade(req, socket, head) {
+  const requestPath = String(req.url || '').split('?')[0];
+  if (requestPath !== '/ws') {
+    socket.destroy();
+    return;
+  }
+
+  const upstream = net.connect(AEROPLANE_CHESS_PORT, '127.0.0.1', () => {
+    upstream.write(
+      `GET ${req.url || '/ws'} HTTP/${req.httpVersion}\r\n` +
+      Object.entries(req.headers)
+        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(',') : value}`)
+        .join('\r\n') +
+      '\r\n\r\n'
+    );
+    if (head && head.length) upstream.write(head);
+    upstream.pipe(socket);
+    socket.pipe(upstream);
+  });
+
+  upstream.on('error', (err) => {
+    console.error('Aeroplane chess websocket proxy failed:', err.message);
+    if (socket.writable) {
+      socket.end('HTTP/1.1 502 Bad Gateway\r\n\r\n');
+    } else {
+      socket.destroy();
+    }
+  });
+  socket.on('error', () => upstream.destroy());
 }
 
 function isHttpsRequest(req) {
@@ -4426,7 +4459,7 @@ app.use((req, res) => {
   return res.status(404).send('Not found');
 });
 
-app.listen(PORT, async () => {
+const httpServer = app.listen(PORT, async () => {
   startAeroplaneChessBackend();
   try {
     await initDB();
@@ -4450,6 +4483,8 @@ app.listen(PORT, async () => {
     }
   }
 });
+
+httpServer.on('upgrade', proxyAeroplaneChessUpgrade);
 
 process.on('uncaughtException', (err) => {
   console.error('uncaught exception:', err);

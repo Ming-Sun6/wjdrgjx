@@ -62,9 +62,18 @@ test('main server exposes the imported aeroplane chess frontend and backend laun
 test('iis config proxies aeroplane chess websocket traffic', () => {
   const config = fs.readFileSync(path.join(rootDir, 'web.config'), 'utf8');
 
-  assert.match(config, /ReverseProxyAeroplaneChessWsToNode3001/);
+  assert.match(config, /ReverseProxyAeroplaneChessWsToNode3000/);
   assert.match(config, /<match url="\^ws\(\.\*\)"/);
-  assert.match(config, /http:\/\/127\.0\.0\.1:3001\/\{R:0\}/);
+  assert.match(config, /http:\/\/127\.0\.0\.1:3000\/\{R:0\}/);
+});
+
+test('main server forwards websocket upgrades to aeroplane chess backend', () => {
+  const serverSource = fs.readFileSync(path.join(rootDir, 'server.js'), 'utf8');
+
+  assert.match(serverSource, /require\('net'\)/);
+  assert.match(serverSource, /proxyAeroplaneChessUpgrade/);
+  assert.match(serverSource, /\.on\('upgrade'/);
+  assert.match(serverSource, /AEROPLANE_CHESS_PORT/);
 });
 
 test('create room errors never render undefined', () => {
