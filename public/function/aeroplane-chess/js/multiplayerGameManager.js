@@ -640,7 +640,7 @@ class MultiplayerGameManager {
             
             // 初始化音频加载状态跟踪，确保后续 handleAudioLoaded 能正常工作
             this.audioLoadedPlayers = new Set();
-            this.totalPlayers = activePlayers.length;
+            this.totalPlayers = playersList.filter(player => !player.isAI).length;
             this.gameInitialized = true;
             
             // 检查是否是道具模式，如果是则初始化积分管理器
@@ -894,7 +894,7 @@ class MultiplayerGameManager {
 
         // 初始化音频加载状态跟踪
         this.audioLoadedPlayers = new Set();
-        this.totalPlayers = data.room.players.length;
+        this.totalPlayers = data.room.players.filter(player => !player.isAI).length;
         this.gameInitialized = false;
 
         // 设置全局变量引用

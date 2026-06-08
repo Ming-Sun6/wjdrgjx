@@ -105,3 +105,63 @@ test('polling service starts games and records history only when game ends', asy
   assert.ok(guestEvents.events.some((event) => event.type === 'gameStarted'));
   assert.ok(guestEvents.events.some((event) => event.type === 'gameEnd'));
 });
+
+test('polling service marks audio loaded when all real players loaded and ignores ai players', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events[0];
+
+  await service.handleMessage({
+    type: 'join_room',
+    playerId: 'guest-1',
+    data: { roomCode: created.room.code, nickname: 'Guest' }
+  });
+  await service.handleMessage({
+    type: 'add_ai_player',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    data: { colorIndex: 3, difficulty: 'easy' }
+  });
+  await service.handleMessage({
+    type: 'add_ai_player',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    data: { colorIndex: 4, difficulty: 'easy' }
+  });
+
+  const startResult = await service.handleMessage({
+    type: 'startGame',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  });
+  const started = startResult.events.find((event) => event.type === 'gameStarted');
+
+  assert.equal(started.players.length, 4);
+  assert.equal(started.players.filter((player) => !player.isAI).length, 2);
+
+  await service.handleMessage({
+    type: 'audioLoaded',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId
+  });
+  const afterHost = service.pollEvents({ playerId: 'guest-1', since: 0 });
+  assert.ok(afterHost.events.some((event) => event.type === 'audioLoaded'));
+  assert.equal(afterHost.events.some((event) => event.type === 'allAudioLoaded'), false);
+
+  const guestLoaded = await service.handleMessage({
+    type: 'audioLoaded',
+    playerId: 'guest-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId
+  });
+
+  assert.ok(guestLoaded.events.some((event) => event.type === 'allAudioLoaded'));
+  assert.equal(guestLoaded.events.find((event) => event.type === 'allAudioLoaded').totalPlayers, 2);
+
+  const hostEvents = service.pollEvents({ playerId: 'host-1', since: 0 });
+  assert.ok(hostEvents.events.some((event) => event.type === 'allAudioLoaded'));
+});

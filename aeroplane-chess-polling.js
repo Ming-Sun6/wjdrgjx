@@ -401,6 +401,8 @@ function createAeroplaneChessPollingService(options = {}) {
         players,
         spectators: Array.from(room.spectators),
         gameData,
+        audioLoadedPlayers: new Set(),
+        allAudioLoadedSent: false,
         createdAt: Date.now()
       });
       const event = {
@@ -414,6 +416,47 @@ function createAeroplaneChessPollingService(options = {}) {
       };
       broadcastRoom(room, event);
       send(event);
+      return { events };
+    }
+
+    if (type === 'audioLoaded') {
+      const sessionId = message.gameSessionId || data.gameSessionId || room.gameSessionId;
+      const session = sessionId ? gameSessions.get(sessionId) : null;
+      const realPlayerIds = session
+        ? session.players.filter((player) => !player.isAI).map((player) => player.id)
+        : Array.from(room.players.values()).filter((player) => !player.isAI).map((player) => player.id);
+      if (session && realPlayerIds.includes(playerId)) {
+        session.audioLoadedPlayers.add(playerId);
+      }
+
+      const loadedIds = session ? Array.from(session.audioLoadedPlayers) : [playerId];
+      const loadedEvent = {
+        ...message,
+        ...data,
+        type: 'audioLoaded',
+        playerId,
+        roomCode: room.code,
+        gameSessionId: sessionId,
+        audioLoadedPlayers: loadedIds,
+        totalPlayers: realPlayerIds.length,
+        timestamp: message.timestamp || data.timestamp || Date.now()
+      };
+      broadcastRoom(room, loadedEvent, playerId);
+      send(loadedEvent);
+
+      if (session && !session.allAudioLoadedSent && realPlayerIds.length > 0 && realPlayerIds.every((id) => session.audioLoadedPlayers.has(id))) {
+        session.allAudioLoadedSent = true;
+        const allLoadedEvent = {
+          type: 'allAudioLoaded',
+          roomCode: room.code,
+          gameSessionId: sessionId,
+          audioLoadedPlayers: loadedIds,
+          totalPlayers: realPlayerIds.length,
+          timestamp: Date.now()
+        };
+        broadcastRoom(room, allLoadedEvent);
+        send(allLoadedEvent);
+      }
       return { events };
     }
 
