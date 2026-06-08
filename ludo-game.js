@@ -64,6 +64,12 @@ function createLudoManager(options) {
     return room;
   }
 
+  function listRooms() {
+    return Array.from(rooms.values())
+      .filter((room) => room.status === 'waiting' || room.status === 'playing')
+      .sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+  }
+
   function findParticipant(room, userId) {
     const uid = Number(userId);
     const player = room.players.find((item) => Number(item.userId) === uid);
@@ -318,6 +324,33 @@ function createLudoManager(options) {
     room.historySnapshot = buildHistorySnapshot(room);
   }
 
+  function rankPlayer(room, player, finished) {
+    if (!room.game || player.rank) return;
+    const rank = room.game.rankings.length + 1;
+    player.rank = rank;
+    room.game.rankings.push({
+      userId: player.userId,
+      username: player.username,
+      seat: player.seat,
+      color: player.color,
+      rank,
+      finished: !!finished
+    });
+    room.historySnapshot = buildHistorySnapshot(room);
+  }
+
+  function finishRoomIfNeeded(room) {
+    if (!room.game || room.status !== 'playing') return;
+    const activePlayers = room.players.filter((player) => !player.rank);
+    if (activePlayers.length > 1) return;
+    activePlayers.forEach((player) => rankPlayer(room, player, false));
+    room.status = 'finished';
+    room.finishedAt = now().toISOString();
+    room.game.awaitingMove = false;
+    room.game.dice = null;
+    room.historySnapshot = buildHistorySnapshot(room);
+  }
+
   function movePiece(roomId, rawUser, pieceIndex) {
     const room = getRoom(roomId);
     const player = requireTurnPlayer(room, rawUser);
@@ -340,9 +373,12 @@ function createLudoManager(options) {
     }
     handleCollision(room, player.seat, piece);
     updatePlayerRank(room, player);
+    finishRoomIfNeeded(room);
     room.game.awaitingMove = false;
-    if (dice !== 6 && !player.rank) advanceTurn(room);
-    if (player.rank) advanceTurn(room);
+    if (room.status === 'playing') {
+      if (dice !== 6 && !player.rank) advanceTurn(room);
+      if (player.rank) advanceTurn(room);
+    }
     room.game.dice = null;
     room.updatedAt = now().toISOString();
     return room;
@@ -357,6 +393,69 @@ function createLudoManager(options) {
     participant.entry.lastSeenAt = at.toISOString();
     participant.entry.online = true;
     if (participant.type === 'player') participant.entry.managedByAi = false;
+    room.updatedAt = now().toISOString();
+    return room;
+  }
+
+  function leaveRoom(roomId, rawUser) {
+    const room = getRoom(roomId);
+    const user = normalizeUser(rawUser);
+    const participant = findParticipant(room, user.userId);
+    if (!participant) return room;
+    if (participant.type === 'spectator') {
+      room.spectators = room.spectators.filter((item) => Number(item.userId) !== user.userId);
+      room.updatedAt = now().toISOString();
+      return room;
+    }
+    if (room.status === 'waiting') {
+      room.players = room.players.filter((item) => Number(item.userId) !== user.userId);
+      if (Number(room.hostUserId) === user.userId && room.players.length) {
+        room.hostUserId = room.players[0].userId;
+      }
+      if (!room.players.length) rooms.delete(room.id);
+      else room.updatedAt = now().toISOString();
+      return rooms.get(room.id) || null;
+    }
+    participant.entry.online = false;
+    participant.entry.lastSeenAt = now().toISOString();
+    room.updatedAt = now().toISOString();
+    return room;
+  }
+
+  function setSeat(roomId, rawUser, joinAs) {
+    const room = getRoom(roomId);
+    if (room.status !== 'waiting') throw createLudoError('GAME_ALREADY_STARTED');
+    const user = normalizeUser(rawUser);
+    if (String(joinAs || 'player') === 'spectator') {
+      const existing = findParticipant(room, user.userId);
+      if (existing && existing.type === 'player') {
+        room.players = room.players.filter((item) => Number(item.userId) !== user.userId);
+        if (Number(room.hostUserId) === user.userId && room.players.length) {
+          room.hostUserId = room.players[0].userId;
+        }
+      }
+      return addSpectator(room, rawUser);
+    }
+    return addPlayer(room, rawUser);
+  }
+
+
+  function surrender(roomId, rawUser) {
+    const room = getRoom(roomId);
+    if (room.status !== 'playing') return leaveRoom(roomId, rawUser);
+    const player = requirePlayer(room, rawUser);
+    const pieces = room.game.pieces[player.seat] || [];
+    pieces.forEach((piece) => {
+      piece.state = 'surrendered';
+      piece.position = null;
+    });
+    rankPlayer(room, player, false);
+    finishRoomIfNeeded(room);
+    if (Number(room.game.turnSeat) === Number(player.seat)) {
+      room.game.awaitingMove = false;
+      room.game.dice = null;
+      if (room.status === 'playing') advanceTurn(room);
+    }
     room.updatedAt = now().toISOString();
     return room;
   }
@@ -430,12 +529,16 @@ function createLudoManager(options) {
     getLegalMoves,
     joinRoom,
     getRoom,
+    leaveRoom,
+    listRooms,
     markHeartbeat,
     movePiece,
     runAiTurn,
     rollDice,
+    setSeat,
     setReady,
     startGame,
+    surrender,
     tick
   };
 }

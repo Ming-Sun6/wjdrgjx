@@ -60,6 +60,7 @@ const {
   applyShopItemToUser,
   mapShopItemRow
 } = require('./shop');
+const { mountLudoRoutes } = require('./ludo-routes');
 
 const app = express();
 const PORT = 3000;
@@ -4236,6 +4237,16 @@ mountShopRoutes({
   formatSqlDateTime,
   toUserPayload,
   attachFollowCountsToUserPayload
+});
+
+mountLudoRoutes({
+  app,
+  queryRows,
+  queryOne,
+  execute,
+  requireAuth,
+  formatSqlDateTime,
+  pgDatabase
 });
 
 app.get('/api/bearpit/layout', async (req, res) => {

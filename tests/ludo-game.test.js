@@ -211,6 +211,27 @@ test('finishing all pieces records first rank and history snapshot', () => {
   assert.equal(updated.historySnapshot.players[0].rank, 1);
 });
 
+test('two player game finishes when one player completes all pieces', () => {
+  const { manager, room } = startedRoom({ takeoffMode: 'even', dice: [2] });
+  const game = manager.getRoom(room.id).game;
+  game.pieces[0] = [
+    { state: 'track', position: 51 },
+    { state: 'finished', position: null },
+    { state: 'finished', position: null },
+    { state: 'finished', position: null }
+  ];
+
+  manager.rollDice(room.id, user(1));
+  manager.movePiece(room.id, user(1), 0);
+
+  const updated = manager.getRoom(room.id);
+  assert.equal(updated.status, 'finished');
+  assert.equal(updated.players[0].rank, 1);
+  assert.equal(updated.players[1].rank, 2);
+  assert.equal(updated.historySnapshot.players.length, 2);
+  assert.equal(updated.historySnapshot.players[1].rank, 2);
+});
+
 test('offline player becomes AI managed after timeout', () => {
   let nowMs = 0;
   const manager = createLudoManager({
