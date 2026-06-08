@@ -1,7 +1,5 @@
 const crypto = require('crypto');
 const express = require('express');
-const { spawn } = require('child_process');
-const net = require('net');
 let sanitizeHtml = null;
 try { sanitizeHtml = require('sanitize-html'); } catch (_e) { sanitizeHtml = null; }
 let mysql = null;
@@ -62,10 +60,10 @@ const {
   applyShopItemToUser,
   mapShopItemRow
 } = require('./shop');
+const { mountAeroplaneChessPollingRoutes } = require('./aeroplane-chess-polling');
 
 const app = express();
 const PORT = 3000;
-const AEROPLANE_CHESS_PORT = Number(process.env.AEROPLANE_CHESS_PORT || 3001);
 const SESSION_COOKIE_NAME = 'auth_token';
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const AVATAR_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -119,120 +117,6 @@ try {
 let analyticsService = null;
 let dashboardHandlers = null;
 let governanceService = null;
-let aeroplaneChessBackendProcess = null;
-let aeroplaneChessBackendLastStart = null;
-let aeroplaneChessBackendLastExit = null;
-let aeroplaneChessBackendLastStartError = null;
-
-function startAeroplaneChessBackend() {
-  if (process.env.AEROPLANE_CHESS_BACKEND === 'external') return false;
-  if (aeroplaneChessBackendProcess) return false;
-  const backendDir = path.join(__dirname, 'aeroplane-chess', 'backend');
-  const backendEntry = path.join(backendDir, 'server.cjs');
-  if (!fs.existsSync(backendEntry)) {
-    console.warn('Aeroplane chess backend not found:', backendEntry);
-    return false;
-  }
-  try {
-    aeroplaneChessBackendLastStart = new Date().toISOString();
-    aeroplaneChessBackendLastStartError = null;
-    aeroplaneChessBackendProcess = spawn(process.execPath, [backendEntry], {
-      cwd: backendDir,
-      env: { ...process.env, PORT: String(AEROPLANE_CHESS_PORT) },
-      stdio: 'inherit',
-      windowsHide: true
-    });
-    aeroplaneChessBackendProcess.on('error', (err) => {
-      aeroplaneChessBackendLastStartError = String(err && err.message ? err.message : err);
-      console.warn('Aeroplane chess backend start failed:', aeroplaneChessBackendLastStartError);
-      aeroplaneChessBackendProcess = null;
-    });
-    aeroplaneChessBackendProcess.on('exit', (code, signal) => {
-      aeroplaneChessBackendLastExit = {
-        code,
-        signal,
-        at: new Date().toISOString()
-      };
-      console.warn(`Aeroplane chess backend exited: code=${code ?? ''} signal=${signal ?? ''}`);
-      aeroplaneChessBackendProcess = null;
-    });
-    return true;
-  } catch (err) {
-    aeroplaneChessBackendLastStartError = String(err && err.message ? err.message : err);
-    console.warn('Aeroplane chess backend start failed:', aeroplaneChessBackendLastStartError);
-    aeroplaneChessBackendProcess = null;
-    return false;
-  }
-}
-
-function proxyAeroplaneChessUpgrade(req, socket, head) {
-  const requestPath = String(req.url || '').split('?')[0];
-  if (requestPath !== '/ws') {
-    socket.destroy();
-    return;
-  }
-
-  const upstream = net.connect(AEROPLANE_CHESS_PORT, '127.0.0.1', () => {
-    upstream.write(
-      `GET ${req.url || '/ws'} HTTP/${req.httpVersion}\r\n` +
-      Object.entries(req.headers)
-        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(',') : value}`)
-        .join('\r\n') +
-      '\r\n\r\n'
-    );
-    if (head && head.length) upstream.write(head);
-    upstream.pipe(socket);
-    socket.pipe(upstream);
-  });
-
-  upstream.on('error', (err) => {
-    console.error('Aeroplane chess websocket proxy failed:', err.message);
-    if (socket.writable) {
-      socket.end('HTTP/1.1 502 Bad Gateway\r\n\r\n');
-    } else {
-      socket.destroy();
-    }
-  });
-  socket.on('error', () => upstream.destroy());
-}
-
-function checkAeroplaneChessBackend() {
-  return new Promise((resolve) => {
-    const socket = net.connect(AEROPLANE_CHESS_PORT, '127.0.0.1');
-    const finish = (listening) => {
-      socket.removeAllListeners();
-      socket.destroy();
-      resolve(listening);
-    };
-    socket.setTimeout(800);
-    socket.on('connect', () => finish(true));
-    socket.on('timeout', () => finish(false));
-    socket.on('error', () => finish(false));
-  });
-}
-
-function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function ensureAeroplaneChessBackendRunning() {
-  let backendListening = await checkAeroplaneChessBackend();
-  let attemptedStart = false;
-  let started = false;
-
-  if (!backendListening && process.env.AEROPLANE_CHESS_BACKEND !== 'external') {
-    attemptedStart = true;
-    started = startAeroplaneChessBackend();
-    await wait(1200);
-    backendListening = await checkAeroplaneChessBackend();
-  }
-
-  return {
-    backendListening,
-    attemptedStart,
-    started
-  };
-}
 
 function isHttpsRequest(req) {
   if (req && req.secure) return true;
@@ -267,34 +151,28 @@ app.use(
 );
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/ws', (_req, res) => {
-  res.status(426).json({
-    error: 'WEBSOCKET_UPGRADE_REQUIRED',
-    message: 'This endpoint only accepts WebSocket Upgrade requests. Check IIS/CDN WebSocket forwarding.',
-    targetPort: AEROPLANE_CHESS_PORT
-  });
-});
-
-app.get('/api/aeroplane-chess/health', async (_req, res) => {
-  const backendDir = path.join(__dirname, 'aeroplane-chess', 'backend');
-  const backendEntry = path.join(backendDir, 'server.cjs');
-  const backendFileExists = fs.existsSync(backendEntry);
-  const backendStatus = backendFileExists
-    ? await ensureAeroplaneChessBackendRunning()
-    : { backendListening: false, attemptedStart: false, started: false };
-  res.json({
-    ok: backendFileExists && backendStatus.backendListening,
-    backendFileExists,
-    backendListening: backendStatus.backendListening,
-    attemptedStart: backendStatus.attemptedStart,
-    started: backendStatus.started,
-    hasManagedProcess: Boolean(aeroplaneChessBackendProcess),
-    lastStart: aeroplaneChessBackendLastStart,
-    lastExit: aeroplaneChessBackendLastExit,
-    lastStartError: aeroplaneChessBackendLastStartError,
-    port: AEROPLANE_CHESS_PORT,
-    mode: process.env.AEROPLANE_CHESS_BACKEND === 'external' ? 'external' : 'managed'
-  });
+mountAeroplaneChessPollingRoutes(app, {
+  recordHistory: async (entry) => {
+    try {
+      await execute(
+        `
+        INSERT INTO aeroplane_chess_match_history
+          (room_code, game_session_id, winner_player, rankings_json, players_json, ended_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        `,
+        [
+          entry.roomCode || '',
+          entry.gameSessionId || '',
+          entry.winnerPlayer == null ? null : Number(entry.winnerPlayer),
+          JSON.stringify(entry.rankings || null),
+          JSON.stringify(entry.players || []),
+          new Date(entry.endedAt || Date.now())
+        ]
+      );
+    } catch (err) {
+      console.warn('Aeroplane chess history write failed:', err.message);
+    }
+  }
 });
 
 // 避免中间层/浏览器把“带登录态”的 API 响应缓存，导致不同用户看到同一份响应（典型表现：打开网站像是登录了别人）。
@@ -1555,6 +1433,22 @@ async function initDB() {
       CREATE INDEX IF NOT EXISTS idx_forum_post_views_post_created
       ON forum_post_views (post_id, created_at);
     `);
+    await execute(`
+      CREATE TABLE IF NOT EXISTS aeroplane_chess_match_history (
+        id serial PRIMARY KEY,
+        room_code varchar(8) NOT NULL,
+        game_session_id varchar(80) NOT NULL,
+        winner_player integer NULL,
+        rankings_json text NULL,
+        players_json text NOT NULL,
+        ended_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        created_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+      );
+    `);
+    await execute(`
+      CREATE INDEX IF NOT EXISTS idx_aeroplane_chess_match_history_ended
+      ON aeroplane_chess_match_history (ended_at DESC);
+    `);
     // 默认开启论坛自动审核（如果没设置过）
     const hasAuto = await queryOne('SELECT 1 AS ok FROM site_settings WHERE key = ? LIMIT 1', ['forum_auto_approve']);
     if (!hasAuto) await setForumAutoApprove(true);
@@ -1651,6 +1545,19 @@ async function initDB() {
       user_id INT NOT NULL,
       created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
       UNIQUE KEY uq_forum_post_favorite (post_id, user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  await execute(`
+    CREATE TABLE IF NOT EXISTS aeroplane_chess_match_history (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      room_code VARCHAR(8) NOT NULL,
+      game_session_id VARCHAR(80) NOT NULL,
+      winner_player INT NULL,
+      rankings_json TEXT NULL,
+      players_json TEXT NOT NULL,
+      ended_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+      created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+      KEY idx_aeroplane_chess_match_history_ended (ended_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
   await execute(`
@@ -4552,7 +4459,6 @@ app.use((req, res) => {
 });
 
 const httpServer = app.listen(PORT, async () => {
-  startAeroplaneChessBackend();
   try {
     await initDB();
     console.log('Local server started.');
@@ -4575,8 +4481,6 @@ const httpServer = app.listen(PORT, async () => {
     }
   }
 });
-
-httpServer.on('upgrade', proxyAeroplaneChessUpgrade);
 
 process.on('uncaughtException', (err) => {
   console.error('uncaught exception:', err);

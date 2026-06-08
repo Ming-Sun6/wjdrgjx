@@ -6,6 +6,7 @@ const path = require('node:path');
 const rootDir = path.join(__dirname, '..');
 const projectDir = path.join(rootDir, 'aeroplane-chess');
 const gameDir = path.join(projectDir, 'frontend');
+const publicGameDir = path.join(rootDir, 'public', 'function', 'aeroplane-chess');
 
 test('home page links to imported aeroplane chess folder only', () => {
   const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
@@ -16,30 +17,22 @@ test('home page links to imported aeroplane chess folder only', () => {
 });
 
 test('imported aeroplane chess entry and assets are present', () => {
-  const entry = path.join(gameDir, 'index.html');
-  const game = path.join(gameDir, 'game.html');
-  const spectate = path.join(gameDir, 'spectate.html');
-  const css = path.join(gameDir, 'css', 'style.css');
-  const mainScript = path.join(gameDir, 'js', 'indexMain.js');
-
-  assert.equal(fs.existsSync(entry), true);
-  assert.equal(fs.existsSync(game), true);
-  assert.equal(fs.existsSync(spectate), true);
-  assert.equal(fs.existsSync(css), true);
-  assert.equal(fs.existsSync(mainScript), true);
+  assert.equal(fs.existsSync(path.join(gameDir, 'index.html')), true);
+  assert.equal(fs.existsSync(path.join(gameDir, 'game.html')), true);
+  assert.equal(fs.existsSync(path.join(gameDir, 'spectate.html')), true);
+  assert.equal(fs.existsSync(path.join(gameDir, 'css', 'style.css')), true);
+  assert.equal(fs.existsSync(path.join(gameDir, 'js', 'indexMain.js')), true);
   assert.equal(fs.existsSync(path.join(projectDir, 'backend', 'server.cjs')), true);
 });
 
 test('aeroplane chess frontend is available in public static deployment path', () => {
-  const publicDir = path.join(rootDir, 'public', 'function', 'aeroplane-chess');
-
-  assert.equal(fs.existsSync(path.join(publicDir, 'index.html')), true);
-  assert.equal(fs.existsSync(path.join(publicDir, 'game.html')), true);
-  assert.equal(fs.existsSync(path.join(publicDir, 'spectate.html')), true);
-  assert.equal(fs.existsSync(path.join(publicDir, 'css', 'style.css')), true);
-  assert.equal(fs.existsSync(path.join(publicDir, 'js', 'indexMain.js')), true);
-  assert.equal(fs.existsSync(path.join(publicDir, 'favicon.svg')), true);
-  assert.equal(fs.existsSync(path.join(publicDir, 'audio', 'move.wav')), true);
+  assert.equal(fs.existsSync(path.join(publicGameDir, 'index.html')), true);
+  assert.equal(fs.existsSync(path.join(publicGameDir, 'game.html')), true);
+  assert.equal(fs.existsSync(path.join(publicGameDir, 'spectate.html')), true);
+  assert.equal(fs.existsSync(path.join(publicGameDir, 'css', 'style.css')), true);
+  assert.equal(fs.existsSync(path.join(publicGameDir, 'js', 'indexMain.js')), true);
+  assert.equal(fs.existsSync(path.join(publicGameDir, 'favicon.svg')), true);
+  assert.equal(fs.existsSync(path.join(publicGameDir, 'audio', 'move.wav')), true);
 });
 
 test('old custom ludo api integration is removed', () => {
@@ -51,47 +44,60 @@ test('old custom ludo api integration is removed', () => {
   assert.doesNotMatch(schemaSource, /ludo_match_/);
 });
 
-test('main server exposes the imported aeroplane chess frontend and backend launcher', () => {
+test('main server exposes aeroplane chess through http polling api', () => {
   const serverSource = fs.readFileSync(path.join(rootDir, 'server.js'), 'utf8');
+  const pollingSource = fs.readFileSync(path.join(rootDir, 'aeroplane-chess-polling.js'), 'utf8');
 
   assert.match(serverSource, /\/function\/aeroplane-chess/);
   assert.match(serverSource, /aeroplane-chess['"], ['"]frontend/);
-  assert.match(serverSource, /startAeroplaneChessBackend/);
+  assert.match(serverSource, /mountAeroplaneChessPollingRoutes/);
+  assert.match(serverSource, /aeroplane_chess_match_history/);
+  assert.match(pollingSource, /\/message/);
+  assert.match(pollingSource, /\/events/);
+  assert.match(pollingSource, /transport:\s*'polling'/);
 });
 
-test('iis config proxies aeroplane chess websocket traffic', () => {
-  const config = fs.readFileSync(path.join(rootDir, 'web.config'), 'utf8');
-
-  assert.match(config, /ReverseProxyAeroplaneChessWsToNode3000/);
-  assert.match(config, /<match url="\^ws\(\.\*\)"/);
-  assert.match(config, /http:\/\/127\.0\.0\.1:3000\/\{R:0\}/);
-  assert.match(config, /<webSocket enabled="true"/);
-});
-
-test('main server forwards websocket upgrades to aeroplane chess backend', () => {
+test('main server no longer launches or proxies a websocket backend for aeroplane chess', () => {
   const serverSource = fs.readFileSync(path.join(rootDir, 'server.js'), 'utf8');
 
-  assert.match(serverSource, /require\('net'\)/);
-  assert.match(serverSource, /proxyAeroplaneChessUpgrade/);
-  assert.match(serverSource, /\.on\('upgrade'/);
-  assert.match(serverSource, /AEROPLANE_CHESS_PORT/);
-  assert.match(serverSource, /WEBSOCKET_UPGRADE_REQUIRED/);
-  assert.match(serverSource, /\/api\/aeroplane-chess\/health/);
-  assert.match(serverSource, /ensureAeroplaneChessBackendRunning/);
-  assert.match(serverSource, /aeroplaneChessBackendLastExit/);
+  assert.doesNotMatch(serverSource, /require\('net'\)/);
+  assert.doesNotMatch(serverSource, /require\('child_process'\)/);
+  assert.doesNotMatch(serverSource, /startAeroplaneChessBackend/);
+  assert.doesNotMatch(serverSource, /proxyAeroplaneChessUpgrade/);
+  assert.doesNotMatch(serverSource, /AEROPLANE_CHESS_PORT/);
+  assert.doesNotMatch(serverSource, /ensureAeroplaneChessBackendRunning/);
+  assert.doesNotMatch(serverSource, /\.on\('upgrade'/);
+});
+
+test('aeroplane chess frontend uses http polling transport in source and public deployment', () => {
+  const sourceFiles = [
+    path.join(gameDir, 'js', 'websocketClient.js'),
+    path.join(gameDir, 'js', 'pollingTransport.js'),
+    path.join(gameDir, 'js', 'multiplayerManager.js'),
+    path.join(gameDir, 'js', 'multiplayerGameManager.js'),
+    path.join(publicGameDir, 'js', 'websocketClient.js'),
+    path.join(publicGameDir, 'js', 'pollingTransport.js'),
+    path.join(publicGameDir, 'js', 'multiplayerManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerGameManager.js')
+  ];
+
+  for (const file of sourceFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /PollingTransport|\/api\/aeroplane-chess|connect\(\)/);
+    assert.doesNotMatch(source, /new WebSocket\(/);
+    assert.doesNotMatch(source, /wss?:\/\/[^`'"]*\/ws/);
+    assert.doesNotMatch(source, /\/ws/);
+  }
 });
 
 test('create room errors never render undefined', () => {
   const source = fs.readFileSync(path.join(gameDir, 'js', 'multiplayerManager.js'), 'utf8');
-  const publicSource = fs.readFileSync(
-    path.join(rootDir, 'public', 'function', 'aeroplane-chess', 'js', 'multiplayerManager.js'),
-    'utf8'
-  );
+  const publicSource = fs.readFileSync(path.join(publicGameDir, 'js', 'multiplayerManager.js'), 'utf8');
 
   assert.match(source, /normalizeCreateRoomError/);
-  assert.match(source, /创建房间失败：无法连接联机服务器/);
   assert.match(publicSource, /normalizeCreateRoomError/);
-  assert.match(publicSource, /创建房间失败：无法连接联机服务器/);
-  assert.match(source, /\.connect\(wsUrl\)\.catch\(reject\)/);
-  assert.match(publicSource, /\.connect\(wsUrl\)\.catch\(reject\)/);
+  assert.doesNotMatch(source, /创建房间失败[^\n]+undefined/);
+  assert.doesNotMatch(publicSource, /创建房间失败[^\n]+undefined/);
+  assert.match(source, /\.connect\(\)\.catch\(reject\)/);
+  assert.match(publicSource, /\.connect\(\)\.catch\(reject\)/);
 });

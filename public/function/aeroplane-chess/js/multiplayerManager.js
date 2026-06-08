@@ -271,7 +271,7 @@ class MultiplayerManager {
         // 每5秒检查一次连接状态
         this.connectionMonitorInterval = setInterval(() => {
             const ws = this.wsClient && this.wsClient.ws ? this.wsClient.ws : null;
-            if (ws && ws.readyState === WebSocket.CLOSED && !this.isDestroyed) {
+            if (ws && ws.readyState === 3 && !this.isDestroyed) {
                 console.log('检测到WebSocket连接已断开，尝试重连');
                 this.attemptReconnect();
             }
@@ -908,10 +908,7 @@ class MultiplayerManager {
                 };
 
                 // 连接到服务器 - 支持环境变量配置
-                const wsUrl = window.location.protocol === 'https:'
-                    ? `wss://${window.location.host}/ws`
-                    : `ws://${window.location.host.replace(/:\d+/, ':3001')}`;
-                this.wsClient.connect(wsUrl).catch(reject);
+                this.wsClient.connect().catch(reject);
             });
         } catch (error) {
             console.error('连接服务器失败:', error);
@@ -2559,7 +2556,7 @@ class MultiplayerManager {
         if (error && typeof error.message === 'string' && error.message.trim()) {
             return error.message.trim();
         }
-        return '创建房间失败：无法连接联机服务器，请确认飞行棋后端服务和 /ws 反向代理已启动';
+        return '创建房间失败：无法连接联机服务器，请确认飞行棋后端服务已启动';
     }
 
     handleCreateRoomError(error) {
@@ -3941,7 +3938,7 @@ class MultiplayerManager {
         const retryDelay = 1000; // 1秒
 
         // 检查连接状态
-        if (!this.wsClient || !this.wsClient.ws || this.wsClient.ws.readyState !== WebSocket.OPEN) {
+        if (!this.wsClient || !this.wsClient.isConnected) {
             console.warn('WebSocket未连接，尝试重连后重试...');
 
             if (retryCount < maxRetries) {
@@ -4132,7 +4129,7 @@ class MultiplayerManager {
         });
 
         // 在页面跳转前优雅地关闭WebSocket连接，避免服务器认为是异常断开
-        if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
+        if (this.wsClient && this.wsClient.isConnected) {
             console.log('页面跳转前优雅关闭WebSocket连接');
             // 使用正常关闭代码1000，避免触发重连逻辑
             this.wsClient.close(1000, 'Page navigation');
@@ -4233,7 +4230,7 @@ class MultiplayerManager {
         });
 
         // 在页面跳转前优雅地关闭WebSocket连接，避免服务器认为是异常断开
-        if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
+        if (this.wsClient && this.wsClient.isConnected) {
             console.log('页面跳转前优雅关闭WebSocket连接');
             // 使用正常关闭代码1000，避免触发重连逻辑
             this.wsClient.close(1000, 'Page navigation');
@@ -4317,7 +4314,7 @@ class MultiplayerManager {
 
         // 发送离开房间消息到服务器
         const ws = this.wsClient && this.wsClient.ws ? this.wsClient.ws : null;
-        if (this.wsClient && ws && ws.readyState === WebSocket.OPEN) {
+        if (this.wsClient && ws && ws.readyState === 1) {
             if (typeof this.wsClient.leaveRoom === 'function') {
                 this.wsClient.sendMessage('leave_room', { reason: 'user_leave' });
             } else if (typeof this.wsClient.sendMessage === 'function') {

@@ -4,6 +4,7 @@
 
 import { reconnectManager } from './reconnectManager.js';
 import { activePlayerManager } from './activePlayerManager.js';
+import { PollingTransport, getPollingServerUrl } from './pollingTransport.js';
 
 // 声明全局变量，这些变量在游戏运行时会被设置
 let gameState, uiUpdater, gameInfo;
@@ -469,7 +470,12 @@ class MultiplayerGameManager {
     async connectToServer(serverUrl) {
         return new Promise((resolve, reject) => {
             try {
-                this.wsClient = new WebSocket(serverUrl);
+                this.wsClient = new PollingTransport({
+                    apiBase: getPollingServerUrl(),
+                    playerId: this.playerId,
+                    gameSessionId: this.gameSessionId,
+                    roomCode: this.roomCode
+                });
 
                 this.wsClient.onopen = () => {
                     this.isConnected = true;
@@ -503,6 +509,8 @@ class MultiplayerGameManager {
                     this.isConnected = false;
                     reject(error);
                 };
+
+                this.wsClient.connect().catch(reject);
 
             } catch (error) {
                 console.error('创建WebSocket连接失败:', error);
@@ -1928,7 +1936,7 @@ class MultiplayerGameManager {
      * 同步棋子移动
      */
     syncChessMove(player, chessIndex, fromPositionOrTargetPosition, toPosition = null, moveType = 'normal') {
-        if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
+        if (this.wsClient && this.wsClient.readyState === PollingTransport.OPEN) {
             // 向后兼容：如果只传3个参数，认为第3个参数是targetPosition
             let finalFromPosition = null;
             let finalToPosition = fromPositionOrTargetPosition;
@@ -2082,7 +2090,7 @@ class MultiplayerGameManager {
      * 同步棋盘状态
      */
     syncBoardState() {
-        if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN && this.gameInstance) {
+        if (this.wsClient && this.wsClient.readyState === PollingTransport.OPEN && this.gameInstance) {
             const boardState = {
                 playerChess: this.gameInstance.gameState.getAllChessStates(),
                 currentPlayer: this.gameInstance.gameState.getCurrentPlayer(),
@@ -2164,7 +2172,7 @@ class MultiplayerGameManager {
      * @param {number} targetChessIndex - 目标棋子
      */
     syncEnergyChange(player, energy, delta, source = null, targetPlayer = null, targetChessIndex = null) {
-        if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
+        if (this.wsClient && this.wsClient.readyState === PollingTransport.OPEN) {
             this.sendMessage('energyChange', {
                 player: player,
                 energy: energy,
@@ -2228,7 +2236,7 @@ class MultiplayerGameManager {
      * 同步击败计数变化
      */
     syncDefeatCountChange(attackerPlayer, defeatedPlayer, count) {
-        if (this.wsClient && this.wsClient.readyState === WebSocket.OPEN) {
+        if (this.wsClient && this.wsClient.readyState === PollingTransport.OPEN) {
             this.sendMessage('defeatCountChange', {
                 attackerPlayer: attackerPlayer,
                 defeatedPlayer: defeatedPlayer,
