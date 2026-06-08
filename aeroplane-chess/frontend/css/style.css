@@ -4135,6 +4135,42 @@ use[href="#checkmark"] {
     overflow-x: hidden;
 }
 
+.toolbox-home-link {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--border-faint);
+    border-radius: var(--radius-base);
+    background: rgba(255, 253, 250, 0.82);
+    color: #2d241f;
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: var(--modal-shadow);
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.toolbox-home-link:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 253, 250, 0.96);
+    box-shadow: 0 3px 10px rgba(92, 83, 78, 0.18);
+}
+
+.toolbox-home-link:active {
+    transform: translateY(0);
+}
+
+.toolbox-home-link svg {
+    flex: 0 0 auto;
+}
+
 /* 标题区域 */
 .index-title {
     text-align: center;
@@ -4252,16 +4288,10 @@ use[href="#checkmark"] {
     align-items: center;
 }
 
-.footer-feedback {
-    opacity: 0.8;
-}
-
 .footer-copyright {
     opacity: 0.8;
 }
-.qq-group-number{
-    user-select: all;
-}
+
 .index-footer .heart {
     display: inline-flex;
     align-items: center;

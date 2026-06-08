@@ -351,9 +351,26 @@ class Dice {
             this.uiUpdater.updateUI();
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // 在联机模式下，不要本地切换玩家，统一等待服务器同步
+            // 在轮询联机模式下，服务端只负责转发消息；当前权威客户端需要主动推进回合。
             if (this.gameState.isOnlineMultiplayer && window.gameInstance && window.gameInstance.multiplayerGameManager) {
-                console.log(`联机模式：玩家${this.gameState.currentPlayer}无法移动，等待服务器同步玩家切换`);
+                const multiplayerManager = window.gameInstance.multiplayerGameManager;
+                const currentPlayerId = multiplayerManager.getPlayerIdByPlayerNumber(this.gameState.currentPlayer);
+                const isHost = multiplayerManager.isHost;
+                const isLocalPlayer = currentPlayerId === multiplayerManager.playerId;
+                const shouldAdvanceOnlineNoMovableTurn = isLocalPlayer || isHost;
+
+                if (shouldAdvanceOnlineNoMovableTurn) {
+                    console.log(`联机模式：玩家${this.gameState.currentPlayer}无法移动，由当前客户端推进到下一回合`);
+                    this.gameState.nextPlayer(
+                        this.uiUpdater,
+                        this.handleThinkingTimeoutWrapper.bind(this),
+                        this.triggerBotOperationIfNeeded.bind(this),
+                        true,
+                        { reason: 'noMovableChess', diceValue: this.gameState.diceValue }
+                    );
+                } else {
+                    console.log(`联机模式：玩家${this.gameState.currentPlayer}无法移动，非权威客户端等待回合同步`);
+                }
             } else {
                 // 单机模式正常切换玩家
                 this.gameState.nextPlayer(this.uiUpdater, this.handleThinkingTimeoutWrapper.bind(this), this.triggerBotOperationIfNeeded.bind(this));

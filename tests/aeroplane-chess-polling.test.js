@@ -165,3 +165,43 @@ test('polling service marks audio loaded when all real players loaded and ignore
   const hostEvents = service.pollEvents({ playerId: 'host-1', since: 0 });
   assert.ok(hostEvents.events.some((event) => event.type === 'allAudioLoaded'));
 });
+
+test('polling service replays all audio loaded status to real players that missed the broadcast', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events[0];
+
+  await service.handleMessage({
+    type: 'join_room',
+    playerId: 'guest-1',
+    data: { roomCode: created.room.code, nickname: 'Guest' }
+  });
+
+  const started = (await service.handleMessage({
+    type: 'startGame',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  })).events.find((event) => event.type === 'gameStarted');
+
+  await service.handleMessage({
+    type: 'audioLoaded',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId
+  });
+  await service.handleMessage({
+    type: 'audioLoaded',
+    playerId: 'guest-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId
+  });
+
+  service.pollEvents({ playerId: 'guest-1', since: 9999 });
+  const replay = service.pollEvents({ playerId: 'guest-1', since: 9999 });
+
+  assert.ok(replay.events.some((event) => event.type === 'allAudioLoaded'));
+  assert.equal(replay.events.find((event) => event.type === 'allAudioLoaded').totalPlayers, 2);
+});

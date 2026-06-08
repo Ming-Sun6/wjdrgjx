@@ -118,3 +118,44 @@ test('create room errors never render undefined', () => {
   assert.match(source, /\.connect\(\)\.catch\(reject\)/);
   assert.match(publicSource, /\.connect\(\)\.catch\(reject\)/);
 });
+
+test('online no-movable turns are advanced by the authoritative client', () => {
+  const sourceFiles = [
+    path.join(gameDir, 'js', 'dice.js'),
+    path.join(publicGameDir, 'js', 'dice.js')
+  ];
+
+  for (const file of sourceFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /const shouldAdvanceOnlineNoMovableTurn = isLocalPlayer \|\| isHost;/);
+    assert.match(source, /reason: 'noMovableChess'/);
+    assert.doesNotMatch(source, /无法移动，等待服务器同步玩家切换/);
+  }
+});
+
+test('aeroplane chess home page has toolbox return link and no qq feedback', () => {
+  const homeFiles = [
+    path.join(gameDir, 'index.html'),
+    path.join(publicGameDir, 'index.html')
+  ];
+  const styleFiles = [
+    path.join(gameDir, 'css', 'style.css'),
+    path.join(publicGameDir, 'css', 'style.css')
+  ];
+
+  for (const file of homeFiles) {
+    const html = fs.readFileSync(file, 'utf8');
+    assert.match(html, /class="toolbox-home-link"/);
+    assert.match(html, /href="https:\/\/wjdr\.store\/"/);
+    assert.doesNotMatch(html, /Bug反馈QQ群/);
+    assert.doesNotMatch(html, /1097294452/);
+    assert.doesNotMatch(html, /qq-group-number/);
+  }
+
+  for (const file of styleFiles) {
+    const css = fs.readFileSync(file, 'utf8');
+    assert.match(css, /\.toolbox-home-link/);
+    assert.doesNotMatch(css, /\.footer-feedback/);
+    assert.doesNotMatch(css, /\.qq-group-number/);
+  }
+});

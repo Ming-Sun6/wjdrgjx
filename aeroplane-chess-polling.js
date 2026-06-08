@@ -116,6 +116,40 @@ function createAeroplaneChessPollingService(options = {}) {
     }
   }
 
+  function getRealPlayerIdsForSession(session, room) {
+    if (session) {
+      return session.players.filter((player) => !player.isAI).map((player) => player.id);
+    }
+    return Array.from(room.players.values()).filter((player) => !player.isAI).map((player) => player.id);
+  }
+
+  function buildAllAudioLoadedEvent(session, room, since = null) {
+    const realPlayerIds = getRealPlayerIdsForSession(session, room);
+    return {
+      type: 'allAudioLoaded',
+      roomCode: room.code,
+      gameSessionId: session ? session.gameSessionId : room.gameSessionId,
+      audioLoadedPlayers: session ? Array.from(session.audioLoadedPlayers) : realPlayerIds,
+      totalPlayers: realPlayerIds.length,
+      timestamp: Date.now(),
+      ...(since == null ? {} : { seq: Number(since) + 1 })
+    };
+  }
+
+  function findPollingSessionForPlayer(playerId) {
+    const roomCode = playerRooms.get(playerId) || playerSpectatingRooms.get(playerId);
+    if (!roomCode) return { room: null, session: null };
+    const room = rooms.get(roomCode) || null;
+    if (!room || !room.gameSessionId) return { room, session: null };
+    return { room, session: gameSessions.get(room.gameSessionId) || null };
+  }
+
+  function isSessionAudioComplete(session, room) {
+    if (!session || !session.allAudioLoadedSent) return false;
+    const realPlayerIds = getRealPlayerIdsForSession(session, room);
+    return realPlayerIds.length > 0 && realPlayerIds.every((id) => session.audioLoadedPlayers.has(id));
+  }
+
   function upsertPlayer(room, playerId, data = {}, isHost = false) {
     const existing = room.players.get(playerId) || {};
     const usedColors = new Set([
@@ -422,9 +456,7 @@ function createAeroplaneChessPollingService(options = {}) {
     if (type === 'audioLoaded') {
       const sessionId = message.gameSessionId || data.gameSessionId || room.gameSessionId;
       const session = sessionId ? gameSessions.get(sessionId) : null;
-      const realPlayerIds = session
-        ? session.players.filter((player) => !player.isAI).map((player) => player.id)
-        : Array.from(room.players.values()).filter((player) => !player.isAI).map((player) => player.id);
+      const realPlayerIds = getRealPlayerIdsForSession(session, room);
       if (session && realPlayerIds.includes(playerId)) {
         session.audioLoadedPlayers.add(playerId);
       }
@@ -446,14 +478,7 @@ function createAeroplaneChessPollingService(options = {}) {
 
       if (session && !session.allAudioLoadedSent && realPlayerIds.length > 0 && realPlayerIds.every((id) => session.audioLoadedPlayers.has(id))) {
         session.allAudioLoadedSent = true;
-        const allLoadedEvent = {
-          type: 'allAudioLoaded',
-          roomCode: room.code,
-          gameSessionId: sessionId,
-          audioLoadedPlayers: loadedIds,
-          totalPlayers: realPlayerIds.length,
-          timestamp: Date.now()
-        };
+        const allLoadedEvent = buildAllAudioLoadedEvent(session, room);
         broadcastRoom(room, allLoadedEvent);
         send(allLoadedEvent);
       }
@@ -504,6 +529,15 @@ function createAeroplaneChessPollingService(options = {}) {
     const minSeq = Number(since || 0);
     const list = playerEvents.get(playerId) || [];
     const events = list.filter((event) => Number(event.seq || 0) > minSeq);
+    const { room, session } = findPollingSessionForPlayer(playerId);
+    if (
+      room &&
+      session &&
+      isSessionAudioComplete(session, room) &&
+      !events.some((event) => event.type === 'allAudioLoaded')
+    ) {
+      events.push(buildAllAudioLoadedEvent(session, room, minSeq));
+    }
     return {
       events,
       nextSeq: events.length ? Number(events[events.length - 1].seq) : minSeq
