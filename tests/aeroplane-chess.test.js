@@ -58,3 +58,24 @@ test('main server exposes the imported aeroplane chess frontend and backend laun
   assert.match(serverSource, /aeroplane-chess['"], ['"]frontend/);
   assert.match(serverSource, /startAeroplaneChessBackend/);
 });
+
+test('iis config proxies aeroplane chess websocket traffic', () => {
+  const config = fs.readFileSync(path.join(rootDir, 'web.config'), 'utf8');
+
+  assert.match(config, /ReverseProxyAeroplaneChessWsToNode3001/);
+  assert.match(config, /<match url="\^ws\(\.\*\)"/);
+  assert.match(config, /http:\/\/127\.0\.0\.1:3001\/\{R:0\}/);
+});
+
+test('create room errors never render undefined', () => {
+  const source = fs.readFileSync(path.join(gameDir, 'js', 'multiplayerManager.js'), 'utf8');
+  const publicSource = fs.readFileSync(
+    path.join(rootDir, 'public', 'function', 'aeroplane-chess', 'js', 'multiplayerManager.js'),
+    'utf8'
+  );
+
+  assert.match(source, /normalizeCreateRoomError/);
+  assert.match(source, /创建房间失败：无法连接联机服务器/);
+  assert.match(publicSource, /normalizeCreateRoomError/);
+  assert.match(publicSource, /创建房间失败：无法连接联机服务器/);
+});

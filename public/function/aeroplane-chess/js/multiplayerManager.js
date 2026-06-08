@@ -2540,7 +2540,7 @@ class MultiplayerManager {
             }
         } catch (error) {
             console.error('创建房间失败:', error);
-            this.handleCreateRoomError(error.message);
+            this.handleCreateRoomError(error);
         }
     }
 
@@ -2552,9 +2552,20 @@ class MultiplayerManager {
     }
 
     // 处理创建房间错误
-    handleCreateRoomError(errorMessage) {
+    normalizeCreateRoomError(error) {
+        if (typeof error === 'string' && error.trim()) {
+            return error.trim();
+        }
+        if (error && typeof error.message === 'string' && error.message.trim()) {
+            return error.message.trim();
+        }
+        return '创建房间失败：无法连接联机服务器，请确认飞行棋后端服务和 /ws 反向代理已启动';
+    }
+
+    handleCreateRoomError(error) {
+        const errorMessage = this.normalizeCreateRoomError(error);
         console.log('处理创建房间错误:', errorMessage);
-        this.showError('创建房间失败: ' + errorMessage);
+        this.showError(errorMessage.startsWith('创建房间失败') ? errorMessage : '创建房间失败：' + errorMessage);
     }
     async createRoom() {
         console.log('开始创建房间...');
