@@ -2,11 +2,24 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { pathToFileURL } = require('node:url');
 
 const rootDir = path.join(__dirname, '..');
 const projectDir = path.join(rootDir, 'aeroplane-chess');
 const gameDir = path.join(projectDir, 'frontend');
 const publicGameDir = path.join(rootDir, 'public', 'function', 'aeroplane-chess');
+
+async function importPollingTransport(baseDir) {
+  global.window = {};
+  global.localStorage = {
+    getItem: () => 'player-test',
+    setItem: () => {},
+    removeItem: () => {}
+  };
+
+  const moduleUrl = `${pathToFileURL(path.join(baseDir, 'js', 'pollingTransport.js')).href}?t=${Date.now()}-${Math.random()}`;
+  return import(moduleUrl);
+}
 
 test('home page links to imported aeroplane chess folder only', () => {
   const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
@@ -158,4 +171,24 @@ test('aeroplane chess home page has toolbox return link and no qq feedback', () 
     assert.doesNotMatch(css, /\.footer-feedback/);
     assert.doesNotMatch(css, /\.qq-group-number/);
   }
+});
+
+test('polling transport ignores already delivered event sequences', async () => {
+  const { PollingTransport } = await importPollingTransport(gameDir);
+  const transport = new PollingTransport({ playerId: 'player-test' });
+  const delivered = [];
+  transport.onmessage = (event) => delivered.push(JSON.parse(event.data));
+
+  transport._deliverEvents([
+    { seq: 10, type: 'diceRoll', diceValue: 1, player: 1 },
+    { seq: 10, type: 'diceRoll', diceValue: 1, player: 1 },
+    { seq: 9, type: 'noMovableChess', diceValue: 1, player: 1 },
+    { seq: 11, type: 'playerTurnChange', newPlayer: 2 }
+  ]);
+
+  assert.deepEqual(delivered.map((event) => event.type), ['diceRoll', 'playerTurnChange']);
+
+  const publicSource = fs.readFileSync(path.join(publicGameDir, 'js', 'pollingTransport.js'), 'utf8');
+  assert.match(publicSource, /_lastDeliveredSeq/);
+  assert.match(publicSource, /eventSeq <= this\._lastDeliveredSeq/);
 });

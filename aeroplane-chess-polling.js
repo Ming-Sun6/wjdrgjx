@@ -123,7 +123,7 @@ function createAeroplaneChessPollingService(options = {}) {
     return Array.from(room.players.values()).filter((player) => !player.isAI).map((player) => player.id);
   }
 
-  function buildAllAudioLoadedEvent(session, room, since = null) {
+  function buildAllAudioLoadedEvent(session, room) {
     const realPlayerIds = getRealPlayerIdsForSession(session, room);
     return {
       type: 'allAudioLoaded',
@@ -131,8 +131,7 @@ function createAeroplaneChessPollingService(options = {}) {
       gameSessionId: session ? session.gameSessionId : room.gameSessionId,
       audioLoadedPlayers: session ? Array.from(session.audioLoadedPlayers) : realPlayerIds,
       totalPlayers: realPlayerIds.length,
-      timestamp: Date.now(),
-      ...(since == null ? {} : { seq: Number(since) + 1 })
+      timestamp: Date.now()
     };
   }
 
@@ -536,11 +535,15 @@ function createAeroplaneChessPollingService(options = {}) {
       isSessionAudioComplete(session, room) &&
       !events.some((event) => event.type === 'allAudioLoaded')
     ) {
-      events.push(buildAllAudioLoadedEvent(session, room, minSeq));
+      events.push(buildAllAudioLoadedEvent(session, room));
     }
+    const nextSeq = events.reduce((maxSeq, event) => {
+      const eventSeq = Number(event.seq || 0);
+      return Number.isFinite(eventSeq) && eventSeq > maxSeq ? eventSeq : maxSeq;
+    }, minSeq);
     return {
       events,
-      nextSeq: events.length ? Number(events[events.length - 1].seq) : minSeq
+      nextSeq
     };
   }
 

@@ -18,6 +18,7 @@ export class PollingTransport {
         this.onerror = null;
         this._pollTimer = null;
         this._since = 0;
+        this._lastDeliveredSeq = 0;
         this._closed = false;
         this._pollDelay = Number(options.pollDelay || 1000);
     }
@@ -113,6 +114,11 @@ export class PollingTransport {
     _deliverEvents(events) {
         for (const event of events) {
             if (!event || !event.type) continue;
+            const eventSeq = Number(event.seq || 0);
+            if (Number.isFinite(eventSeq) && eventSeq > 0) {
+                if (eventSeq <= this._lastDeliveredSeq) continue;
+                this._lastDeliveredSeq = eventSeq;
+            }
             if (event.room && event.room.code) this.roomCode = event.room.code;
             if (event.gameSessionId) this.gameSessionId = event.gameSessionId;
             if (typeof this.onmessage === 'function') {

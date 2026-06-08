@@ -205,3 +205,67 @@ test('polling service replays all audio loaded status to real players that misse
   assert.ok(replay.events.some((event) => event.type === 'allAudioLoaded'));
   assert.equal(replay.events.find((event) => event.type === 'allAudioLoaded').totalPlayers, 2);
 });
+
+test('polling service keeps next sequence at latest real event when replaying audio status', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events[0];
+
+  await service.handleMessage({
+    type: 'join_room',
+    playerId: 'guest-1',
+    data: { roomCode: created.room.code, nickname: 'Guest' }
+  });
+
+  const started = (await service.handleMessage({
+    type: 'startGame',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  })).events.find((event) => event.type === 'gameStarted');
+
+  await service.handleMessage({
+    type: 'audioLoaded',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId
+  });
+  await service.handleMessage({
+    type: 'audioLoaded',
+    playerId: 'guest-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId
+  });
+
+  const caughtUp = service.pollEvents({ playerId: 'guest-1', since: 0 });
+
+  await service.handleMessage({
+    type: 'diceRoll',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId,
+    data: { player: 1, diceValue: 1 }
+  });
+  await service.handleMessage({
+    type: 'noMovableChess',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    gameSessionId: started.gameSessionId,
+    data: { player: 1, diceValue: 1 }
+  });
+
+  const replayWithRealEvents = service.pollEvents({ playerId: 'guest-1', since: caughtUp.nextSeq });
+  assert.ok(replayWithRealEvents.events.some((event) => event.type === 'diceRoll'));
+  assert.ok(replayWithRealEvents.events.some((event) => event.type === 'noMovableChess'));
+  assert.ok(replayWithRealEvents.events.some((event) => event.type === 'allAudioLoaded'));
+  assert.equal(
+    replayWithRealEvents.nextSeq,
+    Math.max(...replayWithRealEvents.events.map((event) => Number(event.seq || 0)))
+  );
+
+  const afterReplay = service.pollEvents({ playerId: 'guest-1', since: replayWithRealEvents.nextSeq });
+  assert.equal(afterReplay.events.some((event) => event.type === 'diceRoll'), false);
+  assert.equal(afterReplay.events.some((event) => event.type === 'noMovableChess'), false);
+});
