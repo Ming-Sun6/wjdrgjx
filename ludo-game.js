@@ -4,6 +4,7 @@ const crypto = require('crypto');
 
 const LUDO_COLORS = ['red', 'yellow', 'blue', 'green'];
 const TAKEOFF_MODES = new Set(['six', 'even']);
+const PIECES_PER_PLAYER = 4;
 
 function normalizeTakeoffMode(value) {
   const mode = String(value || '').trim().toLowerCase();
@@ -53,6 +54,9 @@ function createLudoManager(options) {
   const randomInt = typeof opts.randomInt === 'function'
     ? opts.randomInt
     : (min, max) => crypto.randomInt(min, max);
+  const rollDie = typeof opts.rollDie === 'function'
+    ? opts.rollDie
+    : () => crypto.randomInt(1, 7);
 
   function getRoom(roomId) {
     const room = rooms.get(String(roomId || ''));
@@ -67,6 +71,20 @@ function createLudoManager(options) {
     const spectator = room.spectators.find((item) => Number(item.userId) === uid);
     if (spectator) return { type: 'spectator', entry: spectator };
     return null;
+  }
+
+  function requirePlayer(room, rawUser) {
+    const user = normalizeUser(rawUser);
+    const player = room.players.find((item) => Number(item.userId) === user.userId);
+    if (!player) throw createLudoError('NOT_PLAYER');
+    return player;
+  }
+
+  function requireTurnPlayer(room, rawUser) {
+    const player = requirePlayer(room, rawUser);
+    if (!room.game || room.status !== 'playing') throw createLudoError('GAME_NOT_STARTED');
+    if (Number(player.seat) !== Number(room.game.turnSeat)) throw createLudoError('NOT_YOUR_TURN');
+    return player;
   }
 
   function removeSpectator(room, userId) {
@@ -157,10 +175,188 @@ function createLudoManager(options) {
     return addPlayer(room, rawUser);
   }
 
+  function setReady(roomId, rawUser, ready) {
+    const room = getRoom(roomId);
+    if (room.status !== 'waiting') throw createLudoError('GAME_ALREADY_STARTED');
+    const player = requirePlayer(room, rawUser);
+    player.ready = !!ready;
+    room.updatedAt = now().toISOString();
+    return room;
+  }
+
+  function createInitialPieces(room) {
+    const pieces = {};
+    room.players.forEach((player) => {
+      pieces[player.seat] = Array.from({ length: PIECES_PER_PLAYER }, () => ({
+        state: 'base',
+        position: null
+      }));
+    });
+    return pieces;
+  }
+
+  function orderedPlayers(room) {
+    return room.players.slice().sort((a, b) => Number(a.seat) - Number(b.seat));
+  }
+
+  function startGame(roomId, rawUser) {
+    const room = getRoom(roomId);
+    const user = normalizeUser(rawUser);
+    if (Number(room.hostUserId) !== user.userId) throw createLudoError('NOT_HOST');
+    if (room.status !== 'waiting') throw createLudoError('GAME_ALREADY_STARTED');
+    if (room.players.length < 2) throw createLudoError('NOT_ENOUGH_PLAYERS');
+    if (room.players.some((player) => !player.ready)) throw createLudoError('NOT_READY');
+    const startedAt = now().toISOString();
+    room.status = 'playing';
+    room.startedAt = startedAt;
+    room.updatedAt = startedAt;
+    room.game = {
+      turnSeat: room.players[0].seat,
+      dice: null,
+      awaitingMove: false,
+      consecutiveSixes: 0,
+      round: 1,
+      pieces: createInitialPieces(room),
+      rankings: []
+    };
+    return room;
+  }
+
+  function advanceTurn(room) {
+    const players = orderedPlayers(room).filter((player) => !player.rank);
+    if (!players.length) return;
+    const currentIndex = players.findIndex((player) => Number(player.seat) === Number(room.game.turnSeat));
+    const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % players.length;
+    if (nextIndex === 0) room.game.round += 1;
+    room.game.turnSeat = players[nextIndex].seat;
+  }
+
+  function canTakeoff(room, dice) {
+    const n = Number(dice);
+    if (room.takeoffMode === 'even') return n === 2 || n === 4 || n === 6;
+    return n === 6;
+  }
+
+  function getLegalMoves(roomId, rawUser) {
+    const room = getRoom(roomId);
+    const player = requireTurnPlayer(room, rawUser);
+    const dice = Number(room.game.dice || 0);
+    if (!room.game.awaitingMove || dice < 1) return [];
+    const pieces = room.game.pieces[player.seat] || [];
+    const moves = [];
+    pieces.forEach((piece, index) => {
+      if (piece.state === 'base') {
+        if (canTakeoff(room, dice)) moves.push(index);
+        return;
+      }
+      if (piece.state === 'track') moves.push(index);
+    });
+    return moves;
+  }
+
+  function rollDice(roomId, rawUser) {
+    const room = getRoom(roomId);
+    requireTurnPlayer(room, rawUser);
+    if (room.game.awaitingMove) throw createLudoError('MOVE_REQUIRED');
+    const dice = Math.max(1, Math.min(6, Math.floor(Number(rollDie())) || 1));
+    room.game.dice = dice;
+    room.game.awaitingMove = true;
+    room.updatedAt = now().toISOString();
+    return { dice, legalMoves: getLegalMoves(roomId, rawUser) };
+  }
+
+  function handleCollision(room, movingSeat, movingPiece) {
+    if (!movingPiece || movingPiece.state !== 'track') return;
+    room.players.forEach((player) => {
+      if (Number(player.seat) === Number(movingSeat)) return;
+      const pieces = room.game.pieces[player.seat] || [];
+      pieces.forEach((piece) => {
+        if (piece.state === 'track' && Number(piece.position) === Number(movingPiece.position)) {
+          piece.state = 'base';
+          piece.position = null;
+        }
+      });
+    });
+  }
+
+  function buildHistorySnapshot(room) {
+    return {
+      roomId: room.id,
+      roomName: room.name,
+      hostUserId: room.hostUserId,
+      takeoffMode: room.takeoffMode,
+      winnerUserId: room.game.rankings[0] ? room.game.rankings[0].userId : null,
+      playerCount: room.players.length,
+      peakSpectatorCount: room.peakSpectatorCount,
+      roundCount: room.game.round,
+      startedAt: room.startedAt,
+      finishedAt: room.finishedAt || now().toISOString(),
+      players: room.players.map((player) => ({
+        userId: player.userId,
+        username: player.username,
+        seat: player.seat,
+        color: player.color,
+        rank: player.rank,
+        finished: !!player.rank
+      }))
+    };
+  }
+
+  function updatePlayerRank(room, player) {
+    const pieces = room.game.pieces[player.seat] || [];
+    const allFinished = pieces.length > 0 && pieces.every((piece) => piece.state === 'finished');
+    if (!allFinished || player.rank) return;
+    const rank = room.game.rankings.length + 1;
+    player.rank = rank;
+    room.game.rankings.push({
+      userId: player.userId,
+      username: player.username,
+      seat: player.seat,
+      color: player.color,
+      rank
+    });
+    room.historySnapshot = buildHistorySnapshot(room);
+  }
+
+  function movePiece(roomId, rawUser, pieceIndex) {
+    const room = getRoom(roomId);
+    const player = requireTurnPlayer(room, rawUser);
+    const legalMoves = getLegalMoves(roomId, rawUser);
+    const index = Math.floor(Number(pieceIndex));
+    if (!legalMoves.includes(index)) throw createLudoError('INVALID_MOVE');
+    const piece = room.game.pieces[player.seat][index];
+    const dice = Number(room.game.dice || 0);
+    if (piece.state === 'base') {
+      piece.state = 'track';
+      piece.position = 0;
+    } else if (piece.state === 'track') {
+      const nextPosition = Number(piece.position || 0) + dice;
+      if (nextPosition >= 52) {
+        piece.state = 'finished';
+        piece.position = null;
+      } else {
+        piece.position = nextPosition;
+      }
+    }
+    handleCollision(room, player.seat, piece);
+    updatePlayerRank(room, player);
+    room.game.awaitingMove = false;
+    if (dice !== 6 && !player.rank) advanceTurn(room);
+    if (player.rank) advanceTurn(room);
+    room.game.dice = null;
+    room.updatedAt = now().toISOString();
+    return room;
+  }
+
   return {
     createRoom,
+    getLegalMoves,
     joinRoom,
-    getRoom
+    getRoom,
+    movePiece,
+    rollDice,
+    setReady,
+    startGame
   };
 }
 
