@@ -3451,6 +3451,7 @@
     <div class="tool-subtabs" id="toolSubTabs" style="display:none;">
       <button class="tool-subitem" type="button" data-tool-tab="calcTools">计算器/工具</button>
       <button class="tool-subitem" type="button" data-tool-tab="dataQuery">数据查询</button>
+      <button class="tool-subitem" type="button" data-tool-tab="miniGames">小游戏</button>
     </div>
     <div class="tab-search" id="allTabSearch" style="display:none;">
       <input class="tab-search-input" id="allTabSearchInput" type="search" placeholder="搜索功能名、论坛帖子、礼包道具关键词" autocomplete="off" />
@@ -3699,15 +3700,6 @@
             <div class="desc">WJTI &#x4EBA;&#x683C;&#x6D4B;&#x8BD5;&#xFF1A;&#x6781;&#x901F;/&#x6807;&#x51C6;/&#x6DF1;&#x5EA6;&#x4E09;&#x6863;&#xFF0C;&#x6D4B;&#x51FA;&#x4F60;&#x662F;&#x8BB0;&#x8005;&#x3001;&#x9ED1;&#x5974;&#x3001;&#x5403;&#x74DC;&#x7FA4;&#x4F17;&#x8FD8;&#x662F;&#x6C14;&#x6C1B;&#x7EC4;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
-            <a class="tool-tile-link" href="function/aeroplane-chess/">
-              <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>极简飞行棋</span></div>
-            </a>
-            <div class="pill">aeroplane-chess</div>
-            <div class="desc">搬运版极简飞行棋，支持在线联机、人机对战、本地多人和观战。</div>
-          </section>
-
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-gift-search="regular">
             <a class="tool-tile-link" href="function/Zero/regular-gift-data.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4E6;</div>
@@ -3742,6 +3734,25 @@
             </a>
             <div class="pill">Zero/gift-rotation-schedule.html</div>
             <div class="desc">&#x67E5;&#x770B;&#x793C;&#x5305;&#x5F00;&#x542F;&#x5468;&#x671F;&#x4E0E;&#x5907;&#x6CE8;&#x8BF4;&#x660E;&#x3002;</div>
+          </section>
+        </div>
+      </section>
+
+      <section class="card wide tool-warehouse-shell" id="miniGameWarehouse" data-tool-group="mini-games">
+        <div class="warehouse-head">
+          <div>
+            <div class="warehouse-title">小游戏</div>
+            <div class="warehouse-copy">联盟活动 · 活跃升温小游戏，适合活动间隙联机开一局。</div>
+          </div>
+        </div>
+        <div class="tool-warehouse-grid">
+          <section class="card tool-tile-card" data-category="miniGames" data-tool-priority="miniGames">
+            <a class="tool-tile-link" href="function/aeroplane-chess/">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>极简飞行棋</span></div>
+            </a>
+            <div class="pill">aeroplane-chess</div>
+            <div class="desc">搬运版极简飞行棋，支持在线联机、人机对战、本地多人和观战。</div>
           </section>
         </div>
       </section>
@@ -9152,7 +9163,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         if(!tab) return '';
         var raw=String(tab).trim();
         var lower=raw.toLowerCase();
-        if(lower==='tools'||lower==='calculator'||lower==='calc'||lower==='calctools'||lower==='data'||lower==='query'||lower==='dataquery') return 'tools';
+        if(lower==='tools'||lower==='calculator'||lower==='calc'||lower==='calctools'||lower==='data'||lower==='query'||lower==='dataquery'||lower==='minigames'||lower==='game'||lower==='games') return 'tools';
         return raw;
       }
       function normalizeToolTab(tab){
@@ -9161,6 +9172,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         var lower=raw.toLowerCase();
         if(lower==='calctools'||lower==='calculator'||lower==='calc') return 'calcTools';
         if(lower==='dataquery'||lower==='data'||lower==='query') return 'dataQuery';
+        if(lower==='minigames'||lower==='game'||lower==='games') return 'miniGames';
         return '';
       }
       function setToolSubTabsVisible(tab){

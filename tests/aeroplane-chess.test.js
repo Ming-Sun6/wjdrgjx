@@ -29,6 +29,30 @@ test('home page links to imported aeroplane chess folder only', () => {
   assert.doesNotMatch(html, /id="ludoBoard"/);
 });
 
+test('homepage places aeroplane chess in mini games alliance activity section', () => {
+  const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
+  const miniStart = html.indexOf('id="miniGameWarehouse"');
+  const miniEnd = html.indexOf('<!-- 暂时隐藏活动日历入口');
+  const extendedStart = html.indexOf('id="extendedToolWarehouse"');
+  const extendedEnd = miniStart;
+  const aeroplaneIndex = html.indexOf('href="function/aeroplane-chess/"');
+
+  assert.notEqual(miniStart, -1);
+  assert.notEqual(miniEnd, -1);
+  assert.notEqual(aeroplaneIndex, -1);
+  assert.match(html, /data-tool-tab="miniGames"[^>]*>小游戏<\/button>/);
+  assert.match(html, /<div class="warehouse-title">小游戏<\/div>/);
+  assert.match(html, /联盟活动/);
+  assert.match(html, /活跃升温小游戏/);
+  assert.ok(aeroplaneIndex > miniStart && aeroplaneIndex < miniEnd);
+
+  const miniSection = html.slice(miniStart, miniEnd);
+  const extendedSection = html.slice(extendedStart, extendedEnd);
+  assert.match(miniSection, /data-category="miniGames" data-tool-priority="miniGames"[\s\S]*href="function\/aeroplane-chess\/"/);
+  assert.doesNotMatch(extendedSection, /function\/aeroplane-chess\//);
+  assert.match(html, /lower==='minigames'\|\|lower==='game'\|\|lower==='games'/);
+});
+
 test('imported aeroplane chess entry and assets are present', () => {
   assert.equal(fs.existsSync(path.join(gameDir, 'index.html')), true);
   assert.equal(fs.existsSync(path.join(gameDir, 'game.html')), true);
@@ -159,7 +183,8 @@ test('aeroplane chess home page has toolbox return link and no qq feedback', () 
   for (const file of homeFiles) {
     const html = fs.readFileSync(file, 'utf8');
     assert.match(html, /class="toolbox-home-link"/);
-    assert.match(html, /href="https:\/\/wjdr\.store\/"/);
+    assert.match(html, /href="https:\/\/wjgl\.store\/"/);
+    assert.doesNotMatch(html, /wjdr\.store/);
     assert.doesNotMatch(html, /Bug反馈QQ群/);
     assert.doesNotMatch(html, /1097294452/);
     assert.doesNotMatch(html, /qq-group-number/);
@@ -191,4 +216,37 @@ test('polling transport ignores already delivered event sequences', async () => 
   const publicSource = fs.readFileSync(path.join(publicGameDir, 'js', 'pollingTransport.js'), 'utf8');
   assert.match(publicSource, /_lastDeliveredSeq/);
   assert.match(publicSource, /eventSeq <= this\._lastDeliveredSeq/);
+});
+
+test('online inactivity timeout enables ai takeover after one minute', () => {
+  const gameStateFiles = [
+    path.join(gameDir, 'js', 'gameState.js'),
+    path.join(publicGameDir, 'js', 'gameState.js')
+  ];
+  const indexMainFiles = [
+    path.join(gameDir, 'js', 'indexMain.js'),
+    path.join(publicGameDir, 'js', 'indexMain.js')
+  ];
+  const multiplayerGameManagerFiles = [
+    path.join(gameDir, 'js', 'multiplayerGameManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerGameManager.js')
+  ];
+
+  for (const file of gameStateFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /this\.THINKING_TIME\s*=\s*60000/);
+    assert.doesNotMatch(source, /this\.THINKING_TIME\s*=\s*20000/);
+  }
+
+  for (const file of indexMainFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /60秒|1分钟/);
+    assert.doesNotMatch(source, /20秒的思考时长/);
+  }
+
+  for (const file of multiplayerGameManagerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.doesNotMatch(source, /游戏尚未正式开始，且为人类玩家回合，不启动超时计时器/);
+    assert.doesNotMatch(source, /允许无限等待直到首发玩家操作/);
+  }
 });

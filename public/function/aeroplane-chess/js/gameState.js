@@ -4,7 +4,7 @@ import { activePlayerManager } from './activePlayerManager.js';
 class GameState {
     constructor() {
         // 思考时间常量（毫秒）
-        this.THINKING_TIME = 20000; // 20秒思考时间
+        this.THINKING_TIME = 60000; // 60秒思考时间
 
         // 游戏基础状态
         this.currentPlayer = null; // 当前玩家 (1-4)，初始设为null以确保首次设置时触发日志

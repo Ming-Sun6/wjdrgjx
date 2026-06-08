@@ -2447,19 +2447,6 @@ class MultiplayerGameManager {
                             (this.isHost && !isNewPlayerAI);
 
                         if (shouldStartProgressBar) {
-                            // 如果游戏尚未正式开始，且当前是人类玩家回合，则不启动超时计时器（允许无限等待直到首发玩家操作）
-                            if (this.gameInstance && this.gameInstance.gameState && !this.gameInstance.gameState.getGameOfficiallyStarted() && !isNewPlayerAI) {
-                                console.log('[开局] 游戏尚未正式开始，且为人类玩家回合，不启动超时计时器');
-                                // 仅展示进度条容器，但不开始计时
-                                const progressContainer = document.getElementById('thinkingProgressContainer');
-                                if (progressContainer) {
-                                    progressContainer.className = `thinking-progress-container active player-${data.newPlayer}`;
-                                    const progressBar = document.getElementById('thinkingProgressBar');
-                                    if (progressBar) progressBar.style.width = '0%';
-                                }
-                                return;
-                            }
-
                             this.gameInstance.uiUpdater.startThinkingProgressBar(() => {
                                 console.log(`[超时] 玩家${data.newPlayer}思考超时`);
                                 if (this.gameInstance && this.gameInstance.dice && this.gameInstance.dice.handleThinkingTimeoutWrapper) {
