@@ -526,7 +526,7 @@ test('online pause return home clears stale multiplayer session before leaving g
   }
 });
 
-test('online game page clears stale session when rejoin reports missing room', () => {
+test('online game page clears stale session when rejoin reports invalid session errors', () => {
   const gameManagerFiles = [
     path.join(gameDir, 'js', 'multiplayerGameManager.js'),
     path.join(publicGameDir, 'js', 'multiplayerGameManager.js')
@@ -536,8 +536,10 @@ test('online game page clears stale session when rejoin reports missing room', (
     const source = fs.readFileSync(file, 'utf8');
     const method = source.match(/handleError\(data\)\s*\{([\s\S]*?)\n    \}/);
     assert.ok(method, `${path.basename(file)} should define handleError`);
-    assert.match(method[1], /this\.handleMissingRoomError\(data\.message\)/);
-    assert.match(source, /handleMissingRoomError\(message\)/);
+    assert.match(method[1], /this\.handleInvalidSessionError\(data\.message\)/);
+    assert.match(source, /handleInvalidSessionError\(message\)/);
+    assert.match(source, /text\.includes\('房间'\)[\s\S]*text\.includes\('不存在'\)[\s\S]*text\.includes\('销毁'\)/);
+    assert.match(source, /text\.includes\('游戏正在进行中'\)[\s\S]*text\.includes\('无法加入新玩家'\)/);
     assert.match(source, /sessionStorage\.removeItem\('multiplayerGameData'\)/);
     assert.match(source, /sessionStorage\.removeItem\('gameConfig'\)/);
     assert.match(source, /sessionStorage\.removeItem\('aeroplaneChess_roomCode'\)/);
@@ -545,6 +547,24 @@ test('online game page clears stale session when rejoin reports missing room', (
     assert.match(source, /localStorage\.removeItem\('flyingChessGameState'\)/);
     assert.match(source, /this\.disableReconnect\s*=\s*true/);
     assert.match(source, /window\.location\.replace\('\.\/'\)/);
+  }
+});
+
+test('leaving online room clears stale game page session cache', () => {
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerManager.js')
+  ];
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    const method = source.match(/leaveRoom\(shouldRedirect\s*=\s*false\)\s*\{([\s\S]*?)\n    showMainMenu\(\)/);
+    assert.ok(method, `${path.basename(file)} should define leaveRoom`);
+    assert.match(method[1], /sessionStorage\.removeItem\('multiplayerGameData'\)/);
+    assert.match(method[1], /sessionStorage\.removeItem\('gameConfig'\)/);
+    assert.match(method[1], /sessionStorage\.removeItem\('aeroplaneChess_roomCode'\)/);
+    assert.match(method[1], /sessionStorage\.removeItem\('aeroplaneChess_gameSessionId'\)/);
+    assert.match(method[1], /localStorage\.removeItem\('flyingChessGameState'\)/);
   }
 });
 

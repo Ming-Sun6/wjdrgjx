@@ -3448,15 +3448,17 @@ class MultiplayerGameManager {
      */
     handleError(data) {
         console.error('游戏错误:', data.message);
-        if (this.handleMissingRoomError(data.message)) {
+        if (this.handleInvalidSessionError(data.message)) {
             return;
         }
         this.showError(data.message);
     }
 
-    handleMissingRoomError(message) {
+    handleInvalidSessionError(message) {
         const text = String(message || '');
-        if (!text.includes('房间') || (!text.includes('不存在') && !text.includes('销毁'))) {
+        const isMissingRoom = text.includes('房间') && (text.includes('不存在') || text.includes('销毁'));
+        const isStalePlayerSession = text.includes('游戏正在进行中') && text.includes('无法加入新玩家');
+        if (!isMissingRoom && !isStalePlayerSession) {
             return false;
         }
 

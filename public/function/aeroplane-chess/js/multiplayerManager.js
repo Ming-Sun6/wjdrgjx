@@ -4260,10 +4260,16 @@ class MultiplayerManager {
         sessionStorage.removeItem('multiplayerPlayerColor');
         sessionStorage.removeItem('multiplayerIsHost');
         sessionStorage.removeItem('multiplayerCurrentRoom');
+        sessionStorage.removeItem('multiplayerGameData');
+        sessionStorage.removeItem('gameConfig');
+        sessionStorage.removeItem('aeroplaneChess_roomCode');
+        sessionStorage.removeItem('aeroplaneChess_gameSessionId');
+        sessionStorage.removeItem('aeroplaneChess_resetReadyOnRoomReturn');
 
         // 清理localStorage中的联机相关数据
         localStorage.removeItem('multiplayerSettings');
         localStorage.removeItem('lastMultiplayerConfig');
+        localStorage.removeItem('flyingChessGameState');
 
         console.log('本地状态和缓存已清理');
 
