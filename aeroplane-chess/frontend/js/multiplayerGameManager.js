@@ -4041,6 +4041,21 @@ class MultiplayerGameManager {
                 this.gameInstance.gameState.setAITakeover(false);
             }
 
+            if (typeof this.gameInstance.gameState.clearThinkingTimer === 'function') {
+                this.gameInstance.gameState.clearThinkingTimer();
+            }
+            if (typeof this.gameInstance.gameState.setAIDecisionInProgress === 'function') {
+                this.gameInstance.gameState.setAIDecisionInProgress(false);
+            }
+            if (window.uiUpdater && typeof window.uiUpdater.stopThinkingProgressBar === 'function') {
+                window.uiUpdater.stopThinkingProgressBar();
+            }
+            if (window.botController) {
+                window.botController.isProcessing = false;
+                window.botController.lastProcessedPlayer = null;
+                window.botController.lastProcessedPhase = null;
+            }
+
             if (this.isConnected && typeof this.sendMessage === 'function') {
                 this.sendMessage('aiTakeoverChange', {
                     playerId: this.playerId,

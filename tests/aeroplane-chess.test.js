@@ -550,6 +550,25 @@ test('online game page clears stale session when rejoin reports invalid session 
   }
 });
 
+test('game page rejects online session cache when local player is missing from player list', () => {
+  const gameMainFiles = [
+    path.join(gameDir, 'js', 'gameMain.js'),
+    path.join(publicGameDir, 'js', 'gameMain.js')
+  ];
+
+  for (const file of gameMainFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /isInvalidOnlineSessionCache\(multiplayerGameData\)/);
+    assert.match(source, /this\.clearStaleOnlineSessionCache\(\)/);
+    assert.match(source, /const\s+localPlayerId\s*=\s*multiplayerGameData\.wsClient\?\.playerId/);
+    assert.match(source, /!multiplayerGameData\.players\.some\(player\s*=>\s*player\.id\s*===\s*localPlayerId\)/);
+    assert.match(source, /sessionStorage\.removeItem\('multiplayerGameData'\)/);
+    assert.match(source, /sessionStorage\.removeItem\('gameConfig'\)/);
+    assert.match(source, /localStorage\.removeItem\('flyingChessGameState'\)/);
+    assert.match(source, /window\.location\.replace\('\.\/'\)/);
+  }
+});
+
 test('leaving online room clears stale game page session cache', () => {
   const managerFiles = [
     path.join(gameDir, 'js', 'multiplayerManager.js'),
@@ -672,5 +691,49 @@ test('online ai takeover lets the local player resume manual control on their ow
     assert.match(source, /const isActualBotPlayer = gameState\.isBotPlayer\(currentPlayer\)/);
     assert.match(source, /\(isActualBotPlayer && !isCurrentPlayerLocal\)/);
     assert.doesNotMatch(source, /const shouldDisable = gamePhase !== 'rolling' \|\| isRolling \|\| isBot \|\| !canControl/);
+  }
+});
+
+test('manual online ai takeover resume cancels stale timers and bot processing locks', () => {
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerGameManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerGameManager.js')
+  ];
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    const match = source.match(/clearLocalAITakeoverForManualAction\(reason = 'manual_action'\) \{[\s\S]*?\n    \}/);
+    assert.ok(match, `${file} should define clearLocalAITakeoverForManualAction`);
+    const method = match[0];
+
+    assert.match(method, /clearThinkingTimer\(\)/);
+    assert.match(method, /setAIDecisionInProgress\(false\)/);
+    assert.match(method, /window\.botController\.isProcessing\s*=\s*false/);
+    assert.match(method, /window\.botController\.lastProcessedPlayer\s*=\s*null/);
+    assert.match(method, /window\.botController\.lastProcessedPhase\s*=\s*null/);
+    assert.match(method, /window\.uiUpdater\.stopThinkingProgressBar\(\)/);
+  }
+});
+
+test('online thinking timeout never falls back to local global ai takeover', () => {
+  const gameStateFiles = [
+    path.join(gameDir, 'js', 'gameState.js'),
+    path.join(publicGameDir, 'js', 'gameState.js')
+  ];
+
+  for (const file of gameStateFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    const match = source.match(/handleThinkingTimeout\(\) \{[\s\S]*?\n    \}/);
+    assert.ok(match, `${file} should define handleThinkingTimeout`);
+    const method = match[0];
+    const onlineBlockIndex = method.indexOf('if (this.isOnlineMultiplayer)');
+    const localTakeoverIndex = method.indexOf("import('./aiTakeoverManager.js')");
+
+    assert.notEqual(onlineBlockIndex, -1);
+    assert.notEqual(localTakeoverIndex, -1);
+    assert.ok(onlineBlockIndex < localTakeoverIndex, `${file} should handle online timeout before local takeover fallback`);
+    assert.match(method, /reason:\s*'thinking_timeout'/);
+    assert.match(method, /不要回退到本地全局托管/);
+    assert.match(method, /shouldStartNewTimer:\s*false/);
   }
 });

@@ -303,6 +303,29 @@ class FlyingChessGame {
         uiUpdater.rotateBoard(rotations);
     }
 
+    isInvalidOnlineSessionCache(multiplayerGameData) {
+        if (!multiplayerGameData || typeof multiplayerGameData !== 'object') {
+            return true;
+        }
+        const localPlayerId = multiplayerGameData.wsClient?.playerId;
+        if (!localPlayerId) {
+            return true;
+        }
+        if (!Array.isArray(multiplayerGameData.players) || multiplayerGameData.players.length === 0) {
+            return true;
+        }
+        return !multiplayerGameData.players.some(player => player.id === localPlayerId);
+    }
+
+    clearStaleOnlineSessionCache() {
+        sessionStorage.removeItem('multiplayerGameData');
+        sessionStorage.removeItem('gameConfig');
+        sessionStorage.removeItem('aeroplaneChess_roomCode');
+        sessionStorage.removeItem('aeroplaneChess_gameSessionId');
+        sessionStorage.removeItem('aeroplaneChess_resetReadyOnRoomReturn');
+        localStorage.removeItem('flyingChessGameState');
+    }
+
     // 处理URL参数
     handleUrlParameters() {
         // 首先检查是否有新的游戏配置（本地多人或AI模式）
@@ -326,6 +349,11 @@ class FlyingChessGame {
         if (multiplayerGameDataStr) {
             try {
                 const multiplayerGameData = JSON.parse(multiplayerGameDataStr);
+                if (this.isInvalidOnlineSessionCache(multiplayerGameData)) {
+                    this.clearStaleOnlineSessionCache();
+                    window.location.replace('./');
+                    return;
+                }
 
                 // 确保audioManager已暴露到全局（联机模式需要）
                 if (!window.audioManager) {
@@ -422,6 +450,11 @@ class FlyingChessGame {
             try {
                 const gameConfig = JSON.parse(gameConfigStr);
                 console.log('从sessionStorage加载游戏配置:', gameConfig);
+                if (gameConfig.mode === 'online_multiplayer') {
+                    this.clearStaleOnlineSessionCache();
+                    window.location.replace('./');
+                    return;
+                }
 
                 // 记录需要旋转的视角颜色，推迟到初始化结尾执行
                 if (gameConfig.mode !== 'local_multiplayer') {
