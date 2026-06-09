@@ -156,6 +156,51 @@ test('create room errors never render undefined', () => {
   assert.match(publicSource, /\.connect\(\)\.catch\(reject\)/);
 });
 
+test('multiplayer manager avoids duplicate method overrides and keys players by id', () => {
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerManager.js')
+  ];
+  const duplicateSensitiveMethods = [
+    'showJoinRoomModal',
+    'hideJoinRoomModal',
+    'clearRoomCodeInputs',
+    'focusFirstInput',
+    'getRoomCode',
+    'joinRoom',
+    'showJoinRoomError',
+    'hideJoinRoomError',
+    'showInputError',
+    'initRoomCodeInputs'
+  ];
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    for (const method of duplicateSensitiveMethods) {
+      const matches = source.match(new RegExp(`\\n\\s*(?:async\\s+)?${method}\\(`, 'g')) || [];
+      assert.equal(matches.length, 1, `${path.basename(file)} should define ${method} once`);
+    }
+    assert.match(source, /this\.players\s*=\s*new Map\(roomData\.players\.map\(p => \[p\.id, p\]\)\)/);
+    assert.doesNotMatch(source, /this\.players\s*=\s*new Map\(roomData\.players\.map\(p => \[p\.color, p\]\)\)/);
+  }
+});
+
+test('clearing reconnect state preserves cached lobby nickname', () => {
+  const reconnectFiles = [
+    path.join(gameDir, 'js', 'reconnectManager.js'),
+    path.join(publicGameDir, 'js', 'reconnectManager.js')
+  ];
+
+  for (const file of reconnectFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    const clearBody = source.match(/clearPlayerIdentity\(\)\s*\{([\s\S]*?)\n    \}/);
+    assert.ok(clearBody, `${path.basename(file)} should define clearPlayerIdentity`);
+    assert.doesNotMatch(clearBody[1], /removeItem\('aeroplaneChess_playerNickname'\)/);
+    assert.match(clearBody[1], /removeItem\('aeroplaneChess_playerEmoji'\)/);
+    assert.match(clearBody[1], /removeItem\('aeroplaneChess_isHost'\)/);
+  }
+});
+
 test('online no-movable turns are advanced by the authoritative client', () => {
   const sourceFiles = [
     path.join(gameDir, 'js', 'dice.js'),
@@ -235,6 +280,34 @@ test('polling transport ignores already delivered event sequences', async () => 
   const publicSource = fs.readFileSync(path.join(publicGameDir, 'js', 'pollingTransport.js'), 'utf8');
   assert.match(publicSource, /_lastDeliveredSeq/);
   assert.match(publicSource, /eventSeq <= this\._lastDeliveredSeq/);
+});
+
+test('polling transport keeps connection open across transient poll failures', async () => {
+  const { PollingTransport } = await importPollingTransport(gameDir);
+  const originalFetch = global.fetch;
+  let errorCount = 0;
+  global.fetch = async () => {
+    throw new Error('temporary network failure');
+  };
+  const transport = new PollingTransport({ playerId: 'player-test', pollDelay: 100000 });
+  transport.readyState = PollingTransport.OPEN;
+  transport.onerror = () => {
+    errorCount += 1;
+  };
+
+  try {
+    await transport._poll();
+  } finally {
+    global.fetch = originalFetch;
+    if (transport._pollTimer) clearTimeout(transport._pollTimer);
+  }
+
+  assert.equal(transport.readyState, PollingTransport.OPEN);
+  assert.equal(errorCount, 0);
+
+  const publicSource = fs.readFileSync(path.join(publicGameDir, 'js', 'pollingTransport.js'), 'utf8');
+  assert.match(publicSource, /_pollFailureCount/);
+  assert.match(publicSource, /this\._pollFailureCount >= this\._maxSilentPollFailures/);
 });
 
 test('online inactivity timeout enables ai takeover after one minute', () => {
@@ -404,9 +477,12 @@ test('online settlement return clears reconnect state instead of re-entering a f
 
   for (const file of settlementFiles) {
     const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /const\s+settlementGameSessionId\s*=\s*multiplayerGameManager\?\.gameSessionId/);
+    assert.match(source, /multiplayerGameManager\.sendMessage\('returnToRoom',\s*\{[\s\S]*gameSessionId:\s*settlementGameSessionId[\s\S]*roomCode:\s*settlementRoomCode/);
     assert.match(source, /reconnectManager\.clearPlayerIdentity\(\)/);
     assert.match(source, /sessionStorage\.removeItem\('multiplayerGameData'\)/);
     assert.match(source, /sessionStorage\.removeItem\('gameConfig'\)/);
+    assert.match(source, /sendMessage\('returnToRoom'[\s\S]*multiplayerGameManager\.gameSessionId\s*=\s*null/);
     assert.doesNotMatch(source, /window\.location\.replace\(`\.\/\?room=\$\{roomCode\}`\)/);
   }
 });

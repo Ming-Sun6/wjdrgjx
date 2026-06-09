@@ -21,6 +21,8 @@ export class PollingTransport {
         this._lastDeliveredSeq = 0;
         this._closed = false;
         this._pollDelay = Number(options.pollDelay || 1000);
+        this._pollFailureCount = 0;
+        this._maxSilentPollFailures = Number(options.maxSilentPollFailures || 3);
     }
 
     async connect() {
@@ -100,12 +102,16 @@ export class PollingTransport {
             if (!data || data.ok === false) {
                 throw new Error(data && data.error ? data.error : 'Polling failed');
             }
+            this._pollFailureCount = 0;
             this._deliverEvents(data.events || []);
             if (Number.isFinite(Number(data.nextSeq))) {
                 this._since = Number(data.nextSeq);
             }
         } catch (error) {
-            this._emitError(error);
+            this._pollFailureCount += 1;
+            if (this._pollFailureCount >= this._maxSilentPollFailures) {
+                this._emitError(error);
+            }
         } finally {
             this._schedulePoll();
         }

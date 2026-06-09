@@ -439,6 +439,11 @@ function createAeroplaneChessPollingService(options = {}) {
 
     if (type === 'add_ai_player') {
       const color = Number(data.colorIndex || message.colorIndex);
+      const occupiedByRealPlayer = Array.from(room.players.values()).some((player) => player.color === color);
+      if (occupiedByRealPlayer) {
+        error('颜色已被玩家占用');
+        return { events };
+      }
       if (color >= 1 && color <= 4 && !room.settings.aiPlayers.some((ai) => ai.color === color)) {
         room.settings.aiPlayers.push({
           id: `ai_${color}`,

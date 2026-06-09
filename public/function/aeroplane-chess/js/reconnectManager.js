@@ -78,8 +78,7 @@ class ReconnectManager {
         this.playerColor = null;
         this.isHost = false;
 
-        // 清除localStorage
-        localStorage.removeItem('aeroplaneChess_playerNickname');
+        // 清除房间身份，保留 aeroplaneChess_playerNickname 作为大厅昵称缓存
         localStorage.removeItem('aeroplaneChess_playerEmoji');
         localStorage.removeItem('aeroplaneChess_playerColor');
         localStorage.removeItem('aeroplaneChess_isHost');

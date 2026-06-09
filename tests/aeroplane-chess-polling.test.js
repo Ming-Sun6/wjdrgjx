@@ -162,6 +162,31 @@ test('polling service lets host kick a real player from the room', async () => {
   assert.equal(roomsList.rooms[0].playerCount, 1);
 });
 
+test('polling service rejects ai players on colors occupied by real players', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  const result = await service.handleMessage({
+    type: 'add_ai_player',
+    playerId: 'host-1',
+    roomCode: created.room.code,
+    data: { colorIndex: created.room.players[0].color, difficulty: 'easy' }
+  });
+
+  assert.equal(result.events[0].type, 'error');
+  assert.match(result.events[0].message, /颜色已被玩家占用/);
+
+  const roomsList = (await service.handleMessage({
+    type: 'listRooms',
+    playerId: 'host-1'
+  })).events.find((event) => event.type === 'roomsList');
+  assert.equal(roomsList.rooms[0].playerCount, 1);
+});
+
 test('polling service starts games and records history only when game ends', async () => {
   const historyWrites = [];
   const service = createAeroplaneChessPollingService({
@@ -342,6 +367,49 @@ test('polling service clears finished rooms from reconnect info after settlement
   })).events.find((event) => event.type === 'reconnectInfo');
 
   assert.equal(reconnectInfo.roomCode, null);
+  assert.equal(service.rooms.has(created.room.code), false);
+});
+
+test('polling service clears reconnect info when game ends by session id only', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  await service.handleMessage({
+    type: 'join_room',
+    playerId: 'guest-1',
+    data: { roomCode: created.room.code, nickname: 'Guest' }
+  });
+
+  const started = (await service.handleMessage({
+    type: 'startGame',
+    playerId: 'host-1',
+    roomCode: created.room.code
+  })).events.find((event) => event.type === 'gameStarted');
+
+  assert.ok(started);
+
+  await service.handleMessage({
+    type: 'forceSettlement',
+    playerId: 'host-1',
+    gameSessionId: started.gameSessionId,
+    data: { rankings: [] }
+  });
+
+  const hostReconnectInfo = (await service.handleMessage({
+    type: 'getReconnectInfo',
+    playerId: 'host-1'
+  })).events.find((event) => event.type === 'reconnectInfo');
+  const guestReconnectInfo = (await service.handleMessage({
+    type: 'getReconnectInfo',
+    playerId: 'guest-1'
+  })).events.find((event) => event.type === 'reconnectInfo');
+
+  assert.equal(hostReconnectInfo.roomCode, null);
+  assert.equal(guestReconnectInfo.roomCode, null);
   assert.equal(service.rooms.has(created.room.code), false);
 });
 

@@ -865,9 +865,26 @@ class SettlementModal {
             console.log('[结算] 联机模式 - 返回主页并清理已结束房间');
 
             const multiplayerGameManager = window.gameInstance.multiplayerGameManager;
+            const settlementGameSessionId = multiplayerGameManager?.gameSessionId || null;
+            const settlementRoomCode = multiplayerGameManager?.roomCode || null;
 
             if (multiplayerGameManager) {
                 multiplayerGameManager.disableReconnect = true;
+            }
+
+            // 发送离开房间消息并断开连接
+            try {
+                if (multiplayerGameManager && typeof multiplayerGameManager.sendMessage === 'function') {
+                    multiplayerGameManager.sendMessage('returnToRoom', {
+                        gameSessionId: settlementGameSessionId,
+                        roomCode: settlementRoomCode
+                    });
+                }
+            } catch (error) {
+                console.error('[结算] 发送returnToRoom失败:', error);
+            }
+
+            if (multiplayerGameManager) {
                 multiplayerGameManager.gameSessionId = null;
             }
 
@@ -875,15 +892,6 @@ class SettlementModal {
             sessionStorage.removeItem('multiplayerGameData');
             sessionStorage.removeItem('gameConfig');
             sessionStorage.removeItem('aeroplaneChess_resetReadyOnRoomReturn');
-
-            // 发送离开房间消息并断开连接
-            try {
-                if (multiplayerGameManager && typeof multiplayerGameManager.sendMessage === 'function') {
-                    multiplayerGameManager.sendMessage('returnToRoom');
-                }
-            } catch (error) {
-                console.error('[结算] 发送returnToRoom失败:', error);
-            }
 
             if (multiplayerGameManager && typeof multiplayerGameManager.destroy === 'function') {
                 try {
