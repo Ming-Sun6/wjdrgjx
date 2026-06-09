@@ -9,6 +9,7 @@ import { botController } from './botController.js';
 import { progressDisplay } from './progressDisplay.js';
 import { aiTakeoverManager } from './aiTakeoverManager.js';
 import { sanitizeUserText } from './contentModeration.js';
+import { reconnectManager } from './reconnectManager.js';
 
 class EventHandler {
     constructor() {
@@ -654,13 +655,27 @@ class EventHandler {
             }
 
             if (isOnlineMode) {
+                const roomCode = multiplayerGameManager.roomCode || null;
+                const gameSessionId = multiplayerGameManager.gameSessionId || null;
+
                 try {
                     multiplayerGameManager.sendMessage('leave_room', {
-                        reason: 'return_home'
+                        reason: 'return_home',
+                        roomCode,
+                        gameSessionId
                     });
                 } catch (e) {
                     // ignore
                 }
+
+                multiplayerGameManager.gameSessionId = null;
+                multiplayerGameManager.roomCode = null;
+                reconnectManager.clearPlayerIdentity();
+                sessionStorage.removeItem('multiplayerGameData');
+                sessionStorage.removeItem('gameConfig');
+                sessionStorage.removeItem('aeroplaneChess_roomCode');
+                sessionStorage.removeItem('aeroplaneChess_gameSessionId');
+                sessionStorage.removeItem('aeroplaneChess_resetReadyOnRoomReturn');
                 
                 // 仅关闭连接并清理UI，不再调用导致重新渲染或重定向报错的破坏性销毁
                 try {

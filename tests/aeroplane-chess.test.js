@@ -506,6 +506,26 @@ test('missing online room errors clear stale room context and return to lobby', 
   }
 });
 
+test('online pause return home clears stale multiplayer session before leaving game page', () => {
+  const handlerFiles = [
+    path.join(gameDir, 'js', 'eventHandler.js'),
+    path.join(publicGameDir, 'js', 'eventHandler.js')
+  ];
+
+  for (const file of handlerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    const method = source.match(/handleReturnHomeClick\(\)\s*\{([\s\S]*?)\n    \}/);
+    assert.ok(method, `${path.basename(file)} should define handleReturnHomeClick`);
+    assert.match(method[1], /sessionStorage\.removeItem\('multiplayerGameData'\)/);
+    assert.match(method[1], /sessionStorage\.removeItem\('gameConfig'\)/);
+    assert.match(method[1], /sessionStorage\.removeItem\('aeroplaneChess_roomCode'\)/);
+    assert.match(method[1], /sessionStorage\.removeItem\('aeroplaneChess_gameSessionId'\)/);
+    assert.match(method[1], /reconnectManager\.clearPlayerIdentity\(\)/);
+    assert.match(method[1], /multiplayerGameManager\.gameSessionId\s*=\s*null/);
+    assert.match(method[1], /window\.location\.replace\('\.\/'\)/);
+  }
+});
+
 test('aeroplane chess room chat identifies player colors, spectators, and custom game names', () => {
   const homeFiles = [
     path.join(gameDir, 'index.html'),
