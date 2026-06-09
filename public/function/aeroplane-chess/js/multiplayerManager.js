@@ -1739,12 +1739,16 @@ class MultiplayerManager {
 
             case 'error':
                 console.error('服务器错误:', data.message);
-                if (data.message && data.message.includes && (data.message.includes('房间') || data.message.includes('游戏正在进行中'))) {
-                    this.showJoinRoomError(data.message);
+                const errorMessage = data.message || '服务器发生未知错误';
+                if (this.handleMissingRoomError(errorMessage)) {
+                    break;
+                }
+                if (errorMessage && errorMessage.includes && (errorMessage.includes('房间') || errorMessage.includes('游戏正在进行中'))) {
+                    this.showJoinRoomError(errorMessage);
                     this.clearRoomCodeInputs();
 
                 } else {
-                    this.showError(data.message || '服务器发生未知错误');
+                    this.showError(errorMessage);
                 }
                 break;
 
@@ -4412,6 +4416,46 @@ class MultiplayerManager {
             onlineMultiplayerConfig.style.display = 'none';
         }
         this.updateRoomChatVisibility(false);
+    }
+
+    handleMissingRoomError(message) {
+        const text = String(message || '');
+        if (!text.includes('房间') || (!text.includes('不存在') && !text.includes('销毁'))) {
+            return false;
+        }
+
+        this.roomCode = null;
+        this.currentRoom = null;
+        this.currentPlayer = null;
+        this.isHost = false;
+        this.players.clear();
+        this.playerReadyStatus.clear();
+        this.updateReconnectButtonVisibility(false);
+        this.updateRoomChatVisibility(false);
+
+        try {
+            const url = new URL(window.location);
+            url.searchParams.delete('room');
+            window.history.replaceState({}, '', url);
+        } catch (e) {
+            // ignore
+        }
+
+        try {
+            reconnectManager.clearPlayerIdentity();
+        } catch (e) {
+            // ignore
+        }
+
+        sessionStorage.removeItem('multiplayerGameData');
+        sessionStorage.removeItem('gameConfig');
+        sessionStorage.removeItem('aeroplaneChess_resetReadyOnRoomReturn');
+
+        this.showRoomSelection();
+        this.showJoinRoomError(message);
+        this.clearRoomCodeInputs();
+        this.requestPublicRooms();
+        return true;
     }
 
     // 显示错误信息

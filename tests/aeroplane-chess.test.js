@@ -487,6 +487,25 @@ test('online settlement return clears reconnect state instead of re-entering a f
   }
 });
 
+test('missing online room errors clear stale room context and return to lobby', () => {
+  const managerFiles = [
+    path.join(gameDir, 'js', 'multiplayerManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerManager.js')
+  ];
+
+  for (const file of managerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /handleMissingRoomError\(message\)/);
+    assert.match(source, /case 'error':[\s\S]*this\.handleMissingRoomError\(errorMessage\)[\s\S]*break;/);
+    assert.match(source, /url\.searchParams\.delete\('room'\)/);
+    assert.match(source, /reconnectManager\.clearPlayerIdentity\(\)/);
+    assert.match(source, /sessionStorage\.removeItem\('multiplayerGameData'\)/);
+    assert.match(source, /sessionStorage\.removeItem\('gameConfig'\)/);
+    assert.match(source, /this\.roomCode\s*=\s*null/);
+    assert.match(source, /this\.showRoomSelection\(\)/);
+  }
+});
+
 test('aeroplane chess room chat identifies player colors, spectators, and custom game names', () => {
   const homeFiles = [
     path.join(gameDir, 'index.html'),
