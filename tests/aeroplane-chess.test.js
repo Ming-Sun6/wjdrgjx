@@ -127,6 +127,26 @@ test('aeroplane chess frontend uses http polling transport in source and public 
   }
 });
 
+test('polling transport drops stale queued events before opening a fresh connection', () => {
+  const transportFiles = [
+    path.join(gameDir, 'js', 'pollingTransport.js'),
+    path.join(publicGameDir, 'js', 'pollingTransport.js')
+  ];
+  const pollingApiSource = fs.readFileSync(path.join(rootDir, 'aeroplane-chess-polling.js'), 'utf8');
+
+  assert.match(pollingApiSource, /reset:\s*req\.query\.reset/);
+  assert.match(pollingApiSource, /playerEvents\.set\(playerId,\s*\[\]\)/);
+
+  for (const file of transportFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    assert.match(source, /_resetQueuedEventsBeforePolling\(\)/);
+    assert.match(source, /reset=1/);
+    assert.match(source, /this\._since\s*=\s*Number\(data\.nextSeq\)/);
+    assert.match(source, /await this\._resetQueuedEventsBeforePolling\(\)/);
+    assert.match(source, /this\._schedulePoll\(50\)/);
+  }
+});
+
 test('polling websocket compatibility client keeps bindable lifecycle handlers', () => {
   const sourceFiles = [
     path.join(gameDir, 'js', 'websocketClient.js'),

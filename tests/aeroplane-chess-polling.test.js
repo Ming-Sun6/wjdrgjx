@@ -127,6 +127,38 @@ test('polling service queues room events for other players', async () => {
   assert.ok(hostEvents.events.some((event) => event.type === 'playerJoined'));
 });
 
+test('polling service can discard stale queued events before a new client session polls', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host' }
+  })).events[0];
+
+  await service.handleMessage({
+    type: 'join_room',
+    playerId: 'guest-1',
+    data: { roomCode: created.room.code, nickname: 'Guest' }
+  });
+
+  const resetResult = service.pollEvents({ playerId: 'host-1', since: 0, reset: true });
+  assert.deepEqual(resetResult.events, []);
+  assert.ok(resetResult.nextSeq > 0);
+
+  const afterReset = service.pollEvents({ playerId: 'host-1', since: 0 });
+  assert.deepEqual(afterReset.events, []);
+
+  await service.handleMessage({
+    type: 'chatMessage',
+    playerId: 'guest-1',
+    roomCode: created.room.code,
+    data: { message: 'new event' }
+  });
+
+  const freshEvents = service.pollEvents({ playerId: 'host-1', since: resetResult.nextSeq });
+  assert.ok(freshEvents.events.some((event) => event.type === 'chatMessage'));
+});
+
 test('polling service lets host kick a real player from the room', async () => {
   const service = createAeroplaneChessPollingService();
   const created = (await service.handleMessage({

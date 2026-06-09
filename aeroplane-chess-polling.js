@@ -642,7 +642,15 @@ function createAeroplaneChessPollingService(options = {}) {
     return { events };
   }
 
-  function pollEvents({ playerId, since }) {
+  function pollEvents({ playerId, since, reset = false }) {
+    if (reset) {
+      playerEvents.set(playerId, []);
+      return {
+        events: [],
+        nextSeq: sequence
+      };
+    }
+
     const minSeq = Number(since || 0);
     const list = playerEvents.get(playerId) || [];
     const events = list.filter((event) => Number(event.seq || 0) > minSeq);
@@ -813,7 +821,7 @@ function mountAeroplaneChessPollingRoutes(app, options = {}) {
       res.status(400).json({ ok: false, error: 'PLAYER_ID_REQUIRED' });
       return;
     }
-    const result = service.pollEvents({ playerId, since: req.query.since });
+    const result = service.pollEvents({ playerId, since: req.query.since, reset: req.query.reset });
     res.json({ ok: true, ...result });
   });
 

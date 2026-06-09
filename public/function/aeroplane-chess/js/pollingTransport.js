@@ -26,6 +26,7 @@ export class PollingTransport {
     }
 
     async connect() {
+        await this._resetQueuedEventsBeforePolling();
         this.readyState = PollingTransport.OPEN;
         this._closed = false;
         queueMicrotask(() => {
@@ -33,6 +34,20 @@ export class PollingTransport {
         });
         this._schedulePoll(50);
         return true;
+    }
+
+    async _resetQueuedEventsBeforePolling() {
+        try {
+            const url = `${this.apiBase}/events?playerId=${encodeURIComponent(this.playerId)}&since=0&reset=1`;
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data && data.ok !== false && Number.isFinite(Number(data.nextSeq))) {
+                this._since = Number(data.nextSeq);
+                this._lastDeliveredSeq = Number(data.nextSeq);
+            }
+        } catch (error) {
+            // If the reset request fails, continue connecting and let normal polling handle errors.
+        }
     }
 
     send(raw) {
