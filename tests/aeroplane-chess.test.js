@@ -526,6 +526,28 @@ test('online pause return home clears stale multiplayer session before leaving g
   }
 });
 
+test('online game page clears stale session when rejoin reports missing room', () => {
+  const gameManagerFiles = [
+    path.join(gameDir, 'js', 'multiplayerGameManager.js'),
+    path.join(publicGameDir, 'js', 'multiplayerGameManager.js')
+  ];
+
+  for (const file of gameManagerFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    const method = source.match(/handleError\(data\)\s*\{([\s\S]*?)\n    \}/);
+    assert.ok(method, `${path.basename(file)} should define handleError`);
+    assert.match(method[1], /this\.handleMissingRoomError\(data\.message\)/);
+    assert.match(source, /handleMissingRoomError\(message\)/);
+    assert.match(source, /sessionStorage\.removeItem\('multiplayerGameData'\)/);
+    assert.match(source, /sessionStorage\.removeItem\('gameConfig'\)/);
+    assert.match(source, /sessionStorage\.removeItem\('aeroplaneChess_roomCode'\)/);
+    assert.match(source, /sessionStorage\.removeItem\('aeroplaneChess_gameSessionId'\)/);
+    assert.match(source, /localStorage\.removeItem\('flyingChessGameState'\)/);
+    assert.match(source, /this\.disableReconnect\s*=\s*true/);
+    assert.match(source, /window\.location\.replace\('\.\/'\)/);
+  }
+});
+
 test('aeroplane chess room chat identifies player colors, spectators, and custom game names', () => {
   const homeFiles = [
     path.join(gameDir, 'index.html'),

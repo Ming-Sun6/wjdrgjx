@@ -3448,7 +3448,45 @@ class MultiplayerGameManager {
      */
     handleError(data) {
         console.error('游戏错误:', data.message);
+        if (this.handleMissingRoomError(data.message)) {
+            return;
+        }
         this.showError(data.message);
+    }
+
+    handleMissingRoomError(message) {
+        const text = String(message || '');
+        if (!text.includes('房间') || (!text.includes('不存在') && !text.includes('销毁'))) {
+            return false;
+        }
+
+        this.disableReconnect = true;
+        this.gameSessionId = null;
+        this.roomCode = null;
+
+        try {
+            if (this.wsClient && typeof this.wsClient.close === 'function') {
+                this.wsClient.close();
+            } else if (this.wsClient && typeof this.wsClient.disconnect === 'function') {
+                this.wsClient.disconnect();
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        sessionStorage.removeItem('multiplayerGameData');
+        sessionStorage.removeItem('gameConfig');
+        sessionStorage.removeItem('aeroplaneChess_roomCode');
+        sessionStorage.removeItem('aeroplaneChess_gameSessionId');
+        sessionStorage.removeItem('aeroplaneChess_resetReadyOnRoomReturn');
+        localStorage.removeItem('flyingChessGameState');
+
+        this.showError(message);
+
+        setTimeout(() => {
+            window.location.replace('./');
+        }, 600);
+        return true;
     }
 
     /**
