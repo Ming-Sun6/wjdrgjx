@@ -665,12 +665,117 @@ function createAeroplaneChessPollingService(options = {}) {
     };
   }
 
+  function roomDurationMs(room) {
+    return Math.max(0, Date.now() - Number(room.createdAt || Date.now()));
+  }
+
+  function adminRoomJSON(room) {
+    const session = room.gameSessionId ? gameSessions.get(room.gameSessionId) || null : null;
+    const players = Array.from(room.players.values()).map(publicPlayer);
+    const aiPlayers = room.settings.aiPlayers.map(publicPlayer);
+    const allPlayers = [...players, ...aiPlayers].sort((a, b) => Number(a.color || 0) - Number(b.color || 0));
+    return {
+      code: room.code,
+      name: room.name,
+      hostId: room.hostId,
+      players: allPlayers,
+      realPlayers: players,
+      aiPlayers,
+      spectators: Array.from(room.spectators).map((id) => ({
+        id,
+        nickname: spectatorProfiles.get(id)?.nickname || defaultPlayerName(id)
+      })),
+      settings: {
+        pieceCount: room.settings.pieceCount,
+        takeoffRule: normalizeTakeoffRule(room.settings.takeoffRule),
+        skillMode: !!room.settings.skillMode
+      },
+      isPrivate: !!room.isPrivate,
+      gameState: room.gameState,
+      gameSessionId: room.gameSessionId,
+      currentPlayer: session?.gameData?.currentPlayer || null,
+      currentRound: session?.gameData?.currentRound || null,
+      createdAt: room.createdAt,
+      durationMs: roomDurationMs(room),
+      gameSession: session ? {
+        gameSessionId: session.gameSessionId,
+        roomCode: session.roomCode,
+        createdAt: session.createdAt,
+        audioLoadedPlayers: Array.from(session.audioLoadedPlayers),
+        allAudioLoadedSent: !!session.allAudioLoadedSent
+      } : null
+    };
+  }
+
+  function getAdminSnapshot() {
+    const adminRooms = Array.from(rooms.values()).map(adminRoomJSON)
+      .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+    const overview = adminRooms.reduce((acc, room) => {
+      acc.roomsTotal += 1;
+      if (room.gameState === 'waiting') acc.roomsWaiting += 1;
+      if (room.gameState === 'playing') acc.roomsPlaying += 1;
+      if (room.gameState === 'finished') acc.roomsFinished += 1;
+      acc.playersReal += room.realPlayers.length;
+      acc.playersAI += room.aiPlayers.length;
+      acc.spectators += room.spectators.length;
+      return acc;
+    }, {
+      roomsTotal: 0,
+      roomsWaiting: 0,
+      roomsPlaying: 0,
+      roomsFinished: 0,
+      playersReal: 0,
+      playersAI: 0,
+      spectators: 0,
+      gameSessions: gameSessions.size
+    });
+
+    return {
+      ok: true,
+      overview,
+      rooms: adminRooms,
+      generatedAt: Date.now()
+    };
+  }
+
+  function destroyRoomForAdmin(roomCode, reason = 'admin_destroy') {
+    const code = String(roomCode || '').toUpperCase();
+    const room = rooms.get(code);
+    if (!room) return { ok: false, error: 'ROOM_NOT_FOUND' };
+    const event = {
+      type: 'roomClosed',
+      roomCode: code,
+      gameSessionId: room.gameSessionId,
+      reason,
+      timestamp: Date.now()
+    };
+    broadcastRoom(room, event);
+    if (room.gameSessionId) gameSessions.delete(room.gameSessionId);
+    clearRoomMappings(room);
+    rooms.delete(code);
+    return { ok: true, roomCode: code };
+  }
+
+  function cleanupRoomsForAdmin() {
+    const destroyed = [];
+    for (const room of Array.from(rooms.values())) {
+      if (room.gameState === 'finished' || (room.players.size === 0 && room.settings.aiPlayers.length === 0)) {
+        const result = destroyRoomForAdmin(room.code, 'admin_cleanup');
+        if (result.ok) destroyed.push(room.code);
+      }
+    }
+    return { ok: true, destroyed, count: destroyed.length };
+  }
+
   return {
     handleMessage,
     pollEvents,
     rooms,
     gameSessions,
-    listPublicRooms
+    listPublicRooms,
+    getAdminSnapshot,
+    destroyRoomForAdmin,
+    cleanupRoomsForAdmin
   };
 }
 

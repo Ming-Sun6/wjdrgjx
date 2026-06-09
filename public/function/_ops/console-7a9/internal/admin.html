@@ -782,6 +782,7 @@
         <button class="side-item" type="button" data-page="shop" data-admin-only="1">积分商城</button>
         <button class="side-item" type="button" data-page="activation-codes" data-admin-only="1">激活码</button>
         <button class="side-item" type="button" data-page="calendar" data-admin-only="1">活动日历</button>
+        <button class="side-item" type="button" data-page="aeroplane-chess" data-admin-only="1">飞行棋管理</button>
         <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
         <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
         <button class="side-item" type="button" data-page="bearpit-data" data-admin-only="1">熊坑数据</button>
@@ -1340,6 +1341,55 @@
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="card page" id="page-aeroplane-chess" data-page="aeroplane-chess">
+          <div class="page-title">飞行棋管理</div>
+          <p class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
+            查看飞行棋联机房间、玩家、观战席与历史战绩。异常房间可手动销毁，已结束或空房可一键清理。
+          </p>
+          <div class="admin-toolbar">
+            <button class="btn secondary" id="aeroplaneChessReloadBtn" type="button">刷新</button>
+            <button class="btn secondary" id="aeroplaneChessCleanupBtn" type="button">清理无效房间</button>
+          </div>
+          <div class="admin-status" id="aeroplaneChessStatus"></div>
+          <div id="aeroplaneChessOverview"></div>
+          <div class="table-wrap" style="margin-top:12px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>房间</th>
+                  <th>状态</th>
+                  <th>规则</th>
+                  <th>玩家</th>
+                  <th>观战</th>
+                  <th>当前回合</th>
+                  <th>创建时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="aeroplaneChessRoomsTbody">
+                <tr><td colspan="8" style="color:var(--muted);">暂无房间</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="page-title" style="margin-top:16px;">历史战绩</div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>房间</th>
+                  <th>会话</th>
+                  <th>胜者</th>
+                  <th>玩家</th>
+                  <th>结束时间</th>
+                </tr>
+              </thead>
+              <tbody id="aeroplaneChessHistoryTbody">
+                <tr><td colspan="5" style="color:var(--muted);">暂无战绩</td></tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -4289,6 +4339,7 @@
       else if(currentPage==='bearpit-data'){ if(typeof window.loadBearpitAdmin==='function') window.loadBearpitAdmin(); }
       else if(currentPage==='shop'){ if(typeof window.loadShopAdmin==='function') window.loadShopAdmin(); }
       else if(currentPage==='activation-codes'){ if(typeof window.loadActivationCodesAdmin==='function') window.loadActivationCodesAdmin(); }
+      else if(currentPage==='aeroplane-chess'){ if(window.adminAeroplaneChess && window.adminAeroplaneChess.init) window.adminAeroplaneChess.init(); }
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='voices') loadUserVoices();
@@ -4563,6 +4614,7 @@
   <script src="/function/admin-bearpit-page.js?v=1"></script>
   <script src="/function/admin-shop-page.js?v=1"></script>
   <script src="/function/admin-activation-codes-page.js?v=2"></script>
+  <script src="/function/admin-aeroplane-chess-page.js?v=1"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){
@@ -4602,8 +4654,6 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 
 </body>
 </html>
-
-
 
 
 

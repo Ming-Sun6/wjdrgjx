@@ -554,3 +554,32 @@ test('polling service keeps next sequence at latest real event when replaying au
   assert.equal(afterReplay.events.some((event) => event.type === 'diceRoll'), false);
   assert.equal(afterReplay.events.some((event) => event.type === 'noMovableChess'), false);
 });
+
+test('polling service exposes admin snapshot and room cleanup controls', async () => {
+  const service = createAeroplaneChessPollingService();
+  const created = (await service.handleMessage({
+    type: 'createRoom',
+    playerId: 'host-1',
+    data: { nickname: 'Host', name: 'League Room', takeoffRule: 'six' }
+  })).events.find((event) => event.type === 'roomCreated');
+
+  await service.handleMessage({
+    type: 'spectate_room',
+    playerId: 'spectator-1',
+    data: { roomCode: created.room.code, nickname: 'Watcher' }
+  });
+
+  const snapshot = service.getAdminSnapshot();
+  assert.equal(snapshot.overview.roomsTotal, 1);
+  assert.equal(snapshot.overview.roomsWaiting, 1);
+  assert.equal(snapshot.overview.playersReal, 1);
+  assert.equal(snapshot.overview.spectators, 1);
+  assert.equal(snapshot.rooms[0].code, created.room.code);
+  assert.equal(snapshot.rooms[0].name, 'League Room');
+  assert.equal(snapshot.rooms[0].settings.takeoffRule, 'six');
+
+  const destroyed = service.destroyRoomForAdmin(created.room.code, 'admin_test');
+  assert.equal(destroyed.ok, true);
+  assert.equal(service.rooms.size, 0);
+  assert.equal(service.getAdminSnapshot().overview.roomsTotal, 0);
+});

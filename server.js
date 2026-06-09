@@ -151,7 +151,7 @@ app.use(
 );
 app.use(express.static(path.join(__dirname, 'public')));
 
-mountAeroplaneChessPollingRoutes(app, {
+const aeroplaneChessPollingService = mountAeroplaneChessPollingRoutes(app, {
   recordHistory: async (entry) => {
     try {
       await execute(
@@ -192,6 +192,16 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function parseJsonMaybe(value, fallback) {
+  if (value == null || value === '') return fallback;
+  if (typeof value === 'object') return value;
+  try {
+    return JSON.parse(String(value));
+  } catch (_err) {
+    return fallback;
+  }
 }
 
 function sanitizeAnnouncementHtml(inputHtml) {
@@ -1888,6 +1898,86 @@ app.get('/api/admin/dashboard/realtime', async (req, res) => {
     return await dashboardHandlers.realtime(req, res);
   } catch (err) {
     console.error('dashboard realtime failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.get('/api/admin/aeroplane-chess/overview', async (req, res) => {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  try {
+    const snapshot = aeroplaneChessPollingService.getAdminSnapshot();
+    return res.json({ ok: true, overview: snapshot.overview, generatedAt: snapshot.generatedAt });
+  } catch (err) {
+    console.error('admin aeroplane chess overview failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.get('/api/admin/aeroplane-chess/rooms', async (req, res) => {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  try {
+    const snapshot = aeroplaneChessPollingService.getAdminSnapshot();
+    return res.json({ ok: true, rooms: snapshot.rooms, generatedAt: snapshot.generatedAt });
+  } catch (err) {
+    console.error('admin aeroplane chess rooms failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.get('/api/admin/aeroplane-chess/history', async (req, res) => {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  try {
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit || 50)));
+    const rows = await queryRows(
+      `
+      SELECT id, room_code, game_session_id, winner_player, rankings_json, players_json, ended_at
+      FROM aeroplane_chess_match_history
+      ORDER BY ended_at DESC, id DESC
+      LIMIT ?
+      `,
+      [limit]
+    );
+    return res.json({
+      ok: true,
+      history: rows.map((row) => ({
+        id: Number(row.id),
+        roomCode: row.room_code || '',
+        gameSessionId: row.game_session_id || '',
+        winnerPlayer: row.winner_player == null ? null : Number(row.winner_player),
+        rankings: parseJsonMaybe(row.rankings_json, null),
+        players: parseJsonMaybe(row.players_json, []),
+        endedAt: row.ended_at
+      }))
+    });
+  } catch (err) {
+    console.error('admin aeroplane chess history failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.post('/api/admin/aeroplane-chess/rooms/:code/destroy', async (req, res) => {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  try {
+    const result = aeroplaneChessPollingService.destroyRoomForAdmin(req.params.code, 'admin_destroy');
+    if (!result.ok) return res.status(404).json(result);
+    return res.json(result);
+  } catch (err) {
+    console.error('admin aeroplane chess destroy room failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.post('/api/admin/aeroplane-chess/cleanup', async (req, res) => {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  try {
+    return res.json(aeroplaneChessPollingService.cleanupRoomsForAdmin());
+  } catch (err) {
+    console.error('admin aeroplane chess cleanup failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
 });
@@ -3690,7 +3780,7 @@ app.get('/api/admin/users', async (req, res) => {
         id,login_id,username,created_at,is_admin,forum_publisher,is_banned,muted_until,
         membership_status,membership_expires_at,title_text,title_bg_color,title_color,
         bio,gender,birthday,birthday_public,
-        username_change_remaining,username_change_next_at
+        username_change_remaining,username_change_next_at,points
       FROM users
       ${where}
       ORDER BY created_at DESC, id DESC

@@ -737,3 +737,31 @@ test('online thinking timeout never falls back to local global ai takeover', () 
     assert.match(method, /shouldStartNewTimer:\s*false/);
   }
 });
+
+test('toolbox admin integrates aeroplane chess management page and api routes', () => {
+  const serverSource = fs.readFileSync(path.join(rootDir, 'server.js'), 'utf8');
+  const adminHtml = fs.readFileSync(
+    path.join(rootDir, 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'),
+    'utf8'
+  );
+  const adminScript = fs.readFileSync(path.join(rootDir, 'public', 'function', 'admin-aeroplane-chess-page.js'), 'utf8');
+
+  assert.match(adminHtml, /data-page="aeroplane-chess"/);
+  assert.match(adminHtml, />飞行棋管理</);
+  assert.match(adminHtml, /id="aeroplaneChessOverview"/);
+  assert.match(adminHtml, /admin-aeroplane-chess-page\.js/);
+
+  assert.match(adminScript, /\/api\/admin\/aeroplane-chess\/overview/);
+  assert.match(adminScript, /\/api\/admin\/aeroplane-chess\/rooms/);
+  assert.match(adminScript, /\/api\/admin\/aeroplane-chess\/history/);
+  assert.match(adminScript, /\/api\/admin\/aeroplane-chess\/rooms\/'\s*\+\s*encodeURIComponent\(code\)\s*\+\s*'\/destroy/);
+  assert.match(adminScript, /window\.adminAeroplaneChess/);
+
+  assert.match(serverSource, /const aeroplaneChessPollingService\s*=\s*mountAeroplaneChessPollingRoutes/);
+  assert.match(serverSource, /app\.get\('\/api\/admin\/aeroplane-chess\/overview'/);
+  assert.match(serverSource, /app\.get\('\/api\/admin\/aeroplane-chess\/rooms'/);
+  assert.match(serverSource, /app\.get\('\/api\/admin\/aeroplane-chess\/history'/);
+  assert.match(serverSource, /app\.post\('\/api\/admin\/aeroplane-chess\/rooms\/:code\/destroy'/);
+  assert.match(serverSource, /app\.post\('\/api\/admin\/aeroplane-chess\/cleanup'/);
+  assert.match(serverSource, /requireAdmin\(req,\s*res\)/);
+});

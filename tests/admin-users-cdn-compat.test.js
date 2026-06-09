@@ -23,6 +23,14 @@ test('admin user update API accepts POST alongside PATCH', () => {
   assert.match(source, /app\.post\('\/api\/admin\/users\/:id',\s*handleAdminUserUpdate\s*\);/);
 });
 
+test('admin users API selects points for user detail display', () => {
+  const source = read('server.js');
+  const match = source.match(/app\.get\('\/api\/admin\/users'[\s\S]*?FROM users/);
+  assert.ok(match, 'admin users list route should query users table');
+  assert.match(match[0], /\bpoints\b/);
+  assert.match(source, /points:\s*Math\.max\(0,\s*Number\(row\.points\s*\|\|\s*0\)\)/);
+});
+
 test('profile and admin moderation flows submit updates with POST for CDN compatibility', () => {
   const indexSource = read('index.html');
   const adminSource = read(path.join('public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'));
