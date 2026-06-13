@@ -74,6 +74,16 @@ const AVATAR_PUBLIC_PREFIX = '/uploads/avatars/';
 const FORUM_IMAGE_UPLOAD_DIR = path.join(__dirname, 'uploads', 'forum');
 const FORUM_IMAGE_PUBLIC_PREFIX = '/uploads/forum/';
 const DEFAULT_ADMIN_LOGIN_ID = process.env.DEFAULT_ADMIN_LOGIN_ID || 'admin';
+const SITE_FOOTER_SETTING_KEY = 'site_footer';
+const DEFAULT_SITE_FOOTER_CREDITS = [
+  '制作：2041茗子、飞菇',
+  '数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子',
+  '测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球、柒枫团队',
+  '宣传大使：懒羊羊',
+  '赞助：39 拙山枯水大江行',
+  '',
+  '感谢以上所有人对本攻略站的付出'
+].join('\n');
 
 const MIGRATION_GROUP_SECTIONS = Array.from({ length: 10 }, (_, i) => `migration-${i + 1}`);
 const FORUM_SECTIONS = new Set(['guide', 'forecast', 'talk', 'melon', ...MIGRATION_GROUP_SECTIONS]);
@@ -346,6 +356,68 @@ function sanitizeHomeLeadDetailHtml(inputHtml) {
     },
     disallowedTagsMode: 'discard'
   });
+}
+
+function sanitizeForumPostHtml(inputHtml) {
+  const raw = String(inputHtml || '').trim();
+  if (!raw) return '';
+  if (!sanitizeHtml) {
+    return escapeHtml(raw).replace(/\n/g, '<br>');
+  }
+  return sanitizeHtml(raw, {
+    allowedTags: [
+      'b', 'strong', 'i', 'em', 'u', 's',
+      'br', 'p', 'div', 'span',
+      'ul', 'ol', 'li',
+      'blockquote', 'pre', 'code',
+      'h1', 'h2', 'h3', 'h4',
+      'a', 'img'
+    ],
+    allowedAttributes: {
+      a: ['href', 'title', 'target', 'rel'],
+      img: ['src', 'alt', 'title', 'width', 'height'],
+      span: ['style'],
+      p: ['style'],
+      div: ['style']
+    },
+    allowedStyles: {
+      '*': {
+        color: [/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/],
+        'font-size': [/^\d+(px|rem|em|%)$/],
+        'font-weight': [/^(normal|bold|[1-9]00)$/],
+        'text-decoration': [/^(none|underline|line-through)$/],
+        'text-align': [/^(left|right|center|justify)$/]
+      }
+    },
+    transformTags: {
+      a: (tagName, attribs) => {
+        const href = String(attribs.href || '').trim();
+        const safeHref = (!href || href.startsWith('/') || /^https?:\/\//i.test(href)) ? href : '';
+        return {
+          tagName,
+          attribs: {
+            href: safeHref,
+            title: String(attribs.title || ''),
+            target: '_blank',
+            rel: 'noopener noreferrer'
+          }
+        };
+      },
+      img: (tagName, attribs) => {
+        const src = String(attribs.src || '').trim();
+        const safeSrc = (src.startsWith('/uploads/') || src.startsWith('/api/image/thumb') || /^https?:\/\//i.test(src)) ? src : '';
+        return {
+          tagName,
+          attribs: {
+            src: safeSrc,
+            alt: String(attribs.alt || ''),
+            title: String(attribs.title || '')
+          }
+        };
+      }
+    },
+    disallowedTagsMode: 'discard'
+  }).trim();
 }
 
 function defaultHomeLeadCarousel() {
@@ -1234,6 +1306,28 @@ async function getForumAutoApprove() {
 
 async function setForumAutoApprove(autoApprove) {
   await setSetting('forum_auto_approve', { autoApprove: !!autoApprove });
+}
+
+function normalizeSiteFooterCredits(payload) {
+  const raw = typeof payload === 'string' ? payload : payload?.credits;
+  const credits = String(raw == null ? DEFAULT_SITE_FOOTER_CREDITS : raw)
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .trim();
+  if (!credits) return { error: 'EMPTY_CREDITS' };
+  if (credits.length > 2000) return { error: 'CREDITS_TOO_LONG' };
+  return { credits };
+}
+
+async function getSiteFooterSetting() {
+  const fallback = { credits: DEFAULT_SITE_FOOTER_CREDITS, updatedAt: null, updatedBy: null };
+  const value = await getSetting(SITE_FOOTER_SETTING_KEY, fallback);
+  const normalized = normalizeSiteFooterCredits(value);
+  return {
+    credits: normalized.error ? DEFAULT_SITE_FOOTER_CREDITS : normalized.credits,
+    updatedAt: value && value.updatedAt ? value.updatedAt : null,
+    updatedBy: value && value.updatedBy ? value.updatedBy : null
+  };
 }
 
 async function normalizeUserQuota(userId) {
@@ -2155,6 +2249,57 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ ok: true });
 });
 
+app.get('/api/site-footer', async (_req, res) => {
+  try {
+    return res.json({ siteFooter: await getSiteFooterSetting() });
+  } catch (err) {
+    console.error('site footer get failed:', err);
+    return res.json({ siteFooter: { credits: DEFAULT_SITE_FOOTER_CREDITS, updatedAt: null, updatedBy: null } });
+  }
+});
+
+app.get('/api/admin/site-footer', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    return res.json({ siteFooter: await getSiteFooterSetting() });
+  } catch (err) {
+    console.error('admin site footer get failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+async function updateSiteFooter(req, res) {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  const normalized = normalizeSiteFooterCredits(req.body || {});
+  if (normalized.error) return res.status(400).json({ error: normalized.error });
+  const siteFooter = {
+    credits: normalized.credits,
+    updatedAt: new Date().toISOString(),
+    updatedBy: admin.username || admin.login_id || String(admin.id)
+  };
+  await setSetting('site_footer', siteFooter);
+  await auditAdminAction(req, {
+    actor: admin,
+    action: 'site_footer.update',
+    targetType: 'site_footer',
+    targetId: 'current',
+    riskLevel: 'watch',
+    summary: '更新底部致谢内容',
+    metadata: { length: normalized.credits.length }
+  });
+  return res.json({ ok: true, siteFooter });
+}
+
+app.put('/api/admin/site-footer', async (req, res) => {
+  try { await updateSiteFooter(req, res); } catch (err) { console.error('admin site footer put failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+app.post('/api/admin/site-footer', async (req, res) => {
+  try { await updateSiteFooter(req, res); } catch (err) { console.error('admin site footer post failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
 const handleProfileUpdate = async (req, res) => {
   try {
     const user = await requireAuth(req, res);
@@ -3017,6 +3162,11 @@ app.post('/api/forum/posts', async (req, res) => {
       if (!contentHtml) return res.status(400).json({ error: 'EMPTY_CONTENT' });
       coverImage = null;
     }
+    contentHtml = sanitizeForumPostHtml(contentHtml);
+    if (type !== 'image' && !String(contentHtml || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()) {
+      return res.status(400).json({ error: 'EMPTY_CONTENT' });
+    }
+    if (contentHtml.length > 20000) return res.status(400).json({ error: 'CONTENT_TOO_LONG' });
     const autoApprove = await getForumAutoApprove();
     const approved = isModerator(user) || autoApprove;
     let newPostId = 0;
@@ -3092,6 +3242,11 @@ const handleForumPostUpdate = async (req, res) => {
       if (!contentHtml) return res.status(400).json({ error: 'EMPTY_CONTENT' });
       coverImage = null;
     }
+    contentHtml = sanitizeForumPostHtml(contentHtml);
+    if (type !== 'image' && !String(contentHtml || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()) {
+      return res.status(400).json({ error: 'EMPTY_CONTENT' });
+    }
+    if (contentHtml.length > 20000) return res.status(400).json({ error: 'CONTENT_TOO_LONG' });
     const autoApprove = await getForumAutoApprove();
     const approved = canModerate || autoApprove;
     await execute(

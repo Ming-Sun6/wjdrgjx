@@ -25,6 +25,8 @@
   line-height:1;
   cursor:pointer;
   user-select:none;
+  pointer-events:auto;
+  touch-action:manipulation;
   -webkit-tap-highlight-color:transparent;
 }
 

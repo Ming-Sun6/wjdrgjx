@@ -1,0 +1,527 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>专家/技能升级计算器 - 无尽冬日工具箱</title>
+  <style>
+    :root {
+      --bg0:#07111d;
+      --bg1:#13233a;
+      --panel:rgba(12,24,39,.86);
+      --panel-2:rgba(19,35,55,.82);
+      --panel-3:rgba(255,255,255,.06);
+      --line:rgba(174,204,235,.2);
+      --line-strong:rgba(174,204,235,.42);
+      --text:#f4f8ff;
+      --muted:#9fb1c6;
+      --soft:#f8fbff;
+      --ink:#0f172a;
+      --accent:#f6c667;
+      --accent-2:#5dd7ff;
+      --good:#73e7a4;
+      --shadow:0 22px 54px rgba(2,8,23,.42);
+      --radius:22px;
+    }
+
+    body.theme-day {
+      --bg0:#edf6ff;
+      --bg1:#fff7e8;
+      --panel:rgba(255,255,255,.9);
+      --panel-2:rgba(255,255,255,.96);
+      --panel-3:rgba(14,116,144,.07);
+      --line:rgba(15,23,42,.12);
+      --line-strong:rgba(15,23,42,.22);
+      --text:#172033;
+      --muted:#475569;
+      --soft:#ffffff;
+      --ink:#111111;
+      --accent:#b7791f;
+      --accent-2:#047ca8;
+      --good:#147a45;
+      --shadow:0 18px 42px rgba(15,23,42,.12);
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      min-height:100vh;
+      color:var(--text);
+      font-family:"Source Han Sans SC","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+      padding:18px 18px 34px;
+      background:
+        radial-gradient(980px 560px at 8% -14%, color-mix(in srgb,var(--accent-2) 24%,transparent), transparent 62%),
+        radial-gradient(860px 520px at 102% -6%, color-mix(in srgb,var(--accent) 25%,transparent), transparent 62%),
+        linear-gradient(145deg,var(--bg0),var(--bg1));
+    }
+
+    .home-btn {
+      position:fixed;
+      left:14px;
+      top:14px;
+      z-index:20;
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:var(--panel);
+      padding:9px 14px;
+      text-decoration:none;
+      font-size:12px;
+      font-weight:900;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(14px);
+    }
+
+    .wrap { max-width:1320px; margin:54px auto 0; display:grid; gap:16px; }
+    .title {
+      position:relative;
+      overflow:hidden;
+      display:grid;
+      gap:10px;
+      border:1px solid var(--line);
+      border-radius:28px;
+      background:linear-gradient(135deg,var(--panel),color-mix(in srgb,var(--panel-2) 82%,transparent));
+      box-shadow:var(--shadow);
+      padding:clamp(22px,4vw,40px);
+      backdrop-filter:blur(18px);
+    }
+    .title::after {
+      content:"";
+      position:absolute;
+      width:360px;
+      height:360px;
+      right:-130px;
+      top:-160px;
+      border-radius:50%;
+      background:radial-gradient(circle,color-mix(in srgb,var(--accent) 28%,transparent),transparent 68%);
+      pointer-events:none;
+    }
+    .eyebrow {
+      width:max-content;
+      border:1px solid color-mix(in srgb,var(--accent) 48%,var(--line));
+      border-radius:999px;
+      padding:7px 12px;
+      color:var(--accent);
+      background:color-mix(in srgb,var(--accent) 12%,transparent);
+      font-size:12px;
+      font-weight:950;
+      letter-spacing:.08em;
+    }
+    h1 { position:relative; z-index:1; font-size:clamp(32px,4.4vw,54px); line-height:1.05; letter-spacing:-.045em; }
+    .lead { position:relative; z-index:1; color:var(--muted); font-size:15px; line-height:1.7; font-weight:750; max-width:760px; }
+
+    .box {
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:var(--panel);
+      padding:18px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(16px);
+    }
+
+    .top-grid {
+      display:grid;
+      grid-template-columns:minmax(190px,.8fr) minmax(320px,1.7fr) auto;
+      gap:16px;
+      align-items:end;
+    }
+
+    .field-group { display:grid; gap:8px; }
+    .label { color:var(--text); font-size:13px; font-weight:950; letter-spacing:.02em; }
+    .inline { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .tiny-label { color:var(--muted); font-size:13px; font-weight:900; }
+
+    select {
+      min-width:112px;
+      border:1px solid var(--line-strong);
+      border-radius:13px;
+      background:var(--soft);
+      color:var(--ink);
+      padding:10px 14px;
+      font:inherit;
+      font-weight:800;
+      outline:none;
+      box-shadow:0 8px 18px rgba(2,8,23,.08);
+    }
+    select:focus { border-color:var(--accent-2); box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-2) 22%,transparent); }
+
+    .expert-select { min-width:180px; }
+
+    button {
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:var(--panel-3);
+      color:var(--text);
+      padding:10px 18px;
+      font:inherit;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .18s ease,border-color .18s ease,background .18s ease;
+    }
+    button:hover { border-color:var(--accent-2); transform:translateY(-1px); }
+    #calcBtn { background:linear-gradient(135deg,var(--accent-2),#1d8fb6); color:#06111b; border-color:transparent; }
+    body.theme-day #calcBtn { color:#fff; }
+
+    .divider { border:none; border-top:1px solid var(--line-strong); margin:18px 0 14px; }
+    .effect-title { color:var(--accent); font-size:14px; font-weight:950; margin-bottom:8px; }
+    .effect-text { border-radius:16px; background:var(--panel-3); padding:12px 14px; font-size:14px; line-height:1.7; font-weight:800; }
+
+    .skill-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .skill-card {
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:var(--panel);
+      padding:18px;
+      display:grid;
+      gap:12px;
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(16px);
+    }
+
+    .skill-name { font-size:20px; font-weight:950; color:var(--text); letter-spacing:-.01em; }
+    .skill-main {
+      display:grid;
+      grid-template-columns:minmax(240px,1fr) minmax(220px,.9fr);
+      gap:18px;
+      align-items:start;
+    }
+
+    .subtotal { display:grid; gap:7px; border-radius:16px; background:var(--panel-3); padding:12px; font-size:14px; font-weight:850; }
+    .subtotal-title { color:var(--accent); margin-bottom:2px; font-weight:950; }
+    .kv { display:grid; grid-template-columns:1fr auto; gap:16px; align-items:center; }
+    .num { color:var(--text); font-variant-numeric:tabular-nums; text-align:right; font-weight:950; }
+    .skill-effect { border-top:1px solid var(--line-strong); padding-top:12px; display:grid; gap:6px; }
+    .skill-effect-title { color:var(--accent); font-size:14px; font-weight:950; }
+    .skill-effect-text { color:var(--text); font-size:14px; line-height:1.65; font-weight:750; }
+
+    .skill-level-table { display:none; }
+
+    .total-grid {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+    .total-block { display:grid; gap:8px; max-width:720px; border-radius:16px; background:var(--panel-3); padding:14px; }
+    .total-title { color:var(--accent); font-size:14px; font-weight:950; margin-bottom:2px; }
+    .total-row { display:grid; grid-template-columns:1fr auto; gap:16px; font-size:15px; font-weight:850; }
+    .empty { color:var(--muted); font-size:14px; }
+    .source { color:var(--muted); font-size:12px; margin-top:8px; }
+
+    @media (max-width:980px) {
+      body { padding:12px; }
+      .wrap { margin-top:52px; }
+      .top-grid,
+      .skill-grid,
+      .skill-main,
+      .total-grid { grid-template-columns:1fr; }
+      .top-grid { align-items:start; }
+      .inline { align-items:flex-start; }
+      select { min-width:104px; }
+    }
+
+    @media (max-width:560px) {
+      .title,.box,.skill-card { border-radius:18px; padding:14px; }
+      .home-btn { top:10px; left:10px; padding:8px 12px; }
+      h1 { font-size:28px; }
+      .inline select { flex:1 1 112px; }
+      .inline button { flex:1 1 120px; }
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+</head>
+<body>
+  <a class="home-btn" href="../rukou.html">返回主页</a>
+
+  <main class="wrap">
+    <header class="title">
+      <div class="eyebrow">EXPERT PLANNER</div>
+      <h1>专家/技能升级计算器</h1>
+      <p class="lead">选择等级后，自动计算需要的好感度、专家印记、学习经验和学识之书。</p>
+    </header>
+
+    <section class="box">
+      <div class="top-grid">
+        <div class="field-group">
+          <div class="label">专家</div>
+          <select id="expertSelect" class="expert-select"></select>
+        </div>
+        <div class="field-group">
+          <div class="label">等级范围</div>
+          <div class="inline">
+            <span class="tiny-label">当前</span>
+            <select id="currentLevel"></select>
+            <span class="tiny-label">目标</span>
+            <select id="targetLevel"></select>
+          </div>
+        </div>
+        <div class="inline">
+          <button type="button" id="calcBtn">计算</button>
+          <button type="button" id="resetBtn">重置</button>
+        </div>
+      </div>
+
+      <hr class="divider" />
+      <div class="effect-title">专家效果（目标基准）</div>
+      <div class="effect-text" id="expertEffect">待补充</div>
+      <div class="source" id="dataSource"></div>
+      <span id="favorNeeded" hidden></span>
+      <span id="skillList" hidden></span>
+    </section>
+
+    <section class="skill-grid" id="skillCards"></section>
+
+    <section class="box">
+      <div class="skill-name">合计</div>
+      <div class="total-grid">
+        <div class="total-block">
+          <div class="total-title">专家</div>
+          <div class="total-row"><span>好感度</span><span class="num" id="totalFavor">0</span></div>
+          <div class="total-row"><span>专家印记</span><span class="num" id="totalMarks">0</span></div>
+        </div>
+        <div class="total-block">
+          <div class="total-title">技能</div>
+          <div class="total-row"><span>学习经验</span><span class="num" id="totalSkillXp">0</span></div>
+          <div class="total-row"><span>学识之书</span><span class="num" id="totalSkillBooks">0</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="expert-calculator-data.js"></script>
+  <script>
+    "use strict";
+
+    const DATA = window.ExpertCalculatorData || { experts: [] };
+    const expertSelect = document.getElementById("expertSelect");
+    const currentLevel = document.getElementById("currentLevel");
+    const targetLevel = document.getElementById("targetLevel");
+    const skillCards = document.getElementById("skillCards");
+    const skillState = new Map();
+
+    function fmtInt(value) {
+      return Number(value || 0).toLocaleString("zh-CN", { maximumFractionDigits: 0 });
+    }
+
+    function fmtPct(value) {
+      if (!value) return "0%";
+      return (value * 100).toFixed(2).replace(/\.?0+$/, "") + "%";
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, char => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+      }[char]));
+    }
+
+    function option(value, text) {
+      const node = document.createElement("option");
+      node.value = String(value);
+      node.textContent = text || `Lv.${value}`;
+      return node;
+    }
+
+    function expert() {
+      return DATA.experts.find(item => item.id === expertSelect.value) || DATA.experts[0];
+    }
+
+    function levelAt(items, level) {
+      return items.find(item => item.level === level) || items[0] || {};
+    }
+
+    function talentFor(expertData) {
+      return expertData.skills.find(skill => skill.type === "talent");
+    }
+
+    function normalSkills(expertData) {
+      return expertData.skills.filter(skill => skill.type !== "talent");
+    }
+
+    function relationAt(expertData, level) {
+      let relation = levelAt(expertData.levels, level).relation || "";
+      expertData.relationMilestones.forEach(item => {
+        if (item.afterLevel <= level && item.relation) relation = item.relation;
+      });
+      return relation || "-";
+    }
+
+    function matchingTalentLevel(talent, expertLevel) {
+      if (!talent) return null;
+      let current = talent.levels[0] || null;
+      talent.levels.forEach(row => {
+        if (row.level <= expertLevel) current = row;
+      });
+      return current;
+    }
+
+    function expertCost(expertData, from, to) {
+      const rows = expertData.levels.filter(row => row.level > from && row.level <= to);
+      const favor = rows.reduce((sum, row) => sum + (row.favor || 0), 0);
+      const marks = expertData.relationMilestones
+        .filter(row => row.afterLevel > from && row.afterLevel <= to)
+        .reduce((sum, row) => sum + (row.mark || 0), 0);
+      return { favor, marks };
+    }
+
+    function skillCost(skill, from, to) {
+      const rows = skill.levels.filter(row => row.level > from && row.level <= to);
+      return {
+        xp: rows.reduce((sum, row) => sum + (row.xp || 0), 0),
+        books: rows.reduce((sum, row) => sum + (row.books || 0), 0)
+      };
+    }
+
+    function fillExpertOptions() {
+      expertSelect.innerHTML = "";
+      DATA.experts.forEach(item => expertSelect.appendChild(option(item.id, item.name)));
+      currentLevel.innerHTML = "";
+      targetLevel.innerHTML = "";
+      for (let level = 1; level <= 100; level += 1) {
+        currentLevel.appendChild(option(level));
+        targetLevel.appendChild(option(level));
+      }
+      currentLevel.value = "1";
+      targetLevel.value = "100";
+      document.getElementById("dataSource").textContent = `来源：${DATA.source || "专家数据表.xlsx"}`;
+    }
+
+    function skillSelect(skill, className, value) {
+      const max = Math.max(...skill.levels.map(row => row.level));
+      const select = document.createElement("select");
+      select.className = className;
+      skill.levels.forEach(row => select.appendChild(option(row.level)));
+      select.value = String(Math.min(value, max));
+      return select.outerHTML;
+    }
+
+    function renderSkillCards(expertData) {
+      const skills = normalSkills(expertData);
+      skillState.clear();
+      if (!skills.length) {
+        skillCards.innerHTML = `<section class="skill-card"><div class="empty">技能待补充</div></section>`;
+        return;
+      }
+
+      skillCards.innerHTML = skills.map((skill, index) => {
+        const min = skill.levels[0]?.level || 1;
+        const next = skill.levels[1]?.level || min;
+        skillState.set(String(index), { from: min, to: next });
+        const maxLevel = Math.max(...skill.levels.map(row => row.level));
+        return `
+          <section class="skill-card" data-skill-index="${index}">
+            <div class="skill-name">${escapeHtml(skill.name)}</div>
+            <div class="skill-main">
+              <div>
+                <div class="label">等级范围（封顶 Lv.${fmtInt(maxLevel)}）</div>
+                <div class="inline" style="margin-top:8px">
+                  <span class="tiny-label">当前</span>${skillSelect(skill, "skill-from", min)}
+                  <span class="tiny-label">目标</span>${skillSelect(skill, "skill-to", next)}
+                </div>
+              </div>
+              <div class="subtotal">
+                <div class="subtotal-title">小计</div>
+                <div class="kv"><span>学习经验</span><span class="num skill-xp">0</span></div>
+                <div class="kv"><span>学识之书</span><span class="num skill-books">0</span></div>
+              </div>
+            </div>
+            <div class="skill-effect">
+              <div class="skill-effect-title">技能效果（目标基准）</div>
+              <div class="skill-effect-text skill-effect-value">待补充</div>
+            </div>
+            <div class="skill-level-table"></div>
+          </section>
+        `;
+      }).join("");
+
+      skillCards.querySelectorAll("select").forEach(select => select.addEventListener("change", calculate));
+    }
+
+    function calculate() {
+      const expertData = expert();
+      if (!expertData) return;
+      let from = Number(currentLevel.value || 1);
+      let to = Number(targetLevel.value || 1);
+      if (to < from) {
+        to = from;
+        targetLevel.value = String(to);
+      }
+
+      const cost = expertCost(expertData, from, to);
+      const targetLevelData = levelAt(expertData.levels, to);
+      const targetTalent = matchingTalentLevel(talentFor(expertData), to);
+      const statText = `${expertData.statLabel || "专家属性"} ${fmtPct(targetLevelData.stat)}`;
+      const relationText = `关系：${relationAt(expertData, to)}`;
+      document.getElementById("expertEffect").textContent = targetTalent?.description
+        ? `${targetTalent.description}（${statText}，${relationText}）`
+        : `${statText}，${relationText}`;
+      document.getElementById("favorNeeded").textContent = fmtInt(cost.favor);
+      document.getElementById("totalFavor").textContent = fmtInt(cost.favor);
+      document.getElementById("totalMarks").textContent = fmtInt(cost.marks);
+
+      let totalXp = 0;
+      let totalBooks = 0;
+      const skills = normalSkills(expertData);
+      skillCards.querySelectorAll(".skill-card").forEach(card => {
+        const index = Number(card.dataset.skillIndex);
+        const skill = skills[index];
+        if (!skill) return;
+        const fromSelect = card.querySelector(".skill-from");
+        const toSelect = card.querySelector(".skill-to");
+        let skillFrom = Number(fromSelect.value || 1);
+        let skillTo = Number(toSelect.value || 1);
+        if (skillTo < skillFrom) {
+          skillTo = skillFrom;
+          toSelect.value = String(skillTo);
+        }
+        const subtotal = skillCost(skill, skillFrom, skillTo);
+        totalXp += subtotal.xp;
+        totalBooks += subtotal.books;
+        card.querySelector(".skill-xp").textContent = fmtInt(subtotal.xp);
+        card.querySelector(".skill-books").textContent = fmtInt(subtotal.books);
+        card.querySelector(".skill-effect-value").textContent = levelAt(skill.levels, skillTo).description || "待补充";
+      });
+
+      document.getElementById("totalSkillXp").textContent = fmtInt(totalXp);
+      document.getElementById("totalSkillBooks").textContent = fmtInt(totalBooks);
+    }
+
+    function resetAll() {
+      currentLevel.value = "1";
+      targetLevel.value = "100";
+      renderSkillCards(expert());
+      calculate();
+    }
+
+    fillExpertOptions();
+    renderSkillCards(expert());
+    calculate();
+
+    expertSelect.addEventListener("change", () => { renderSkillCards(expert()); calculate(); });
+    currentLevel.addEventListener("change", calculate);
+    targetLevel.addEventListener("change", calculate);
+    document.getElementById("calcBtn").addEventListener("click", calculate);
+    document.getElementById("resetBtn").addEventListener("click", resetAll);
+  </script>
+</body>
+</html>

@@ -177,7 +177,7 @@
     .auth-btn{
       background:rgba(59,130,246,.18);
       border:1px solid var(--border);
-      color:#e2e8f0;
+      color:var(--text);
       padding:6px 10px;
       border-radius:8px;
       cursor:pointer;
@@ -220,24 +220,24 @@
       border-radius:12px;
       box-shadow:0 18px 48px rgba(0,0,0,.45);
       overflow:hidden;
-      color:#fff;
+      color:var(--text);
     }
     .auth-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(15,23,42,.45);border-bottom:1px solid rgba(255,255,255,.08);}
-    .auth-head h3{margin:0;font-size:15px;color:#e2e8f0;}
+    .auth-head h3{margin:0;font-size:15px;color:var(--text);}
     .auth-close{border:none;background:rgba(239,68,68,.2);color:#fecaca;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;}
     .auth-body{padding:14px;}
     .auth-row{margin-bottom:10px;}
-    .auth-row label{display:block;font-size:12px;color:#94a3b8;margin-bottom:6px;}
+    .auth-row label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
     .auth-row input,
     .auth-row select,
-    .auth-row textarea{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(15,23,42,.85);color:#fff;outline:none;}
+    .auth-row textarea{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(15,23,42,.85);color:var(--text);outline:none;}
     .auth-row textarea{min-height:84px;resize:vertical;max-height:220px;}
     .auth-row input:focus,
     .auth-row select:focus,
     .auth-row textarea:focus{border-color:rgba(59,130,246,.8);box-shadow:0 0 0 3px rgba(59,130,246,.18);}
     .auth-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
     .auth-actions button{margin:0;background:linear-gradient(90deg,#3b82f6,#6366f1);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;}
-    .auth-actions button.secondary{background:rgba(15,23,42,.55);border:1px solid var(--border);color:#e2e8f0;}
+    .auth-actions button.secondary{background:rgba(15,23,42,.55);border:1px solid var(--border);color:var(--text);}
     .auth-error{margin-top:10px;font-size:12px;color:#fecaca;min-height:16px;}
     .auth-legal-note{margin:14px 0 0;font-size:11px;color:var(--muted);line-height:1.55;text-align:center;}
     .auth-legal-note a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;font-weight:600;}
@@ -263,7 +263,7 @@
     .profile-avatar-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
     .profile-avatar-controls input[type="file"]{display:none;}
     .profile-avatar-controls button{
-      margin:0;background:rgba(15,23,42,.55);border:1px solid var(--border);color:#e2e8f0;
+      margin:0;background:rgba(15,23,42,.55);border:1px solid var(--border);color:var(--text);
       padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;
     }
     .profile-username-row{
@@ -281,7 +281,7 @@
     .profile-username-btn{
       border:none;
       background:transparent;
-      color:#e2e8f0;
+      color:var(--text);
       display:flex;
       align-items:center;
       gap:8px;
@@ -303,7 +303,7 @@
     }
 
     /* 版本号与更新日志 */
-    .version-tag{position:fixed;top:52px;right:10px;z-index:10000;font-size:.75rem;color:#94a3b8;background:rgba(15,23,42,.55);border:1px solid var(--border);padding:4px 10px;border-radius:999px;backdrop-filter:blur(10px);pointer-events:none;}
+    .version-tag{position:fixed;top:52px;right:10px;z-index:10000;font-size:.75rem;color:var(--muted);background:rgba(15,23,42,.55);border:1px solid var(--border);padding:4px 10px;border-radius:999px;backdrop-filter:blur(10px);pointer-events:none;}
     .announcement-btn{
       position:fixed;
       top:10px;
@@ -335,7 +335,7 @@
       box-shadow:0 0 0 2px rgba(15,23,42,.9);
       display:none;
     }
-    .changelog-btn{position:fixed;top:10px;left:56px;z-index:10002;margin:0;padding:8px 12px;font-size:.8rem;border-radius:8px;cursor:pointer;background:rgba(15,23,42,.55);border:1px solid var(--border);color:#e2e8f0;font-weight:600;box-shadow:0 6px 14px rgba(0,0,0,.35);}
+    .changelog-btn{position:fixed;top:10px;left:56px;z-index:10002;margin:0;padding:8px 12px;font-size:.8rem;border-radius:8px;cursor:pointer;background:rgba(15,23,42,.55);border:1px solid var(--border);color:var(--text);font-weight:600;box-shadow:0 6px 14px rgba(0,0,0,.35);}
     .changelog-btn:hover{background:rgba(59,130,246,.25);}
     .theme-toggle-btn{
       position:fixed;
@@ -350,7 +350,7 @@
       cursor:pointer;
       background:rgba(15,23,42,.55);
       border:1px solid var(--border);
-      color:#e2e8f0;
+      color:var(--text);
       box-shadow:0 6px 14px rgba(0,0,0,.35);
       display:flex;
       align-items:center;
@@ -1573,9 +1573,9 @@
       padding:10px 12px;
       background:rgba(15,23,42,.22);
     }
-    .me-rewards-stat-label{font-size:.78rem;color:#94a3b8;margin-bottom:4px;}
-    .me-rewards-stat-value{font-size:1.15rem;font-weight:800;color:#e2e8f0;}
-    .me-rewards-hint{margin:0 0 12px;color:#94a3b8;font-size:.84rem;line-height:1.6;}
+    .me-rewards-stat-label{font-size:.78rem;color:var(--muted);margin-bottom:4px;}
+    .me-rewards-stat-value{font-size:1.15rem;font-weight:800;color:var(--text);}
+    .me-rewards-hint{margin:0 0 12px;color:var(--muted);font-size:.84rem;line-height:1.6;}
     .me-redeem-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
     .me-redeem-row input{
       flex:1 1 180px;
@@ -1584,7 +1584,7 @@
       border-radius:10px;
       border:1px solid rgba(148,163,184,.28);
       background:rgba(15,23,42,.35);
-      color:#e2e8f0;
+      color:var(--text);
       font:inherit;
     }
     body.theme-day .me-rewards-stat{background:rgba(255,255,255,.55);border-color:rgba(15,23,42,.12);}
@@ -1612,10 +1612,10 @@
       display:flex;flex-direction:column;gap:8px;min-height:180px;
     }
     .me-shop-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
-    .me-shop-card-title{font-size:1rem;font-weight:800;color:#e2e8f0;line-height:1.35;}
+    .me-shop-card-title{font-size:1rem;font-weight:800;color:var(--text);line-height:1.35;}
     .me-shop-card-badge{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(59,130,246,.22);color:#93c5fd;white-space:nowrap;}
-    .me-shop-card-desc{font-size:.82rem;color:#94a3b8;line-height:1.55;flex:1;}
-    .me-shop-card-meta{font-size:.8rem;color:#cbd5e1;}
+    .me-shop-card-desc{font-size:.82rem;color:var(--muted);line-height:1.55;flex:1;}
+    .me-shop-card-meta{font-size:.8rem;color:var(--muted);}
     .me-shop-card-price{font-size:1.05rem;font-weight:800;color:#fbbf24;}
     .me-shop-card .btn{align-self:flex-start;}
     body.theme-day .me-shop-card{background:rgba(255,255,255,.55);border-color:rgba(15,23,42,.12);}
@@ -1625,7 +1625,7 @@
 
     /* 赞助 */
     .sponsor-section{margin-top:10px;padding-top:12px;border-top:1px solid var(--border);}
-    .sponsor-title{font-size:1rem;font-weight:800;color:#e2e8f0;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+    .sponsor-title{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
     .sponsor-title::before{content:"";width:4px;height:18px;background:linear-gradient(180deg,var(--blue),var(--purple));border-radius:2px;}
     .sponsor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px;}
     .sponsor-tier{border:1px solid var(--border);background:linear-gradient(145deg,rgba(30,41,59,.5),rgba(15,23,42,.7));border-radius:12px;padding:14px;text-align:center;transition:transform .15s,border-color .15s,box-shadow .15s;}
@@ -1637,12 +1637,12 @@
     /* 支付弹窗 */
     .pay-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);z-index:10005;padding:16px;}
     .pay-modal.open{display:flex;}
-    .pay-panel{width:420px;max-width:96vw;background:rgba(30,41,59,.96);border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 48px rgba(0,0,0,.45);overflow:hidden;color:#fff;}
+    .pay-panel{width:420px;max-width:96vw;background:rgba(30,41,59,.96);border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 48px rgba(0,0,0,.45);overflow:hidden;color:var(--text);}
     .pay-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(15,23,42,.45);border-bottom:1px solid rgba(255,255,255,.08);}
-    .pay-head h3{margin:0;font-size:15px;color:#e2e8f0;}
+    .pay-head h3{margin:0;font-size:15px;color:var(--text);}
     .pay-close{border:none;background:rgba(239,68,68,.2);color:#fecaca;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;}
     .pay-body{padding:16px;}
-    .pay-summary{font-size:.95rem;color:#cbd5e1;margin-bottom:16px;padding:12px;background:rgba(15,23,42,.5);border-radius:8px;border:1px solid rgba(255,255,255,.08);}
+    .pay-summary{font-size:.95rem;color:var(--muted);margin-bottom:16px;padding:12px;background:rgba(15,23,42,.5);border-radius:8px;border:1px solid rgba(255,255,255,.08);}
     .pay-summary strong{color:#fbbf24;}
     .pay-slot{min-height:140px;border:2px dashed rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;background:rgba(15,23,42,.3);}
     .pay-slot-inner{text-align:center;padding:16px;}
@@ -1658,14 +1658,14 @@
     .card-title{
       font-size:1.05rem;
       font-weight:800;
-      color:#fff;
+      color:var(--text);
     }
     .pill{
       font-size:.78rem;
       padding:4px 10px;
       border-radius:999px;
       border:1px solid var(--border);
-      color:#cbd5e1;
+      color:var(--muted);
       background:rgba(2,6,23,.35);
       white-space:nowrap;
     }
@@ -2788,7 +2788,7 @@
     .forum-toolbar input{
       background:rgba(15,23,42,.55);
       border:1px solid rgba(255,255,255,.12);
-      color:#e2e8f0;
+      color:var(--text);
       padding:6px 10px;
       border-radius:8px;
       font-size:.8rem;
@@ -3025,7 +3025,7 @@
       transform:translate(-50%, 12px);
       background:rgba(15,23,42,.9);
       border:1px solid var(--border);
-      color:#e2e8f0;
+      color:var(--text);
       padding:10px 14px;
       border-radius:999px;
       font-size:.9rem;
@@ -3065,7 +3065,7 @@
       background:rgba(15,23,42,.55);
       border:1px solid var(--border);
       box-shadow:none;
-      color:#e2e8f0;
+      color:var(--text);
     }
     .btn.secondary:hover{
       box-shadow:0 10px 22px rgba(0,0,0,.25);
@@ -3616,6 +3616,15 @@
             </a>
             <div class="pill">hero-equipment-calculator.html</div>
             <div class="desc">&#x82F1;&#x96C4;&#x88C5;&#x5907;&#x517B;&#x6210;&#x4E0E;&#x5C5E;&#x6027;&#x8BA1;&#x7B97;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+            <a class="tool-tile-link" href="function/expert-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9D1;&#x200D;&#x1F4BC;</div>
+              <div class="card-title tool-tile-name">专家计算器</div>
+            </a>
+            <div class="pill">expert-calculator.html</div>
+            <div class="desc">专家关系、技能等级与资源消耗计算，技能资料预留后续补充。</div>
           </section>
 
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
@@ -4662,7 +4671,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       <div class="forum-body">
         <p class="me-rewards-hint" id="meShopHint">使用积分兑换会员等道具。请先登录后查看商城。</p>
         <div class="me-shop-grid" id="meShopGrid">
-          <div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">加载中...</div>
+          <div class="me-shop-card" style="justify-content:center;align-items:center;color:var(--muted);">加载中...</div>
         </div>
         <div class="admin-status" id="meShopStatus" style="margin-top:10px;display:none;"></div>
       </div>
@@ -5144,18 +5153,18 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       if(!grid) return;
       if(!authUser){
         if(hint) hint.textContent='请先登录后使用积分商城。';
-        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">登录后可兑换道具</div>';
+        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:var(--muted);">登录后可兑换道具</div>';
         return;
       }
       if(meShopState.loading){
         if(hint) hint.textContent='正在加载商城道具...';
-        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">加载中...</div>';
+        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:var(--muted);">加载中...</div>';
         return;
       }
       var items=meShopState.items||[];
       if(hint) hint.textContent=items.length?'使用积分兑换以下道具。':'商城暂无在售道具，请稍后再来。';
       if(!items.length){
-        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:#94a3b8;">暂无商品</div>';
+        grid.innerHTML='<div class="me-shop-card" style="justify-content:center;align-items:center;color:var(--muted);">暂无商品</div>';
         return;
       }
       grid.innerHTML=items.map(function(item){

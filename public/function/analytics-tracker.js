@@ -78,12 +78,31 @@
     marker.style.display = 'none';
     document.body.appendChild(marker);
 
-    btn.addEventListener('click', function () {
+    function toggleFromFallback(e) {
+      var now = Date.now ? Date.now() : new Date().getTime();
+      if (window.__wjdrFallbackThemeLastToggleAt && now - window.__wjdrFallbackThemeLastToggleAt < 320) {
+        try {
+          if (e) e.preventDefault();
+        } catch (_e) {}
+        return;
+      }
+      window.__wjdrFallbackThemeLastToggleAt = now;
+      try {
+        if (e) e.preventDefault();
+      } catch (_e) {}
       var isDay = document.body.classList.contains('theme-day');
       var next = isDay ? 'night' : 'day';
       applyTheme(next);
       storeTheme(next);
-    });
+    }
+
+    btn.addEventListener('click', toggleFromFallback);
+    try {
+      btn.addEventListener('pointerup', toggleFromFallback, { passive: false });
+    } catch (_e) {}
+    try {
+      btn.addEventListener('touchend', toggleFromFallback, { passive: false });
+    } catch (_e) {}
   }
 
   function derivePageKey(pathname) {
@@ -127,8 +146,26 @@
     document.head.appendChild(sc);
   }
 
+  function ensureSiteFooterScript() {
+    if (window.__wjdrSiteFooterScriptQueued) return;
+    window.__wjdrSiteFooterScriptQueued = true;
+    try {
+      var nodes = document.getElementsByTagName('script');
+      for (var i = 0; i < nodes.length; i++) {
+        var src = nodes[i].getAttribute('src') || '';
+        var path = (src.split('?')[0].split('#')[0] || '').trim();
+        if (/site-footer\.js$/i.test(path)) return;
+      }
+    } catch (_e) {}
+    var sc = document.createElement('script');
+    sc.src = '/function/site-footer.js';
+    sc.async = true;
+    document.head.appendChild(sc);
+  }
+
   function boot() {
     ensureSiteBeianScript();
+    ensureSiteFooterScript();
     if (!pageLoadsUnifiedTheme()) {
       applyTheme(getStoredTheme() || 'night');
       ensureThemeToggleButton();

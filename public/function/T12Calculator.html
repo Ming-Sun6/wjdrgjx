@@ -731,33 +731,6 @@
     });
 
 
-    function initTheme() {
-      const root = document.documentElement;
-      const body = document.body;
-      const btn = document.getElementById("themeToggle");
-      const key = "wjdr_theme";
-      let saved = null;
-      try { saved = localStorage.getItem(key); } catch (e) {}
-      let preferLight = false;
-      try { preferLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches; } catch (e) {}
-
-      const apply = mode => {
-        const theme = mode === "day" ? "day" : "night";
-        root.setAttribute("data-theme", theme);
-        body.classList.toggle("theme-day", theme === "day");
-        if (btn) btn.textContent = theme === "day" ? "切换到夜间" : "切换到日间";
-      };
-
-      apply(saved || (preferLight ? "day" : "night"));
-      if (btn) {
-        btn.addEventListener("click", () => {
-          const next = root.getAttribute("data-theme") === "day" ? "night" : "day";
-          apply(next);
-          try { localStorage.setItem(key, next); } catch (e) {}
-        });
-      }
-    }
-
     function fmt(n, d = 0) {
       return Number(n || 0).toLocaleString("zh-CN", { minimumFractionDigits: d, maximumFractionDigits: d });
     }
@@ -997,7 +970,6 @@
     }
 
     function init() {
-      initTheme();
       renderCards();
       calc();
       document.getElementById("troopSelect").addEventListener("change", () => {

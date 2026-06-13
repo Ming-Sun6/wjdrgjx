@@ -88,7 +88,7 @@
       box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
     }
 
-    :root[data-theme="dark"] {
+    :root[data-theme="night"] {
       --bg-a: #0b1220;
       --bg-b: #111a2e;
       --panel: rgba(15, 23, 42, 0.82);
@@ -105,38 +105,38 @@
       --shadow: 0 22px 50px rgba(2, 6, 23, 0.55);
     }
 
-    :root[data-theme="dark"] .hero {
+    :root[data-theme="night"] .hero {
       background: linear-gradient(140deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.8));
     }
 
-    :root[data-theme="dark"] .chip,
-    :root[data-theme="dark"] .btn,
-    :root[data-theme="dark"] .field select,
-    :root[data-theme="dark"] .field input,
-    :root[data-theme="dark"] .table-wrap,
-    :root[data-theme="dark"] .stat,
-    :root[data-theme="dark"] .big-value,
-    :root[data-theme="dark"] .advice,
-    :root[data-theme="dark"] .top,
-    :root[data-theme="dark"] .top-item,
-    :root[data-theme="dark"] .tips,
-    :root[data-theme="dark"] thead th {
+    :root[data-theme="night"] .chip,
+    :root[data-theme="night"] .btn,
+    :root[data-theme="night"] .field select,
+    :root[data-theme="night"] .field input,
+    :root[data-theme="night"] .table-wrap,
+    :root[data-theme="night"] .stat,
+    :root[data-theme="night"] .big-value,
+    :root[data-theme="night"] .advice,
+    :root[data-theme="night"] .top,
+    :root[data-theme="night"] .top-item,
+    :root[data-theme="night"] .tips,
+    :root[data-theme="night"] thead th {
       background: rgba(15, 23, 42, 0.9);
       color: var(--text);
       border-color: var(--border);
     }
 
-    :root[data-theme="dark"] tbody td {
+    :root[data-theme="night"] tbody td {
       border-bottom-color: rgba(148, 163, 184, 0.16);
     }
 
-    :root[data-theme="dark"] .name,
-    :root[data-theme="dark"] .unit,
-    :root[data-theme="dark"] .top-item .row {
+    :root[data-theme="night"] .name,
+    :root[data-theme="night"] .unit,
+    :root[data-theme="night"] .top-item .row {
       color: var(--text);
     }
 
-    :root[data-theme="dark"] .field input::placeholder {
+    :root[data-theme="night"] .field input::placeholder {
       color: #8ba0be;
     }
 
@@ -655,8 +655,6 @@
     };
 
     const SAVE_KEY = "gift_value_calc_drafts_v1";
-    const THEME_KEY = "wjdr_theme";
-    const LEGACY_THEME_KEY = "gift_value_calc_theme_v1";
 
     const state = {
       stage: STAGE_META[0].id,
@@ -671,7 +669,6 @@
     const searchInput = document.getElementById("searchInput");
     const materialBody = document.getElementById("materialBody");
     const tableMeta = document.getElementById("tableMeta");
-    const themeToggleEl = document.getElementById("themeToggle");
 
     const statTotalMaterials = document.getElementById("statTotalMaterials");
     const statAvailableMaterials = document.getElementById("statAvailableMaterials");
@@ -694,47 +691,6 @@
 
     function saveDrafts() {
       localStorage.setItem(SAVE_KEY, JSON.stringify(state.drafts));
-    }
-
-    function loadThemePreference() {
-      try {
-        const raw = localStorage.getItem(THEME_KEY);
-        if (raw === "day" || raw === "night") {
-          return raw;
-        }
-        const legacy = localStorage.getItem(LEGACY_THEME_KEY);
-        if (legacy === "light") return "day";
-        if (legacy === "dark") return "night";
-      } catch {
-      }
-      try {
-        const prefersLight = !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches);
-        return prefersLight ? "day" : "night";
-      } catch {
-        return "night";
-      }
-    }
-
-    function applyTheme(theme) {
-      const nextTheme = theme === "day" ? "day" : "night";
-      const isDay = nextTheme === "day";
-      document.documentElement.setAttribute("data-theme", isDay ? "light" : "dark");
-      if (!themeToggleEl) return;
-      themeToggleEl.textContent = isDay ? "\u5207\u6362\u5230\u591c\u95f4" : "\u5207\u6362\u5230\u65e5\u95f4";
-      themeToggleEl.setAttribute(
-        "aria-label",
-        isDay ? "\u5207\u6362\u5230\u591c\u95f4\u6a21\u5f0f" : "\u5207\u6362\u5230\u65e5\u95f4\u6a21\u5f0f"
-      );
-    }
-
-    function toggleTheme() {
-      const isLightNow = document.documentElement.getAttribute("data-theme") === "light";
-      const next = isLightNow ? "night" : "day";
-      applyTheme(next);
-      try {
-        localStorage.setItem(THEME_KEY, next);
-      } catch {
-      }
     }
 
     function currentDraftKey() {

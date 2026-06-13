@@ -735,6 +735,21 @@
     .announcement-editor:focus{border-color:rgba(59,130,246,.8);box-shadow:0 0 0 3px rgba(59,130,246,.18);}
     .announcement-editor[contenteditable="true"]:empty:before{content:attr(data-placeholder);color:rgba(148,163,184,.75);}
     .announcement-editor img{max-width:100%;height:auto;border-radius:10px;display:block;margin:8px 0;}
+    .site-footer-editor{
+      width:100%;
+      min-height:220px;
+      resize:vertical;
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      color:var(--text);
+      outline:none;
+      line-height:1.75;
+      font-family:"Microsoft YaHei",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .site-footer-editor:focus{border-color:rgba(59,130,246,.8);box-shadow:0 0 0 3px rgba(59,130,246,.18);}
+    .site-footer-preview{white-space:pre-wrap;line-height:1.75;text-align:center;}
 
     @media (max-width: 600px){
       .container{padding:48px 12px 24px;}
@@ -788,6 +803,7 @@
         <button class="side-item" type="button" data-page="bearpit-data" data-admin-only="1">熊坑数据</button>
         <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
         <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
+        <button class="side-item" type="button" data-page="site-footer" data-admin-only="1">底部致谢</button>
         <button class="side-item" type="button" data-page="voices" data-admin-only="1">用户发声</button>
         <button class="side-item" type="button" data-page="admin-log" data-admin-only="1">后台更新日志</button>
       </aside>
@@ -1761,6 +1777,33 @@
           </div>
         </section>
 
+        <section class="card page" id="page-site-footer" data-page="site-footer">
+          <div class="page-title">底部致谢</div>
+          <div class="calendar-admin">
+            <div class="form-section">
+              <div class="form-title">全站底部致谢内容</div>
+              <div class="form-group">
+                <label for="siteFooterContent">致谢文本（支持换行）</label>
+                <textarea id="siteFooterContent" class="site-footer-editor" maxlength="2000" placeholder="例如：&#10;制作：2041茗子、飞菇&#10;数据：飞菇、甜甜&#10;&#10;感谢以上所有人对本攻略站的付出"></textarea>
+              </div>
+              <div style="display:flex;justify-content:space-between;gap:12px;margin-top:8px;color:var(--muted);font-size:.85rem;">
+                <div>保存后，加载了公共脚本的页面会自动读取最新内容；接口异常时保留页面原始兜底内容。</div>
+                <div id="siteFooterCount">0/2000</div>
+              </div>
+              <div class="calendar-actions">
+                <button class="btn" id="siteFooterSaveBtn" type="button">保存并生效</button>
+                <button class="btn secondary" id="siteFooterReloadBtn" type="button">重新加载</button>
+              </div>
+              <div class="admin-status" id="siteFooterStatus"></div>
+            </div>
+            <div class="form-section">
+              <div class="form-title">前台预览</div>
+              <div class="admin-status" id="siteFooterMeta"></div>
+              <div id="siteFooterPreview" class="site-footer-preview">暂无内容</div>
+            </div>
+          </div>
+        </section>
+
         <section class="card page" id="page-voices" data-page="voices">
           <div class="page-title">用户发声</div>
           <div class="admin-toolbar">
@@ -2399,6 +2442,76 @@
         setStatus('announcementStatus','发布成功');
       }catch(e){
         setStatus('announcementStatus','发布失败：'+(e.message||'网络错误'));
+      }finally{
+        if(btn) btn.disabled=false;
+      }
+    }
+
+    function updateSiteFooterCount(){
+      var input=document.getElementById('siteFooterContent');
+      var counter=document.getElementById('siteFooterCount');
+      if(counter) counter.textContent=String((input&&input.value?input.value.length:0))+'/2000';
+    }
+
+    function renderSiteFooterPreview(siteFooter){
+      var input=document.getElementById('siteFooterContent');
+      var preview=document.getElementById('siteFooterPreview');
+      var meta=document.getElementById('siteFooterMeta');
+      var credits=String((siteFooter&&siteFooter.credits)||'');
+      if(input) input.value=credits;
+      if(preview) preview.textContent=credits||'暂无内容';
+      if(meta){
+        var parts=[];
+        if(siteFooter&&siteFooter.updatedAt) parts.push('更新时间：'+formatDateTime(siteFooter.updatedAt));
+        if(siteFooter&&siteFooter.updatedBy) parts.push('更新人：'+siteFooter.updatedBy);
+        meta.textContent=parts.join(' · ')||'当前显示默认配置';
+      }
+      updateSiteFooterCount();
+    }
+
+    async function loadSiteFooterAdmin(){
+      if(!authUser||!authUser.isAdmin){
+        setStatus('siteFooterStatus','没有权限：请使用管理员账号登录。');
+        return;
+      }
+      setStatus('siteFooterStatus','加载中...');
+      try{
+        var r=await apiFetch('/api/admin/site-footer',{method:'GET'});
+        var d=await r.json().catch(function(){return null;});
+        if(!r.ok){
+          setStatus('siteFooterStatus','加载失败：'+((d&&d.error)||r.status));
+          return;
+        }
+        renderSiteFooterPreview(d&&d.siteFooter);
+        setStatus('siteFooterStatus','已加载配置（修改后请点击保存）。');
+      }catch(e){
+        setStatus('siteFooterStatus','加载失败：'+(e.message||'网络错误'));
+      }
+    }
+
+    async function saveSiteFooterAdmin(){
+      if(!authUser||!authUser.isAdmin){
+        setStatus('siteFooterStatus','没有权限：请使用管理员账号登录。');
+        return;
+      }
+      var input=document.getElementById('siteFooterContent');
+      var btn=document.getElementById('siteFooterSaveBtn');
+      var credits=String((input&&input.value)||'').trim();
+      if(!credits){ setStatus('siteFooterStatus','请输入底部致谢内容。'); return; }
+      if(credits.length>2000){ setStatus('siteFooterStatus','内容不能超过 2000 字。'); return; }
+      if(btn) btn.disabled=true;
+      setStatus('siteFooterStatus','保存中...');
+      try{
+        var r=await apiFetch('/api/admin/site-footer',{method:'PUT',body:JSON.stringify({credits:credits})});
+        var d=await r.json().catch(function(){return null;});
+        if(!r.ok){
+          setStatus('siteFooterStatus','保存失败：'+((d&&d.error)||r.status));
+          return;
+        }
+        renderSiteFooterPreview(d&&d.siteFooter);
+        setStatus('siteFooterStatus','已保存，前台将读取最新底部致谢。');
+      }catch(e){
+        setStatus('siteFooterStatus','保存失败：'+(e.message||'网络错误'));
       }finally{
         if(btn) btn.disabled=false;
       }
@@ -4342,6 +4455,7 @@
       else if(currentPage==='aeroplane-chess'){ if(window.adminAeroplaneChess && window.adminAeroplaneChess.init) window.adminAeroplaneChess.init(); }
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
+      else if(currentPage==='site-footer') loadSiteFooterAdmin();
       else if(currentPage==='voices') loadUserVoices();
     }
 
@@ -4516,6 +4630,14 @@
 
     document.getElementById('announcementPublishBtn')&&document.getElementById('announcementPublishBtn').addEventListener('click',publishAnnouncement);
     document.getElementById('announcementReloadBtn')&&document.getElementById('announcementReloadBtn').addEventListener('click',loadAnnouncementAdmin);
+    document.getElementById('siteFooterSaveBtn')&&document.getElementById('siteFooterSaveBtn').addEventListener('click',saveSiteFooterAdmin);
+    document.getElementById('siteFooterReloadBtn')&&document.getElementById('siteFooterReloadBtn').addEventListener('click',loadSiteFooterAdmin);
+    document.getElementById('siteFooterContent')&&document.getElementById('siteFooterContent').addEventListener('input',function(){
+      updateSiteFooterCount();
+      var preview=document.getElementById('siteFooterPreview');
+      var input=document.getElementById('siteFooterContent');
+      if(preview) preview.textContent=(input&&input.value)||'暂无内容';
+    });
 
     (function initAnnouncementEditor(){
       var editor=document.getElementById('announcementContent');
@@ -4654,8 +4776,3 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 
 </body>
 </html>
-
-
-
-
-

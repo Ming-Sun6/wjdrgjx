@@ -88,10 +88,8 @@
     try{
       if(!btn.__wjdrThemeHardBound){
         btn.__wjdrThemeHardBound = true;
-        btn.onclick = function(){
-          try{ markThemeSwitching(); }catch(_e){}
-          try{ toggleTheme(); }catch(_e){}
-          try{ updateButton(btn); }catch(_e){}
+        btn.onclick = function(e){
+          try{ performToggle(e, btn); }catch(_e){}
         };
       }
     }catch(_e){}
@@ -116,6 +114,23 @@
       cur = cur.parentNode;
     }
     return null;
+  }
+
+  function performToggle(e, hit){
+    if(e && e.__wjdrThemeHandled) return;
+    var now = Date.now ? Date.now() : new Date().getTime();
+    if(window.__wjdrThemeLastToggleAt && now - window.__wjdrThemeLastToggleAt < 320) {
+      if(e) e.__wjdrThemeHandled = true;
+      return;
+    }
+    window.__wjdrThemeLastToggleAt = now;
+    if(e) {
+      e.__wjdrThemeHandled = true;
+      try{ e.preventDefault(); }catch(_e){}
+    }
+    markThemeSwitching();
+    toggleTheme();
+    updateButton(hit);
   }
 
   function init(){
@@ -144,9 +159,7 @@
           var t = e && e.target;
           var hit = findToggleTarget(t);
           if(!hit) return;
-          markThemeSwitching();
-          toggleTheme();
-          updateButton(hit);
+          performToggle(e, hit);
         }catch(_e){}
       }
       document.addEventListener('click', handleToggleEvent, true);

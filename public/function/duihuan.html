@@ -306,6 +306,8 @@
 </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
 </head>
 <body>
     <header class="header">
@@ -320,7 +322,6 @@
             <a class="btn secondary home-link" href="../rukou.html">返回主页</a>
         </div>
     </header>
-    <button class="theme-toggle" id="themeToggle" type="button">切换到日间</button>
 
     <div id="apiWarn" role="alert">
         无法连接后端。请通过网站访问本页（<a href="http://118.31.223.131/function/duihuan.html" style="color:var(--accent);">http://118.31.223.131/function/duihuan.html</a>），勿直接双击打开；并确保已运行「一键启动」或已启动后端服务，使 <code>/api</code> 可用。
@@ -491,134 +492,6 @@
         } catch (e) {}
         renderAccountList();
     </script>
-    <script>
-        (function(){
-            var root = document.documentElement;
-            var key = 'wjdr_theme';
-            var saved = null;
-            try { saved = localStorage.getItem(key); } catch (e) {}
-            var preferLight = false;
-            try { preferLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches; } catch (e) {}
-            var theme = saved || (preferLight ? 'day' : 'night');
-            root.setAttribute('data-theme', theme);
-            var motion = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-            root.setAttribute('data-motion', motion ? 'on' : 'off');
-            var btn = document.getElementById('themeToggle');
-            function update(){
-                if (!btn) return;
-                var isDay = root.getAttribute('data-theme') === 'day';
-                btn.textContent = isDay ? '切换到夜间' : '切换到日间';
-            }
-            if (btn){
-                btn.addEventListener('click', function(){
-                    var next = root.getAttribute('data-theme') === 'day' ? 'night' : 'day';
-                    root.setAttribute('data-theme', next);
-                    try { localStorage.setItem(key, next); } catch (e) {}
-                    update();
-                });
-                update();
-            }
-        })();
-    </script>
-<script id="wjdr-theme-fab-script">
-(function(){
-  function getCurrentThemeMode(){
-    var rootTheme = '';
-    try{ rootTheme = (document.documentElement.getAttribute('data-theme') || '').toLowerCase(); }catch(e){}
-    if(rootTheme === 'day' || rootTheme === 'light'){ return 'day'; }
-    if(rootTheme === 'night' || rootTheme === 'dark'){ return 'night'; }
-
-    var body = document.body;
-    if(body){
-      if(body.classList.contains('theme-day') || body.classList.contains('theme-light')) return 'day';
-      if(body.classList.contains('theme-night') || body.classList.contains('theme-dark')) return 'night';
-    }
-    return 'night';
-  }
-
-  function getSunIcon(){
-    return '<svg class="wjdr-theme-fab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.48 14.32l1.79 1.8 1.41-1.42-1.8-1.79-1.4 1.41zM12 5a1 1 0 0 0 1-1V1h-2v3a1 1 0 0 0 1 1zm0 14a1 1 0 0 0-1 1v3h2v-3a1 1 0 0 0-1-1zM5 11H2v2h3a1 1 0 0 0 0-2zm17 0h-3a1 1 0 0 0 0 2h3v-2zM4.96 19.54l1.41 1.42 1.8-1.8-1.42-1.41-1.79 1.79zM19.04 4.46l-1.8 1.79 1.41 1.42 1.8-1.8-1.41-1.41zM12 7a5 5 0 1 0 .001 10.001A5 5 0 0 0 12 7z"/></svg>';
-  }
-
-  function getMoonIcon(){
-    return '<svg class="wjdr-theme-fab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.1 2a9.9 9.9 0 0 0 0 19.8 10 10 0 0 0 8.3-4.5 1 1 0 0 0-1.1-1.5A8 8 0 0 1 8.2 4.7 1 1 0 0 0 6.7 3.6 10 10 0 0 0 12.1 2z"/></svg>';
-  }
-
-  function getThemeButton(){
-    return document.getElementById('themeToggle') || document.getElementById('themeToggleBtn');
-  }
-
-  function renderThemeButton(){
-    var btn = getThemeButton();
-    if(!btn) return;
-    btn.classList.add('wjdr-theme-fab');
-
-    var current = getCurrentThemeMode();
-    var next = current === 'day' ? 'night' : 'day';
-    var label = next === 'day' ? '切换到日间' : '切换到夜间';
-
-    btn.innerHTML = next === 'day' ? getSunIcon() : getMoonIcon();
-    btn.setAttribute('aria-label', label);
-    btn.setAttribute('title', label);
-  }
-
-  function bind(){
-    var btn = getThemeButton();
-    if(btn){
-      btn.addEventListener('click', function(){
-        setTimeout(renderThemeButton, 0);
-      });
-    }
-
-    try{
-      var rootObserver = new MutationObserver(function(){ renderThemeButton(); });
-      rootObserver.observe(document.documentElement, { attributes:true, attributeFilter:['data-theme','class'] });
-    }catch(e){}
-
-    if(document.body){
-      try{
-        var bodyObserver = new MutationObserver(function(){ renderThemeButton(); });
-        bodyObserver.observe(document.body, { attributes:true, attributeFilter:['class'] });
-      }catch(e){}
-    }
-
-    renderThemeButton();
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', bind);
-  }else{
-    bind();
-  }
-})();
-</script>
-<script id="wjdr-theme-transition-script">
-(function(){
-  function markThemeSwitching(){
-    var root = document.documentElement;
-    if(!root) return;
-    root.classList.add('wjdr-theme-switching');
-    clearTimeout(markThemeSwitching._timer);
-    markThemeSwitching._timer = setTimeout(function(){
-      root.classList.remove('wjdr-theme-switching');
-    }, 320);
-  }
-
-  function bindThemeTransition(){
-    var btn = document.getElementById('themeToggle') || document.getElementById('themeToggleBtn');
-    if(!btn) return;
-    btn.addEventListener('click', function(){
-      markThemeSwitching();
-    }, true);
-  }
-
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', bindThemeTransition);
-  }else{
-    bindThemeTransition();
-  }
-})();
-</script>
 
   <style id="wjdr-footer-inline">
 footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
