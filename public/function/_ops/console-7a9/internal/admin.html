@@ -777,7 +777,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.21</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.22</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1831,6 +1831,14 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.22（2026-06-13）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>底部致谢配置</strong>：新增后台菜单「底部致谢」，支持管理员在线编辑站点底部致谢文案；公开 <code>GET /api/site-footer</code>，管理端新增 <code>GET/POST /api/admin/site-footer</code>。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>公共底部注入</strong>：新增 <code>/function/site-footer.js</code>，并由 <code>analytics-tracker.js</code> 自动加载，使已接入统计脚本的静态页可读取统一底部配置。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>论坛安全</strong>：服务端新增 <code>sanitizeForumPostHtml</code>，帖子创建与更新时统一清洗 <code>contentHtml</code>；前台阅读页改为白名单 DOM 清洗，降低 SVG、事件属性与恶意协议等 XSS 绕过风险。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>主题系统</strong>：统一礼包性价比、兑换码、T12 等页面的 <code>day/night</code> 主题逻辑，移除旧的 <code>light/dark</code> 本地绑定，修复移动端主题按钮不同步问题。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>首页</strong>：同步 V0.9.22，新增「专家计算器」入口；首页文字色改用 <code>--text</code> / <code>--muted</code> 主题变量，修复白天/黑夜模式下部分文字不变色。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.21（2026-06-04）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>积分商城</strong>：新增后台菜单「积分商城」，支持上架积分/会员/组合类道具，设置价格、库存、排序与上下架；公开 <code>GET /api/shop/items</code>、<code>POST /api/shop/purchase</code>；管理端 <code>GET/POST /api/admin/shop-items</code> 等 CRUD。</div>

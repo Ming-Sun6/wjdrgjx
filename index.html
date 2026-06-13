@@ -3424,7 +3424,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.21</div>
+  <div class="version-tag">版本 V0.9.22</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -4026,6 +4026,15 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.22（2026-06-13）</h4>
+        <ol>
+          <li><strong>新增专家计算器</strong>：参考「专家数据表」新增专家关系、天赋、技能等级与资源消耗计算；已整理罗妮等专家数据，不完整技能位保留「待补充」状态，方便后续继续补全。</li>
+          <li><strong>日夜主题修复</strong>：修复首页部分文字在白天/黑夜模式下颜色不同步的问题；登录弹窗、积分中心、积分商城、赞助/支付弹窗、卡片标题、标签与按钮等文字现在跟随统一主题变量切换。</li>
+          <li><strong>移动端主题体验</strong>：统一多个工具页的日夜主题逻辑，修复部分手机端点击主题按钮无效、点击一次触发多次或按钮状态不同步的问题。</li>
+          <li><strong>底部致谢</strong>：底部致谢内容改为后台可配置，后续可直接在后台修改，不需要逐页改 HTML。</li>
+          <li><strong>论坛安全加固</strong>：论坛图文内容保存与展示链路加强 HTML 清洗，降低异常标签、脚本事件与恶意链接带来的风险。</li>
+        </ol>
+
         <h4>V0.9.21（2026-06-04）</h4>
         <ol>
           <li><strong>我的信息</strong>：页面布局重构——「积分中心」整合每日签到、积分商城与激活码兑换（商城与激活码改为二级弹层）；聊天、收藏与点赞合并为「我的互动」；联系与投稿合并为「反馈与支持」。</li>
