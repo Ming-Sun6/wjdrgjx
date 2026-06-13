@@ -137,3 +137,24 @@ test('server mounts user rewards routes and pages include UI hooks', () => {
   assert.match(adminHtml, /activationBatchCreateBtn/);
   assert.match(adminHtml, /admin-activation-codes-page\.js/);
 });
+
+test('admin activation codes page exposes searchable paginated redemption records', () => {
+  const rewardsSource = fs.readFileSync(path.join(__dirname, '..', 'user-rewards.js'), 'utf8');
+  const adminHtml = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'),
+    'utf8'
+  );
+  const adminJs = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', 'admin-activation-codes-page.js'),
+    'utf8'
+  );
+
+  assert.match(rewardsSource, /\/api\/admin\/activation-codes\/redemptions/);
+  assert.match(rewardsSource, /JOIN users u ON u\.id = r\.user_id/);
+  assert.match(rewardsSource, /LIMIT \? OFFSET \?/);
+  assert.match(adminHtml, /activationRedemptionSearchInput/);
+  assert.match(adminHtml, /activationRedemptionsTbody/);
+  assert.match(adminJs, /loadActivationRedemptionsAdmin/);
+  assert.match(adminJs, /activationRedemptionPrevBtn/);
+  assert.match(adminJs, /activationRedemptionNextBtn/);
+});

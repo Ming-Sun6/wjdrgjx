@@ -166,6 +166,40 @@ function shopRewardSummary(item) {
   return '';
 }
 
+function normalizeAdminRecordQuery(query) {
+  const raw = query && typeof query === 'object' ? query : {};
+  const q = String(raw.q || '').trim().slice(0, 80);
+  const page = Math.max(1, Math.floor(Number(raw.page) || 1));
+  const pageSize = Math.min(100, Math.max(10, Math.floor(Number(raw.pageSize ?? raw.page_size) || 20)));
+  return {
+    q,
+    page,
+    pageSize,
+    offset: (page - 1) * pageSize
+  };
+}
+
+function mapShopPurchaseRow(row) {
+  if (!row) return null;
+  return {
+    id: Number(row.id),
+    userId: Number(row.user_id),
+    user: {
+      id: Number(row.user_id),
+      loginId: row.user_login_id || '',
+      username: row.user_username || row.user_login_id || ''
+    },
+    itemId: row.item_id != null ? Number(row.item_id) : null,
+    item: {
+      id: row.item_id != null ? Number(row.item_id) : null,
+      name: row.item_name || '',
+      itemType: row.item_type || ''
+    },
+    pointsSpent: Number(row.points_spent || 0),
+    purchasedAt: row.purchased_at || null
+  };
+}
+
 async function applyShopItemToUser(deps, userId, item, helpers) {
   const user = await deps.queryOne(
     'SELECT id, points, membership_status, membership_expires_at FROM users WHERE id = ? LIMIT 1',
@@ -331,6 +365,59 @@ function mountShopRoutes(deps) {
     }
   });
 
+  app.get('/api/admin/shop/purchases', async (req, res) => {
+    try {
+      const admin = await requireAdmin(req, res);
+      if (!admin) return;
+      const pageInfo = normalizeAdminRecordQuery(req.query || {});
+      const params = [];
+      let where = '';
+      if (pageInfo.q) {
+        where = `
+          WHERE i.name LIKE ? OR u.login_id LIKE ? OR u.username LIKE ?
+             OR CAST(u.id AS CHAR) LIKE ? OR CAST(p.id AS CHAR) LIKE ?
+        `;
+        const token = `%${pageInfo.q}%`;
+        params.push(token, token, token, token, token);
+      }
+      const countRow = await queryOne(
+        `
+        SELECT COUNT(*) AS total
+        FROM shop_purchases p
+        LEFT JOIN users u ON u.id = p.user_id
+        LEFT JOIN shop_items i ON i.id = p.item_id
+        ${where}
+        `,
+        params
+      );
+      const rows = await queryRows(
+        `
+        SELECT p.id, p.user_id, p.item_id, p.points_spent, p.purchased_at,
+               u.login_id AS user_login_id, u.username AS user_username,
+               i.name AS item_name, i.item_type
+        FROM shop_purchases p
+        LEFT JOIN users u ON u.id = p.user_id
+        LEFT JOIN shop_items i ON i.id = p.item_id
+        ${where}
+        ORDER BY p.purchased_at DESC, p.id DESC
+        LIMIT ? OFFSET ?
+        `,
+        params.concat([pageInfo.pageSize, pageInfo.offset])
+      );
+      const total = Math.max(0, Number(countRow?.total || 0));
+      return res.json({
+        purchases: rows.map(mapShopPurchaseRow),
+        page: pageInfo.page,
+        pageSize: pageInfo.pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pageInfo.pageSize))
+      });
+    } catch (err) {
+      console.error('admin shop purchases get failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
   app.post('/api/admin/shop/items', async (req, res) => {
     try {
       const admin = await requireAdmin(req, res);
@@ -463,6 +550,8 @@ module.exports = {
   normalizeShopItemPayload,
   mapShopItemRow,
   shopRewardSummary,
+  normalizeAdminRecordQuery,
+  mapShopPurchaseRow,
   applyShopItemToUser,
   purchaseShopItem,
   ensureShopSchema,

@@ -185,7 +185,7 @@
       const generation = data.generation || {};
       const titleEl = document.querySelector('.top .title');
       if (titleEl && generation.pageTitle) titleEl.textContent = generation.pageTitle;
-      document.title = (generation.pageTitle || document.title) + '-无尽冬日工具箱';
+      document.title = (generation.pageTitle || document.title) + '-冬日工具箱';
       renderHeroes(global, generation.heroes || []);
     } catch (err) {
       console.warn(err);

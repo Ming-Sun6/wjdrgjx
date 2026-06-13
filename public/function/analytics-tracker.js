@@ -129,6 +129,37 @@
     }).catch(function () {});
   }
 
+  function ensurePlayerMadeNotice() {
+    if (document.getElementById('__wjdrPlayerNotice')) return;
+
+    if (!document.getElementById('__wjdrPlayerNoticeStyle')) {
+      var style = document.createElement('style');
+      style.id = '__wjdrPlayerNoticeStyle';
+      style.textContent =
+        '.wjdr-player-notice{' +
+        'width:100%;box-sizing:border-box;margin:0;padding:8px 14px;' +
+        'display:flex;align-items:center;justify-content:center;text-align:center;' +
+        'font:700 12px/1.5 "Microsoft YaHei",system-ui,-apple-system,Segoe UI,sans-serif;' +
+        'letter-spacing:.02em;color:var(--text,#e5e7eb);' +
+        'background:linear-gradient(90deg,rgba(59,130,246,.18),rgba(245,158,11,.16));' +
+        'border-bottom:1px solid var(--border,rgba(148,163,184,.24));' +
+        'position:relative;z-index:2;' +
+        '}' +
+        'body.theme-day .wjdr-player-notice,html[data-theme="day"] .wjdr-player-notice{' +
+        'color:var(--text,#0f172a);background:linear-gradient(90deg,rgba(219,234,254,.92),rgba(254,243,199,.92));border-bottom-color:rgba(15,23,42,.12);' +
+        '}' +
+        '@media (max-width:600px){.wjdr-player-notice{padding:7px 10px;font-size:11px;line-height:1.45;}}';
+      document.head.appendChild(style);
+    }
+
+    var notice = document.createElement('div');
+    notice.id = '__wjdrPlayerNotice';
+    notice.className = 'wjdr-player-notice';
+    notice.setAttribute('role', 'note');
+    notice.textContent = '冬日工具箱由玩家制作，非官方攻略 / 非官方工具；数据仅供参考，请以游戏内为准。';
+    document.body.insertBefore(notice, document.body.firstChild);
+  }
+
   function ensureSiteBeianScript() {
     if (window.__wjdrSiteBeianScriptQueued) return;
     window.__wjdrSiteBeianScriptQueued = true;
@@ -164,6 +195,7 @@
   }
 
   function boot() {
+    ensurePlayerMadeNotice();
     ensureSiteBeianScript();
     ensureSiteFooterScript();
     if (!pageLoadsUnifiedTheme()) {

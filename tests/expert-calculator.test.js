@@ -73,6 +73,29 @@ test('expert calculator page loads data and exposes calculator controls', () => 
   assert.match(html, /待补充/);
 });
 
+test('expert calculator has dedicated mobile layout rules', () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', 'expert-calculator.html'),
+    'utf8'
+  );
+
+  assert.match(html, /class="inline level-range"/);
+  assert.match(html, /class="inline form-actions"/);
+  assert.match(html, /class="inline skill-range"/);
+  assert.match(
+    html,
+    /@media\s*\(max-width:\s*560px\)\s*\{[\s\S]*\.level-range,\s*\.skill-range\s*\{[\s\S]*grid-template-columns:\s*64px minmax\(0,1fr\)/
+  );
+  assert.match(
+    html,
+    /@media\s*\(max-width:\s*560px\)\s*\{[\s\S]*\.form-actions\s*\{[\s\S]*grid-template-columns:\s*1fr 1fr/
+  );
+  assert.match(
+    html,
+    /@media\s*\(max-width:\s*560px\)\s*\{[\s\S]*select,\s*button\s*\{[\s\S]*min-width:\s*0/
+  );
+});
+
 test('home page links to expert calculator', () => {
   const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
   assert.match(html, /function\/expert-calculator\.html/);

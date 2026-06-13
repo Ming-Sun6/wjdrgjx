@@ -20,20 +20,20 @@
   <meta charset="UTF-8" />
   <meta name="description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="无尽冬日工具箱" />
-  <meta property="og:title" content="无尽冬日工具箱" />
+  <meta property="og:site_name" content="冬日工具箱" />
+  <meta property="og:title" content="冬日工具箱" />
   <meta property="og:description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
   <meta property="og:url" content="https://wjgl.store/" />
   <meta property="og:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="675" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="无尽冬日工具箱" />
+  <meta name="twitter:title" content="冬日工具箱" />
   <meta name="twitter:description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
   <meta name="twitter:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
   <meta name="baidu-site-verification" content="codeva-BN4sg0Yffy" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>无尽冬日工具箱</title>
+  <title>冬日工具箱</title>
   <style>
     :root{
       --bg1:#0b1220;
@@ -481,8 +481,8 @@
       border-color:rgba(15,23,42,.12);
       box-shadow:0 14px 26px rgba(15,23,42,.08);
     }
-    body.theme-day .warehouse-title{color:#0f172a;}
-    body.theme-day .warehouse-copy{color:#475569;}
+    body.theme-day .warehouse-title{color:var(--text);}
+    body.theme-day .warehouse-copy{color:var(--muted);}
     body.theme-day .tool-tile-card{
       background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,250,252,.96));
       border-color:rgba(15,23,42,.12);
@@ -1158,7 +1158,7 @@
     .warehouse-title{
       font-size:1.08rem;
       font-weight:900;
-      color:#fff;
+      color:var(--text);
     }
     .warehouse-copy{
       margin-top:6px;
@@ -1295,13 +1295,13 @@
     }
     .tool-warehouse-shell{
       background:
-        linear-gradient(180deg, rgba(255,255,255,.96), rgba(241,245,249,.94)),
-        radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 42%);
-      border-color:rgba(255,255,255,.16);
-      box-shadow:0 16px 30px rgba(15,23,42,.12);
+        radial-gradient(circle at top right, rgba(59,130,246,.16), transparent 42%),
+        linear-gradient(180deg, rgba(15,23,42,.9), rgba(2,6,23,.78));
+      border-color:rgba(148,163,184,.16);
+      box-shadow:0 16px 30px rgba(0,0,0,.22);
     }
-    .tool-warehouse-shell .warehouse-title{color:#0f172a;}
-    .tool-warehouse-shell .warehouse-copy{color:#475569;}
+    .tool-warehouse-shell .warehouse-title{color:var(--text);}
+    .tool-warehouse-shell .warehouse-copy{color:var(--muted);}
     .tool-warehouse-grid{
       display:grid;
       grid-template-columns:repeat(6,minmax(0,1fr));
@@ -3135,6 +3135,14 @@
         -webkit-box-orient:vertical;
         overflow:hidden;
       }
+      .tool-tile-card .pill,
+      .tool-tile-card .desc,
+      .tool-tile-card .actions{
+        display:none !important;
+      }
+      .tool-tile-card .desc{
+        display:none !important;
+      }
       .card:not(.wide) .actions{margin-top:auto;}
       .card:not(.wide) .actions .btn{
         width:100%;
@@ -3217,6 +3225,14 @@
       .tool-tile-name{
         font-size:.8rem;
         line-height:1.28;
+      }
+      .tool-tile-card .pill,
+      .tool-tile-card .desc,
+      .tool-tile-card .actions{
+        display:none !important;
+      }
+      .tool-tile-card .desc{
+        display:none !important;
       }
     }
     @media (min-width: 769px){
@@ -3424,7 +3440,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.22</div>
+  <div class="version-tag">版本 V0.9.24</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -3436,7 +3452,7 @@
   <div class="container">
     <header>
       <div>
-        <div class="title">无尽冬日工具箱</div>
+        <div class="title">冬日工具箱</div>
       </div>
     </header>
 
@@ -3951,7 +3967,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 </style>
 <footer class="wjdr-footer">
       <p class="site-footer-legal">
-        版权所有 © 2026 无尽冬日工具箱
+        版权所有 © 2026 冬日工具箱
         <span class="site-footer-sep" aria-hidden="true">|</span>
         <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
         <span class="site-footer-sep" aria-hidden="true">|</span>
@@ -4026,13 +4042,24 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.24（2026-06-13）</h4>
+        <ol>
+          <li><strong>后台兑换记录</strong>：积分商城与激活码后台新增记录查看，管理员可搜索用户、道具、激活码、备注或批次，并通过分页查看最近兑换/使用情况。</li>
+        </ol>
+
+        <h4>V0.9.23（2026-06-13）</h4>
+        <ol>
+          <li><strong>首页主题色修复</strong>：修复「基础工具」「更多工具」「小游戏」分区标题在白天/黑夜模式下始终保持黑色的问题，现在统一跟随主题文字变量切换。</li>
+          <li><strong>积分商城兑换修复</strong>：修复商城道具实际兑换成功后仍提示“兑换失败”的问题，兑换完成后会正确返回最新积分与会员状态。</li>
+        </ol>
+
         <h4>V0.9.22（2026-06-13）</h4>
         <ol>
           <li><strong>新增专家计算器</strong>：参考「专家数据表」新增专家关系、天赋、技能等级与资源消耗计算；已整理罗妮等专家数据，不完整技能位保留「待补充」状态，方便后续继续补全。</li>
-          <li><strong>日夜主题修复</strong>：修复首页部分文字在白天/黑夜模式下颜色不同步的问题；登录弹窗、积分中心、积分商城、赞助/支付弹窗、卡片标题、标签与按钮等文字现在跟随统一主题变量切换。</li>
+          <li><strong>专家计算器手机端优化</strong>：重新整理手机端布局，专家选择、等级范围、技能范围和操作按钮更适合竖屏点击，减少控件拥挤和错位。</li>
+          <li><strong>首页工具卡片修复</strong>：修复手机端工具描述样式异常的问题，尤其是「无尽冬日人格测试」长描述不再撑开卡片，工具宫格保持更整齐。</li>
+          <li><strong>日夜主题修复</strong>：修复首页部分文字在白天/黑夜模式下颜色不同步的问题；登录弹窗、积分中心、积分商城、赞助/支付弹窗、卡片标题、标签与按钮等文字现在跟随主题切换。</li>
           <li><strong>移动端主题体验</strong>：统一多个工具页的日夜主题逻辑，修复部分手机端点击主题按钮无效、点击一次触发多次或按钮状态不同步的问题。</li>
-          <li><strong>底部致谢</strong>：底部致谢内容改为后台可配置，后续可直接在后台修改，不需要逐页改 HTML。</li>
-          <li><strong>论坛安全加固</strong>：论坛图文内容保存与展示链路加强 HTML 清洗，降低异常标签、脚本事件与恶意链接带来的风险。</li>
         </ol>
 
         <h4>V0.9.21（2026-06-04）</h4>
@@ -4122,7 +4149,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <h4>V0.9.6（2026-05-05）</h4>
         <p><strong>浏览器标题规范与邻邦进度表修正</strong></p>
         <ol>
-          <li><strong>全站命名</strong>：除首页与入口页仍为「无尽冬日工具箱」外，<code>public</code> 内各工具页、礼包参考子页及用户协议/隐私等，统一为「<strong>功能名-无尽冬日工具箱</strong>」格式，标签栏更易辨认来源。</li>
+          <li><strong>全站命名</strong>：除首页与入口页仍为「冬日工具箱」外，<code>public</code> 内各工具页、礼包参考子页及用户协议/隐私等，统一为「<strong>功能名-冬日工具箱</strong>」格式，标签栏更易辨认来源。</li>
           <li><strong>邻邦进度（游戏进度查询）</strong>：总表与按区服查询的区间上限修正，<strong>3628～3799</strong> 等区段可正常展示与匹配；去除 <strong>3510～3556 / 3557～3591</strong> 误套用的日期覆盖；<strong>3628～3799</strong> 等与公式一致的冗余覆盖已撤下，里程碑与主站公式对齐（<strong>3592～3627</strong> 仍保留单独覆盖）。</li>
         </ol>
 

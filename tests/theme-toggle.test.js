@@ -40,6 +40,8 @@ test('homepage text colors use theme variables for day and night modes', () => {
     ['.version-tag', '--muted'],
     ['.changelog-btn', '--text'],
     ['.theme-toggle-btn', '--text'],
+    ['.warehouse-title', '--text'],
+    ['.tool-warehouse-shell .warehouse-title', '--text'],
     ['.me-rewards-stat-label', '--muted'],
     ['.me-rewards-stat-value', '--text'],
     ['.me-rewards-hint', '--muted'],

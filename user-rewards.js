@@ -241,6 +241,38 @@ function mapActivationCodeRow(row) {
   };
 }
 
+function normalizeAdminRecordQuery(query) {
+  const raw = query && typeof query === 'object' ? query : {};
+  const q = String(raw.q || '').trim().slice(0, 80);
+  const page = Math.max(1, Math.floor(Number(raw.page) || 1));
+  const pageSize = Math.min(100, Math.max(10, Math.floor(Number(raw.pageSize ?? raw.page_size) || 20)));
+  return {
+    q,
+    page,
+    pageSize,
+    offset: (page - 1) * pageSize
+  };
+}
+
+function mapActivationRedemptionRow(row) {
+  if (!row) return null;
+  return {
+    id: Number(row.id),
+    codeId: Number(row.code_id),
+    userId: Number(row.user_id),
+    user: {
+      id: Number(row.user_id),
+      loginId: row.user_login_id || '',
+      username: row.user_username || row.user_login_id || ''
+    },
+    code: row.code || '',
+    type: row.type || '',
+    note: row.note || '',
+    batchLabel: row.batch_label || '',
+    redeemedAt: row.redeemed_at || null
+  };
+}
+
 function activationValueLabel(row) {
   if (!row) return '';
   if (row.type === 'shop_item') return `商城道具 #${row.shopItemId || '?'}`;
@@ -628,6 +660,60 @@ function mountUserRewardsRoutes(deps) {
     }
   });
 
+  app.get('/api/admin/activation-codes/redemptions', async (req, res) => {
+    try {
+      const admin = await requireAdmin(req, res);
+      if (!admin) return;
+      const pageInfo = normalizeAdminRecordQuery(req.query || {});
+      const params = [];
+      let where = '';
+      if (pageInfo.q) {
+        where = `
+          WHERE c.code LIKE ? OR c.note LIKE ? OR c.batch_label LIKE ?
+             OR u.login_id LIKE ? OR u.username LIKE ?
+             OR CAST(u.id AS CHAR) LIKE ? OR CAST(r.id AS CHAR) LIKE ?
+        `;
+        const token = `%${pageInfo.q}%`;
+        params.push(token, token, token, token, token, token, token);
+      }
+      const countRow = await queryOne(
+        `
+        SELECT COUNT(*) AS total
+        FROM activation_code_redemptions r
+        LEFT JOIN activation_codes c ON c.id = r.code_id
+        LEFT JOIN users u ON u.id = r.user_id
+        ${where}
+        `,
+        params
+      );
+      const rows = await queryRows(
+        `
+        SELECT r.id, r.code_id, r.user_id, r.redeemed_at,
+               c.code, c.type, c.note, c.batch_label,
+               u.login_id AS user_login_id, u.username AS user_username
+        FROM activation_code_redemptions r
+        LEFT JOIN activation_codes c ON c.id = r.code_id
+        LEFT JOIN users u ON u.id = r.user_id
+        ${where}
+        ORDER BY r.redeemed_at DESC, r.id DESC
+        LIMIT ? OFFSET ?
+        `,
+        params.concat([pageInfo.pageSize, pageInfo.offset])
+      );
+      const total = Math.max(0, Number(countRow?.total || 0));
+      return res.json({
+        redemptions: rows.map(mapActivationRedemptionRow),
+        page: pageInfo.page,
+        pageSize: pageInfo.pageSize,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / pageInfo.pageSize))
+      });
+    } catch (err) {
+      console.error('admin activation redemptions get failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
   app.get('/api/admin/activation-codes/shop-options', async (req, res) => {
     try {
       const admin = await requireAdmin(req, res);
@@ -855,12 +941,15 @@ module.exports = {
   getPreviousSiteDateKey,
   computeNextStreakDay,
   computeCheckinReward,
+  getUserPoints,
   normalizeActivationCodeInput,
   normalizeBatchActivationInput,
   normalizeRedeemCodeInput,
   normalizeCodeText,
   generateActivationCode,
   mapActivationCodeRow,
+  normalizeAdminRecordQuery,
+  mapActivationRedemptionRow,
   activationValueLabel,
   applyMembershipFromCode,
   applyCodeRewards,

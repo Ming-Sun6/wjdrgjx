@@ -2,13 +2,17 @@
 
 function acState(root) {
   if (!root.__adminActivationCodesState) {
-    root.__adminActivationCodesState = { codes: [], shopItems: [] };
+    root.__adminActivationCodesState = { codes: [], shopItems: [], redemptions: [], redemptionPage: 1, redemptionPageSize: 20, redemptionTotal: 0, redemptionTotalPages: 1 };
   }
   return root.__adminActivationCodesState;
 }
 
 function acStatus(msg) {
   if (typeof setStatus === 'function') setStatus('activationCodesStatus', msg);
+}
+
+function acRedemptionStatus(msg) {
+  if (typeof setStatus === 'function') setStatus('activationRedemptionStatus', msg);
 }
 
 function acEsc(v) {
@@ -254,6 +258,69 @@ function acRenderTable(root) {
   });
 }
 
+
+function acRenderRedemptions(root) {
+  var st = acState(root);
+  var tbody = root.document.getElementById('activationRedemptionsTbody');
+  var pageInfo = root.document.getElementById('activationRedemptionPageInfo');
+  var prev = root.document.getElementById('activationRedemptionPrevBtn');
+  var next = root.document.getElementById('activationRedemptionNextBtn');
+  if (pageInfo) pageInfo.textContent = '第 ' + st.redemptionPage + ' / ' + st.redemptionTotalPages + ' 页，共 ' + st.redemptionTotal + ' 条';
+  if (prev) prev.disabled = st.redemptionPage <= 1;
+  if (next) next.disabled = st.redemptionPage >= st.redemptionTotalPages;
+  if (!tbody) return;
+  if (!st.redemptions.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);">暂无使用记录。</td></tr>';
+    return;
+  }
+  tbody.innerHTML = st.redemptions.map(function (row) {
+    var user = row.user || {};
+    return '<tr>' +
+      '<td>' + acEsc(acFmtTime(row.redeemedAt)) + '</td>' +
+      '<td>' + acEsc(String(row.userId || '-')) + '</td>' +
+      '<td>' + acEsc((user.username || user.loginId || '未知用户') + (user.loginId ? '（' + user.loginId + '）' : '')) + '</td>' +
+      '<td><span class="activation-code-chip">' + acEsc(row.code || ('#' + (row.codeId || '?'))) + '</span></td>' +
+      '<td>' + acEsc(acTypeLabel(row.type)) + '</td>' +
+      '<td>' + acEsc(row.batchLabel || '-') + '</td>' +
+      '<td>' + acEsc(row.note || '-') + '</td>' +
+      '<td>' + acEsc(String(row.id || '-')) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function loadActivationRedemptionsAdmin(opts) {
+  var options = opts || {};
+  if (!window.authUser || !window.authUser.isAdmin) {
+    acRedemptionStatus('没有权限：请使用管理员账号登录。');
+    acRenderRedemptions(window);
+    return;
+  }
+  if (options.page) acState(window).redemptionPage = Math.max(1, Number(options.page) || 1);
+  acRedemptionStatus('使用记录加载中...');
+  try {
+    var st = acState(window);
+    var q = String((document.getElementById('activationRedemptionSearchInput') || {}).value || '').trim();
+    var params = new URLSearchParams();
+    if (q) params.set('q', q);
+    params.set('page', String(st.redemptionPage));
+    params.set('pageSize', String(st.redemptionPageSize));
+    var r = await apiFetch('/api/admin/activation-codes/redemptions?' + params.toString(), { method: 'GET' });
+    var d = await r.json().catch(function () { return {}; });
+    if (!r.ok) {
+      acRedemptionStatus('使用记录加载失败：' + ((d && d.error) || r.status));
+      return;
+    }
+    st.redemptions = Array.isArray(d.redemptions) ? d.redemptions : [];
+    st.redemptionPage = Number(d.page || st.redemptionPage);
+    st.redemptionTotal = Number(d.total || 0);
+    st.redemptionTotalPages = Math.max(1, Number(d.totalPages || 1));
+    acRenderRedemptions(window);
+    acRedemptionStatus('共 ' + st.redemptionTotal + ' 条使用记录');
+  } catch (err) {
+    acRedemptionStatus('使用记录加载失败：' + ((err && err.message) || '网络错误'));
+  }
+}
+
 async function acToggleCode(id, enabled) {
   try {
     var r = await apiFetch('/api/admin/activation-codes/' + encodeURIComponent(id), {
@@ -419,6 +486,35 @@ function acBind(root) {
       if (e.key === 'Enter') loadActivationCodesAdmin();
     });
   }
+  var redemptionReloadBtn = doc.getElementById('activationRedemptionReloadBtn');
+  if (redemptionReloadBtn) redemptionReloadBtn.addEventListener('click', function () {
+    loadActivationRedemptionsAdmin();
+  });
+  var redemptionSearchBtn = doc.getElementById('activationRedemptionSearchBtn');
+  if (redemptionSearchBtn) redemptionSearchBtn.addEventListener('click', function () {
+    acState(root).redemptionPage = 1;
+    loadActivationRedemptionsAdmin();
+  });
+  var redemptionSearchInput = doc.getElementById('activationRedemptionSearchInput');
+  if (redemptionSearchInput) {
+    redemptionSearchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        acState(root).redemptionPage = 1;
+        loadActivationRedemptionsAdmin();
+      }
+    });
+  }
+  var redemptionPrevBtn = doc.getElementById('activationRedemptionPrevBtn');
+  if (redemptionPrevBtn) redemptionPrevBtn.addEventListener('click', function () {
+    var st = acState(root);
+    if (st.redemptionPage > 1) loadActivationRedemptionsAdmin({ page: st.redemptionPage - 1 });
+  });
+  var redemptionNextBtn = doc.getElementById('activationRedemptionNextBtn');
+  if (redemptionNextBtn) redemptionNextBtn.addEventListener('click', function () {
+    var st = acState(root);
+    if (st.redemptionPage < st.redemptionTotalPages) loadActivationRedemptionsAdmin({ page: st.redemptionPage + 1 });
+  });
+
 }
 
 function acInstall(root) {
@@ -428,6 +524,7 @@ function acInstall(root) {
   acSyncTypeFields(root);
   acBind(root);
   root.loadActivationCodesAdmin = loadActivationCodesAdmin;
+  root.loadActivationRedemptionsAdmin = loadActivationRedemptionsAdmin;
   root.__adminActivationCodesRefreshShopOptions = function (items) {
     acFillShopOptions(root, items);
   };
