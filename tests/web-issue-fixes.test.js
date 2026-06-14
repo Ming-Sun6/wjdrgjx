@@ -28,6 +28,17 @@ test('forum detail page uses whitelist html sanitizer before innerHTML rendering
   assert.doesNotMatch(source, /text=text\.replace\(\/<script/);
 });
 
+test('forum detail image lightbox exposes zoom controls and mobile pinch zoom', () => {
+  const source = read('public/function/forum-post.html');
+
+  assert.match(source, /id="imgLightboxZoomOut"/);
+  assert.match(source, /id="imgLightboxZoomIn"/);
+  assert.match(source, /id="imgLightboxZoomReset"/);
+  assert.match(source, /function setLightboxZoom\(nextZoom\)/);
+  assert.match(source, /function handleLightboxTouchMove\(ev\)/);
+  assert.match(source, /touches\.length\s*===\s*2/);
+});
+
 test('gift value calculator uses unified day/night theme only', () => {
   const source = read('public/function/gift-value-calculator.html');
 

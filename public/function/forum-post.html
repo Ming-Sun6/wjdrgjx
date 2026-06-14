@@ -231,27 +231,71 @@
     .lightbox{
       position:fixed;inset:0;z-index:99999;
       background:rgba(2,6,23,.82);
-      display:none;align-items:center;justify-content:center;
+      display:none;
       padding:18px;
+      overflow:auto;
+      box-sizing:border-box;
     }
-    .lightbox.open{display:flex;}
+    .lightbox.open{display:block;}
     .lightbox-stage{
       position:relative;
-      display:inline-flex;
+      display:flex;
       align-items:center;
       justify-content:center;
-      max-width:min(1100px, 96vw);
-      max-height:86vh;
+      width:max-content;
+      min-width:100%;
+      min-height:calc(100vh - 36px);
+      padding:54px 0 20px;
+      box-sizing:border-box;
+      touch-action:none;
     }
     .lightbox img{
-      max-width:min(1100px, 96vw);
-      max-height:86vh;
+      max-width:none;
+      max-height:none;
       width:auto;height:auto;
       border-radius:14px;
       border:1px solid rgba(255,255,255,.18);
       box-shadow:0 18px 60px rgba(0,0,0,.45);
       background:rgba(0,0,0,.15);
       display:block;
+      user-select:none;
+      -webkit-user-drag:none;
+    }
+    .lightbox-zoom-controls{
+      position:fixed;
+      left:50%;
+      top:14px;
+      transform:translateX(-50%);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      z-index:3;
+      padding:6px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:999px;
+      background:rgba(15,23,42,.72);
+      color:#fff;
+      backdrop-filter:blur(10px);
+      box-shadow:0 12px 34px rgba(0,0,0,.26);
+    }
+    .lightbox-zoom-controls button{
+      min-width:36px;
+      height:34px;
+      border:0;
+      border-radius:999px;
+      background:rgba(255,255,255,.12);
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .lightbox-zoom-controls button:hover{filter:brightness(1.12);}
+    .lightbox-zoom-controls button:disabled{opacity:.45;cursor:not-allowed;}
+    .lightbox-zoom-value{
+      min-width:52px;
+      text-align:center;
+      font-size:.84rem;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
     }
     .lightbox-original{
       position:absolute;
@@ -280,6 +324,7 @@
       font-weight:900;
       cursor:pointer;
       backdrop-filter:blur(10px);
+      z-index:4;
     }
     .thanks-footer{
       margin:18px auto 26px;
@@ -297,6 +342,16 @@
     }
     @media (max-width:520px){
       .thanks-footer{font-size:11px;padding:10px 12px;}
+      .lightbox{padding:10px;}
+      .lightbox-stage{min-height:calc(100vh - 20px);padding:68px 0 82px;}
+      .lightbox-zoom-controls{
+        top:auto;
+        bottom:14px;
+        width:calc(100vw - 32px);
+        justify-content:space-between;
+        box-sizing:border-box;
+      }
+      .lightbox-zoom-controls button{min-width:42px;height:40px;}
     }
   </style>
   <link rel="stylesheet" href="/function/theme.css" />
@@ -376,6 +431,12 @@
 
   <div class="lightbox" id="imgLightbox" aria-hidden="true">
     <button class="lightbox-close" id="imgLightboxClose" type="button">关闭</button>
+    <div class="lightbox-zoom-controls" id="imgLightboxZoomControls" aria-label="图片缩放">
+      <button id="imgLightboxZoomOut" type="button" aria-label="缩小图片">-</button>
+      <span class="lightbox-zoom-value" id="imgLightboxZoomValue">100%</span>
+      <button id="imgLightboxZoomIn" type="button" aria-label="放大图片">+</button>
+      <button id="imgLightboxZoomReset" type="button" aria-label="重置缩放">重置</button>
+    </div>
     <div class="lightbox-stage" id="imgLightboxStage">
       <img id="imgLightboxImg" alt="图片预览" />
       <button class="lightbox-original" id="imgLightboxOriginal" type="button" style="display:none;">查看原图</button>
@@ -1232,7 +1293,71 @@
         var lbStage=document.getElementById('imgLightboxStage');
         var lbOriginal=document.getElementById('imgLightboxOriginal');
         var lbClose=document.getElementById('imgLightboxClose');
+        var lbZoomOut=document.getElementById('imgLightboxZoomOut');
+        var lbZoomIn=document.getElementById('imgLightboxZoomIn');
+        var lbZoomReset=document.getElementById('imgLightboxZoomReset');
+        var lbZoomValue=document.getElementById('imgLightboxZoomValue');
         var lbState={ originalUrl:'', showingOriginal:false, sizeBytes:0 };
+        var lbZoom=1;
+        var lbPinchStartDistance=0;
+        var lbPinchStartZoom=1;
+        function clampLightboxZoom(value){
+          value=Number(value);
+          if(!Number.isFinite(value)) value=1;
+          return Math.max(0.5, Math.min(3, value));
+        }
+        function getLightboxBaseSize(){
+          if(!lbImg || !lbImg.naturalWidth || !lbImg.naturalHeight) return null;
+          var maxW=Math.min(1100, window.innerWidth*0.96);
+          var maxH=window.innerHeight*0.86;
+          var fit=Math.min(maxW/lbImg.naturalWidth, maxH/lbImg.naturalHeight, 1);
+          return {
+            width:Math.max(1, lbImg.naturalWidth*fit),
+            height:Math.max(1, lbImg.naturalHeight*fit)
+          };
+        }
+        function updateLightboxZoomUi(){
+          if(lbZoomValue) lbZoomValue.textContent=Math.round(lbZoom*100)+'%';
+          if(lbZoomOut) lbZoomOut.disabled=lbZoom<=0.5;
+          if(lbZoomIn) lbZoomIn.disabled=lbZoom>=3;
+        }
+        function setLightboxZoom(nextZoom){
+          lbZoom=clampLightboxZoom(nextZoom);
+          if(lbImg){
+            var base=getLightboxBaseSize();
+            if(base){
+              lbImg.style.width=Math.round(base.width*lbZoom)+'px';
+              lbImg.style.height='auto';
+            }else{
+              lbImg.style.width='';
+              lbImg.style.height='';
+            }
+          }
+          updateLightboxZoomUi();
+        }
+        function getLightboxTouchDistance(touches){
+          var dx=touches[0].clientX-touches[1].clientX;
+          var dy=touches[0].clientY-touches[1].clientY;
+          return Math.sqrt(dx*dx+dy*dy);
+        }
+        function handleLightboxTouchStart(ev){
+          var isPinching=!!(ev.touches && ev.touches.length === 2);
+          if(!isPinching) return;
+          lbPinchStartDistance=getLightboxTouchDistance(ev.touches);
+          lbPinchStartZoom=lbZoom;
+        }
+        function handleLightboxTouchMove(ev){
+          var isPinching=!!(ev.touches && ev.touches.length === 2);
+          if(!isPinching) return;
+          if(ev.cancelable) ev.preventDefault();
+          var distance=getLightboxTouchDistance(ev.touches);
+          if(lbPinchStartDistance>0) setLightboxZoom(lbPinchStartZoom*(distance/lbPinchStartDistance));
+        }
+        function resetLightboxZoom(){
+          lbPinchStartDistance=0;
+          lbPinchStartZoom=1;
+          setLightboxZoom(1);
+        }
         function resetLightboxOriginalBtn(){
           if(lbStage) lbStage.classList.remove('is-original');
           if(!lbOriginal) return;
@@ -1259,6 +1384,7 @@
             : sanitizeImgSrc(src);
           if(!previewSrc) return;
           resetLightboxOriginalBtn();
+          resetLightboxZoom();
           lbState.originalUrl=safeOriginal;
           lbState.showingOriginal=false;
           lbImg.src=previewSrc;
@@ -1285,15 +1411,28 @@
           lb.classList.remove('open');
           lb.setAttribute('aria-hidden','true');
           lbImg.src='';
+          resetLightboxZoom();
           resetLightboxOriginalBtn();
         }
+        if(lbImg) lbImg.addEventListener('load',function(){ setLightboxZoom(lbZoom); });
+        if(lbZoomOut) lbZoomOut.addEventListener('click',function(ev){ ev.preventDefault(); ev.stopPropagation(); setLightboxZoom(lbZoom-0.25); });
+        if(lbZoomIn) lbZoomIn.addEventListener('click',function(ev){ ev.preventDefault(); ev.stopPropagation(); setLightboxZoom(lbZoom+0.25); });
+        if(lbZoomReset) lbZoomReset.addEventListener('click',function(ev){ ev.preventDefault(); ev.stopPropagation(); resetLightboxZoom(); });
+        if(lbStage){
+          lbStage.addEventListener('touchstart',handleLightboxTouchStart,{ passive:true });
+          lbStage.addEventListener('touchmove',handleLightboxTouchMove,{ passive:false });
+        }
+        window.addEventListener('resize',function(){ if(lb && lb.classList.contains('open')) setLightboxZoom(lbZoom); });
         if(lbClose) lbClose.addEventListener('click',closeLightbox);
         if(lbOriginal) lbOriginal.addEventListener('click',function(ev){
           ev.preventDefault();
           ev.stopPropagation();
           showLightboxOriginal();
         });
-        if(lb) lb.addEventListener('click',function(ev){ if(ev.target && ev.target.id==='imgLightbox') closeLightbox(); });
+        if(lb) lb.addEventListener('click',function(ev){
+          var targetId=ev.target && ev.target.id;
+          if(targetId==='imgLightbox' || targetId==='imgLightboxStage') closeLightbox();
+        });
         document.addEventListener('keydown',function(ev){ if(ev.key==='Escape') closeLightbox(); });
         var contentBox=document.getElementById('content');
         if(contentBox){
