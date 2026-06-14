@@ -34,9 +34,20 @@ test('forum detail image lightbox exposes zoom controls and mobile pinch zoom', 
   assert.match(source, /id="imgLightboxZoomOut"/);
   assert.match(source, /id="imgLightboxZoomIn"/);
   assert.match(source, /id="imgLightboxZoomReset"/);
-  assert.match(source, /function setLightboxZoom\(nextZoom\)/);
+  assert.match(source, /function setLightboxZoom\(nextZoom(?:,\s*keepViewport)?\)/);
   assert.match(source, /function handleLightboxTouchMove\(ev\)/);
   assert.match(source, /touches\.length\s*===\s*2/);
+});
+
+test('forum detail image lightbox keeps original button visible on mobile and supports panning', () => {
+  const source = read('public/function/forum-post.html');
+
+  assert.match(source, /@media \(max-width:520px\)[\s\S]*\.lightbox-original\{[\s\S]*position:fixed[\s\S]*bottom:74px/);
+  assert.match(source, /function startLightboxPan\(clientX,\s*clientY\)/);
+  assert.match(source, /function moveLightboxPan\(clientX,\s*clientY\)/);
+  assert.match(source, /function centerLightboxViewport\(center\)/);
+  assert.match(source, /addEventListener\('mousemove',\s*handleLightboxMouseMove/);
+  assert.match(source, /touches\.length\s*===\s*1/);
 });
 
 test('gift value calculator uses unified day/night theme only', () => {
