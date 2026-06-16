@@ -61,6 +61,10 @@ const {
   mapShopItemRow
 } = require('./shop');
 const { mountAeroplaneChessPollingRoutes } = require('./aeroplane-chess-polling');
+const {
+  FORUM_VISIBLE_VIEW_COUNT_EXPR,
+  buildForumViewRows
+} = require('./forum-post-views');
 
 const app = express();
 const PORT = 3000;
@@ -1864,7 +1868,7 @@ async function getPostById(postId) {
       u.title_color AS author_title_color,
       u.is_banned AS author_is_banned,
       u.muted_until AS author_muted_until,
-      (SELECT COUNT(*) FROM forum_post_views v WHERE v.post_id = p.id) AS viewCount,
+      ${FORUM_VISIBLE_VIEW_COUNT_EXPR('p')} AS viewCount,
       (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.id) AS likeCount,
       (SELECT COUNT(*) FROM forum_post_favorites f WHERE f.post_id = p.id) AS favoriteCount,
       (SELECT COUNT(*) FROM forum_comments c WHERE c.post_id = p.id) AS commentCount
@@ -2446,8 +2450,8 @@ app.get('/api/users/:id/posts', async (req, res) => {
       SELECT
         p.*,
         u.id AS author_id,u.login_id AS author_login_id,u.username AS author_username,u.avatar_url AS author_avatar_url,u.membership_status AS author_membership_status,u.membership_expires_at AS author_membership_expires_at,u.title_text AS author_title_text,u.title_bg_color AS author_title_bg_color,u.title_color AS author_title_color,u.is_banned AS author_is_banned,u.muted_until AS author_muted_until,
-        (SELECT COUNT(*) FROM forum_post_views v WHERE v.post_id = p.id) AS viewCount,
-        (SELECT COUNT(*) FROM forum_post_views v WHERE v.post_id = p.id) AS viewCount,
+        ${FORUM_VISIBLE_VIEW_COUNT_EXPR('p')} AS viewCount,
+        ${FORUM_VISIBLE_VIEW_COUNT_EXPR('p')} AS viewCount,
         (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.id) AS likeCount,
         (SELECT COUNT(*) FROM forum_post_favorites f WHERE f.post_id = p.id) AS favoriteCount,
         (SELECT COUNT(*) FROM forum_comments c WHERE c.post_id = p.id) AS commentCount,
@@ -2478,7 +2482,7 @@ app.get('/api/me/likes', async (req, res) => {
       SELECT
         p.*,
         u.id AS author_id,u.login_id AS author_login_id,u.username AS author_username,u.avatar_url AS author_avatar_url,u.membership_status AS author_membership_status,u.membership_expires_at AS author_membership_expires_at,u.title_text AS author_title_text,u.title_bg_color AS author_title_bg_color,u.title_color AS author_title_color,u.is_banned AS author_is_banned,u.muted_until AS author_muted_until,
-        (SELECT COUNT(*) FROM forum_post_views v WHERE v.post_id = p.id) AS viewCount,
+        ${FORUM_VISIBLE_VIEW_COUNT_EXPR('p')} AS viewCount,
         (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.id) AS likeCount,
         (SELECT COUNT(*) FROM forum_post_favorites f WHERE f.post_id = p.id) AS favoriteCount,
         (SELECT COUNT(*) FROM forum_comments c WHERE c.post_id = p.id) AS commentCount,
@@ -2510,7 +2514,7 @@ app.get('/api/me/favorites', async (req, res) => {
       SELECT
         p.*,
         u.id AS author_id,u.login_id AS author_login_id,u.username AS author_username,u.avatar_url AS author_avatar_url,u.membership_status AS author_membership_status,u.membership_expires_at AS author_membership_expires_at,u.title_text AS author_title_text,u.title_bg_color AS author_title_bg_color,u.title_color AS author_title_color,u.is_banned AS author_is_banned,u.muted_until AS author_muted_until,
-        (SELECT COUNT(*) FROM forum_post_views v WHERE v.post_id = p.id) AS viewCount,
+        ${FORUM_VISIBLE_VIEW_COUNT_EXPR('p')} AS viewCount,
         (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.id) AS likeCount,
         (SELECT COUNT(*) FROM forum_post_favorites f WHERE f.post_id = p.id) AS favoriteCount,
         (SELECT COUNT(*) FROM forum_comments c WHERE c.post_id = p.id) AS commentCount,
@@ -3097,7 +3101,7 @@ app.get('/api/forum/posts', async (req, res) => {
       SELECT
         p.*,
         u.id AS author_id,u.login_id AS author_login_id,u.username AS author_username,u.avatar_url AS author_avatar_url,u.membership_status AS author_membership_status,u.membership_expires_at AS author_membership_expires_at,u.title_text AS author_title_text,u.title_bg_color AS author_title_bg_color,u.title_color AS author_title_color,u.is_banned AS author_is_banned,u.muted_until AS author_muted_until,
-        (SELECT COUNT(*) FROM forum_post_views v WHERE v.post_id = p.id) AS viewCount,
+        ${FORUM_VISIBLE_VIEW_COUNT_EXPR('p')} AS viewCount,
         (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.id) AS likeCount,
         (SELECT COUNT(*) FROM forum_post_favorites f WHERE f.post_id = p.id) AS favoriteCount,
         (SELECT COUNT(*) FROM forum_comments c WHERE c.post_id = p.id) AS commentCount,
@@ -3282,7 +3286,7 @@ app.get('/api/forum/posts/:id', async (req, res) => {
       SELECT
         p.*,
         u.id AS author_id,u.login_id AS author_login_id,u.username AS author_username,u.avatar_url AS author_avatar_url,u.membership_status AS author_membership_status,u.membership_expires_at AS author_membership_expires_at,u.title_text AS author_title_text,u.title_bg_color AS author_title_bg_color,u.title_color AS author_title_color,u.is_banned AS author_is_banned,u.muted_until AS author_muted_until,
-        (SELECT COUNT(*) FROM forum_post_views v WHERE v.post_id = p.id) AS viewCount,
+        ${FORUM_VISIBLE_VIEW_COUNT_EXPR('p')} AS viewCount,
         (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.id) AS likeCount,
         (SELECT COUNT(*) FROM forum_post_favorites f WHERE f.post_id = p.id) AS favoriteCount,
         (SELECT COUNT(*) FROM forum_comments c WHERE c.post_id = p.id) AS commentCount,
@@ -3310,20 +3314,22 @@ app.get('/api/forum/posts/:id', async (req, res) => {
         row.status === 'approved' ||
         !!(current && (isModerator(current) || Number(current.id) === Number(row.author_id)));
       if (mayCount) {
-        const viewerKey = `v:${crypto.randomUUID()}`;
-        if (pgDatabase) {
-          await execute(
-            'INSERT INTO forum_post_views (post_id, viewer_key, created_at) VALUES (?, ?, CURRENT_TIMESTAMP(3)) ON CONFLICT (post_id, viewer_key) DO NOTHING',
-            [postId, viewerKey]
-          );
-        } else {
-          await execute(
-            'INSERT IGNORE INTO forum_post_views (post_id, viewer_key, created_at) VALUES (?, ?, CURRENT_TIMESTAMP(3))',
-            [postId, viewerKey]
-          );
+        const viewRows = buildForumViewRows(postId);
+        for (const viewRow of viewRows) {
+          if (pgDatabase) {
+            await execute(
+              'INSERT INTO forum_post_views (post_id, viewer_key, created_at) VALUES (?, ?, ?) ON CONFLICT (post_id, viewer_key) DO NOTHING',
+              [viewRow.postId, viewRow.viewerKey, viewRow.createdAt]
+            );
+          } else {
+            await execute(
+              'INSERT IGNORE INTO forum_post_views (post_id, viewer_key, created_at) VALUES (?, ?, ?)',
+              [viewRow.postId, viewRow.viewerKey, viewRow.createdAt]
+            );
+          }
         }
-        // 以库里 COUNT 为准：某些驱动对 INSERT 的 affectedRows/rowCount 不可靠，会导致「每次点进去仍显示 1」
-        const cnt = await queryOne('SELECT COUNT(*) AS c FROM forum_post_views WHERE post_id = ?', [postId]);
+        // Count only rows that have reached their scheduled display time.
+        const cnt = await queryOne('SELECT COUNT(*) AS c FROM forum_post_views WHERE post_id = ? AND created_at <= CURRENT_TIMESTAMP(3)', [postId]);
         row.viewCount = Math.max(0, Number(cnt?.c || 0));
       }
     }
@@ -3587,7 +3593,7 @@ app.get('/api/admin/forum/pending', async (req, res) => {
       SELECT
         p.*,
         u.id AS author_id,u.login_id AS author_login_id,u.username AS author_username,u.avatar_url AS author_avatar_url,u.membership_status AS author_membership_status,u.membership_expires_at AS author_membership_expires_at,u.title_text AS author_title_text,u.title_bg_color AS author_title_bg_color,u.title_color AS author_title_color,u.is_banned AS author_is_banned,u.muted_until AS author_muted_until,
-        (SELECT COUNT(*) FROM forum_post_views v WHERE v.post_id = p.id) AS viewCount,
+        ${FORUM_VISIBLE_VIEW_COUNT_EXPR('p')} AS viewCount,
         (SELECT COUNT(*) FROM forum_post_likes l WHERE l.post_id = p.id) AS likeCount,
         (SELECT COUNT(*) FROM forum_post_favorites f WHERE f.post_id = p.id) AS favoriteCount,
         (SELECT COUNT(*) FROM forum_comments c WHERE c.post_id = p.id) AS commentCount,
