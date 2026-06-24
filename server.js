@@ -242,7 +242,11 @@ function sanitizeAnnouncementHtml(inputHtml) {
     },
     allowedStyles: {
       '*': {
-        'color': [/^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/],
+        'color': [
+          /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/,
+          /^rgb\(\s*(?:25[0-5]|2[0-4]\d|1?\d?\d)\s*,\s*(?:25[0-5]|2[0-4]\d|1?\d?\d)\s*,\s*(?:25[0-5]|2[0-4]\d|1?\d?\d)\s*\)$/,
+          /^rgba\(\s*(?:25[0-5]|2[0-4]\d|1?\d?\d)\s*,\s*(?:25[0-5]|2[0-4]\d|1?\d?\d)\s*,\s*(?:25[0-5]|2[0-4]\d|1?\d?\d)\s*,\s*(?:0|1|0?\.\d+)\s*\)$/
+        ],
         'font-size': [/^\d+(px|rem|em|%)$/],
         'font-weight': [/^(normal|bold|[1-9]00)$/],
         'text-decoration': [/^(none|underline|line-through)$/],
