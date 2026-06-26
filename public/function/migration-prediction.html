@@ -503,6 +503,16 @@
       var t = getTodaySerial();
       return targetSerial - t;
     }
+    function selectDefaultForecastIndex(dates, todaySerial){
+      var list = Array.isArray(dates) ? dates : [];
+      if (!list.length) return 0;
+      var today = Number.isFinite(todaySerial) ? todaySerial : getTodaySerial();
+      for (var i = 0; i < list.length; i++){
+        var mark = immigrationMarkSerial(list[i]);
+        if (Number.isFinite(mark) && mark >= today) return i;
+      }
+      return list.length - 1;
+    }
     function countNumericScheduleRows(){
       var i = 0;
       for (; i < labels.length; i++){
@@ -662,7 +672,8 @@
       var summaryEl = document.getElementById("userSummary");
 
       var fc = forecastDatesFromHistory(historyDateMarks, 10);
-      var nextOpen = fc.dates.length ? fc.dates[0] : "-";
+      var defaultForecastIndex = selectDefaultForecastIndex(fc.dates, getTodaySerial());
+      var nextOpen = fc.dates.length ? fc.dates[defaultForecastIndex] : "-";
 
       if (rhythmEl){
         var gapStr = fc.gapsSample.length ? fc.gapsSample.join("\u3001") + " \u5929" : "-";
@@ -726,12 +737,12 @@
             opt.textContent = fc.dates[pi];
             matrixPeriodSelect.appendChild(opt);
           }
-          matrixPeriodSelect.value = "0";
+          matrixPeriodSelect.value = String(defaultForecastIndex);
         } else {
           matrixPeriodSelect.hidden = true;
         }
       }
-      renderMatrixForecastUI(sid, fc, 0);
+      renderMatrixForecastUI(sid, fc, defaultForecastIndex);
 
       /* \u5c55\u958b\u5386\u53f2 */
       var hHtml = "";
@@ -789,6 +800,8 @@
       sel.dataset.bound = "1";
       sel.addEventListener("change", refreshMatrixForecastTable);
     })();
+    window.selectDefaultForecastIndex = selectDefaultForecastIndex;
+    window.dateStrToSerial = dateStrToSerial;
     renderAll();
   })();
   </script>

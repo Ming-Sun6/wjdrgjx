@@ -17,6 +17,7 @@
   })();
   </script>
 
+
   <meta charset="UTF-8" />
   <meta name="description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
   <meta property="og:type" content="website" />
@@ -1328,6 +1329,13 @@
       text-align:center;
       text-decoration:none;
       color:#0f172a;
+    }
+    button.tool-tile-link{
+      width:100%;
+      border:0;
+      background:transparent;
+      font:inherit;
+      cursor:pointer;
     }
     .tool-tile-name{
       font-size:.92rem;
@@ -3264,6 +3272,7 @@
   <script src="/function/theme.js?v=20260501-0103" defer></script>
 </head>
 <body>
+
   <div class="wjdr-home-lead" aria-label="活动说明入口">
     <div class="wjdr-home-lead-inner">
       <div class="wjdr-home-carousel" id="wjdrHomeLeadRoot">
@@ -3773,10 +3782,10 @@
         </div>
         <div class="tool-warehouse-grid">
           <section class="card tool-tile-card" data-category="miniGames" data-tool-priority="miniGames">
-            <a class="tool-tile-link" href="function/aeroplane-chess/">
+            <button class="tool-tile-link" type="button" data-maintenance-game="aeroplane-chess" data-maintenance-message="该小游戏正在维护中">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
               <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>极简飞行棋</span></div>
-            </a>
+            </button>
             <div class="pill">aeroplane-chess</div>
             <div class="desc">搬运版极简飞行棋，支持在线联机、人机对战、本地多人和观战。</div>
           </section>
@@ -4815,6 +4824,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
   <script>
     // 登录/注册（JWT HttpOnly Cookie）
     let authUser=null,authChecked=false;
+
     async function apiFetch(url,opts){ return await fetch(url,{credentials:'include',cache:'no-store',...opts,headers:{'Content-Type':'application/json',...(opts?.headers||{})}}); }
     async function apiFetchWithTimeout(url, opts, timeoutMs){
       var controller=new AbortController();
@@ -5967,6 +5977,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       t.classList.add('show');
       t._hideTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000);
     }
+    document.addEventListener('click', function(e){
+      var target = e.target && e.target.closest ? e.target.closest('[data-maintenance-game]') : null;
+      if(!target) return;
+      e.preventDefault();
+      showDevToast(target.getAttribute('data-maintenance-message') || '该小游戏正在维护中');
+    });
     var homepageAnnouncement=null;
     var ANNOUNCEMENT_SEEN_STORAGE_KEY='wjdr_announcement_seen_v1';
     function formatAnnouncementDate(value){

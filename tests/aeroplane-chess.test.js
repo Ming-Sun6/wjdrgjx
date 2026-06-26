@@ -21,10 +21,12 @@ async function importPollingTransport(baseDir) {
   return import(moduleUrl);
 }
 
-test('home page links to imported aeroplane chess folder only', () => {
+test('home page marks aeroplane chess as maintenance instead of linking to game', () => {
   const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
 
-  assert.match(html, /function\/aeroplane-chess\//);
+  assert.doesNotMatch(html, /href="function\/aeroplane-chess\/"/);
+  assert.match(html, /data-maintenance-game="aeroplane-chess"/);
+  assert.match(html, /该小游戏正在维护中/);
   assert.doesNotMatch(html, /function\/ludo\.html/);
   assert.doesNotMatch(html, /id="ludoBoard"/);
 });
@@ -35,7 +37,7 @@ test('homepage places aeroplane chess in mini games alliance activity section', 
   const miniEnd = html.indexOf('<!-- 暂时隐藏活动日历入口');
   const extendedStart = html.indexOf('id="extendedToolWarehouse"');
   const extendedEnd = miniStart;
-  const aeroplaneIndex = html.indexOf('href="function/aeroplane-chess/"');
+  const aeroplaneIndex = html.indexOf('data-maintenance-game="aeroplane-chess"');
 
   assert.notEqual(miniStart, -1);
   assert.notEqual(miniEnd, -1);
@@ -48,7 +50,7 @@ test('homepage places aeroplane chess in mini games alliance activity section', 
 
   const miniSection = html.slice(miniStart, miniEnd);
   const extendedSection = html.slice(extendedStart, extendedEnd);
-  assert.match(miniSection, /data-category="miniGames" data-tool-priority="miniGames"[\s\S]*href="function\/aeroplane-chess\/"/);
+  assert.match(miniSection, /data-category="miniGames" data-tool-priority="miniGames"[\s\S]*data-maintenance-game="aeroplane-chess"/);
   assert.doesNotMatch(extendedSection, /function\/aeroplane-chess\//);
   assert.match(html, /lower==='minigames'\|\|lower==='game'\|\|lower==='games'/);
 });
