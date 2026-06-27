@@ -42,3 +42,11 @@ test('pet data query tool exposes material power and breakthrough data', () => {
   assert.match(html, /洞斑鬣狗/);
   assert.match(html, /制作：甜甜/);
 });
+
+test('new data tools define day theme overrides so theme toggle has visible effect', () => {
+  const buildingHtml = read('public/function/building-upgrade-1-30.html');
+  const petHtml = read('public/function/pet-data-query.html');
+
+  assert.match(buildingHtml, /html\[data-theme="day"\]|body\.theme-day/);
+  assert.match(petHtml, /html\[data-theme="day"\]|body\.theme-day/);
+});
