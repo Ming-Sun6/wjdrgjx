@@ -10,6 +10,16 @@ const {
   purchaseShopItem
 } = require('../shop');
 
+function getAdminSection(html, pageId) {
+  const marker = `id="${pageId}"`;
+  const idStart = html.indexOf(marker);
+  assert.notEqual(idStart, -1, `missing ${pageId}`);
+  const start = html.lastIndexOf('<section', idStart);
+  assert.notEqual(start, -1, `missing ${pageId}`);
+  const next = html.indexOf('<section class="card page"', idStart + marker.length);
+  return html.slice(start, next === -1 ? html.length : next);
+}
+
 test('normalizeShopItemPayload validates membership item', () => {
   const item = normalizeShopItemPayload({
     name: '月度会员',
@@ -134,6 +144,8 @@ test('admin shop page exposes searchable paginated purchase records', () => {
   assert.match(shopSource, /LIMIT \? OFFSET \?/);
   assert.match(adminHtml, /shopPurchaseSearchInput/);
   assert.match(adminHtml, /shopPurchasesTbody/);
+  assert.match(getAdminSection(adminHtml, 'page-shop'), /shopPurchaseSearchInput/);
+  assert.doesNotMatch(getAdminSection(adminHtml, 'page-admins'), /shopPurchaseSearchInput/);
   assert.match(adminJs, /loadShopPurchasesAdmin/);
   assert.match(adminJs, /shopPurchasePrevBtn/);
   assert.match(adminJs, /shopPurchaseNextBtn/);

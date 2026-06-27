@@ -17,6 +17,16 @@ const {
   mapActivationCodeRow
 } = require('../user-rewards');
 
+function getAdminSection(html, pageId) {
+  const marker = `id="${pageId}"`;
+  const idStart = html.indexOf(marker);
+  assert.notEqual(idStart, -1, `missing ${pageId}`);
+  const start = html.lastIndexOf('<section', idStart);
+  assert.notEqual(start, -1, `missing ${pageId}`);
+  const next = html.indexOf('<section class="card page"', idStart + marker.length);
+  return html.slice(start, next === -1 ? html.length : next);
+}
+
 test('getSiteDateKey uses UTC+8 calendar day', () => {
   const key = getSiteDateKey(new Date('2026-06-03T18:00:00.000Z'));
   assert.equal(key, '2026-06-04');
@@ -154,6 +164,8 @@ test('admin activation codes page exposes searchable paginated redemption record
   assert.match(rewardsSource, /LIMIT \? OFFSET \?/);
   assert.match(adminHtml, /activationRedemptionSearchInput/);
   assert.match(adminHtml, /activationRedemptionsTbody/);
+  assert.match(getAdminSection(adminHtml, 'page-activation-codes'), /activationRedemptionSearchInput/);
+  assert.doesNotMatch(getAdminSection(adminHtml, 'page-moderators'), /activationRedemptionSearchInput/);
   assert.match(adminJs, /loadActivationRedemptionsAdmin/);
   assert.match(adminJs, /activationRedemptionPrevBtn/);
   assert.match(adminJs, /activationRedemptionNextBtn/);

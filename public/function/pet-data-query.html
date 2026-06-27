@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="night">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>宠物数据查询-冬日工具箱</title>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+  <style>
+    :root {
+      --bg: #111827;
+      --bg2: #1f2937;
+      --panel: rgba(15, 23, 42, 0.84);
+      --line: rgba(148, 163, 184, 0.22);
+      --text: #eef2ff;
+      --muted: #9fb0ca;
+      --accent: #5eead4;
+      --warm: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Microsoft YaHei", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 14% 8%, rgba(94, 234, 212, 0.16), transparent 24%),
+        radial-gradient(circle at 82% 12%, rgba(251, 191, 36, 0.12), transparent 18%),
+        linear-gradient(145deg, var(--bg), var(--bg2) 60%, #18212f);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 18px; }
+    .back-link {
+      display: inline-flex;
+      margin-bottom: 16px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.46);
+      color: var(--text);
+      text-decoration: none;
+    }
+    .hero,
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+    }
+    .hero {
+      padding: 22px;
+      background: linear-gradient(135deg, rgba(94, 234, 212, 0.14), rgba(15, 23, 42, 0.9));
+    }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 46px); }
+    .sub,
+    .note { color: var(--muted); line-height: 1.7; }
+    .source { color: var(--warm); font-weight: 700; }
+    .controls {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    select,
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(8, 17, 31, 0.76);
+      color: var(--text);
+      padding: 11px 12px;
+      font: inherit;
+    }
+    .panel { margin-top: 16px; padding: 14px; overflow: hidden; }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .panel-head h2 { margin: 0; font-size: 22px; }
+    .table-wrap { overflow: auto; }
+    table { width: 100%; min-width: 780px; border-collapse: collapse; }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      text-align: left;
+      white-space: nowrap;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: rgba(94, 234, 212, 0.10);
+      color: #ccfbf1;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid rgba(94, 234, 212, 0.2);
+      border-radius: 999px;
+      background: rgba(94, 234, 212, 0.08);
+      color: var(--text);
+      font-size: 13px;
+    }
+    @media (max-width: 760px) {
+      .controls { grid-template-columns: 1fr; }
+      .wrap { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-link" href="/">返回首页</a>
+
+    <section class="hero">
+      <h1>宠物数据查询</h1>
+      <p class="sub">
+        按宠物查看养成材料、满级实力与突破评分，支持同组宠物共用数据切换。
+        <span class="source">制作：甜甜</span>
+      </p>
+    </section>
+
+    <section class="controls">
+      <label>宠物 / 分组
+        <select id="petSelect"></select>
+      </label>
+      <label>等级筛选
+        <input id="levelFilter" type="search" placeholder="如 50 / 80 / 100" />
+      </label>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="materialTitle">宠物养成材料</h2>
+        <div class="pill">此数据为原始数据</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>等级</th>
+              <th>口粮</th>
+              <th>驯兽手册</th>
+              <th>活力药剂</th>
+              <th>强化血清</th>
+              <th>等级属性</th>
+              <th>洗炼属性</th>
+            </tr>
+          </thead>
+          <tbody id="materialBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>宠物满级实力</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>宠物</th>
+              <th>等级实力</th>
+              <th>突破实力</th>
+              <th>洗炼实力</th>
+              <th>总实力</th>
+            </tr>
+          </thead>
+          <tbody id="powerBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>宠物突破评分</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>等级</th>
+              <th>评分</th>
+            </tr>
+          </thead>
+          <tbody id="scoreBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="note">说明：同组宠物共用同一套养成材料数据；等级筛选同时作用于材料表、满级实力表和突破评分表。</p>
+  </main>
+
+  <script>
+    const PET_GROUPS = [
+      {
+        label: "洞斑鬣狗",
+        pets: ["洞斑鬣狗"],
+        rows: [
+          { level: 10, feed: "1715", book: "15", potion: "", serum: "", stat: "0.92%", refine: "1.01%" },
+          { level: 20, feed: "3180", book: "30", potion: "", serum: "", stat: "1.82%", refine: "2.01%" },
+          { level: 30, feed: "5010", book: "45", potion: "10", serum: "", stat: "2.87%", refine: "3.35%" },
+          { level: 40, feed: "7660", book: "60", potion: "20", serum: "", stat: "3.95%", refine: "4.69%" },
+          { level: 50, feed: "11310", book: "90", potion: "30", serum: "10", stat: "5.02%", refine: "6.70%" }
+        ]
+      },
+      {
+        label: "北极狼 / 麝牛",
+        pets: ["北极狼", "麝牛"],
+        rows: [
+          { level: 10, feed: "2530", book: "20", potion: "", serum: "", stat: "1.51%", refine: "2.01%" },
+          { level: 20, feed: "5360", book: "40", potion: "", serum: "", stat: "3.02%", refine: "4.02%" },
+          { level: 30, feed: "9020", book: "60", potion: "10", serum: "", stat: "4.69%", refine: "6.70%" },
+          { level: 40, feed: "14320", book: "90", potion: "20", serum: "", stat: "6.37%", refine: "9.39%" },
+          { level: 50, feed: "21620", book: "130", potion: "30", serum: "10", stat: "8.21%", refine: "13.41%" },
+          { level: 60, feed: "30920", book: "175", potion: "50", serum: "20", stat: "10.06%", refine: "" }
+        ]
+      },
+      {
+        label: "泰坦巨鸟 / 巨貘",
+        pets: ["泰坦巨鸟", "巨貘"],
+        rows: [
+          { level: 10, feed: "3795", book: "25", potion: "", serum: "", stat: "1.92%", refine: "3.02%" },
+          { level: 20, feed: "8040", book: "50", potion: "", serum: "", stat: "3.83%", refine: "6.03%" },
+          { level: 30, feed: "13530", book: "75", potion: "10", serum: "", stat: "5.95%", refine: "10.06%" },
+          { level: 40, feed: "21480", book: "100", potion: "20", serum: "", stat: "8.08%", refine: "14.08%" },
+          { level: 50, feed: "32430", book: "155", potion: "30", serum: "10", stat: "10.42%", refine: "20.11%" },
+          { level: 60, feed: "46380", book: "200", potion: "50", serum: "20", stat: "12.74%", refine: "" },
+          { level: 70, feed: "63300", book: "255", potion: "80", serum: "40", stat: "15.08%", refine: "" }
+        ]
+      },
+      {
+        label: "大角鹿 / 雪豹",
+        pets: ["大角鹿", "雪豹"],
+        rows: [
+          { level: 10, feed: "5,060", book: "30", potion: "", serum: "", stat: "2.37%", refine: "4.36%" },
+          { level: 20, feed: "10720", book: "60", potion: "", serum: "", stat: "4.75%", refine: "8.72%" },
+          { level: 30, feed: "18040", book: "95", potion: "10", serum: "", stat: "7.38%", refine: "14.53%" },
+          { level: 40, feed: "28640", book: "125", potion: "20", serum: "", stat: "10.01%", refine: "20.34%" },
+          { level: 50, feed: "43240", book: "190", potion: "30", serum: "10", stat: "12.89%", refine: "29.05%" },
+          { level: 60, feed: "61840", book: "250", potion: "50", serum: "20", stat: "15.77%", refine: "" },
+          { level: 70, feed: "84400", book: "310", potion: "80", serum: "40", stat: "18.65%", refine: "" },
+          { level: 80, feed: "108480", book: "380", potion: "100", serum: "60", stat: "21.78%", refine: "" }
+        ]
+      },
+      {
+        label: "雪猿 / 洞狮",
+        pets: ["雪猿", "洞狮"],
+        rows: [
+          { level: 10, feed: "6325", book: "35", potion: "", serum: "", stat: "2.86%", refine: "6.70%" },
+          { level: 20, feed: "13400", book: "70", potion: "", serum: "", stat: "5.70%", refine: "13.41%" },
+          { level: 30, feed: "22550", book: "110", potion: "15", serum: "", stat: "8.85%", refine: "22.35%" },
+          { level: 40, feed: "35800", book: "145", potion: "35", serum: "", stat: "11.99%", refine: "31.28%" },
+          { level: 50, feed: "54050", book: "220", potion: "50", serum: "10", stat: "15.44%", refine: "44.69%" },
+          { level: 60, feed: "77300", book: "290", potion: "65", serum: "20", stat: "18.88%", refine: "" },
+          { level: 70, feed: "105500", book: "365", potion: "85", serum: "40", stat: "22.32%", refine: "" },
+          { level: 80, feed: "135600", book: "440", potion: "100", serum: "60", stat: "26.05%", refine: "" },
+          { level: 90, feed: "172000", book: "585", potion: "115", serum: "80", stat: "29.78%", refine: "" },
+          { level: 100, feed: "212100", book: "730", potion: "135", serum: "100", stat: "33.52%", refine: "" }
+        ]
+      },
+      {
+        label: "板齿犀 / 剑齿虎 / 猛犸象 / 冰霜古猿",
+        pets: ["板齿犀", "剑齿虎", "猛犸象", "冰霜古猿"],
+        rows: [
+          { level: 10, feed: "6325", book: "35", potion: "", serum: "", stat: "2.86%", refine: "7.37%" },
+          { level: 20, feed: "13400", book: "70", potion: "", serum: "", stat: "5.70%", refine: "14.75%" },
+          { level: 30, feed: "22550", book: "110", potion: "15", serum: "", stat: "8.85%", refine: "24.58%" },
+          { level: 40, feed: "35800", book: "145", potion: "35", serum: "", stat: "11.99%", refine: "34.41%" },
+          { level: 50, feed: "54050", book: "220", potion: "50", serum: "10", stat: "15.44%", refine: "49.16%" },
+          { level: 60, feed: "77300", book: "290", potion: "65", serum: "20", stat: "18.88%", refine: "" },
+          { level: 70, feed: "105500", book: "365", potion: "85", serum: "40", stat: "22.32%", refine: "" },
+          { level: 80, feed: "135600", book: "440", potion: "100", serum: "60", stat: "26.05%", refine: "" },
+          { level: 90, feed: "172000", book: "585", potion: "115", serum: "80", stat: "29.78%", refine: "" },
+          { level: 100, feed: "212100", book: "730", potion: "135", serum: "100", stat: "33.52%", refine: "" }
+        ]
+      },
+      {
+        label: "霜鳞避役",
+        pets: ["霜鳞避役"],
+        rows: [
+          { level: 10, feed: "6325", book: "35", potion: "", serum: "", stat: "2.86%", refine: "8.72%" },
+          { level: 20, feed: "13400", book: "70", potion: "", serum: "", stat: "5.70%", refine: "17.43%" },
+          { level: 30, feed: "22550", book: "110", potion: "15", serum: "", stat: "8.85%", refine: "29.05%" },
+          { level: 40, feed: "35800", book: "145", potion: "35", serum: "", stat: "11.99%", refine: "40.67%" },
+          { level: 50, feed: "54050", book: "220", potion: "50", serum: "10", stat: "15.44%", refine: "58.10%" },
+          { level: 60, feed: "77300", book: "290", potion: "65", serum: "20", stat: "18.88%", refine: "" },
+          { level: 70, feed: "105500", book: "365", potion: "85", serum: "40", stat: "22.32%", refine: "" },
+          { level: 80, feed: "135600", book: "440", potion: "100", serum: "60", stat: "26.05%", refine: "" },
+          { level: 90, feed: "172000", book: "585", potion: "115", serum: "80", stat: "29.78%", refine: "" },
+          { level: 100, feed: "212100", book: "730", potion: "135", serum: "100", stat: "33.52%", refine: "" }
+        ]
+      }
+    ];
+
+    const PET_POWER_DATA = [
+      { pet: "洞斑鬣狗", levelPower: "180,720", breakPower: "180,720", refinePower: "482,400", totalPower: "843,840" },
+      { pet: "北极狼", levelPower: "362,160", breakPower: "362,160", refinePower: "965,520", totalPower: "1,689,840" },
+      { pet: "麝牛", levelPower: "362,160", breakPower: "362,160", refinePower: "965,520", totalPower: "1,689,840" },
+      { pet: "巨貘", levelPower: "542,880", breakPower: "542,880", refinePower: "1,447,920", totalPower: "2,533,680" },
+      { pet: "泰坦巨鸟", levelPower: "542,880", breakPower: "542,880", refinePower: "1,447,920", totalPower: "2,533,680" },
+      { pet: "大角鹿", levelPower: "784,080", breakPower: "784,080", refinePower: "2,091,600", totalPower: "3,659,760" },
+      { pet: "雪豹", levelPower: "784,080", breakPower: "784,080", refinePower: "2,091,600", totalPower: "3,659,760" },
+      { pet: "雪猿", levelPower: "1,206,720", breakPower: "1,206,720", refinePower: "3,217,680", totalPower: "5,631,120" },
+      { pet: "洞狮", levelPower: "1,206,720", breakPower: "1,206,720", refinePower: "3,217,680", totalPower: "5,631,120" },
+      { pet: "板齿犀", levelPower: "1,206,720", breakPower: "1,206,720", refinePower: "3,539,520", totalPower: "5,952,960" },
+      { pet: "剑齿虎", levelPower: "1,206,720", breakPower: "1,206,720", refinePower: "3,539,520", totalPower: "5,952,960" },
+      { pet: "猛犸象", levelPower: "1,206,720", breakPower: "1,206,720", refinePower: "3,539,520", totalPower: "5,952,960" },
+      { pet: "冰霜古猿", levelPower: "1,206,720", breakPower: "1,206,720", refinePower: "3,539,520", totalPower: "5,952,960" },
+      { pet: "霜鳞避役", levelPower: "1,206,720", breakPower: "1,206,720", refinePower: "4,183,200", totalPower: "6,596,640" }
+    ];
+
+    const PET_BREAKTHROUGH_SCORES = [
+      { level: 10, score: "500" },
+      { level: 20, score: "1000" },
+      { level: 30, score: "2000" },
+      { level: 40, score: "3000" },
+      { level: 50, score: "4500" },
+      { level: 60, score: "6570" },
+      { level: 70, score: "10000" },
+      { level: 80, score: "12000" },
+      { level: 90, score: "14500" },
+      { level: 100, score: "17500" }
+    ];
+
+    const petSelectEl = document.getElementById("petSelect");
+    const levelFilterEl = document.getElementById("levelFilter");
+    const materialTitleEl = document.getElementById("materialTitle");
+    const materialBodyEl = document.getElementById("materialBody");
+    const powerBodyEl = document.getElementById("powerBody");
+    const scoreBodyEl = document.getElementById("scoreBody");
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function buildPetOptions() {
+      PET_GROUPS.forEach(function (group) {
+        petSelectEl.add(new Option(group.label, group.label));
+      });
+    }
+
+    function currentGroup() {
+      return PET_GROUPS.find(function (group) {
+        return group.label === petSelectEl.value;
+      }) || PET_GROUPS[0];
+    }
+
+    function matchesLevel(level) {
+      const query = levelFilterEl.value.trim();
+      return !query || String(level) === query;
+    }
+
+    function renderMaterials() {
+      const group = currentGroup();
+      materialTitleEl.textContent = group.label + " 养成材料";
+      materialBodyEl.innerHTML = group.rows.filter(function (row) {
+        return matchesLevel(row.level);
+      }).map(function (row) {
+        return "<tr>" +
+          "<td>" + row.level + "</td>" +
+          "<td>" + escapeHtml(row.feed || "-") + "</td>" +
+          "<td>" + escapeHtml(row.book || "-") + "</td>" +
+          "<td>" + escapeHtml(row.potion || "-") + "</td>" +
+          "<td>" + escapeHtml(row.serum || "-") + "</td>" +
+          "<td>" + escapeHtml(row.stat || "-") + "</td>" +
+          "<td>" + escapeHtml(row.refine || "-") + "</td>" +
+        "</tr>";
+      }).join("");
+    }
+
+    function renderPowerTable() {
+      const names = new Set(currentGroup().pets);
+      powerBodyEl.innerHTML = PET_POWER_DATA.filter(function (row) {
+        return names.has(row.pet);
+      }).map(function (row) {
+        return "<tr>" +
+          "<td>" + escapeHtml(row.pet) + "</td>" +
+          "<td>" + escapeHtml(row.levelPower) + "</td>" +
+          "<td>" + escapeHtml(row.breakPower) + "</td>" +
+          "<td>" + escapeHtml(row.refinePower) + "</td>" +
+          "<td>" + escapeHtml(row.totalPower) + "</td>" +
+        "</tr>";
+      }).join("");
+    }
+
+    function renderScores() {
+      scoreBodyEl.innerHTML = PET_BREAKTHROUGH_SCORES.filter(function (row) {
+        return matchesLevel(row.level);
+      }).map(function (row) {
+        return "<tr><td>" + row.level + "</td><td>" + escapeHtml(row.score) + "</td></tr>";
+      }).join("");
+    }
+
+    function renderPetPage() {
+      renderMaterials();
+      renderPowerTable();
+      renderScores();
+    }
+
+    buildPetOptions();
+    petSelectEl.addEventListener("change", renderPetPage);
+    levelFilterEl.addEventListener("input", renderPetPage);
+    renderPetPage();
+  </script>
+</body>
+</html>

@@ -778,7 +778,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.24</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.25</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1063,36 +1063,6 @@
               </tbody>
             </table>
           </div>
-          <div class="page-title" style="font-size:1rem;margin-top:18px;">兑换记录</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-            <input id="shopPurchaseSearchInput" type="search" placeholder="搜索用户ID / 登录ID / 昵称 / 道具名 / 记录ID" style="flex:1;min-width:220px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);" />
-            <button class="btn secondary" id="shopPurchaseSearchBtn" type="button">搜索记录</button>
-            <button class="btn secondary" id="shopPurchaseReloadBtn" type="button">刷新记录</button>
-          </div>
-          <div class="admin-status" id="shopPurchaseStatus"></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:150px;">兑换时间</th>
-                  <th style="width:90px;">用户ID</th>
-                  <th style="min-width:160px;">用户</th>
-                  <th style="min-width:160px;">道具</th>
-                  <th style="width:90px;">类型</th>
-                  <th style="width:100px;">消耗积分</th>
-                  <th style="width:90px;">记录ID</th>
-                </tr>
-              </thead>
-              <tbody id="shopPurchasesTbody">
-                <tr><td colspan="7" style="color:var(--muted);">请先登录管理员账号。</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-top:10px;">
-            <button class="btn secondary" id="shopPurchasePrevBtn" type="button">上一页</button>
-            <span class="admin-status" id="shopPurchasePageInfo" style="margin:0;">第 1 / 1 页</span>
-            <button class="btn secondary" id="shopPurchaseNextBtn" type="button">下一页</button>
-          </div>
         </section>
 
         <section class="card page" id="page-moderators" data-page="moderators">
@@ -1118,37 +1088,6 @@
                 <tr><td colspan="5" style="color:var(--muted);">请先登录管理员账号。</td></tr>
               </tbody>
             </table>
-          </div>
-          <div class="page-title" style="font-size:1rem;margin-top:18px;">使用记录</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-            <input id="activationRedemptionSearchInput" type="search" placeholder="搜索用户ID / 登录ID / 昵称 / 激活码 / 备注 / 批次" style="flex:1;min-width:220px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);" />
-            <button class="btn secondary" id="activationRedemptionSearchBtn" type="button">搜索记录</button>
-            <button class="btn secondary" id="activationRedemptionReloadBtn" type="button">刷新记录</button>
-          </div>
-          <div class="admin-status" id="activationRedemptionStatus"></div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th style="width:150px;">使用时间</th>
-                  <th style="width:90px;">用户ID</th>
-                  <th style="min-width:160px;">用户</th>
-                  <th style="width:180px;">激活码</th>
-                  <th style="width:90px;">类型</th>
-                  <th style="width:120px;">批次</th>
-                  <th style="min-width:140px;">备注</th>
-                  <th style="width:90px;">记录ID</th>
-                </tr>
-              </thead>
-              <tbody id="activationRedemptionsTbody">
-                <tr><td colspan="8" style="color:var(--muted);">请先登录管理员账号。</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-top:10px;">
-            <button class="btn secondary" id="activationRedemptionPrevBtn" type="button">上一页</button>
-            <span class="admin-status" id="activationRedemptionPageInfo" style="margin:0;">第 1 / 1 页</span>
-            <button class="btn secondary" id="activationRedemptionNextBtn" type="button">下一页</button>
           </div>
         </section>
 
@@ -1622,6 +1561,37 @@
               </tbody>
             </table>
           </div>
+
+          <div class="page-title" style="font-size:1rem;margin-top:18px;">兑换记录</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <input id="shopPurchaseSearchInput" type="search" placeholder="搜索用户ID / 登录ID / 昵称 / 道具名 / 记录ID" style="flex:1;min-width:220px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);" />
+            <button class="btn secondary" id="shopPurchaseSearchBtn" type="button">搜索记录</button>
+            <button class="btn secondary" id="shopPurchaseReloadBtn" type="button">刷新记录</button>
+          </div>
+          <div class="admin-status" id="shopPurchaseStatus"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:150px;">兑换时间</th>
+                  <th style="width:90px;">用户ID</th>
+                  <th style="min-width:160px;">用户</th>
+                  <th style="min-width:160px;">道具</th>
+                  <th style="width:90px;">类型</th>
+                  <th style="width:100px;">消耗积分</th>
+                  <th style="width:90px;">记录ID</th>
+                </tr>
+              </thead>
+              <tbody id="shopPurchasesTbody">
+                <tr><td colspan="7" style="color:var(--muted);">请先登录管理员账号。</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-top:10px;">
+            <button class="btn secondary" id="shopPurchasePrevBtn" type="button">上一页</button>
+            <span class="admin-status" id="shopPurchasePageInfo" style="margin:0;">第 1 / 1 页</span>
+            <button class="btn secondary" id="shopPurchaseNextBtn" type="button">下一页</button>
+          </div>
         </section>
 
         <section class="card page" id="page-activation-codes" data-page="activation-codes">
@@ -1760,6 +1730,38 @@
               </tbody>
             </table>
           </div>
+
+          <div class="page-title" style="font-size:1rem;margin-top:18px;">使用记录</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+            <input id="activationRedemptionSearchInput" type="search" placeholder="搜索用户ID / 登录ID / 昵称 / 激活码 / 备注 / 批次" style="flex:1;min-width:220px;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);" />
+            <button class="btn secondary" id="activationRedemptionSearchBtn" type="button">搜索记录</button>
+            <button class="btn secondary" id="activationRedemptionReloadBtn" type="button">刷新记录</button>
+          </div>
+          <div class="admin-status" id="activationRedemptionStatus"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:150px;">使用时间</th>
+                  <th style="width:90px;">用户ID</th>
+                  <th style="min-width:160px;">用户</th>
+                  <th style="width:180px;">激活码</th>
+                  <th style="width:90px;">类型</th>
+                  <th style="width:120px;">批次</th>
+                  <th style="min-width:140px;">备注</th>
+                  <th style="width:90px;">记录ID</th>
+                </tr>
+              </thead>
+              <tbody id="activationRedemptionsTbody">
+                <tr><td colspan="8" style="color:var(--muted);">请先登录管理员账号。</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-top:10px;">
+            <button class="btn secondary" id="activationRedemptionPrevBtn" type="button">上一页</button>
+            <span class="admin-status" id="activationRedemptionPageInfo" style="margin:0;">第 1 / 1 页</span>
+            <button class="btn secondary" id="activationRedemptionNextBtn" type="button">下一页</button>
+          </div>
         </section>
 
         <section class="card page" id="page-announcement" data-page="announcement">
@@ -1893,6 +1895,13 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.25（2026-06-27）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>积分商城记录归位</strong>：后台「积分商城」页内补回“兑换记录”区块，管理员可在商品管理页直接按用户ID、登录ID、昵称、道具名或记录ID搜索并分页查看兑换记录，不再混放在版主管理页。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>激活码记录归位</strong>：后台「激活码」页内补回“使用记录”区块，管理员可在激活码工具页直接按用户、激活码、备注或批次搜索并分页查看兑换使用记录，不再混放在版主管理页。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>接口与数据结构</strong>：本轮为管理端页面结构整理与回归校验，沿用既有搜索、分页、鉴权逻辑；未新增权限点、接口契约或数据库字段。</div>
+          </div>
+
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.24（2026-06-13）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>积分商城兑换记录</strong>：新增 <code>GET /api/admin/shop/purchases</code>，后台「积分商城」页可按用户ID、登录ID、昵称、道具名或记录ID搜索，并分页查看兑换时间、兑换用户、道具与消耗积分。</div>

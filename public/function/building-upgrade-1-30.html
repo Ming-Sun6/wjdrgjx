@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="night">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1-30级建筑升级-冬日工具箱</title>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+  <style>
+    :root {
+      --bg: #09121f;
+      --bg2: #14253b;
+      --panel: rgba(10, 18, 32, 0.84);
+      --line: rgba(148, 163, 184, 0.22);
+      --text: #e8f0fb;
+      --muted: #92a6bf;
+      --accent: #7dd3fc;
+      --accent-2: #fbbf24;
+      --good: #86efac;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Microsoft YaHei", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 14% 10%, rgba(125, 211, 252, 0.16), transparent 24%),
+        radial-gradient(circle at 85% 18%, rgba(251, 191, 36, 0.12), transparent 20%),
+        linear-gradient(145deg, var(--bg), var(--bg2) 58%, #0f172a);
+    }
+    .wrap {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(15, 23, 42, 0.5);
+      color: var(--text);
+      text-decoration: none;
+    }
+    .hero,
+    .panel,
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+    }
+    .hero {
+      border-radius: 26px;
+      padding: 22px;
+      background:
+        linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(10, 18, 32, 0.88)),
+        var(--panel);
+    }
+    .hero h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 5vw, 48px);
+      letter-spacing: 0.02em;
+    }
+    .hero p,
+    .note {
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .source {
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+    .controls,
+    .summary {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .controls {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .summary {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    select,
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(8, 17, 31, 0.76);
+      color: var(--text);
+      padding: 11px 12px;
+      font: inherit;
+    }
+    .metric {
+      border-radius: 18px;
+      padding: 14px;
+    }
+    .metric .label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .metric .value {
+      margin-top: 6px;
+      color: var(--accent);
+      font-size: 21px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .metric.good .value {
+      color: var(--good);
+    }
+    .panel {
+      margin-top: 16px;
+      border-radius: 22px;
+      padding: 14px;
+      overflow: hidden;
+    }
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .panel-head h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+    .table-wrap {
+      overflow: auto;
+    }
+    table {
+      width: 100%;
+      min-width: 900px;
+      border-collapse: collapse;
+    }
+    th,
+    td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      text-align: left;
+      white-space: nowrap;
+      vertical-align: top;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      background: rgba(14, 165, 233, 0.12);
+      color: #c8f0fd;
+    }
+    .range-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid rgba(125, 211, 252, 0.2);
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    @media (max-width: 860px) {
+      .controls,
+      .summary {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 560px) {
+      .wrap {
+        padding: 12px;
+      }
+      .controls,
+      .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="back-link" href="/">返回首页</a>
+
+    <section class="hero">
+      <h1>1-30级建筑升级</h1>
+      <p>
+        上方可按建筑和等级区间汇总资源、时间与实力提升，下方保留完整的 1-30 原始数据表。
+        <span class="source">制作：甜甜</span>
+      </p>
+    </section>
+
+    <section class="controls">
+      <label>建筑
+        <select id="buildingSelect"></select>
+      </label>
+      <label>当前等级
+        <select id="currentLevel"></select>
+      </label>
+      <label>目标等级
+        <select id="targetLevel"></select>
+      </label>
+      <label>筛选等级 / 升级需求
+        <input id="levelFilter" type="search" placeholder="如 30 / 大使馆 / 科研所" />
+      </label>
+    </section>
+
+    <section class="summary" id="summary"></section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 id="tableTitle">建筑升级表</h2>
+        <div class="range-pill" id="rangeHint"></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>等级</th>
+              <th>生肉</th>
+              <th>木材</th>
+              <th>煤矿</th>
+              <th>铁矿</th>
+              <th>升级需求</th>
+              <th>升级时间</th>
+              <th>实力提升</th>
+            </tr>
+          </thead>
+          <tbody id="dataBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <p class="note">
+      此数据为原始数据。合计按“当前等级 + 1”到“目标等级”累加；使馆中原始值
+      <code>0:01::00</code> 展示保留，但计算时按 <code>0:01:00</code> 处理。
+    </p>
+  </main>
+
+  <script>
+    const BUILDING_DATA = {
+      "熔炉": [
+        { level: 1, food: "", wood: "", coal: "", iron: "", requirement: "", time: "", power: "2,000" },
+        { level: 2, food: "", wood: "180", coal: "", iron: "", requirement: "伐木场LV.1", time: "0:00:06", power: "1,800" },
+        { level: 3, food: "", wood: "805", coal: "", iron: "", requirement: "民居LV.2", time: "0:01:00", power: "2,700" },
+        { level: 4, food: "", wood: "1800", coal: "360", iron: "", requirement: "煤矿厂LV.3", time: "0:03:00", power: "3,600" },
+        { level: 5, food: "", wood: "7600", coal: "1500", iron: "", requirement: "民居LV.3 英雄大厅LV.3", time: "0:10:00", power: "5,400" },
+        { level: 6, food: "", wood: "19000", coal: "3800", iron: "960", requirement: "铁矿厂LV.5", time: "0:30:00", power: "8,100" },
+        { level: 7, food: "", wood: "69000", coal: "13000", iron: "3400", requirement: "猎人之家LV.6", time: "1:00:00", power: "11,700" },
+        { level: 8, food: "", wood: "120000", coal: "25000", iron: "6300", requirement: "盾兵营LV.7", time: "2:30:00", power: "11,700" },
+        { level: 9, food: "", wood: "260000", coal: "52000", iron: "13000", requirement: "使馆8，军医所1", time: "4:30:00", power: "11,700" },
+        { level: 10, food: "", wood: "46000", coal: "92000", iron: "23000", requirement: "射手营9，科研所1", time: "6:00:00", power: "17,000" },
+        { level: 11, food: "130万", wood: "130万", coal: "26万", iron: "6.5万", requirement: "大使馆10，矛兵营10", time: "7:30:00", power: "17,000" },
+        { level: 12, food: "160万", wood: "160万", coal: "33万", iron: "8.4万", requirement: "大使馆11，指挥部1", time: "9:00:00", power: "17,000" },
+        { level: 13, food: "230万", wood: "230万", coal: "47万", iron: "11万", requirement: "大使馆12，盾兵营12", time: "11:00:00", power: "28,700" },
+        { level: 14, food: "310万", wood: "310万", coal: "63万", iron: "15万", requirement: "大使馆13，射手营13", time: "14:00:00", power: "28,700" },
+        { level: 15, food: "460万", wood: "460万", coal: "93万", iron: "23万", requirement: "大使馆14，矛兵营14", time: "18:00:00", power: "28,700" },
+        { level: 16, food: "590万", wood: "590万", coal: "110万", iron: "29万", requirement: "大使馆15，科研所15", time: "1天06:28:00", power: "40,400" },
+        { level: 17, food: "930万", wood: "930万", coal: "180万", iron: "46万", requirement: "大使馆16，盾兵营16", time: "1天12:34:00", power: "40,400" },
+        { level: 18, food: "1200万", wood: "1200万", coal: "250万", iron: "62万", requirement: "大使馆17，射手营17", time: "1天19:53:00", power: "40,400" },
+        { level: 19, food: "1500万", wood: "1500万", coal: "310万", iron: "78万", requirement: "大使馆18，矛兵营18", time: "2天17:50:00", power: "57,400" },
+        { level: 20, food: "2100万", wood: "2100万", coal: "430万", iron: "100万", requirement: "大使馆19，科研所19", time: "3天10:18:00", power: "57,400" },
+        { level: 21, food: "2700万", wood: "2700万", coal: "540万", iron: "130万", requirement: "大使馆20，盾兵营20", time: "4天10:59:00", power: "57,400" },
+        { level: 22, food: "3600万", wood: "3600万", coal: "720万", iron: "180万", requirement: "大使馆21，射手营21", time: "6天16:29:00", power: "86,100" },
+        { level: 23, food: "4400万", wood: "4400万", coal: "890万", iron: "220万", requirement: "大使馆22，矛兵营22", time: "9天08:40:00", power: "86,100" },
+        { level: 24, food: "6000万", wood: "6000万", coal: "1200万", iron: "300万", requirement: "大使馆23，科研所23", time: "13天02:33:00", power: "86,100" },
+        { level: 25, food: "8100万", wood: "8100万", coal: "1600万", iron: "400万", requirement: "大使馆24，盾兵营24", time: "18天08:22:00", power: "86,100" },
+        { level: 26, food: "1.0亿", wood: "1.0亿", coal: "2100万", iron: "520万", requirement: "大使馆25，射手营25", time: "21天02:26:00", power: "126,500" },
+        { level: 27, food: "1.4亿", wood: "1.4亿", coal: "2400万", iron: "740万", requirement: "大使馆26，矛兵营26", time: "25天07:43:00", power: "126,500" },
+        { level: 28, food: "1.9亿", wood: "1.9亿", coal: "3900万", iron: "990万", requirement: "大使馆27，科研所27", time: "29天02:52:00", power: "126,500" },
+        { level: 29, food: "2.4亿", wood: "2.4亿", coal: "4900万", iron: "1200万", requirement: "大使馆28，盾兵营28", time: "33天11:42:00", power: "126,500" },
+        { level: 30, food: "3.0亿", wood: "3.0亿", coal: "6000万", iron: "1500万", requirement: "大使馆29，射手营29", time: "40天04:27:00", power: "183,900" }
+      ],
+      "使馆": [
+        { level: 1, food: "", wood: "60", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:00:02", power: "440" },
+        { level: 2, food: "", wood: "90", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:00:10", power: "396" },
+        { level: 3, food: "", wood: "400", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:01::00", power: "594" },
+        { level: 4, food: "", wood: "900", coal: "180", iron: "", requirement: "熔炉LV.8", time: "0:02:00", power: "792" },
+        { level: 5, food: "", wood: "3800", coal: "760", iron: "", requirement: "熔炉LV.8", time: "0:06:40", power: "1188" },
+        { level: 6, food: "", wood: "9600", coal: "190", iron: "480", requirement: "熔炉LV.8", time: "0:13:20", power: "1782" },
+        { level: 7, food: "", wood: "3.4万", coal: "6900", iron: "1700", requirement: "熔炉LV.8", time: "0:25:00", power: "2574" },
+        { level: 8, food: "", wood: "6.3万", coal: "1.2万", iron: "3100", requirement: "熔炉LV.8", time: "0:45:00", power: "2574" },
+        { level: 9, food: "", wood: "13万", coal: "2.6万", iron: "6500", requirement: "熔炉LV.9", time: "2:00:00", power: "2574" },
+        { level: 10, food: "", wood: "23万", coal: "4.6万", iron: "1.1万", requirement: "熔炉LV.10", time: "3:57:30", power: "3740" },
+        { level: 11, food: "46万", wood: "26万", coal: "5.2万", iron: "1.3万", requirement: "熔炉LV.11", time: "4:57:00", power: "3740" },
+        { level: 12, food: "58万", wood: "33万", coal: "6.7万", iron: "1.6万", requirement: "熔炉LV.12", time: "5:56:00", power: "3740" },
+        { level: 13, food: "83万", wood: "47万", coal: "9.5万", iron: "2.3万", requirement: "熔炉LV.13", time: "7:15:30", power: "6314" },
+        { level: 14, food: "110万", wood: "63万", coal: "12万", iron: "3.1万", requirement: "熔炉LV.14", time: "9:14:00", power: "6314" },
+        { level: 15, food: "160万", wood: "93万", coal: "18万", iron: "4.6万", requirement: "熔炉LV.15", time: "11:52:30", power: "6314" },
+        { level: 16, food: "200万", wood: "110万", coal: "23万", iron: "5.9万", requirement: "熔炉LV.16", time: "20:07:00", power: "8888" },
+        { level: 17, food: "320万", wood: "180万", coal: "37万", iron: "9.3万", requirement: "熔炉LV.17", time: "1天00:08:00", power: "8888" },
+        { level: 18, food: "430万", wood: "250万", coal: "50万", iron: "12万", requirement: "熔炉LV.18", time: "1天04:58:00", power: "8888" },
+        { level: 19, food: "540万", wood: "310万", coal: "62万", iron: "15万", requirement: "熔炉LV.19", time: "1天19:27:00", power: "12628" },
+        { level: 20, food: "750万", wood: "430万", coal: "86万", iron: "21万", requirement: "熔炉LV.20", time: "2天06:19:00", power: "12628" },
+        { level: 21, food: "950万", wood: "540万", coal: "100万", iron: "27万", requirement: "熔炉LV.21", time: "2天22:36:00", power: "12628" },
+        { level: 22, food: "1200万", wood: "720万", coal: "140万", iron: "36万", requirement: "熔炉LV.22", time: "4天09:55:00", power: "18942" },
+        { level: 23, food: "1500万", wood: "890万", coal: "170万", iron: "44万", requirement: "熔炉LV.23", time: "6天04:17:00", power: "18942" },
+        { level: 24, food: "2100万", wood: "1200万", coal: "240万", iron: "60万", requirement: "熔炉LV.24", time: "8天15:36:00", power: "18942" },
+        { level: 25, food: "2800万", wood: "1600万", coal: "320万", iron: "81万", requirement: "熔炉LV.25", time: "12天02:38:00", power: "18942" },
+        { level: 26, food: "3600万", wood: "2100万", coal: "420万", iron: "100万", requirement: "熔炉LV.26", time: "13天22:14:00", power: "27830" },
+        { level: 27, food: "5200万", wood: "2900万", coal: "590万", iron: "140万", requirement: "熔炉LV.27", time: "16天17:05:00", power: "27830" },
+        { level: 28, food: "6900万", wood: "3900万", coal: "790万", iron: "190万", requirement: "熔炉LV.28", time: "19天05:15:00", power: "27830" },
+        { level: 29, food: "8600万", wood: "4900万", coal: "980万", iron: "240万", requirement: "熔炉LV.29", time: "22天02:26:00", power: "27830" },
+        { level: 30, food: "1亿", wood: "6000万", coal: "1200万", iron: "300万", requirement: "熔炉LV.30", time: "26天12:32:00", power: "40458" }
+      ],
+      "射手营": [
+        { level: 1, food: "", wood: "95", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:00:02", power: "400" },
+        { level: 2, food: "", wood: "140", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:00:09", power: "360" },
+        { level: 3, food: "", wood: "645", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:00:45", power: "540" },
+        { level: 4, food: "", wood: "1400", coal: "285", iron: "", requirement: "熔炉LV.8", time: "0:02:15", power: "720" },
+        { level: 5, food: "", wood: "6000", coal: "1200", iron: "", requirement: "熔炉LV.8", time: "0:04:30", power: "1080" },
+        { level: 6, food: "", wood: "1.5万", coal: "3000", iron: "765", requirement: "熔炉LV.8", time: "0:09:00", power: "1620" },
+        { level: 7, food: "", wood: "5.5万", coal: "1.1万", iron: "2700", requirement: "熔炉LV.8", time: "0:18:00", power: "2340" },
+        { level: 8, food: "", wood: "10万", coal: "2万", iron: "5000", requirement: "熔炉LV.8", time: "0:27:00", power: "2340" },
+        { level: 9, food: "", wood: "20万", coal: "4.1万", iron: "1万", requirement: "熔炉LV.9", time: "0:40:30", power: "2340" },
+        { level: 10, food: "", wood: "36万", coal: "7.3万", iron: "1.8万", requirement: "熔炉LV.10", time: "0:54:00", power: "3400" },
+        { level: 11, food: "46万", wood: "46万", coal: "9.2万", iron: "2.3万", requirement: "熔炉LV.11", time: "1:07:30", power: "3400" },
+        { level: 12, food: "58万", wood: "58万", coal: "11万", iron: "2.9万", requirement: "熔炉LV.12", time: "1:21:00", power: "3400" },
+        { level: 13, food: "83万", wood: "83万", coal: "16万", iron: "4.1万", requirement: "熔炉LV.13", time: "1:39:00", power: "5740" },
+        { level: 14, food: "110万", wood: "110万", coal: "22万", iron: "5.5万", requirement: "熔炉LV.14", time: "2:06:00", power: "5740" },
+        { level: 15, food: "160万", wood: "160万", coal: "32万", iron: "8.1万", requirement: "熔炉LV.15", time: "2:42:00", power: "5740" },
+        { level: 16, food: "200万", wood: "200万", coal: "41万", iron: "10万", requirement: "熔炉LV.16", time: "4:34:00", power: "8080" },
+        { level: 17, food: "320万", wood: "320万", coal: "65万", iron: "16万", requirement: "熔炉LV.17", time: "5:29:00", power: "8080" },
+        { level: 18, food: "430万", wood: "430万", coal: "87万", iron: "21万", requirement: "熔炉LV.18", time: "6:35:00", power: "8080" },
+        { level: 19, food: "540万", wood: "540万", coal: "100万", iron: "27万", requirement: "熔炉LV.19", time: "9:52:30", power: "11480" },
+        { level: 20, food: "750万", wood: "750万", coal: "150万", iron: "37万", requirement: "熔炉LV.20", time: "12:20:30", power: "11480" },
+        { level: 21, food: "950万", wood: "950万", coal: "190万", iron: "47万", requirement: "熔炉LV.21", time: "16:02:30", power: "11480" },
+        { level: 22, food: "1200万", wood: "1200万", coal: "250万", iron: "63万", requirement: "熔炉LV.22", time: "1天04:00:00", power: "17220" },
+        { level: 23, food: "1500万", wood: "1500万", coal: "310万", iron: "79万", requirement: "熔炉LV.23", time: "1天09:42:00", power: "17220" },
+        { level: 24, food: "2100万", wood: "2100万", coal: "420万", iron: "100万", requirement: "熔炉LV.24", time: "1天23:11:00", power: "17220" },
+        { level: 25, food: "2800万", wood: "2800万", coal: "570万", iron: "140万", requirement: "熔炉LV.25", time: "2天18:03:00", power: "17220" },
+        { level: 26, food: "3600万", wood: "3600万", coal: "730万", iron: "180万", requirement: "熔炉LV.26", time: "3天03:57:00", power: "25300" },
+        { level: 27, food: "5200万", wood: "5200万", coal: "1000万", iron: "260万", requirement: "熔炉LV.27", time: "3天19:09:00", power: "25300" },
+        { level: 28, food: "6900万", wood: "6900万", coal: "1300万", iron: "340万", requirement: "熔炉LV.28", time: "4天08:49:00", power: "25300" },
+        { level: 29, food: "8600万", wood: "8600万", coal: "1700万", iron: "430万", requirement: "熔炉LV.29", time: "5天00:33:00", power: "25300" },
+        { level: 30, food: "1亿", wood: "1亿", coal: "2100万", iron: "520万", requirement: "熔炉LV.30", time: "6天00:40:00", power: "36780" }
+      ],
+      "军医所": [
+        { level: 1, food: "", wood: "", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:00:02", power: "300" },
+        { level: 2, food: "", wood: "100", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:00:09", power: "270" },
+        { level: 3, food: "", wood: "460", coal: "", iron: "", requirement: "熔炉LV.8", time: "0:00:40", power: "405" },
+        { level: 4, food: "", wood: "1000", coal: "205", iron: "", requirement: "熔炉LV.8", time: "0:02:05", power: "540" },
+        { level: 5, food: "", wood: "4300", coal: "865", iron: "", requirement: "熔炉LV.8", time: "0:04:10", power: "810" },
+        { level: 6, food: "", wood: "1.0万", coal: "2100", iron: "545", requirement: "熔炉LV.8", time: "0:08:20", power: "1215" },
+        { level: 7, food: "", wood: "3.9万", coal: "7800", iron: "1900", requirement: "熔炉LV.8", time: "0:16:30", power: "1755" },
+        { level: 8, food: "", wood: "7.2万", coal: "1.4万", iron: "3600", requirement: "熔炉LV.8", time: "0:25:00", power: "1755" },
+        { level: 9, food: "", wood: "14万", coal: "2.9万", iron: "7400", requirement: "熔炉LV.9", time: "0:27:30", power: "1755" },
+        { level: 10, food: "", wood: "26万", coal: "5.2万", iron: "1.3万", requirement: "熔炉LV.10", time: "0:50:00", power: "2550" },
+        { level: 11, food: "32万", wood: "32万", coal: "6.5万", iron: "1.6万", requirement: "熔炉LV.11", time: "1:03:00", power: "2550" },
+        { level: 12, food: "42万", wood: "42万", coal: "8.4万", iron: "2.1万", requirement: "熔炉LV.12", time: "1:15:30", power: "2550" },
+        { level: 13, food: "59万", wood: "59万", coal: "11万", iron: "2.9万", requirement: "熔炉LV.13", time: "1:32:00", power: "4305" },
+        { level: 14, food: "78万", wood: "78万", coal: "15万", iron: "3.9万", requirement: "熔炉LV.14", time: "1:57:30", power: "4305" },
+        { level: 15, food: "110万", wood: "110万", coal: "23万", iron: "5.8万", requirement: "熔炉LV.15", time: "2:31:00", power: "4305" },
+        { level: 16, food: "140万", wood: "140万", coal: "29万", iron: "7.4万", requirement: "熔炉LV.16", time: "4:16:00", power: "6060" },
+        { level: 17, food: "230万", wood: "230万", coal: "46万", iron: "11万", requirement: "熔炉LV.17", time: "5:07:00", power: "6060" },
+        { level: 18, food: "310万", wood: "310万", coal: "62万", iron: "15万", requirement: "熔炉LV.18", time: "6:08:30", power: "6060" },
+        { level: 19, food: "390万", wood: "390万", coal: "78万", iron: "19万", requirement: "熔炉LV.19", time: "9:13:00", power: "8610" },
+        { level: 20, food: "530万", wood: "530万", coal: "100万", iron: "26万", requirement: "熔炉LV.20", time: "11:31:00", power: "8610" },
+        { level: 21, food: "680万", wood: "680万", coal: "130万", iron: "34万", requirement: "熔炉LV.21", time: "14:58:30", power: "8610" },
+        { level: 22, food: "900万", wood: "900万", coal: "180万", iron: "45万", requirement: "熔炉LV.22", time: "22:28:00", power: "12915" },
+        { level: 23, food: "1100万", wood: "1100万", coal: "220万", iron: "56万", requirement: "熔炉LV.23", time: "1天07:27:00", power: "12915" },
+        { level: 24, food: "1500万", wood: "1500万", coal: "300万", iron: "75万", requirement: "熔炉LV.24", time: "1天20:02:00", power: "12915" },
+        { level: 25, food: "2000万", wood: "2000万", coal: "400万", iron: "100万", requirement: "熔炉LV.25", time: "2天13:39:00", power: "12915" },
+        { level: 26, food: "2600万", wood: "2600万", coal: "520万", iron: "130万", requirement: "熔炉LV.26", time: "2天22:54:00", power: "18975" },
+        { level: 27, food: "3700万", wood: "3700万", coal: "740万", iron: "180万", requirement: "熔炉LV.27", time: "3天13:04:00", power: "18975" },
+        { level: 28, food: "4900万", wood: "4900万", coal: "990万", iron: "240万", requirement: "熔炉LV.28", time: "4天01:50:00", power: "18975" },
+        { level: 29, food: "6100万", wood: "6100万", coal: "1200万", iron: "300万", requirement: "熔炉LV.29", time: "4天16:31:00", power: "18975" },
+        { level: 30, food: "7500万", wood: "7500万", coal: "1500万", iron: "370万", requirement: "熔炉LV.30", time: "5天15:01:00", power: "27585" }
+      ],
+      "矛兵营": [
+        { level: 1, food: "", wood: "95", coal: "", iron: "", requirement: "熔炉LV.9", time: "0:00:02", power: "400" },
+        { level: 2, food: "", wood: "140", coal: "", iron: "", requirement: "熔炉LV.9", time: "0:00:09", power: "360" },
+        { level: 3, food: "", wood: "645", coal: "", iron: "", requirement: "熔炉LV.9", time: "0:00:45", power: "540" },
+        { level: 4, food: "", wood: "1400", coal: "285", iron: "", requirement: "熔炉LV.9", time: "0:02:15", power: "720" },
+        { level: 5, food: "", wood: "6000", coal: "1200", iron: "", requirement: "熔炉LV.9", time: "0:04:30", power: "1080" },
+        { level: 6, food: "", wood: "1.5万", coal: "3000", iron: "765", requirement: "熔炉LV.9", time: "0:09:00", power: "1620" },
+        { level: 7, food: "", wood: "5.5万", coal: "1.1万", iron: "2700", requirement: "熔炉LV.9", time: "0:18:00", power: "2340" },
+        { level: 8, food: "", wood: "10万", coal: "2万", iron: "5000", requirement: "熔炉LV.9", time: "0:27:00", power: "2340" },
+        { level: 9, food: "", wood: "20万", coal: "4.1万", iron: "1万", requirement: "熔炉LV.9", time: "0:40:30", power: "2340" },
+        { level: 10, food: "", wood: "36万", coal: "7.3万", iron: "1.8万", requirement: "熔炉LV.10", time: "0:54:00", power: "3400" },
+        { level: 11, food: "46万", wood: "46万", coal: "9.2万", iron: "2.3万", requirement: "熔炉LV.11", time: "1:07:30", power: "3400" },
+        { level: 12, food: "58万", wood: "58万", coal: "11万", iron: "2.9万", requirement: "熔炉LV.12", time: "1:21:00", power: "3400" },
+        { level: 13, food: "83万", wood: "83万", coal: "16万", iron: "4.1万", requirement: "熔炉LV.13", time: "1:39:00", power: "5740" },
+        { level: 14, food: "110万", wood: "110万", coal: "22万", iron: "5.5万", requirement: "熔炉LV.14", time: "2:06:00", power: "5740" },
+        { level: 15, food: "160万", wood: "160万", coal: "32万", iron: "8.1万", requirement: "熔炉LV.15", time: "2:42:00", power: "5740" },
+        { level: 16, food: "200万", wood: "200万", coal: "41万", iron: "10万", requirement: "熔炉LV.16", time: "4:34:00", power: "8080" },
+        { level: 17, food: "320万", wood: "320万", coal: "65万", iron: "16万", requirement: "熔炉LV.17", time: "5:29:00", power: "8080" },
+        { level: 18, food: "430万", wood: "430万", coal: "87万", iron: "21万", requirement: "熔炉LV.18", time: "6:35:00", power: "8080" },
+        { level: 19, food: "540万", wood: "540万", coal: "100万", iron: "27万", requirement: "熔炉LV.19", time: "9:52:30", power: "11480" },
+        { level: 20, food: "750万", wood: "750万", coal: "150万", iron: "37万", requirement: "熔炉LV.20", time: "12:20:30", power: "11480" },
+        { level: 21, food: "950万", wood: "950万", coal: "190万", iron: "47万", requirement: "熔炉LV.21", time: "16:02:30", power: "11480" },
+        { level: 22, food: "1200万", wood: "1200万", coal: "250万", iron: "63万", requirement: "熔炉LV.22", time: "1天04:00:00", power: "17220" },
+        { level: 23, food: "1500万", wood: "1500万", coal: "310万", iron: "79万", requirement: "熔炉LV.23", time: "1天09:42:00", power: "17220" },
+        { level: 24, food: "2100万", wood: "2100万", coal: "420万", iron: "100万", requirement: "熔炉LV.24", time: "1天23:11:00", power: "17220" },
+        { level: 25, food: "2800万", wood: "2800万", coal: "570万", iron: "140万", requirement: "熔炉LV.25", time: "2天18:03:00", power: "17220" },
+        { level: 26, food: "3600万", wood: "3600万", coal: "730万", iron: "180万", requirement: "熔炉LV.26", time: "3天03:57:00", power: "25300" },
+        { level: 27, food: "5200万", wood: "5200万", coal: "1000万", iron: "260万", requirement: "熔炉LV.27", time: "3天19:09:00", power: "25300" },
+        { level: 28, food: "6900万", wood: "6900万", coal: "1300万", iron: "340万", requirement: "熔炉LV.28", time: "4天08:49:00", power: "25300" },
+        { level: 29, food: "8600万", wood: "8600万", coal: "1700万", iron: "430万", requirement: "熔炉LV.29", time: "5天00:33:00", power: "25300" },
+        { level: 30, food: "1亿", wood: "1亿", coal: "2100万", iron: "520万", requirement: "熔炉LV.30", time: "6天00:40:00", power: "36780" }
+      ],
+      "指挥部": [
+        { level: 1, food: "", wood: "80", coal: "", iron: "", requirement: "熔炉LV.10 大使馆LV.1", time: "0:00:02", power: "280" },
+        { level: 2, food: "", wood: "125", coal: "", iron: "", requirement: "熔炉LV.10 大使馆LV.2", time: "0:00:08", power: "252" },
+        { level: 3, food: "", wood: "565", coal: "", iron: "", requirement: "熔炉LV.10 大使馆LV.3", time: "0:00:35", power: "378" },
+        { level: 4, food: "", wood: "1200", coal: "250", iron: "", requirement: "熔炉LV.10 大使馆LV.4", time: "0:01:45", power: "504" },
+        { level: 5, food: "", wood: "5300", coal: "1000", iron: "", requirement: "熔炉LV.10 大使馆LV.5", time: "0:03:35", power: "756" },
+        { level: 6, food: "", wood: "1.3万", coal: "2600", iron: "670", requirement: "熔炉LV.10 大使馆LV.6", time: "0:07:10", power: "1134" },
+        { level: 7, food: "", wood: "4.8万", coal: "9600", iron: "2400", requirement: "熔炉LV.10 大使馆LV.7", time: "0:14:00", power: "1638" },
+        { level: 8, food: "", wood: "8.8万", coal: "1.7万", iron: "4400", requirement: "熔炉LV.10 大使馆LV.8", time: "0:21:00", power: "1638" },
+        { level: 9, food: "", wood: "18万", coal: "3.6万", iron: "9100", requirement: "熔炉LV.10 大使馆LV.9", time: "0:32:00", power: "1638" },
+        { level: 10, food: "", wood: "32万", coal: "6.4万", iron: "1.6万", requirement: "熔炉LV.10 大使馆LV.10", time: "0:43:00", power: "2380" },
+        { level: 11, food: "39万", wood: "39万", coal: "7.9万", iron: "1.9万", requirement: "熔炉LV.11 大使馆LV.11", time: "0:54:00", power: "2380" },
+        { level: 12, food: "50万", wood: "50万", coal: "10万", iron: "2.5万", requirement: "熔炉LV.12 大使馆LV.12", time: "1:04:30", power: "2380" },
+        { level: 13, food: "71万", wood: "71万", coal: "14万", iron: "3.5万", requirement: "熔炉LV.13 大使馆LV.13", time: "1:19:00", power: "4018" },
+        { level: 14, food: "94万", wood: "94万", coal: "18万", iron: "4.7万", requirement: "熔炉LV.14 大使馆LV.14", time: "1:40:30", power: "4018" },
+        { level: 15, food: "130万", wood: "130万", coal: "27万", iron: "6.9万", requirement: "熔炉LV.15 大使馆LV.15", time: "2:09:30", power: "4018" },
+        { level: 16, food: "170万", wood: "170万", coal: "35万", iron: "8.9万", requirement: "熔炉LV.16 大使馆LV.16", time: "3:39:00", power: "5656" },
+        { level: 17, food: "270万", wood: "270万", coal: "55万", iron: "13万", requirement: "熔炉LV.17 大使馆LV.17", time: "4:23:00", power: "5656" },
+        { level: 18, food: "370万", wood: "370万", coal: "75万", iron: "18万", requirement: "熔炉LV.18 大使馆LV.18", time: "5:16:00", power: "5656" },
+        { level: 19, food: "470万", wood: "470万", coal: "94万", iron: "23万", requirement: "熔炉LV.19 大使馆LV.19", time: "7:54:00", power: "8036" },
+        { level: 20, food: "640万", wood: "640万", coal: "120万", iron: "32万", requirement: "熔炉LV.20 大使馆LV.20", time: "9:52:30", power: "8036" },
+        { level: 21, food: "810万", wood: "810万", coal: "160万", iron: "40万", requirement: "熔炉LV.21 大使馆LV.21", time: "12:50:00", power: "8036" },
+        { level: 22, food: "1000万", wood: "1000万", coal: "210万", iron: "54万", requirement: "熔炉LV.22 大使馆LV.22", time: "19:15:30", power: "12054" },
+        { level: 23, food: "1300万", wood: "1300万", coal: "260万", iron: "67万", requirement: "熔炉LV.23 大使馆LV.23", time: "1天02:57:00", power: "12054" },
+        { level: 24, food: "1800万", wood: "1800万", coal: "360万", iron: "90万", requirement: "熔炉LV.24 大使馆LV.24", time: "1天13:44:00", power: "12054" },
+        { level: 25, food: "2400万", wood: "2400万", coal: "490万", iron: "120万", requirement: "熔炉LV.25 大使馆LV.25", time: "2天04:50:00", power: "12054" },
+        { level: 26, food: "3100万", wood: "3100万", coal: "630万", iron: "150万", requirement: "熔炉LV.26 大使馆LV.26", time: "2天12:46:00", power: "17710" },
+        { level: 27, food: "4400万", wood: "4400万", coal: "890万", iron: "220万", requirement: "熔炉LV.27 大使馆LV.27", time: "3天00:55:00", power: "17710" },
+        { level: 28, food: "5900万", wood: "5900万", coal: "1100万", iron: "290万", requirement: "熔炉LV.28 大使馆LV.28", time: "3天11:51:00", power: "17710" },
+        { level: 29, food: "7300万", wood: "7300万", coal: "1500万", iron: "360万", requirement: "熔炉LV.29 大使馆LV.29", time: "4天00:26:00", power: "17710" },
+        { level: 30, food: "9000万", wood: "9000万", coal: "1800万", iron: "450万", requirement: "熔炉LV.30 大使馆LV.30", time: "4天19:44:00", power: "25746" }
+      ],
+      "盾兵营": [
+        { level: 1, food: "", wood: "95", coal: "", iron: "", requirement: "熔炉LV.7", time: "0:00:02", power: "400" },
+        { level: 2, food: "", wood: "140", coal: "", iron: "", requirement: "熔炉LV.7", time: "0:00:09", power: "760" },
+        { level: 3, food: "", wood: "645", coal: "", iron: "", requirement: "熔炉LV.7", time: "0:00:45", power: "1,300" },
+        { level: 4, food: "", wood: "1400", coal: "285", iron: "", requirement: "熔炉LV.7", time: "0:02:15", power: "2,020" },
+        { level: 5, food: "", wood: "6000", coal: "1200", iron: "", requirement: "熔炉LV.7", time: "0:04:30", power: "3,100" },
+        { level: 6, food: "", wood: "1.5万", coal: "3000", iron: "765", requirement: "熔炉LV.7", time: "0:09:00", power: "4,720" },
+        { level: 7, food: "", wood: "5.5万", coal: "1.1万", iron: "2700", requirement: "熔炉LV.7", time: "0:18:00", power: "7,060" },
+        { level: 8, food: "", wood: "10万", coal: "2万", iron: "5000", requirement: "熔炉LV.8", time: "0:27:00", power: "9,400" },
+        { level: 9, food: "", wood: "20万", coal: "4.1万", iron: "1万", requirement: "熔炉LV.9", time: "0:40:30", power: "11,740" },
+        { level: 10, food: "", wood: "36万", coal: "7.3万", iron: "1.8万", requirement: "熔炉LV.10", time: "0:54:00", power: "15,140" },
+        { level: 11, food: "46万", wood: "46万", coal: "9.2万", iron: "2.3万", requirement: "熔炉LV.11", time: "1:07:30", power: "18,540" },
+        { level: 12, food: "58万", wood: "58万", coal: "11万", iron: "2.9万", requirement: "熔炉LV.12", time: "1:21:00", power: "21,940" },
+        { level: 13, food: "83万", wood: "83万", coal: "16万", iron: "4.1万", requirement: "熔炉LV.13", time: "1:39:00", power: "27,680" },
+        { level: 14, food: "110万", wood: "110万", coal: "22万", iron: "5.5万", requirement: "熔炉LV.14", time: "2:06:00", power: "33,420" },
+        { level: 15, food: "160万", wood: "160万", coal: "32万", iron: "8.1万", requirement: "熔炉LV.15", time: "2:42:00", power: "39,160" },
+        { level: 16, food: "200万", wood: "200万", coal: "41万", iron: "10万", requirement: "熔炉LV.16", time: "4:34:00", power: "47,240" },
+        { level: 17, food: "320万", wood: "320万", coal: "65万", iron: "16万", requirement: "熔炉LV.17", time: "5:29:00", power: "55,320" },
+        { level: 18, food: "430万", wood: "430万", coal: "87万", iron: "21万", requirement: "熔炉LV.18", time: "6:35:00", power: "63,400" },
+        { level: 19, food: "540万", wood: "540万", coal: "100万", iron: "27万", requirement: "熔炉LV.19", time: "9:52:30", power: "74,880" },
+        { level: 20, food: "750万", wood: "750万", coal: "150万", iron: "37万", requirement: "熔炉LV.20", time: "12:20:30", power: "86,360" },
+        { level: 21, food: "950万", wood: "950万", coal: "190万", iron: "47万", requirement: "熔炉LV.21", time: "16:02:30", power: "97,840" },
+        { level: 22, food: "1200万", wood: "1200万", coal: "250万", iron: "63万", requirement: "熔炉LV.22", time: "1天04:00:00", power: "115,060" },
+        { level: 23, food: "1500万", wood: "1500万", coal: "310万", iron: "79万", requirement: "熔炉LV.23", time: "1天09:42:00", power: "132,280" },
+        { level: 24, food: "2100万", wood: "2100万", coal: "420万", iron: "100万", requirement: "熔炉LV.24", time: "1天23:11:00", power: "149,500" },
+        { level: 25, food: "2800万", wood: "2800万", coal: "570万", iron: "140万", requirement: "熔炉LV.25", time: "2天18:03:00", power: "166,720" },
+        { level: 26, food: "3600万", wood: "3600万", coal: "730万", iron: "180万", requirement: "熔炉LV.26", time: "3天03:57:00", power: "192,020" },
+        { level: 27, food: "5200万", wood: "5200万", coal: "1000万", iron: "260万", requirement: "熔炉LV.27", time: "3天19:09:00", power: "217,320" },
+        { level: 28, food: "6900万", wood: "6900万", coal: "1300万", iron: "340万", requirement: "熔炉LV.28", time: "4天08:49:00", power: "242,620" },
+        { level: 29, food: "8600万", wood: "8600万", coal: "1700万", iron: "430万", requirement: "熔炉LV.29", time: "5天00:33:00", power: "267,920" },
+        { level: 30, food: "1亿", wood: "1亿", coal: "2100万", iron: "520万", requirement: "熔炉LV.30", time: "6天00:40:00", power: "304,700" }
+      ]
+    };
+
+    const numberFormatter = new Intl.NumberFormat("zh-CN");
+    const fields = ["food", "wood", "coal", "iron"];
+    const summaryEl = document.getElementById("summary");
+    const tableTitleEl = document.getElementById("tableTitle");
+    const rangeHintEl = document.getElementById("rangeHint");
+    const dataBodyEl = document.getElementById("dataBody");
+    const buildingSelectEl = document.getElementById("buildingSelect");
+    const currentLevelEl = document.getElementById("currentLevel");
+    const targetLevelEl = document.getElementById("targetLevel");
+    const levelFilterEl = document.getElementById("levelFilter");
+
+    function parseAmount(value) {
+      const text = String(value || "").replace(/,/g, "").trim();
+      if (!text) return 0;
+      if (text.includes("亿")) return Math.round(parseFloat(text) * 100000000);
+      if (text.includes("万")) return Math.round(parseFloat(text) * 10000);
+      return Number(text) || 0;
+    }
+
+    function parseTimeSeconds(value) {
+      let text = String(value || "").replace("::", ":").trim();
+      if (!text) return 0;
+      let days = 0;
+      if (text.includes("天")) {
+        const parts = text.split("天");
+        days = Number(parts[0]) || 0;
+        text = parts[1] || "0:00:00";
+      }
+      const segments = text.split(":").map(function (part) {
+        return Number(part) || 0;
+      });
+      while (segments.length < 3) segments.unshift(0);
+      return days * 86400 + segments[0] * 3600 + segments[1] * 60 + segments[2];
+    }
+
+    function formatSeconds(totalSeconds) {
+      let seconds = Math.max(0, Math.round(totalSeconds || 0));
+      const days = Math.floor(seconds / 86400);
+      seconds %= 86400;
+      const hours = Math.floor(seconds / 3600);
+      seconds %= 3600;
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const clock = [hours, minutes, secs].map(function (item) {
+        return String(item).padStart(2, "0");
+      }).join(":");
+      return days ? days + "天" + clock : clock;
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function calculateBuildingTotals(buildingName, currentLevel, targetLevel) {
+      const rows = (BUILDING_DATA[buildingName] || []).filter(function (row) {
+        return row.level > currentLevel && row.level <= targetLevel;
+      });
+      return rows.reduce(function (acc, row) {
+        acc.levels += 1;
+        acc.power += parseAmount(row.power);
+        acc.time += parseTimeSeconds(row.time);
+        fields.forEach(function (field) {
+          acc[field] += parseAmount(row[field]);
+        });
+        return acc;
+      }, { levels: 0, food: 0, wood: 0, coal: 0, iron: 0, time: 0, power: 0 });
+    }
+
+    function populateSelectors() {
+      Object.keys(BUILDING_DATA).forEach(function (name) {
+        buildingSelectEl.add(new Option(name, name));
+      });
+      for (let level = 1; level <= 30; level += 1) {
+        currentLevelEl.add(new Option(String(level), String(level)));
+        targetLevelEl.add(new Option(String(level), String(level)));
+      }
+      currentLevelEl.value = "1";
+      targetLevelEl.value = "30";
+    }
+
+    function renderSummary(buildingName, currentLevel, targetLevel) {
+      const totals = calculateBuildingTotals(buildingName, currentLevel, targetLevel);
+      const cards = [
+        { label: "升级段数", value: totals.levels + " 级" },
+        { label: "生肉", value: numberFormatter.format(totals.food) },
+        { label: "木材", value: numberFormatter.format(totals.wood) },
+        { label: "煤矿", value: numberFormatter.format(totals.coal) },
+        { label: "铁矿", value: numberFormatter.format(totals.iron) },
+        { label: "总时间", value: formatSeconds(totals.time) },
+        { label: "实力提升", value: numberFormatter.format(totals.power), good: true }
+      ];
+      summaryEl.innerHTML = cards.map(function (card) {
+        return '<div class="metric' + (card.good ? ' good' : '') + '">' +
+          '<div class="label">' + card.label + '</div>' +
+          '<div class="value">' + card.value + '</div>' +
+        '</div>';
+      }).join("");
+    }
+
+    function renderTable(buildingName) {
+      const query = levelFilterEl.value.trim();
+      const rows = (BUILDING_DATA[buildingName] || []).filter(function (row) {
+        if (!query) return true;
+        return String(row.level) === query || String(row.requirement || "").includes(query);
+      });
+      tableTitleEl.textContent = buildingName + " 1-30升级表";
+      dataBodyEl.innerHTML = rows.map(function (row) {
+        return "<tr>" +
+          "<td>" + row.level + "</td>" +
+          "<td>" + escapeHtml(row.food || "-") + "</td>" +
+          "<td>" + escapeHtml(row.wood || "-") + "</td>" +
+          "<td>" + escapeHtml(row.coal || "-") + "</td>" +
+          "<td>" + escapeHtml(row.iron || "-") + "</td>" +
+          "<td>" + escapeHtml(row.requirement || "-") + "</td>" +
+          "<td>" + escapeHtml(row.time || "-") + "</td>" +
+          "<td>" + escapeHtml(row.power || "-") + "</td>" +
+        "</tr>";
+      }).join("");
+    }
+
+    function renderBuildingPage() {
+      const buildingName = buildingSelectEl.value;
+      const currentLevel = Number(currentLevelEl.value) || 1;
+      const targetLevel = Math.max(Number(targetLevelEl.value) || currentLevel, currentLevel);
+      if (String(targetLevel) !== targetLevelEl.value) targetLevelEl.value = String(targetLevel);
+      rangeHintEl.textContent = "当前 " + currentLevel + " 级 -> 目标 " + targetLevel + " 级";
+      renderSummary(buildingName, currentLevel, targetLevel);
+      renderTable(buildingName);
+    }
+
+    populateSelectors();
+    [buildingSelectEl, currentLevelEl, targetLevelEl].forEach(function (element) {
+      element.addEventListener("change", renderBuildingPage);
+    });
+    levelFilterEl.addEventListener("input", renderBuildingPage);
+    renderBuildingPage();
+  </script>
+</body>
+</html>
