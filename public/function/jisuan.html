@@ -148,6 +148,44 @@
         .auth-btn:hover { background: rgba(59, 130, 246, 0.28); }
 
         .muted { color: var(--muted) !important; }
+        .data-warning {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr);
+            gap: 11px;
+            align-items: start;
+            margin: 18px 0 22px;
+            padding: 13px 14px;
+            border: 1px solid rgba(245, 158, 11, 0.5);
+            border-left-width: 4px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(249, 115, 22, 0.08));
+            color: var(--text);
+            box-shadow: 0 10px 24px rgba(120, 53, 15, 0.12);
+        }
+        .data-warning-icon {
+            display: flex;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #f59e0b;
+            color: #451a03;
+            font-size: 1.05rem;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .data-warning strong {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--text);
+            font-size: 0.92rem;
+        }
+        .data-warning p {
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
         .theme-toggle {
             position: fixed;
             right: 16px;
@@ -348,6 +386,8 @@
             h1 { font-size: 1.1rem; }
             input, select { font-size: 16px; }
             table th, table td { padding: 8px 6px; font-size: 14px; }
+            .data-warning { grid-template-columns: 28px minmax(0, 1fr); padding: 11px; gap: 9px; }
+            .data-warning-icon { width: 28px; height: 28px; font-size: 0.95rem; }
         }
     </style>
   <script src="/function/analytics-tracker.js" defer></script>
@@ -365,6 +405,13 @@
     <div class="container">
         <h1>🎮 移民券计算器</h1>
         <h5>计算器数据由719缥缈提供，欢迎移民719</h5>
+        <aside class="data-warning" role="note" aria-label="数据时效提示">
+            <span class="data-warning-icon" aria-hidden="true">!</span>
+            <div>
+                <strong>数据时效提示</strong>
+                <p>移民券随游戏更新已经进行了调整，该工具已经不准确了，仅供娱乐使用。</p>
+            </div>
+        </aside>
         
         <div class="input-group">
             <label for="totalPower">总实力</label>
@@ -641,7 +688,5 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 
 </body>
 </html>
-
-
 
 

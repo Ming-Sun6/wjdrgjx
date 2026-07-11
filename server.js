@@ -431,6 +431,7 @@ function sanitizeForumPostHtml(inputHtml) {
 function defaultHomeLeadCarousel() {
   return {
     intervalMs: 6000,
+    clickEnabled: true,
     slides: [
       {
         id: 'default',
@@ -447,6 +448,7 @@ function defaultHomeLeadCarousel() {
 function normalizeHomeLeadCarousel(input) {
   const base = defaultHomeLeadCarousel();
   if (!input || typeof input !== 'object') return base;
+  const clickEnabled = input.clickEnabled !== false;
   let intervalMs = Number(input.intervalMs);
   if (!Number.isFinite(intervalMs)) intervalMs = base.intervalMs;
   intervalMs = Math.max(3000, Math.min(30000, Math.floor(intervalMs)));
@@ -473,8 +475,8 @@ function normalizeHomeLeadCarousel(input) {
       detailHtml
     });
   }
-  if (!slides.length) return base;
-  return { intervalMs, slides };
+  if (!slides.length) return { ...base, clickEnabled };
+  return { intervalMs, clickEnabled, slides };
 }
 
 app.get('/', (req, res) => {
@@ -2890,9 +2892,14 @@ app.delete('/api/users/:id/follow', async (req, res) => {
   }
 });
 
+function normalizeStoredAnnouncement(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  return { ...raw, enabled: raw.enabled !== false };
+}
 app.get('/api/announcement', async (_req, res) => {
   try {
-    return res.json({ announcement: await getSetting('announcement', null) });
+    const normalizedAnnouncement = normalizeStoredAnnouncement(await getSetting('announcement', null));
+    return res.json({ announcement: normalizedAnnouncement && normalizedAnnouncement.enabled ? normalizedAnnouncement : null });
   } catch (err) {
     console.error('announcement get failed:', err);
     return res.status(500).json({ announcement: null });
@@ -2903,7 +2910,7 @@ app.get('/api/admin/announcement', async (req, res) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
-    return res.json({ announcement: await getSetting('announcement', null) });
+    return res.json({ announcement: normalizeStoredAnnouncement(await getSetting('announcement', null)) });
   } catch (err) {
     console.error('admin announcement get failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -2937,6 +2944,7 @@ async function upsertAnnouncement(req, res) {
   if (contentHtml.length > 12000) return res.status(400).json({ error: 'CONTENT_TOO_LONG' });
   const announcement = {
     id: `${Date.now()}_${crypto.randomInt(100, 999)}`,
+    enabled: req.body?.enabled !== false,
     title: title.slice(0, 120),
     // 兼容旧前端：保留 content（纯文本）
     content: contentText.slice(0, 4000),

@@ -78,21 +78,22 @@
       z-index:1;
       width:100%;
       line-height:0;
-      /* 不与 body 背景割裂，避免宽屏两侧出现一条更深的「黑边」色带 */
-      background:transparent;
       border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg,rgba(59,130,246,.08),transparent 88%);
     }
     .wjdr-home-lead-inner{
-      max-width:1100px;
+      max-width:1180px;
       margin:0 auto;
-      padding:8px 16px 2px;
+      padding:12px 16px 8px;
     }
     .wjdr-home-carousel{
-      border-radius:12px;
+      position:relative;
       overflow:hidden;
-      border:1px solid var(--border);
-      /* 浅色主题下深色半透明底会像一圈黑框，改为透明仅保留细描边 */
-      background:transparent;
+      border:1px solid rgba(148,163,184,.24);
+      border-radius:14px;
+      background:rgba(15,23,42,.38);
+      box-shadow:0 14px 34px rgba(2,6,23,.2);
+      isolation:isolate;
     }
     .wjdr-home-carousel-track{
       display:grid;
@@ -104,55 +105,117 @@
     .wjdr-home-carousel-track:active{cursor:grabbing;}
     .wjdr-home-carousel-slide{
       grid-area:1/1;
+      min-width:0;
       opacity:0;
       visibility:hidden;
-      transition:opacity .55s ease;
+      transform:scale(1.006);
+      transition:opacity .5s ease,transform .65s ease;
       z-index:0;
     }
     .wjdr-home-carousel-slide.is-active{
       opacity:1;
       visibility:visible;
+      transform:scale(1);
       z-index:1;
     }
-    .wjdr-home-carousel-slide a{
-      display:block;
-      text-decoration:none;
-      outline:none;
-    }
-    .wjdr-home-carousel-slide a:focus-visible{
-      box-shadow:inset 0 0 0 2px rgba(59,130,246,.85);
-    }
-    .wjdr-home-carousel-slide img{
+    .wjdr-home-carousel-media{
+      position:relative;
       display:block;
       width:100%;
-      height:auto;
+      aspect-ratio:22 / 7;
+      overflow:hidden;
+      text-decoration:none;
+      outline:none;
+      background:linear-gradient(135deg,rgba(30,41,59,.72),rgba(15,23,42,.9));
+    }
+    .wjdr-home-carousel-media::after{
+      content:"";
+      position:absolute;
+      inset:auto 0 0;
+      height:28%;
+      pointer-events:none;
+      background:linear-gradient(180deg,transparent,rgba(2,6,23,.2));
+    }
+    .wjdr-home-carousel-media:focus-visible{
+      box-shadow:inset 0 0 0 3px rgba(56,189,248,.9);
+    }
+    .wjdr-home-carousel-media img{
+      display:block;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center;
       vertical-align:top;
+      transition:transform .45s ease,filter .45s ease;
+    }
+    .wjdr-home-carousel:not(.is-static) .wjdr-home-carousel-media:hover img{
+      transform:scale(1.012);
+      filter:saturate(1.04) contrast(1.02);
+    }
+    .wjdr-home-carousel.is-static .wjdr-home-carousel-media{
+      cursor:grab;
     }
     .wjdr-home-carousel-dots{
+      position:absolute;
+      left:50%;
+      bottom:10px;
+      z-index:4;
       display:flex;
       justify-content:center;
       align-items:center;
-      flex-wrap:wrap;
-      gap:8px;
-      padding:10px 8px 6px;
+      gap:6px;
+      padding:6px 8px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:999px;
+      background:rgba(2,6,23,.5);
+      box-shadow:0 5px 16px rgba(2,6,23,.22);
+      backdrop-filter:blur(8px);
       line-height:1;
+      transform:translateX(-50%);
     }
     .wjdr-home-carousel-dot{
-      width:9px;
-      height:9px;
+      width:8px;
+      height:8px;
       padding:0;
       border:none;
       border-radius:999px;
-      background:rgba(148,163,184,.35);
+      background:rgba(226,232,240,.52);
       cursor:pointer;
-      transition:transform .15s ease,background .15s ease;
+      transition:width .18s ease,background .18s ease,transform .18s ease;
     }
-    .wjdr-home-carousel-dot:hover{background:rgba(148,163,184,.55);}
+    .wjdr-home-carousel-dot:hover{
+      background:rgba(255,255,255,.86);
+      transform:scale(1.08);
+    }
     .wjdr-home-carousel-dot.is-active{
-      background:rgba(59,130,246,.95);
-      transform:scale(1.15);
+      width:24px;
+      background:#38bdf8;
     }
-
+    body.theme-day .wjdr-home-lead{
+      background:linear-gradient(180deg,rgba(14,116,144,.08),transparent 88%);
+    }
+    body.theme-day .wjdr-home-carousel{
+      border-color:rgba(15,23,42,.13);
+      background:rgba(255,255,255,.72);
+      box-shadow:0 12px 28px rgba(15,23,42,.12);
+    }
+    @media (max-width:600px){
+      .wjdr-home-lead-inner{padding:8px 10px 4px;}
+      .wjdr-home-carousel{border-radius:10px;}
+      .wjdr-home-carousel-media{aspect-ratio:16 / 7;}
+      .wjdr-home-carousel-dots{
+        bottom:6px;
+        gap:5px;
+        padding:5px 7px;
+      }
+      .wjdr-home-carousel-dot{width:7px;height:7px;}
+      .wjdr-home-carousel-dot.is-active{width:20px;}
+    }
+    @media (prefers-reduced-motion:reduce){
+      .wjdr-home-carousel-slide,
+      .wjdr-home-carousel-media img,
+      .wjdr-home-carousel-dot{transition:none;}
+    }
     /* 右上角登录/注册 */
     .auth-bar{
       position:fixed;
@@ -1315,6 +1378,12 @@
       background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(248,250,252,.98));
       border-color:rgba(148,163,184,.18);
       box-shadow:0 10px 24px rgba(15,23,42,.08);
+      transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+    .tool-tile-card:hover{
+      transform:translateY(-2px);
+      border-color:rgba(96,165,250,.38);
+      box-shadow:0 14px 28px rgba(2,6,23,.2);
     }
     .tool-tile-card::before{
       background:radial-gradient(160px 120px at 20% 12%, rgba(59,130,246,.10), transparent 68%);
@@ -1330,6 +1399,11 @@
       text-decoration:none;
       color:#0f172a;
     }
+    .tool-tile-link:focus-visible{
+      outline:3px solid rgba(56,189,248,.78);
+      outline-offset:3px;
+      border-radius:10px;
+    }
     button.tool-tile-link{
       width:100%;
       border:0;
@@ -1344,12 +1418,19 @@
       width:100%;
       text-align:center;
       text-shadow:none;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:break-word;
     }
     .tool-tile-name-inner{
-      display:inline-block;
+      display:block;
+      width:100%;
       max-width:100%;
       text-align:center;
       vertical-align:top;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:break-word;
     }
     .tool-tile-name .new-badge{
       display:inline-flex;
@@ -3244,6 +3325,30 @@
         display:none !important;
       }
     }
+    @media (max-width: 600px){
+      .tool-warehouse-grid{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:9px;
+      }
+      .tool-tile-card{
+        aspect-ratio:auto;
+        min-height:106px;
+        padding:10px 7px;
+      }
+      .tool-tile-link{
+        align-content:center;
+        gap:9px;
+      }
+      .tool-tile-name{
+        min-height:2.56em;
+        display:flex;
+        align-items:flex-start;
+        justify-content:center;
+      }
+    }
+    @media (hover: none){
+      .tool-tile-card:hover{transform:none;}
+    }
     @media (min-width: 769px){
       .dev-toast{
         bottom:24px;
@@ -3278,7 +3383,7 @@
       <div class="wjdr-home-carousel" id="wjdrHomeLeadRoot">
         <div class="wjdr-home-carousel-track" id="wjdrHomeLeadTrack">
           <div class="wjdr-home-carousel-slide is-active">
-            <a href="/public/wjdr-home/board" draggable="false">
+            <a class="wjdr-home-carousel-media" href="/public/wjdr-home/board" draggable="false">
               <img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high" draggable="false" />
             </a>
           </div>
@@ -3391,12 +3496,21 @@
     function escAttr(v){
       return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     }
-    function build(slidesCfg, ms){
+    function renderCarouselMedia(imageUrl, href, alt, fetchPriority, canClick){
+      var image='<img src="'+escAttr(imageUrl)+'" alt="'+escAttr(alt)+'" decoding="async" draggable="false"'+fetchPriority+'/>';
+      if(canClick){
+        return '<a class="wjdr-home-carousel-media" href="'+escAttr(href)+'" draggable="false">'+image+'</a>';
+      }
+      return '<div class="wjdr-home-carousel-media is-static" aria-disabled="true">'+image+'</div>';
+    }
+    function build(slidesCfg, ms, clickEnabled){
       clearTimer();
       slides=[];
       intervalMs=typeof ms==='number'&&isFinite(ms)?Math.max(3000,Math.min(30000,ms)):6000;
+      var canClick=clickEnabled!==false;
+      if(root) root.classList.toggle('is-static',!canClick);
       if(!slidesCfg||!slidesCfg.length){
-        track.innerHTML='<div class="wjdr-home-carousel-slide is-active"><a href="/public/wjdr-home/board" draggable="false"><img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high" draggable="false"/></a></div>';
+        track.innerHTML='<div class="wjdr-home-carousel-slide is-active">'+renderCarouselMedia('/public/wjdr-home/2213301_47_5895.jpg','/public/wjdr-home/board','活动说明图示',' fetchpriority="high"',canClick)+'</div>';
         slides=[track.querySelector('.wjdr-home-carousel-slide')];
         if(dotsRoot){ dotsRoot.innerHTML=''; dotsRoot.hidden=true; }
         return;
@@ -3409,9 +3523,8 @@
         var alt=sl.alt||'活动图示';
         var fp=i===0?' fetchpriority="high"':'';
         html+='<div class="wjdr-home-carousel-slide'+(i===0?' is-active':'')+'">'+
-          '<a href="'+escAttr(href)+'" draggable="false">'+
-          '<img src="'+escAttr(img)+'" alt="'+escAttr(alt)+'" decoding="async" draggable="false"'+fp+'/>'+
-          '</a></div>';
+          renderCarouselMedia(img,href,alt,fp,canClick)+
+          '</div>';
       }
       track.innerHTML=html;
       slides=[].slice.call(track.querySelectorAll('.wjdr-home-carousel-slide'));
@@ -3440,7 +3553,7 @@
     fetch('/api/home-lead',{credentials:'omit',cache:'no-store'})
       .then(function(r){ return r.json().catch(function(){ return null; }); })
       .then(function(cfg){
-        if(cfg&&cfg.slides&&cfg.slides.length) build(cfg.slides, cfg.intervalMs);
+        if(cfg&&cfg.slides&&cfg.slides.length) build(cfg.slides, cfg.intervalMs, cfg.clickEnabled);
       })
       .catch(function(){});
   })();
@@ -3450,8 +3563,8 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.25</div>
-	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告">
+  <div class="version-tag">版本 V0.9.26</div>
+	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告" style="display:none;">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
 	  </button>
@@ -3618,15 +3731,6 @@
           </section>
 
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
-            <a class="tool-tile-link" href="function/jisuan.html">
-              <div class="tool-tile-icon" aria-hidden="true">&#x1F3AB;</div>
-              <div class="card-title tool-tile-name">&#x79FB;&#x6C11;&#x5238;&#x8BA1;&#x7B97;</div>
-            </a>
-            <div class="pill">jisuan.html</div>
-            <div class="desc">&#x7528;&#x4E8E;&#x8BA1;&#x7B97;&#x79FB;&#x6C11;&#x5238;&#x6240;&#x9700;&#x6570;&#x91CF;&#x3002;</div>
-          </section>
-
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
             <a class="tool-tile-link" href="function/gift-value-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F381;</div>
               <div class="card-title tool-tile-name">&#x793C;&#x5305;&#x6027;&#x4EF7;&#x6BD4;</div>
@@ -3690,6 +3794,24 @@
             <div class="desc">自动兑换、码库管理、玩家提交新兑换码。</div>
           </section>
 
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
+            <a class="tool-tile-link" href="function/jisuan.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3AB;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">移民券<wbr>计算器</span></div>
+            </a>
+            <div class="pill">jisuan.html</div>
+            <div class="desc">旧版移民券数量估算，游戏规则已调整，当前结果仅供娱乐参考。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
+            <a class="tool-tile-link" href="function/building-upgrade-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9EE;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>建筑升级<wbr>计算器</span></div>
+            </a>
+            <div class="pill">building-upgrade-calculator.html</div>
+            <div class="desc">选择建筑、当前等级和目标等级，汇总升级所需资源、时间与实力提升。</div>
+          </section>
+
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
             <a class="tool-tile-link" href="function/T12DataOverview.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4CA;</div>
@@ -3729,10 +3851,10 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
             <a class="tool-tile-link" href="function/building-upgrade-1-30.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F3D7;&#xFE0F;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>1-30级建筑升级</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>建筑升级<wbr>数据查询</span></div>
             </a>
             <div class="pill">building-upgrade-1-30.html</div>
-            <div class="desc">查询熔炉、使馆、兵营、军医所与指挥部 1-30 级升级数据，并汇总当前到目标等级的总消耗。</div>
+            <div class="desc">查询熔炉、使馆、兵营、军医所与指挥部的 1-30 级升级原始数据。</div>
           </section>
 
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
@@ -4070,6 +4192,13 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.26（2026-07-12）</h4>
+        <ol>
+          <li><strong>移动端工具布局优化</strong>：修复「更多工具」长标题不换行和样式不一致的问题，窄屏入口改为稳定三列；T12 科技计算器改为双列科技卡，T12 数据总览的筛选与统计改为两列，展开明细使用紧凑四列指标网格。</li>
+          <li><strong>建筑工具拆分</strong>：「1-30级建筑升级」更名为「建筑升级数据查询」，并新增独立「建筑升级计算器」，可汇总当前等级到目标等级的资源、时间、实力与区间明细。</li>
+          <li><strong>主题与提示优化</strong>：增强建筑数据、建筑计算器和宠物数据查询的白天/黑夜视觉区分；移民券计算器增加数据失准提示并移入「更多工具」。</li>
+        </ol>
+
         <h4>V0.9.25（2026-06-27）</h4>
         <ol>
           <li><strong>新增「1-30级建筑升级」</strong>：上线熔炉、使馆、射手营、军医所、矛兵营、指挥部、盾兵营 1-30 级数据查询工具，支持选择当前等级与目标等级，自动汇总总资源、总时间与总实力提升，并保留完整原始数据表。</li>
@@ -6019,6 +6148,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     }
     function normalizeHomepageAnnouncement(raw){
       if(!raw || typeof raw!=='object') return null;
+      if(raw.enabled===false) return null;
       var id=String(raw.id||'').trim();
       var title=String(raw.title||'').trim() || '系统公告';
 	      var content=String(raw.content||'').trim();
@@ -6167,7 +6297,9 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       }
     }
     function updateAnnouncementIndicator(){
+      var announcementButton=document.getElementById('openAnnouncement');
       var dot=document.getElementById('announcementDot');
+      if(announcementButton) announcementButton.style.display=homepageAnnouncement?'':'none';
       if(!dot) return;
       if(!homepageAnnouncement){
         dot.style.display='none';
@@ -6178,7 +6310,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     function openAnnouncementModal(opts){
       var options=opts||{};
       var modal=document.getElementById('announcementModal');
-      if(!modal) return;
+      if(!modal || !homepageAnnouncement) return;
       renderAnnouncementModal();
       modal.classList.add('open');
       modal.setAttribute('aria-hidden','false');

@@ -520,30 +520,138 @@
     }
 
     @media (max-width: 768px) {
+      html:root {
+        --wjdr-fab-size: 44px;
+      }
+
+      body {
+        padding: 8px max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left));
+      }
+
+      .app-shell {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 60px auto 18px;
+        gap: 12px;
+      }
+
+      .shell-card {
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        border-radius: 18px;
+      }
+
       .hero-title {
-        font-size: clamp(26px, 8vw, 34px);
+        margin-bottom: 10px;
+        font-size: 30px;
+        line-height: 1.12;
+        letter-spacing: 0;
       }
 
       .section,
       .hero-shell {
-        padding: 16px;
+        padding: 14px;
+        gap: 14px;
       }
 
-      .controls-grid,
-      .stats,
-      .results-grid,
-      .tech-grid {
+      .hero-shell {
         grid-template-columns: 1fr;
       }
 
-      /* 手机端：科技设置卡片一行两个（更窄屏再降为一行一个） */
-      .tech-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+      .section-head {
+        display: grid;
+        align-items: start;
+        gap: 8px;
       }
 
-      .tech-card {
+      .section-head h2 {
+        font-size: 20px;
+        line-height: 1.3;
+      }
+
+      .hero-copy,
+      .section-copy,
+      .hint,
+      .empty-state {
+        line-height: 1.65;
+      }
+
+      .eyebrow,
+      .pill {
+        max-width: 100%;
+        white-space: normal;
+      }
+
+      .nav-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+
+      .controls-grid {
+        grid-template-columns: 1fr;
+        min-width: 0;
+      }
+
+      .tech-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-width: 0;
+      }
+
+      .results-grid {
+        grid-template-columns: 1fr;
+        min-width: 0;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .note-card,
+      .control-card,
+      .tech-card,
+      .result-card,
+      .data-card {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
         padding: 14px;
+        border-radius: 14px;
+      }
+
+      .level-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      input,
+      select,
+      .btn,
+      .nav-link,
+      .home-btn {
+        min-width: 0;
+        min-height: 44px;
+      }
+
+      input,
+      select {
+        padding: 10px 12px;
+        font-size: 16px;
+      }
+
+      .nav-link {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .home-btn {
+        display: inline-flex;
+        max-width: calc(100vw - 24px);
+        align-items: center;
       }
 
       .overview-table-wrap {
@@ -558,19 +666,46 @@
       .mobile-card-head,
       .group-summary {
         display: grid;
+        gap: 10px;
       }
 
       .mobile-kpis,
       .mobile-detail-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .mobile-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .mobile-detail-grid {
+      .result-card-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .result-card-head .pill {
+        justify-self: start;
+      }
+
+      .result-kpis,
+      .resource-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stat,
+      .result-kpi,
+      .resource-item,
+      .mobile-kpi,
+      .mobile-detail-item {
+        min-width: 0;
+      }
+
+      .stat .value,
+      .result-card,
+      .tech-card,
+      .control-card,
+      .note-card,
+      .nav-link,
+      .pill {
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .btn-row .btn,
@@ -579,10 +714,9 @@
         justify-content: center;
       }
 
-      /* 手机端：预设方案按钮一行两个 */
       .btn-row {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: 1fr;
         gap: 10px;
         align-items: stretch;
       }
@@ -590,12 +724,43 @@
       .btn-row .btn {
         width: 100%;
       }
+
+      body .table-wrap {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+      }
+
+      body .table-wrap > table {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
     }
 
     @media (max-width: 420px) {
+      .hero-title { font-size: 27px; }
+      .section,
+      .hero-shell { padding: 12px; }
+      .level-row,
+      .result-kpis,
+      .resource-grid,
+      .mobile-kpis,
+      .mobile-detail-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 340px) {
       .tech-grid { grid-template-columns: 1fr; }
-      .result-kpis { grid-template-columns: 1fr; }
-      .btn-row { grid-template-columns: 1fr; }
     }
 
   </style>

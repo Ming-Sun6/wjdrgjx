@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>建筑升级数据查询-冬日工具箱</title>
+  <title>建筑升级计算器-冬日工具箱</title>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <link rel="stylesheet" href="/function/theme.css" />
@@ -115,7 +115,7 @@
     .source { color: var(--warm); font-weight: 800; }
     .controls {
       display: grid;
-      grid-template-columns: minmax(190px, 0.7fr) minmax(260px, 1.3fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
       margin-top: 18px;
       padding: 16px;
@@ -191,9 +191,41 @@
     }
     tbody tr:hover { background: var(--row-hover); }
     tbody tr:last-child td { border-bottom: 0; }
-    th:first-child,
-    td:first-child { position: sticky; left: 0; z-index: 1; background: var(--panel); font-weight: 800; }
-    th:first-child { z-index: 3; background: var(--table-head); }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .metric {
+      min-height: 104px;
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .metric .label { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .metric .value {
+      margin-top: 9px;
+      overflow-wrap: anywhere;
+      color: var(--accent-strong);
+      font-size: 21px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+    .metric.power { border-color: var(--warm); }
+    .metric.power .value { color: var(--warm); }
+    .interval {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--panel-strong);
+      color: var(--accent-strong);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .empty-row { padding: 28px; color: var(--muted); text-align: center; }
     .note { margin: 14px 2px 0; font-size: 13px; }
     html[data-theme="day"] .panel,
     body.theme-day .panel { border-color: #8eabb0; background: #ffffff; box-shadow: 0 12px 28px rgba(36, 69, 75, 0.13); }
@@ -201,6 +233,8 @@
     body.theme-day :is(select, input) { border-color: #829fa5; background: #f9fcfc; color: #102c31; }
     html[data-theme="day"] th,
     body.theme-day th { border-bottom-color: #78989e; background: #cfe6e7; color: #075f59; }
+    html[data-theme="day"] .metric,
+    body.theme-day .metric { border-color: #8eabb0; background: #ffffff; box-shadow: 0 10px 24px rgba(36, 69, 75, 0.12); }
     html[data-theme="day"] .calculator-link,
     body.theme-day .calculator-link { color: #ffffff; }
     @media (max-width: 680px) {
@@ -210,9 +244,54 @@
       .calculator-link { justify-content: center; padding-inline: 10px; }
       .hero { padding: 20px 18px; }
       .controls { grid-template-columns: 1fr; padding: 13px; }
+      .summary { grid-template-columns: 1fr 1fr; gap: 9px; }
+      .metric { min-height: 92px; padding: 12px; }
+      .metric .value { font-size: 18px; }
       .panel { padding: 12px; }
-      th,
-      td { padding: 11px 10px; }
+      .detail-table { min-width: 0; }
+      .detail-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+      .detail-table tbody,
+      .detail-table tr { display: block; }
+      .detail-table tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        margin: 10px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--control);
+      }
+      .detail-table td {
+        display: grid;
+        grid-template-columns: minmax(72px, 0.8fr) 1fr;
+        gap: 8px;
+        min-width: 0;
+        padding: 10px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+      .detail-table td::before { content: attr(data-label); color: var(--muted); font-size: 12px; font-weight: 800; }
+      .detail-table td:first-child,
+      .detail-table td:nth-child(6),
+      .detail-table td:nth-child(7) { grid-column: 1 / -1; }
+      .detail-table td:first-child { background: var(--panel-strong); color: var(--accent-strong); font-weight: 900; }
+      .detail-table td:nth-last-child(-n + 2) { border-bottom: 0; }
+      html[data-theme="day"] .detail-table tr,
+      body.theme-day .detail-table tr { background: #f8fcfc; }
+    }
+    @media (max-width: 420px) {
+      .summary { grid-template-columns: 1fr; }
+      .detail-table tr { grid-template-columns: 1fr; }
+      .detail-table td { grid-column: 1 / -1; }
     }
   </style>
 </head>
@@ -220,14 +299,14 @@
   <main class="wrap">
     <nav class="topbar" aria-label="页面导航">
       <a class="back-link" href="/">← 返回首页</a>
-      <a class="calculator-link" href="/function/building-upgrade-calculator.html">打开升级计算器 →</a>
+      <a class="calculator-link" href="/function/building-upgrade-1-30.html">查看原始数据 →</a>
     </nav>
 
     <section class="hero">
-      <p class="eyebrow">BUILDING DATA · 1-30</p>
-      <h1>建筑升级数据查询</h1>
+      <p class="eyebrow">UPGRADE PLANNER · 1-30</p>
+      <h1>建筑升级计算器</h1>
       <p>
-        选择建筑并按等级或前置需求快速查表，完整保留 1-30 级资源、时间与实力数据。
+        选择当前与目标等级，一次算清升级区间的资源、时间和实力，并逐级核对明细。
         <span class="source">制作：甜甜</span>
       </p>
     </section>
@@ -236,18 +315,23 @@
       <label>建筑
         <select id="buildingSelect"></select>
       </label>
-      <label>筛选等级 / 升级需求
-        <input id="levelFilter" type="search" placeholder="如 30 / 大使馆 / 科研所" />
+      <label>当前等级
+        <select id="currentLevel"></select>
+      </label>
+      <label>目标等级
+        <select id="targetLevel"></select>
       </label>
     </section>
 
+    <section class="summary" id="summary" aria-live="polite"></section>
+
     <section class="panel">
       <div class="panel-head">
-        <h2 id="tableTitle">建筑升级表</h2>
-        <div class="count-badge" id="rowCount" aria-live="polite"></div>
+        <h2 id="tableTitle">升级区间明细</h2>
+        <div class="interval" id="rangeHint" aria-live="polite"></div>
       </div>
       <div class="table-wrap">
-        <table>
+        <table class="detail-table">
           <thead>
             <tr>
               <th>等级</th>
@@ -260,13 +344,14 @@
               <th>实力提升</th>
             </tr>
           </thead>
-          <tbody id="dataBody"></tbody>
+          <tbody id="detailBody"></tbody>
         </table>
       </div>
     </section>
 
     <p class="note">
-      此数据为原始数据。使馆中的原始时间值 <code>0:01::00</code> 按原样展示。
+      合计范围为“当前等级 + 1”至“目标等级”。页面内嵌完整原始数据，可直接静态部署；使馆原始值
+      <code>0:01::00</code> 在明细中保留，计算时按 <code>0:01:00</code> 处理。
     </p>
   </main>
 
@@ -498,11 +583,53 @@
       ]
     };
 
+    const numberFormatter = new Intl.NumberFormat("zh-CN");
+    const fields = ["food", "wood", "coal", "iron"];
+    const summaryEl = document.getElementById("summary");
     const tableTitleEl = document.getElementById("tableTitle");
-    const rowCountEl = document.getElementById("rowCount");
-    const dataBodyEl = document.getElementById("dataBody");
+    const rangeHintEl = document.getElementById("rangeHint");
+    const detailBodyEl = document.getElementById("detailBody");
     const buildingSelectEl = document.getElementById("buildingSelect");
-    const levelFilterEl = document.getElementById("levelFilter");
+    const currentLevelEl = document.getElementById("currentLevel");
+    const targetLevelEl = document.getElementById("targetLevel");
+
+    function parseAmount(value) {
+      const text = String(value || "").replace(/,/g, "").trim();
+      if (!text) return 0;
+      if (text.includes("亿")) return Math.round(parseFloat(text) * 100000000);
+      if (text.includes("万")) return Math.round(parseFloat(text) * 10000);
+      return Number(text) || 0;
+    }
+
+    function parseTimeSeconds(value) {
+      let text = String(value || "").replace("::", ":").trim();
+      if (!text) return 0;
+      let days = 0;
+      if (text.includes("天")) {
+        const parts = text.split("天");
+        days = Number(parts[0]) || 0;
+        text = parts[1] || "0:00:00";
+      }
+      const segments = text.split(":").map(function (part) {
+        return Number(part) || 0;
+      });
+      while (segments.length < 3) segments.unshift(0);
+      return days * 86400 + segments[0] * 3600 + segments[1] * 60 + segments[2];
+    }
+
+    function formatSeconds(totalSeconds) {
+      let seconds = Math.max(0, Math.round(totalSeconds || 0));
+      const days = Math.floor(seconds / 86400);
+      seconds %= 86400;
+      const hours = Math.floor(seconds / 3600);
+      seconds %= 3600;
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const clock = [hours, minutes, secs].map(function (item) {
+        return String(item).padStart(2, "0");
+      }).join(":");
+      return days ? days + "天 " + clock : clock;
+    }
 
     function escapeHtml(value) {
       return String(value == null ? "" : value)
@@ -512,43 +639,103 @@
         .replace(/"/g, "&quot;");
     }
 
-    function populateBuildingSelector() {
+    function calculateBuildingTotals(buildingName, currentLevel, targetLevel) {
+      const rows = (BUILDING_DATA[buildingName] || []).filter(function (row) {
+        return row.level > currentLevel && row.level <= targetLevel;
+      });
+      return rows.reduce(function (acc, row) {
+        acc.levels += 1;
+        acc.power += parseAmount(row.power);
+        acc.time += parseTimeSeconds(row.time);
+        fields.forEach(function (field) {
+          acc[field] += parseAmount(row[field]);
+        });
+        return acc;
+      }, { levels: 0, food: 0, wood: 0, coal: 0, iron: 0, time: 0, power: 0 });
+    }
+
+    function populateSelectors() {
       Object.keys(BUILDING_DATA).forEach(function (name) {
         buildingSelectEl.add(new Option(name, name));
       });
+      for (let level = 0; level <= 29; level += 1) {
+        const label = level === 0 ? "0（未建造）" : String(level);
+        currentLevelEl.add(new Option(label, String(level)));
+      }
+      for (let level = 1; level <= 30; level += 1) {
+        targetLevelEl.add(new Option(String(level), String(level)));
+      }
+      currentLevelEl.value = "0";
+      targetLevelEl.value = "30";
     }
 
-    function renderTable(buildingName) {
-      const query = levelFilterEl.value.trim();
-      const rows = (BUILDING_DATA[buildingName] || []).filter(function (row) {
-        if (!query) return true;
-        return String(row.level) === query || String(row.requirement || "").includes(query);
+    function selectedRows(buildingName, currentLevel, targetLevel) {
+      return (BUILDING_DATA[buildingName] || []).filter(function (row) {
+        return row.level > currentLevel && row.level <= targetLevel;
       });
-      tableTitleEl.textContent = buildingName + " 1-30升级表";
-      rowCountEl.textContent = rows.length + " 条数据";
-      dataBodyEl.innerHTML = rows.map(function (row) {
+    }
+
+    function renderSummary(buildingName, currentLevel, targetLevel) {
+      const totals = calculateBuildingTotals(buildingName, currentLevel, targetLevel);
+      const metrics = [
+        { label: "升级段数", value: totals.levels + " 级" },
+        { label: "生肉", value: numberFormatter.format(totals.food) },
+        { label: "木材", value: numberFormatter.format(totals.wood) },
+        { label: "煤矿", value: numberFormatter.format(totals.coal) },
+        { label: "铁矿", value: numberFormatter.format(totals.iron) },
+        { label: "总时间", value: formatSeconds(totals.time) },
+        { label: "实力提升", value: numberFormatter.format(totals.power), emphasis: true }
+      ];
+      summaryEl.innerHTML = metrics.map(function (metric) {
+        return '<div class="metric' + (metric.emphasis ? ' power' : '') + '">' +
+          '<div class="label">' + metric.label + '</div>' +
+          '<div class="value">' + metric.value + '</div>' +
+        '</div>';
+      }).join("");
+    }
+
+    function renderDetails(buildingName, currentLevel, targetLevel) {
+      const rows = selectedRows(buildingName, currentLevel, targetLevel);
+      tableTitleEl.textContent = buildingName + " 升级区间明细";
+      if (!rows.length) {
+        detailBodyEl.innerHTML = '<tr><td class="empty-row" colspan="8">当前区间没有升级项目</td></tr>';
+        return;
+      }
+      detailBodyEl.innerHTML = rows.map(function (row) {
         return "<tr>" +
-          "<td>" + row.level + "</td>" +
-          "<td>" + escapeHtml(row.food || "-") + "</td>" +
-          "<td>" + escapeHtml(row.wood || "-") + "</td>" +
-          "<td>" + escapeHtml(row.coal || "-") + "</td>" +
-          "<td>" + escapeHtml(row.iron || "-") + "</td>" +
-          "<td>" + escapeHtml(row.requirement || "-") + "</td>" +
-          "<td>" + escapeHtml(row.time || "-") + "</td>" +
-          "<td>" + escapeHtml(row.power || "-") + "</td>" +
+          '<td data-label="等级">' + row.level + "</td>" +
+          '<td data-label="生肉">' + escapeHtml(row.food || "-") + "</td>" +
+          '<td data-label="木材">' + escapeHtml(row.wood || "-") + "</td>" +
+          '<td data-label="煤矿">' + escapeHtml(row.coal || "-") + "</td>" +
+          '<td data-label="铁矿">' + escapeHtml(row.iron || "-") + "</td>" +
+          '<td data-label="升级需求">' + escapeHtml(row.requirement || "-") + "</td>" +
+          '<td data-label="升级时间">' + escapeHtml(row.time || "-") + "</td>" +
+          '<td data-label="实力提升">' + escapeHtml(row.power || "-") + "</td>" +
         "</tr>";
       }).join("");
     }
 
-    function renderBuildingPage() {
+    function renderCalculator() {
       const buildingName = buildingSelectEl.value;
-      renderTable(buildingName);
+      const currentLevel = Number(currentLevelEl.value) || 0;
+      let targetLevel = Number(targetLevelEl.value) || currentLevel + 1;
+      if (targetLevel <= currentLevel) {
+        targetLevel = Math.min(30, currentLevel + 1);
+        targetLevelEl.value = String(targetLevel);
+      }
+      Array.from(targetLevelEl.options).forEach(function (option) {
+        option.disabled = Number(option.value) <= currentLevel;
+      });
+      rangeHintEl.textContent = "当前 " + currentLevel + " 级 → 目标 " + targetLevel + " 级";
+      renderSummary(buildingName, currentLevel, targetLevel);
+      renderDetails(buildingName, currentLevel, targetLevel);
     }
 
-    populateBuildingSelector();
-    buildingSelectEl.addEventListener("change", renderBuildingPage);
-    levelFilterEl.addEventListener("input", renderBuildingPage);
-    renderBuildingPage();
+    populateSelectors();
+    [buildingSelectEl, currentLevelEl, targetLevelEl].forEach(function (element) {
+      element.addEventListener("change", renderCalculator);
+    });
+    renderCalculator();
   </script>
 </body>
 </html>

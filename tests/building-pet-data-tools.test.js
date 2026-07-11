@@ -14,16 +14,18 @@ test('home page links building and pet data tools under data query', () => {
 
   assert.match(html, /data-category="dataQuery"[\s\S]*function\/building-upgrade-1-30\.html/);
   assert.match(html, /data-category="dataQuery"[\s\S]*function\/pet-data-query\.html/);
-  assert.match(html, /1-30级建筑升级/);
+  assert.match(html, /建筑升级(?:<wbr>)?数据查询/);
   assert.match(html, /宠物数据查询/);
 });
 
-test('building upgrade tool exposes calculator and source data', () => {
+test('building upgrade query exposes lookup controls and source data', () => {
   const html = read('public/function/building-upgrade-1-30.html');
 
-  assert.match(html, /1-30级建筑升级-冬日工具箱/);
+  assert.match(html, /建筑升级数据查询-冬日工具箱/);
   assert.match(html, /const BUILDING_DATA/);
-  assert.match(html, /function calculateBuildingTotals/);
+  assert.match(html, /id="buildingSelect"/);
+  assert.match(html, /id="levelFilter"/);
+  assert.doesNotMatch(html, /function calculateBuildingTotals/);
   assert.match(html, /熔炉/);
   assert.match(html, /大使馆29，射手营29/);
   assert.match(html, /40天04:27:00/);

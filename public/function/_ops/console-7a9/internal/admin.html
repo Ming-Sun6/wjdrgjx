@@ -778,7 +778,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.25</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.26</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1769,6 +1769,16 @@
           <div class="calendar-admin">
             <div class="form-section">
               <div class="form-title">公告编辑</div>
+              <div class="toggle" style="justify-content:space-between;margin-bottom:14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong);">
+                <div>
+                  <div style="font-weight:700;">首页公告</div>
+                  <div style="margin-top:3px;color:var(--muted);font-size:.78rem;">关闭后首页不显示公告入口、红点和自动弹窗，公告内容仍保留。</div>
+                </div>
+                <label class="switch" title="开启或关闭首页公告">
+                  <input id="announcementEnabled" type="checkbox" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
               <div class="form-group">
                 <label for="announcementTitle">公告标题</label>
                 <input id="announcementTitle" maxlength="80" placeholder="例如：系统公告" />
@@ -1805,7 +1815,7 @@
                 </div>
               </div>
               <div class="calendar-actions">
-                <button class="btn" id="announcementPublishBtn" type="button">发布公告</button>
+                <button class="btn" id="announcementPublishBtn" type="button">保存公告设置</button>
                 <button class="btn secondary" id="announcementReloadBtn" type="button">刷新</button>
               </div>
               <div class="admin-status" id="announcementStatus"></div>
@@ -1823,6 +1833,16 @@
           <div class="calendar-admin">
             <div class="form-section">
               <div class="form-title">轮播与落地页</div>
+              <div class="toggle" style="justify-content:space-between;margin-bottom:14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong);">
+                <div>
+                  <div style="font-weight:700;">允许点击横幅跳转</div>
+                  <div style="margin-top:3px;color:var(--muted);font-size:.78rem;">关闭后横幅仍会展示和轮播，但点击图片不会打开链接。</div>
+                </div>
+                <label class="switch" title="允许或禁止点击横幅跳转">
+                  <input id="homeLeadClickEnabled" type="checkbox" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
               <div class="form-group">
                 <label for="homeLeadInterval">自动切换间隔（毫秒，3000–30000）</label>
                 <input id="homeLeadInterval" type="number" min="3000" max="30000" step="500" value="6000" />
@@ -1894,7 +1914,14 @@
 
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
-          <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口和系统策略变更；不记录首页纯展示改动。</div>
+          <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口及每次发布的关键前后台联动。</div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.26（2026-07-12）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>公告与活动横幅控制</strong>：公告编辑新增启停开关，活动横幅新增是否允许点击跳转的独立开关；公开接口按开关输出，首页同步处理隐藏公告与不可点击横幅。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>工具箱移动端优化</strong>：修复更多工具标题换行，调整 T12 科技计算器与数据总览的手机端密度；上线建筑升级计算器，并增强建筑、宠物数据页的日夜主题。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>移民券提示与归类</strong>：移民券计算器增加规则已调整、结果不准确的娱乐用途提示，并将入口移动到「更多工具」。</div>
+          </div>
+
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.25（2026-06-27）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>积分商城记录归位</strong>：后台「积分商城」页内补回“兑换记录”区块，管理员可在商品管理页直接按用户ID、登录ID、昵称、道具名或记录ID搜索并分页查看兑换记录，不再混放在版主管理页。</div>
@@ -2251,6 +2278,7 @@
     function normalizeAnnouncementPayload(raw){
       if(!raw || typeof raw!=='object') return null;
       var id=String(raw.id||'').trim();
+      var enabled=raw.enabled!==false;
       var title=String(raw.title||'').trim() || '系统公告';
       var content=String(raw.content||'').trim();
       var contentHtml=String(raw.contentHtml||'').trim();
@@ -2261,6 +2289,7 @@
       if(!id || !(contentHtml||content)) return null;
       return {
         id:id,
+        enabled:enabled,
         title:title,
         content:content,
         contentHtml:contentHtml || null,
@@ -2290,7 +2319,7 @@
         preview.textContent='暂无公告';
         return;
       }
-      var metaText='发布时间：'+formatDateTime(announcement.publishedAt);
+      var metaText='状态：'+(announcement.enabled?'已开启':'已关闭')+' · 发布时间：'+formatDateTime(announcement.publishedAt);
       if(announcement.publisherName){
         metaText += ' · 发布人：'+announcement.publisherName;
       }
@@ -2333,15 +2362,17 @@
           return;
         }
         var announcement=normalizeAnnouncementPayload(d.announcement);
+        var enabledInput=document.getElementById('announcementEnabled');
         var titleInput=document.getElementById('announcementTitle');
         var contentInput=document.getElementById('announcementContent');
+        if(enabledInput) enabledInput.checked=announcement ? announcement.enabled : true;
         if(titleInput) titleInput.value=announcement ? announcement.title : '';
         if(contentInput){
           contentInput.innerHTML = announcement ? (announcement.contentHtml || escapeHtml(announcement.content||'').replace(/\n/g,'<br>')) : '';
           updateAnnouncementCount();
         }
         renderAnnouncementPreview(announcement);
-        setStatus('announcementStatus',announcement?'当前公告已发布。':'当前暂无公告。');
+        setStatus('announcementStatus',announcement?(announcement.enabled?'当前公告已开启。':'当前公告已关闭，内容仍保留。'):'当前暂无公告。');
       }catch(e){
         setStatus('announcementStatus','加载失败：'+(e.message||'网络错误'));
       }
@@ -2485,6 +2516,7 @@
         setStatus('announcementStatus','没有权限：请使用管理员账号登录。');
         return;
       }
+      var enabledInput=document.getElementById('announcementEnabled');
       var titleInput=document.getElementById('announcementTitle');
       var contentInput=document.getElementById('announcementContent');
       var btn=document.getElementById('announcementPublishBtn');
@@ -2499,10 +2531,10 @@
         setStatus('announcementStatus','公告内容不能超过 4000 字。');
         return;
       }
-      setStatus('announcementStatus','发布中...');
+      setStatus('announcementStatus','保存中...');
       if(btn) btn.disabled=true;
       try{
-        var payload=JSON.stringify({title:title,contentText:contentText,contentHtml:contentHtml});
+        var payload=JSON.stringify({title:title,contentText:contentText,contentHtml:contentHtml,enabled: !!enabledInput.checked});
         var requestOnce=async function(method){
           var resp=await apiFetch('/api/admin/announcement',{method:method,headers:{'Accept':'application/json'},body:payload});
           var data=await readApiJsonSafe(resp);
@@ -2533,7 +2565,7 @@
           contentInput.innerHTML = announcement.contentHtml || escapeHtml(announcement.content||'').replace(/\n/g,'<br>');
           updateAnnouncementCount();
         }
-        setStatus('announcementStatus','发布成功');
+        setStatus('announcementStatus',announcement&&announcement.enabled?'公告已发布并开启。':'公告已保存并关闭。');
       }catch(e){
         setStatus('announcementStatus','发布失败：'+(e.message||'网络错误'));
       }finally{
@@ -2852,6 +2884,8 @@
             detailHtml:''
           }];
         }
+        var clickInput=document.getElementById('homeLeadClickEnabled');
+        if(clickInput) clickInput.checked=d.clickEnabled!==false;
         var iv=document.getElementById('homeLeadInterval');
         if(iv){
           var n=Number(d.intervalMs);
@@ -2870,6 +2904,7 @@
         return;
       }
       syncHomeLeadSlidesFromDom();
+      var clickInput=document.getElementById('homeLeadClickEnabled');
       var iv=document.getElementById('homeLeadInterval');
       var intervalMs=Number(iv&&iv.value);
       if(!Number.isFinite(intervalMs)) intervalMs=6000;
@@ -2877,7 +2912,7 @@
       setStatus('homeLeadStatus','保存中...');
       if(btn) btn.disabled=true;
       try{
-        var payload=JSON.stringify({intervalMs:intervalMs,slides:homeLeadSlidesMemory});
+        var payload=JSON.stringify({intervalMs:intervalMs,clickEnabled: !!clickInput.checked,slides:homeLeadSlidesMemory});
         var r=await apiFetch('/api/admin/home-lead',{method:'PUT',body:payload});
         var d=await readApiJsonSafe(r);
         if(!r.ok||d.__nonJson){
@@ -2896,6 +2931,8 @@
               detailHtml:String(s.detailHtml||'').trim()
             };
           });
+          var clickInput2=document.getElementById('homeLeadClickEnabled');
+          if(clickInput2) clickInput2.checked=hl.clickEnabled!==false;
           var iv2=document.getElementById('homeLeadInterval');
           if(iv2&&hl.intervalMs!=null){
             var n2=Number(hl.intervalMs);
