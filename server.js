@@ -79,6 +79,39 @@ const FORUM_IMAGE_UPLOAD_DIR = path.join(__dirname, 'uploads', 'forum');
 const FORUM_IMAGE_PUBLIC_PREFIX = '/uploads/forum/';
 const DEFAULT_ADMIN_LOGIN_ID = process.env.DEFAULT_ADMIN_LOGIN_ID || 'admin';
 const SITE_FOOTER_SETTING_KEY = 'site_footer';
+const TOOL_MANAGEMENT_SETTING_KEY = 'tool_management';
+const TOOL_BADGES = new Set(['none', 'new', 'hot']);
+const TOOL_CATALOG = [
+  { id: 'training-calculator', name: '练兵计算站', group: 'featured', defaultVisible: true, badge: 'none' },
+  { id: 'fire-crystal-building', name: '火晶建筑计算器', group: 'featured', defaultVisible: true, badge: 'none' },
+  { id: 'lord-equipment-gem', name: '领主装备与宝石计算器', group: 'featured', defaultVisible: true, badge: 'none' },
+  { id: 'hero-data', name: '英雄数据', group: 'featured', defaultVisible: true, badge: 'none' },
+  { id: 'bear-pit', name: '熊坑排布', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'tiantian-strategy', name: '甜甜的攻略站', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'refine-crystal-calculator', name: '精炼提炼计算器', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'refine-crystal-simulator', name: '精炼提炼模拟器', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'engineering-station-time', name: '工程站时间', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'gift-value-calculator', name: '礼包性价比', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'hero-equipment-calculator', name: '英雄装备计算器', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'expert-calculator', name: '专家计算器', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 't11-calculator', name: 'T11 升级', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 't12-calculator', name: 'T12科技计算器', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'giftcode-center', name: '无尽冬日兑换中心', group: 'extended', defaultVisible: false, badge: 'none' },
+  { id: 'immigration-coupon-calculator', name: '移民券计算器', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'building-upgrade-calculator', name: '1-30建筑升级计算器', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 't12-data-overview', name: 'T12数据总览', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'neighbor-progress', name: '邻邦进度', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'history-immigration-group', name: '历史移民分组', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'migration-prediction', name: '移民预测', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'building-upgrade-query', name: '1-30建筑升级数据查询', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'pet-data-query', name: '宠物数据查询', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'wjti-personality-test', name: '无尽冬日人格测试', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'regular-gift-data', name: '常规礼包', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'special-gift-data', name: '特惠礼包', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'reference-hub', name: '礼包参考总览', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'gift-rotation-schedule', name: '礼包轮换表', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'aeroplane-chess', name: '极简飞行棋', group: 'miniGames', defaultVisible: true, badge: 'none' }
+];
 const DEFAULT_SITE_FOOTER_CREDITS = [
   '制作：2041茗子、飞菇',
   '数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子',
@@ -1340,6 +1373,120 @@ async function getSiteFooterSetting() {
   };
 }
 
+function normalizeToolManagement(payload) {
+  const inputTools = Array.isArray(payload) ? payload : (Array.isArray(payload?.tools) ? payload.tools : []);
+  const knownIds = new Set(TOOL_CATALOG.map((tool) => tool.id));
+  const inputById = new Map();
+
+  for (const item of inputTools) {
+    if (!item || typeof item !== 'object' || !knownIds.has(item.id)) continue;
+    if (item.badge != null && !TOOL_BADGES.has(item.badge)) return { error: 'BAD_BADGE' };
+    inputById.set(item.id, item);
+  }
+
+  return {
+    tools: TOOL_CATALOG.map((tool) => {
+      const input = inputById.get(tool.id);
+      return {
+        id: tool.id,
+        visible: typeof input?.visible === 'boolean' ? input.visible : tool.defaultVisible,
+        badge: input?.badge || tool.badge
+      };
+    })
+  };
+}
+
+function toPublicToolManagement(tools) {
+  return tools.map(({ id, visible, badge }) => ({ id, visible, badge }));
+}
+
+function toAdminToolManagement(tools) {
+  const settingsById = new Map(tools.map((tool) => [tool.id, tool]));
+  return TOOL_CATALOG.map(({ id, name, group, defaultVisible }) => {
+    const setting = settingsById.get(id) || { visible: defaultVisible, badge: 'none' };
+    return { id, name, group, defaultVisible, visible: setting.visible, badge: setting.badge };
+  });
+}
+
+async function setToolManagementSetting(value) {
+  await setSetting(TOOL_MANAGEMENT_SETTING_KEY, value);
+}
+
+function createToolManagementHandlers(dependencies = {}) {
+  const readSetting = dependencies.getSetting || getSetting;
+  const writeSetting = dependencies.setSetting
+    ? (value) => dependencies.setSetting(TOOL_MANAGEMENT_SETTING_KEY, value)
+    : setToolManagementSetting;
+  const authenticateAdmin = dependencies.requireAdmin || requireAdmin;
+  const writeAudit = dependencies.auditAdminAction || auditAdminAction;
+  const now = dependencies.now || (() => new Date().toISOString());
+  const logError = dependencies.logError || ((...args) => console.error(...args));
+  const defaultTools = () => normalizeToolManagement([]).tools;
+
+  async function getPublic(_req, res) {
+    try {
+      const stored = await readSetting(TOOL_MANAGEMENT_SETTING_KEY, { tools: defaultTools() });
+      const normalized = normalizeToolManagement(stored);
+      const tools = normalized.error ? defaultTools() : normalized.tools;
+      return res.json({ tools: toPublicToolManagement(tools) });
+    } catch (err) {
+      logError('tool management get failed:', err);
+      return res.json({ tools: toPublicToolManagement(defaultTools()) });
+    }
+  }
+
+  async function getAdmin(req, res) {
+    const admin = await authenticateAdmin(req, res);
+    if (!admin) return;
+    const stored = await readSetting(TOOL_MANAGEMENT_SETTING_KEY, { tools: defaultTools() });
+    const normalized = normalizeToolManagement(stored);
+    const tools = normalized.error ? defaultTools() : normalized.tools;
+    return res.json({
+      tools: toAdminToolManagement(tools),
+      updatedAt: stored?.updatedAt || null,
+      updatedBy: stored?.updatedBy || null
+    });
+  }
+
+  async function saveAdmin(req, res) {
+    const admin = await authenticateAdmin(req, res);
+    if (!admin) return;
+    const inputTools = Array.isArray(req.body?.tools) ? req.body.tools : null;
+    const inputIds = new Set(inputTools?.map((tool) => tool?.id) || []);
+    const hasCompleteCatalog = inputTools?.length === TOOL_CATALOG.length
+      && inputIds.size === TOOL_CATALOG.length
+      && TOOL_CATALOG.every((tool) => inputIds.has(tool.id));
+    if (!hasCompleteCatalog) return res.status(400).json({ error: 'BAD_TOOL_CATALOG' });
+    const normalized = normalizeToolManagement(req.body || {});
+    if (normalized.error) return res.status(400).json({ error: normalized.error });
+
+    const updatedAt = now();
+    const updatedBy = admin.username || admin.login_id || String(admin.id);
+    const setting = { tools: normalized.tools, updatedAt, updatedBy };
+    await writeSetting(setting);
+    await writeAudit(req, {
+      actor: admin,
+      action: 'tool_management.update',
+      targetType: 'tool_management',
+      targetId: 'current',
+      riskLevel: 'watch',
+      summary: '更新工具展示配置',
+      metadata: {
+        visibleCount: normalized.tools.filter((tool) => tool.visible).length,
+        badgeCount: normalized.tools.filter((tool) => tool.badge !== 'none').length
+      }
+    });
+    return res.json({
+      ok: true,
+      tools: toAdminToolManagement(normalized.tools),
+      updatedAt,
+      updatedBy
+    });
+  }
+
+  return { getPublic, getAdmin, saveAdmin };
+}
+
 async function normalizeUserQuota(userId) {
   const user = await queryOne('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
   if (!user) return null;
@@ -2258,6 +2405,33 @@ app.post('/api/auth/logout', (req, res) => {
   res.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
   res.json({ ok: true });
 });
+
+const toolManagementHandlers = createToolManagementHandlers();
+
+app.get('/api/tool-management', async (req, res) => {
+  await toolManagementHandlers.getPublic(req, res);
+});
+
+app.get('/api/admin/tool-management', async (req, res) => {
+  try {
+    await toolManagementHandlers.getAdmin(req, res);
+  } catch (err) {
+    console.error('admin tool management get failed:', err);
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+async function updateToolManagement(req, res) {
+  try {
+    await toolManagementHandlers.saveAdmin(req, res);
+  } catch (err) {
+    console.error('admin tool management update failed:', err);
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+}
+
+app.put('/api/admin/tool-management', updateToolManagement);
+app.post('/api/admin/tool-management', updateToolManagement);
 
 app.get('/api/site-footer', async (_req, res) => {
   try {
@@ -4721,29 +4895,40 @@ app.use((req, res) => {
   return res.status(404).send('Not found');
 });
 
-const httpServer = app.listen(PORT, async () => {
-  try {
-    await initDB();
-    console.log('Local server started.');
-    console.log(`Site: http://localhost:${PORT}`);
-    if (GIFTCODE_URL_PREFIX) {
-      console.log(`Giftcode UI: http://localhost:${PORT}${GIFTCODE_URL_PREFIX}/ (${GIFTCODE_UI_MODE})`);
+if (require.main === module) {
+  app.listen(PORT, async () => {
+    try {
+      await initDB();
+      console.log('Local server started.');
+      console.log(`Site: http://localhost:${PORT}`);
+      if (GIFTCODE_URL_PREFIX) {
+        console.log(`Giftcode UI: http://localhost:${PORT}${GIFTCODE_URL_PREFIX}/ (${GIFTCODE_UI_MODE})`);
+      }
+      console.log(`Giftcode API proxy -> ${GIFTCODE_SERVICE_URL}`);
+      console.log(`Auth check: http://localhost:${PORT}/api/auth/me`);
+      console.log(pgDatabase ? 'PostgreSQL connected and API routes initialized.' : 'MySQL connected and API routes initialized.');
+    } catch (err) {
+      console.error('Database init failed:', err);
+      if (pgDatabase || db) {
+        const repaired = await repairUserRewardsSchema({
+          execute,
+          pgDatabase,
+          addColumnIfMissing
+        });
+        if (repaired) console.log('User rewards schema repaired after init failure.');
+      }
     }
-    console.log(`Giftcode API proxy -> ${GIFTCODE_SERVICE_URL}`);
-    console.log(`Auth check: http://localhost:${PORT}/api/auth/me`);
-    console.log(pgDatabase ? 'PostgreSQL connected and API routes initialized.' : 'MySQL connected and API routes initialized.');
-  } catch (err) {
-    console.error('Database init failed:', err);
-    if (pgDatabase || db) {
-      const repaired = await repairUserRewardsSchema({
-        execute,
-        pgDatabase,
-        addColumnIfMissing
-      });
-      if (repaired) console.log('User rewards schema repaired after init failure.');
-    }
-  }
-});
+  });
+}
+
+module.exports = {
+  app,
+  TOOL_CATALOG,
+  normalizeToolManagement,
+  toPublicToolManagement,
+  toAdminToolManagement,
+  createToolManagementHandlers
+};
 
 process.on('uncaughtException', (err) => {
   console.error('uncaught exception:', err);

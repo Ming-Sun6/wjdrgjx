@@ -46,8 +46,8 @@ test('home page exposes separate building query and calculator entries', () => {
   const html = read('index.html');
   const moreTools = sectionById(html, 'extendedToolWarehouse');
 
-  assert.match(moreTools, /data-category="dataQuery"[\s\S]*?function\/building-upgrade-1-30\.html[\s\S]*?建筑升级(?:<wbr>)?数据查询/);
-  assert.match(moreTools, /data-category="calcTools"[\s\S]*?function\/building-upgrade-calculator\.html[\s\S]*?建筑升级(?:<wbr>)?计算器/);
+  assert.match(moreTools, /data-category="dataQuery"[\s\S]*?function\/building-upgrade-1-30\.html[\s\S]*?1-30建筑升级(?:<wbr>)?数据查询/);
+  assert.match(moreTools, /data-category="calcTools"[\s\S]*?function\/building-upgrade-calculator\.html[\s\S]*?1-30建筑升级(?:<wbr>)?计算器/);
 });
 
 test('home and admin changelogs describe the current toolbox release', () => {
@@ -59,6 +59,7 @@ test('home and admin changelogs describe the current toolbox release', () => {
     assert.match(html, /2026-07-12/);
     assert.match(html, /建筑升级计算器/);
     assert.match(html, /移民券/);
-    assert.match(html, /活动横幅/);
   }
+  assert.match(admin, /活动横幅/);
+  assert.doesNotMatch(home, /<li><strong>公告与活动横幅<\/strong>/);
 });

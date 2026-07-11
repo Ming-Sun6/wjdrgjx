@@ -23,8 +23,8 @@ function normalize(value) {
 test('building query keeps its URL but presents itself as a lookup tool', () => {
   const html = read('public/function/building-upgrade-1-30.html');
 
-  assert.match(html, /<title>建筑升级数据查询-冬日工具箱<\/title>/);
-  assert.match(html, /<h1>建筑升级数据查询<\/h1>/);
+  assert.match(html, /<title>1-30建筑升级数据查询-冬日工具箱<\/title>/);
+  assert.match(html, /<h1>1-30建筑升级数据查询<\/h1>/);
   assert.match(html, /id="buildingSelect"/);
   assert.match(html, /id="levelFilter"/);
   assert.doesNotMatch(html, /id="currentLevel"|id="targetLevel"|id="summary"/);
@@ -44,7 +44,7 @@ test('calculator embeds the same complete building data for static deployment', 
 test('calculator exposes level controls, totals, and interval detail', () => {
   const html = read('public/function/building-upgrade-calculator.html');
 
-  assert.match(html, /<title>建筑升级计算器-冬日工具箱<\/title>/);
+  assert.match(html, /<title>1-30建筑升级计算器-冬日工具箱<\/title>/);
   assert.match(html, /id="buildingSelect"/);
   assert.match(html, /id="currentLevel"/);
   assert.match(html, /id="targetLevel"/);

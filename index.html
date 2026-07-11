@@ -1083,10 +1083,6 @@
     a[href="function/calendar.html"]{
       display:none !important;
     }
-    /* 强制隐藏：兑换中心入口（避免筛选/搜索脚本覆盖 hidden） */
-    .card.tool-tile-card:has(#giftcode-dev-link){
-      display:none !important;
-    }
     .tool-subtabs{
       display:flex;
       align-items:center;
@@ -1432,22 +1428,26 @@
       overflow-wrap:anywhere;
       word-break:break-word;
     }
-    .tool-tile-name .new-badge{
+    .tool-status-badge{
       display:inline-flex;
       align-items:center;
       justify-content:center;
       padding:2px 6px;
       margin:0 4px 0 0;
       border-radius:999px;
-      background:#ef4444;
+      background:#0891b2;
       color:#fff;
       font-size:.72rem;
       font-weight:800;
       line-height:1.1;
-      box-shadow:0 8px 18px rgba(239,68,68,.25);
+      box-shadow:0 8px 18px rgba(8,145,178,.24);
       vertical-align:middle;
       position:relative;
       top:-1px;
+    }
+    .tool-status-badge.badge-hot{
+      background:#ef4444;
+      box-shadow:0 8px 18px rgba(239,68,68,.25);
     }
     .tool-tile-card .pill,
     .tool-tile-card .desc,
@@ -3608,7 +3608,7 @@
           </div>
         </div>
         <div class="featured-tools-grid">
-          <section class="card featured-tool-card feature-core" data-category="calcTools" data-tool-priority="featured">
+          <section class="card featured-tool-card feature-core" data-category="calcTools" data-tool-priority="featured" data-tool-id="training-calculator">
             <a class="featured-tool-link" href="function/equipment-training-calculator.html">
               <span class="featured-tool-badge">&#x7EC3;&#x5175;&#x6838;&#x5FC3;</span>
               <div class="featured-tool-main">
@@ -3624,7 +3624,7 @@
             <div class="pill">equipment-training-calculator.html</div>
           </section>
 
-          <section class="card featured-tool-card warm" data-category="calcTools" data-tool-priority="featured">
+          <section class="card featured-tool-card warm" data-category="calcTools" data-tool-priority="featured" data-tool-id="fire-crystal-building">
             <a class="featured-tool-link" href="function/Architecture10.html">
               <span class="featured-tool-badge">&#x8D44;&#x6E90;&#x89C4;&#x5212;</span>
               <div class="featured-tool-main">
@@ -3640,7 +3640,7 @@
             <div class="pill">Architecture10.html</div>
           </section>
 
-          <section class="card featured-tool-card feature-progress" data-category="calcTools" data-tool-priority="featured">
+          <section class="card featured-tool-card feature-progress" data-category="calcTools" data-tool-priority="featured" data-tool-id="lord-equipment-gem">
             <a class="featured-tool-link" href="function/lord-equipment-gem-calculator.html">
               <span class="featured-tool-badge">&#x88C5;&#x5907;&#x8FDB;&#x9636;</span>
               <div class="featured-tool-main">
@@ -3656,7 +3656,7 @@
             <div class="pill">lord-equipment-gem-calculator.html</div>
           </section>
 
-          <section class="card featured-tool-card feature-data" data-category="dataQuery" data-tool-priority="featured">
+          <section class="card featured-tool-card feature-data" data-category="dataQuery" data-tool-priority="featured" data-tool-id="hero-data">
             <a class="featured-tool-link" href="function/Zero/hero-data.html">
               <span class="featured-tool-badge">&#x6570;&#x636E;&#x603B;&#x89C8;</span>
               <div class="featured-tool-main">
@@ -3683,7 +3683,7 @@
           </div>
         </div>
         <div class="tool-warehouse-grid">
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="bear-pit">
             <a class="tool-tile-link" href="function/BeaPit.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F43B;</div>
               <div class="card-title tool-tile-name">&#x718A;&#x5751;&#x6392;&#x5E03;</div>
@@ -3692,36 +3692,36 @@
             <div class="desc">&#x7528;&#x4E8E;&#x718A;&#x5751;/&#x5EFA;&#x7B51;&#x6392;&#x5E03;&#x4E0E;&#x6807;&#x8BB0;&#xFF0C;&#x652F;&#x6301;&#x7F29;&#x653E;&#x3001;&#x4FDD;&#x5B58;&#x548C;&#x5BFC;&#x51FA;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="core" data-tool-id="tiantian-strategy">
             <a class="tool-tile-link" href="function/tiantian-strategy-hub.html">
               <div class="tool-tile-icon" aria-hidden="true">
                 <img src="Scores/tiantian.jpg" alt="" />
               </div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>甜甜的<wbr>攻略站</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">甜甜的<wbr>攻略站</span></div>
             </a>
             <div class="pill">tiantian-strategy-hub.html</div>
             <div class="desc">攻略 1.0 / 2.0 / 3.0 目录预览，一键跳转金山文档查看完整攻略。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="refine-crystal-calculator">
             <a class="tool-tile-link" href="function/refine-crystal-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F525;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>精炼提炼<wbr>计算器</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">精炼提炼<wbr>计算器</span></div>
             </a>
             <div class="pill">refine-crystal-calculator.html</div>
             <div class="desc">按概率表计算精炼火晶期望产出与火晶消耗，支持周策略。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="refine-crystal-simulator">
             <a class="tool-tile-link" href="function/refine-crystal-simulator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>精炼提炼<wbr>模拟器</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">精炼提炼<wbr>模拟器</span></div>
             </a>
             <div class="pill">refine-crystal-simulator.html</div>
             <div class="desc">真实随机模拟每次提炼爆率与奖励，支持蒙特卡洛批量模拟。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="engineering-station-time">
             <a class="tool-tile-link" href="function/engineering-station-time.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x23F1;&#xFE0F;</div>
               <div class="card-title tool-tile-name">&#x5DE5;&#x7A0B;&#x7AD9;&#x65F6;&#x95F4;</div>
@@ -3730,7 +3730,7 @@
             <div class="desc">&#x7528;&#x4E8E;&#x5DE5;&#x7A0B;&#x7AD9;&#x5468;&#x671F;&#x5012;&#x8BA1;&#x65F6;&#x3001;&#x7B5B;&#x9009;&#x4E0E;&#x5BFC;&#x5165;&#x5BFC;&#x51FA;&#x914D;&#x7F6E;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="gift-value-calculator">
             <a class="tool-tile-link" href="function/gift-value-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F381;</div>
               <div class="card-title tool-tile-name">&#x793C;&#x5305;&#x6027;&#x4EF7;&#x6BD4;</div>
@@ -3739,7 +3739,7 @@
             <div class="desc">&#x652F;&#x6301;&#x6309;&#x9636;&#x6BB5;&#x4E0E;&#x6863;&#x4F4D;&#x8BA1;&#x7B97;&#x793C;&#x5305;&#x603B;&#x4EF7;&#x503C;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="hero-equipment-calculator">
             <a class="tool-tile-link" href="function/hero-equipment-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F6E1;&#xFE0F;</div>
               <div class="card-title tool-tile-name">&#x82F1;&#x96C4;&#x88C5;&#x5907;&#x8BA1;&#x7B97;&#x5668;</div>
@@ -3748,7 +3748,7 @@
             <div class="desc">&#x82F1;&#x96C4;&#x88C5;&#x5907;&#x517B;&#x6210;&#x4E0E;&#x5C5E;&#x6027;&#x8BA1;&#x7B97;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="expert-calculator">
             <a class="tool-tile-link" href="function/expert-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9D1;&#x200D;&#x1F4BC;</div>
               <div class="card-title tool-tile-name">专家计算器</div>
@@ -3757,7 +3757,7 @@
             <div class="desc">专家关系、技能等级与资源消耗计算，技能资料预留后续补充。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="t11-calculator">
             <a class="tool-tile-link" href="function/T11Calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EA;</div>
               <div class="card-title tool-tile-name">T11 &#x5347;&#x7EA7;</div>
@@ -3766,10 +3766,10 @@
             <div class="desc">&#x7528;&#x4E8E; T11 &#x76F8;&#x5173;&#x8D44;&#x6E90;&#x4E0E;&#x5347;&#x7EA7;&#x8BA1;&#x7B97;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="t12-calculator">
             <a class="tool-tile-link" href="function/T12Calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EE;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">热</span>T12<wbr>科技计算器</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">T12<wbr>科技计算器</span></div>
             </a>
             <div class="pill">T12Calculator.html</div>
             <div class="desc">&#x6309;&#x5F53;&#x524D;/&#x76EE;&#x6807;&#x7B49;&#x7EA7;&#x6C47;&#x603B;&#x6240;&#x9700;&#x8D44;&#x6E90;&#x4E0E;&#x65F6;&#x95F4;&#x3002;</div>
@@ -3785,7 +3785,7 @@
           </div>
         </div>
         <div class="tool-warehouse-grid">
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" hidden aria-hidden="true">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="giftcode-center" hidden aria-hidden="true">
             <a class="tool-tile-link" href="/giftcode/" id="giftcode-dev-link">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F381;</div>
               <div class="card-title tool-tile-name">无尽冬日兑换中心</div>
@@ -3794,7 +3794,7 @@
             <div class="desc">自动兑换、码库管理、玩家提交新兑换码。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="immigration-coupon-calculator">
             <a class="tool-tile-link" href="function/jisuan.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F3AB;</div>
               <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">移民券<wbr>计算器</span></div>
@@ -3803,25 +3803,25 @@
             <div class="desc">旧版移民券数量估算，游戏规则已调整，当前结果仅供娱乐参考。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="building-upgrade-calculator">
             <a class="tool-tile-link" href="function/building-upgrade-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EE;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>建筑升级<wbr>计算器</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">1-30建筑升级<wbr>计算器</span></div>
             </a>
             <div class="pill">building-upgrade-calculator.html</div>
             <div class="desc">选择建筑、当前等级和目标等级，汇总升级所需资源、时间与实力提升。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="t12-data-overview">
             <a class="tool-tile-link" href="function/T12DataOverview.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4CA;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">热</span>T12<wbr>数据总览</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">T12<wbr>数据总览</span></div>
             </a>
             <div class="pill">T12DataOverview.html</div>
             <div class="desc">T12 &#x714C;&#x8000;&#x7CFB;&#x5217;&#x6570;&#x636E;&#x603B;&#x89C8;&#xFF0C;&#x652F;&#x6301;&#x5175;&#x79CD;&#x7B5B;&#x9009;&#x4E0E;&#x641C;&#x7D22;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="neighbor-progress">
             <a class="tool-tile-link" href="function/neighbor-progress.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9ED;</div>
               <div class="card-title tool-tile-name">&#x90BB;&#x90A6;&#x8FDB;&#x5EA6;</div>
@@ -3830,7 +3830,7 @@
             <div class="desc">&#x652F;&#x6301;&#x5177;&#x4F53;&#x533A;&#x670D;&#x67E5;&#x8BE2;&#x3001;&#x6309;&#x65E5;&#x671F;&#x53CD;&#x67E5;&#x7B49;&#x8FDB;&#x5EA6;&#x4FE1;&#x606F;&#x67E5;&#x770B;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="history-immigration-group">
             <a class="tool-tile-link" href="function/history-immigration-group.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F5FA;&#xFE0F;</div>
               <div class="card-title tool-tile-name">&#x5386;&#x53F2;&#x79FB;&#x6C11;&#x5206;&#x7EC4;</div>
@@ -3839,43 +3839,43 @@
             <div class="desc">&#x67E5;&#x770B;&#x5386;&#x53F2;&#x79FB;&#x6C11;&#x5206;&#x7EC4;&#x77E9;&#x9635;&#xFF0C;&#x652F;&#x6301;&#x6309;&#x90BB;&#x90A6;&#x7B5B;&#x9009;&#x9AD8;&#x4EAE;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="migration-prediction">
             <a class="tool-tile-link" href="function/migration-prediction.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F52E;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>移民<wbr>预测</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">移民<wbr>预测</span></div>
             </a>
             <div class="pill">migration-prediction.html</div>
             <div class="desc">&#x540C;&#x671F;&#x5206;&#x7EC4;&#x8868;&#xFF08;&#x5206;&#x7EC4;&#x521D;&#x672B;&#xFF09;+&#x9884;&#x6D4B;&#x5F00;&#x653E;&#x65E5;&#xFF0C;&#x5E76;&#x663E;&#x793A;&#x4ECA;&#x65E5;&#x8FDB;&#x5EA6;&#x4E0E;&#x4E0B;&#x671F;&#x6863;&#x4F4D;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="building-upgrade-query">
             <a class="tool-tile-link" href="function/building-upgrade-1-30.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F3D7;&#xFE0F;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>建筑升级<wbr>数据查询</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">1-30建筑升级<wbr>数据查询</span></div>
             </a>
             <div class="pill">building-upgrade-1-30.html</div>
             <div class="desc">查询熔炉、使馆、兵营、军医所与指挥部的 1-30 级升级原始数据。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="pet-data-query">
             <a class="tool-tile-link" href="function/pet-data-query.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F43E;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>宠物数据查询</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">宠物数据查询</span></div>
             </a>
             <div class="pill">pet-data-query.html</div>
             <div class="desc">查看宠物养成材料、满级实力与突破评分，支持同组宠物快速切换与等级筛选。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="wjti-personality-test">
             <a class="tool-tile-link" href="function/wjti-personality-test.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EA;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>&#x65E0;&#x5C3D;&#x51AC;&#x65E5;&#x4EBA;&#x683C;&#x6D4B;&#x8BD5;</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x65E0;&#x5C3D;&#x51AC;&#x65E5;&#x4EBA;&#x683C;&#x6D4B;&#x8BD5;</span></div>
             </a>
             <div class="pill">wjti-personality-test.html</div>
             <div class="desc">WJTI &#x4EBA;&#x683C;&#x6D4B;&#x8BD5;&#xFF1A;&#x6781;&#x901F;/&#x6807;&#x51C6;/&#x6DF1;&#x5EA6;&#x4E09;&#x6863;&#xFF0C;&#x6D4B;&#x51FA;&#x4F60;&#x662F;&#x8BB0;&#x8005;&#x3001;&#x9ED1;&#x5974;&#x3001;&#x5403;&#x74DC;&#x7FA4;&#x4F17;&#x8FD8;&#x662F;&#x6C14;&#x6C1B;&#x7EC4;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-gift-search="regular">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="regular-gift-data" data-gift-search="regular">
             <a class="tool-tile-link" href="function/Zero/regular-gift-data.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4E6;</div>
               <div class="card-title tool-tile-name">&#x5E38;&#x89C4;&#x793C;&#x5305;</div>
@@ -3884,7 +3884,7 @@
             <div class="desc">&#x5E38;&#x89C4;&#x793C;&#x5305;&#x6570;&#x636E;&#x603B;&#x5165;&#x53E3;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-gift-search="special">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="special-gift-data" data-gift-search="special">
             <a class="tool-tile-link" href="function/Zero/special-gift-data.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F380;</div>
               <div class="card-title tool-tile-name">&#x7279;&#x60E0;&#x793C;&#x5305;</div>
@@ -3893,7 +3893,7 @@
             <div class="desc">&#x7279;&#x60E0;&#x793C;&#x5305;&#x603B;&#x5165;&#x53E3;&#xFF0C;&#x652F;&#x6301;&#x641C;&#x7D22;&#x4E0E;&#x70B9;&#x51FB;&#x67E5;&#x770B;&#x3002;</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="reference-hub">
             <a class="tool-tile-link" href="function/reference-hub/index.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4DA;</div>
               <div class="card-title tool-tile-name">礼包参考总览</div>
@@ -3902,7 +3902,7 @@
             <div class="desc">按工作表拆分的攻略参考总览页，目录切换后可直接内嵌查看每张独立页面。</div>
           </section>
 
-          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended">
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="gift-rotation-schedule">
             <a class="tool-tile-link" href="function/Zero/gift-rotation-schedule.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F5D3;&#xFE0F;</div>
               <div class="card-title tool-tile-name">&#x793C;&#x5305;&#x8F6E;&#x6362;&#x8868;</div>
@@ -3921,10 +3921,10 @@
           </div>
         </div>
         <div class="tool-warehouse-grid">
-          <section class="card tool-tile-card" data-category="miniGames" data-tool-priority="miniGames">
+          <section class="card tool-tile-card" data-category="miniGames" data-tool-priority="miniGames" data-tool-id="aeroplane-chess">
             <button class="tool-tile-link" type="button" data-maintenance-game="aeroplane-chess" data-maintenance-message="该小游戏正在维护中">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
-              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner"><span class="new-badge">新</span>极简飞行棋</span></div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">极简飞行棋</span></div>
             </button>
             <div class="pill">aeroplane-chess</div>
             <div class="desc">搬运版极简飞行棋，支持在线联机、人机对战、本地多人和观战。</div>
@@ -4194,8 +4194,9 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       <div class="changelog-body">
         <h4>V0.9.26（2026-07-12）</h4>
         <ol>
+          <li><strong>工具入口管理</strong>：后台新增「工具管理」，可统一设置首页全部工具的显示与隐藏，并按需配置「新」「热」角标；原有静态角标已全部移除。</li>
           <li><strong>移动端工具布局优化</strong>：修复「更多工具」长标题不换行和样式不一致的问题，窄屏入口改为稳定三列；T12 科技计算器改为双列科技卡，T12 数据总览的筛选与统计改为两列，展开明细使用紧凑四列指标网格。</li>
-          <li><strong>建筑工具拆分</strong>：「1-30级建筑升级」更名为「建筑升级数据查询」，并新增独立「建筑升级计算器」，可汇总当前等级到目标等级的资源、时间、实力与区间明细。</li>
+          <li><strong>建筑工具拆分</strong>：「1-30级建筑升级」更名为「1-30建筑升级数据查询」，并新增独立「1-30建筑升级计算器」，可汇总当前等级到目标等级的资源、时间、实力与区间明细。</li>
           <li><strong>主题与提示优化</strong>：增强建筑数据、建筑计算器和宠物数据查询的白天/黑夜视觉区分；移民券计算器增加数据失准提示并移入「更多工具」。</li>
         </ol>
 
@@ -9364,6 +9365,54 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       document.addEventListener('keydown',function(e){if(e.key==='Escape')closeChangelog();});
     })();
 
+    // 首页工具显示和角标由后台统一配置；接口异常时保留静态默认状态。
+    (function(){
+      function badgeLabel(value){
+        return value==='new' ? '新' : (value==='hot' ? '热' : '');
+      }
+      function updateToolBadge(card, badge){
+        var title=card.querySelector('.tool-tile-name, .tool-entry-title');
+        if(!title)return;
+        var current=title.querySelector('.tool-status-badge');
+        var label=badgeLabel(badge);
+        if(!label){
+          if(current)current.remove();
+          return;
+        }
+        if(!current){
+          current=document.createElement('span');
+          title.insertBefore(current,title.firstChild);
+        }
+        current.className='tool-status-badge '+(badge==='hot'?'badge-hot':'badge-new');
+        current.textContent=label;
+      }
+      function applyToolManagement(payload){
+        var list=payload&&Array.isArray(payload.tools)?payload.tools:[];
+        var byId={};
+        list.forEach(function(config){
+          if(config&&config.id)byId[String(config.id)]=config;
+        });
+        document.querySelectorAll('[data-tool-id]').forEach(function(card){
+          var config=byId[card.getAttribute('data-tool-id')];
+          if(!config)return;
+          var managedHidden=config.visible === false;
+          card.dataset.toolManagedHidden=managedHidden?'1':'0';
+          card.toggleAttribute('hidden',managedHidden);
+          if(managedHidden)card.setAttribute('aria-hidden','true');
+          else card.removeAttribute('aria-hidden');
+          var badge=String(config.badge||'none').toLowerCase();
+          if(badge === 'new' || badge === 'hot')updateToolBadge(card,badge);
+          else updateToolBadge(card,'none');
+        });
+        document.dispatchEvent(new CustomEvent('toolmanagementchange'));
+      }
+      window.__wjdrApplyToolManagement=applyToolManagement;
+      fetch('/api/tool-management',{credentials:'same-origin',headers:{'Accept':'application/json'}})
+        .then(function(response){return response.ok?response.json():null;})
+        .then(function(data){if(data)applyToolManagement(data);})
+        .catch(function(){});
+    })();
+
     // 顶部分栏：按类型筛选卡片 + 全部搜索
     (function(){
       var tabBar=document.getElementById('mainTabs');
@@ -9529,7 +9578,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         });
       }
       function isPermanentlyHidden(card){
-        return card.hasAttribute('hidden') || !!card.querySelector('#giftcode-dev-link');
+        return card.hasAttribute('hidden') || card.dataset.toolManagedHidden==='1';
       }
       function applyTab(tab){
         var keyword='';
@@ -9563,6 +9612,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         if(activeTab!=='all'||!searchInput) return;
         applyTab(activeTab);
       };
+      document.addEventListener('toolmanagementchange',function(){applyTab(activeTab);});
       function isValidTab(tab){
         if(!tab){ return false; }
         var btn=tabBar.querySelector('[data-tab="'+tab+'"]');

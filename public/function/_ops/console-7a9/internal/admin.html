@@ -751,6 +751,48 @@
     }
     .site-footer-editor:focus{border-color:rgba(59,130,246,.8);box-shadow:0 0 0 3px rgba(59,130,246,.18);}
     .site-footer-preview{white-space:pre-wrap;line-height:1.75;text-align:center;}
+    .tool-management-toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .tool-management-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .tool-management-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}
+    .tool-management-group{border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);}
+    .tool-management-group-title{
+      padding:11px 12px;
+      font-size:.92rem;
+      font-weight:800;
+      border-bottom:1px solid var(--border);
+      background:rgba(59,130,246,.1);
+    }
+    .tool-management-empty{padding:16px 12px;color:var(--muted);font-size:.85rem;}
+    .tool-management-row{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto minmax(112px,140px);
+      gap:12px;
+      align-items:center;
+      min-height:58px;
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+    }
+    .tool-management-row:last-child{border-bottom:none;}
+    .tool-management-name{min-width:0;font-weight:700;word-break:break-word;}
+    .tool-management-id{display:block;margin-top:3px;color:var(--muted);font-size:.72rem;font-weight:400;word-break:break-all;}
+    .tool-management-visible-label{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:.82rem;white-space:nowrap;}
+    .tool-management-visible{width:18px;height:18px;accent-color:var(--blue);}
+    .tool-management-badge{
+      width:100%;
+      min-height:38px;
+      padding:7px 9px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:var(--surface-strong);
+      color:var(--text);
+    }
 
     @media (max-width: 600px){
       .container{padding:48px 12px 24px;}
@@ -758,6 +800,9 @@
       .subtitle{font-size:.85rem;}
       .layout{flex-direction:column;}
       .sidebar{width:100%;position:relative;top:auto;}
+      .tool-management-groups{grid-template-columns:minmax(0,1fr);}
+      .tool-management-row{grid-template-columns:minmax(0,1fr) auto;}
+      .tool-management-badge{grid-column:1 / -1;}
     }
   </style>
 <!-- theme toggle moved to /function/theme.js -->
@@ -802,6 +847,7 @@
         <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
         <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
         <button class="side-item" type="button" data-page="bearpit-data" data-admin-only="1">熊坑数据</button>
+        <button class="side-item" type="button" data-page="tool-management" data-admin-only="1">工具管理</button>
         <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
         <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
         <button class="side-item" type="button" data-page="site-footer" data-admin-only="1">底部致谢</button>
@@ -1912,13 +1958,26 @@
           </div>
         </section>
 
+        <section class="card page" id="page-tool-management" data-page="tool-management">
+          <div class="page-title">工具管理</div>
+          <div class="tool-management-toolbar">
+            <div class="admin-status" id="toolManagementStatus">请先登录管理员账号。</div>
+            <div class="tool-management-actions">
+              <button class="btn secondary" id="toolManagementReloadBtn" type="button">刷新</button>
+              <button class="btn" id="toolManagementSaveBtn" type="button" disabled>保存</button>
+            </div>
+          </div>
+          <div class="tool-management-groups" id="toolManagementGroups"></div>
+        </section>
+
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口及每次发布的关键前后台联动。</div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.26（2026-07-12）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>工具管理</strong>：新增首页工具统一管理页及公开配置接口，管理员可设置全部工具的显示状态和「新」「热」角标；首页原有静态角标已清除。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>公告与活动横幅控制</strong>：公告编辑新增启停开关，活动横幅新增是否允许点击跳转的独立开关；公开接口按开关输出，首页同步处理隐藏公告与不可点击横幅。</div>
-            <div style="color:var(--muted);line-height:1.6;"><strong>工具箱移动端优化</strong>：修复更多工具标题换行，调整 T12 科技计算器与数据总览的手机端密度；上线建筑升级计算器，并增强建筑、宠物数据页的日夜主题。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>工具箱移动端优化</strong>：修复更多工具标题换行，调整 T12 科技计算器与数据总览的手机端密度；上线「1-30建筑升级计算器」，将原工具改名为「1-30建筑升级数据查询」，并增强建筑、宠物数据页的日夜主题。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>移民券提示与归类</strong>：移民券计算器增加规则已调整、结果不准确的娱乐用途提示，并将入口移动到「更多工具」。</div>
           </div>
 
@@ -2202,6 +2261,10 @@
     let calendarSchedulesCache=[];
     let homeLeadSlidesMemory=[];
     let homeLeadUiBound=false;
+    let toolManagementLoaded=false;
+    const TOOL_MANAGEMENT_EXPECTED_COUNT=29;
+    const TOOL_MANAGEMENT_GROUPS=['featured','core','extended','miniGames'];
+    const TOOL_MANAGEMENT_GROUP_LABELS={featured:'精选工具',core:'基础工具',extended:'更多工具',miniGames:'小游戏'};
     function syncAdminRuntimeState(){
       window.authUser=authUser;
       window.currentPage=currentPage;
@@ -3545,7 +3608,137 @@
       try{ return Array.from(String(str||'')).length; }catch(e){ return String(str||'').length; }
     }
     function escapeAttr(text){
-      return escapeHtml(text).replace(/`/g,'&#96;');
+      return escapeHtml(text).replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/`/g,'&#96;');
+    }
+    function normalizeToolManagementGroup(tool){
+      var group=String((tool && (tool.group || tool.category || tool.section)) || 'extended');
+      return TOOL_MANAGEMENT_GROUPS.indexOf(group)>=0 ? group : 'extended';
+    }
+    function renderToolManagement(data){
+      var container=document.getElementById('toolManagementGroups');
+      if(!container) return;
+      var tools=Array.isArray(data.tools) ? data.tools : [];
+      container.innerHTML=TOOL_MANAGEMENT_GROUPS.map(function(group){
+        var groupTools=tools.filter(function(tool){ return tool && normalizeToolManagementGroup(tool)===group; });
+        var rows=groupTools.map(function(tool){
+          var escapedId=escapeAttr(tool.id);
+          var escapedName=escapeHtml(tool.name || tool.title || tool.id || '未命名工具');
+          var labelAttr=escapeAttr(tool.name || tool.title || tool.id || '未命名工具');
+          var badge=tool.badge==='new' || tool.badge==='hot' ? tool.badge : 'none';
+          return '<div class="tool-management-row" data-tool-id="'+escapedId+'">'+
+            '<div class="tool-management-name">'+escapedName+'<span class="tool-management-id">'+escapedId+'</span></div>'+
+            '<label class="tool-management-visible-label"><input class="tool-management-visible" type="checkbox" aria-label="显示 '+labelAttr+'"'+(tool.visible===false?'':' checked')+' />显示</label>'+
+            '<select class="tool-management-badge" aria-label="'+labelAttr+' 角标">'+
+              '<option value="none"'+(badge==='none'?' selected':'')+'>无</option>'+
+              '<option value="new"'+(badge==='new'?' selected':'')+'>新</option>'+
+              '<option value="hot"'+(badge==='hot'?' selected':'')+'>热</option>'+
+            '</select>'+
+          '</div>';
+        }).join('');
+        return '<section class="tool-management-group" data-tool-group="'+group+'">'+
+          '<div class="tool-management-group-title">'+TOOL_MANAGEMENT_GROUP_LABELS[group]+'（'+groupTools.length+'）</div>'+
+          (rows || '<div class="tool-management-empty">暂无工具</div>')+
+        '</section>';
+      }).join('');
+    }
+    function setToolManagementBusy(busy){
+      var reloadBtn=document.getElementById('toolManagementReloadBtn');
+      var saveBtn=document.getElementById('toolManagementSaveBtn');
+      if(reloadBtn) reloadBtn.disabled=!!busy;
+      if(saveBtn) saveBtn.disabled=!!busy || !toolManagementLoaded;
+    }
+    async function loadToolManagement(){
+      toolManagementLoaded=false;
+      setToolManagementBusy(false);
+      if(!authUser){
+        renderToolManagement({tools:[]});
+        setStatus('toolManagementStatus','请先登录管理员账号。');
+        return;
+      }
+      if(!authUser.isAdmin){
+        renderToolManagement({tools:[]});
+        setStatus('toolManagementStatus','没有权限：仅管理员可管理工具。');
+        return;
+      }
+      setToolManagementBusy(true);
+      setStatus('toolManagementStatus','正在加载工具配置...');
+      try{
+        var r=await apiFetch('/api/admin/tool-management',{method:'GET'});
+        if(r.status===401){
+          renderToolManagement({tools:[]});
+          setStatus('toolManagementStatus','请先登录管理员账号。');
+          return;
+        }
+        if(r.status===403){
+          renderToolManagement({tools:[]});
+          setStatus('toolManagementStatus','没有权限：仅管理员可管理工具。');
+          return;
+        }
+        var data=await r.json().catch(function(){ return null; });
+        if(!r.ok) throw new Error(data && data.error ? data.error : 'HTTP '+r.status);
+        var toolIds=data && Array.isArray(data.tools)
+          ? new Set(data.tools.map(function(tool){ return tool && tool.id; }).filter(Boolean))
+          : new Set();
+        if(!data || !Array.isArray(data.tools) || data.tools.length!==TOOL_MANAGEMENT_EXPECTED_COUNT || toolIds.size!==TOOL_MANAGEMENT_EXPECTED_COUNT){
+          throw new Error('接口返回的工具目录不完整');
+        }
+        renderToolManagement(data);
+        toolManagementLoaded=true;
+        setStatus('toolManagementStatus','已加载 '+data.tools.length+' 个工具。');
+      }catch(e){
+        renderToolManagement({tools:[]});
+        setStatus('toolManagementStatus','加载失败：'+(e.message||'网络错误'));
+      }finally{
+        setToolManagementBusy(false);
+      }
+    }
+    async function saveToolManagement(){
+      if(!authUser){
+        setStatus('toolManagementStatus','请先登录管理员账号。');
+        return;
+      }
+      if(!authUser.isAdmin){
+        setStatus('toolManagementStatus','没有权限：仅管理员可管理工具。');
+        return;
+      }
+      if(!toolManagementLoaded){
+        setStatus('toolManagementStatus','请先成功加载工具配置，再进行保存。');
+        return;
+      }
+      var container=document.getElementById('toolManagementGroups');
+      if(!container) return;
+      var tools=Array.from(container.querySelectorAll('.tool-management-row')).map(function(row){
+        var visibleInput=row.querySelector('.tool-management-visible');
+        var badgeSelect=row.querySelector('.tool-management-badge');
+        var badge=badgeSelect ? badgeSelect.value : 'none';
+        if(badge!=='new' && badge!=='hot') badge='none';
+        return {id:row.getAttribute('data-tool-id')||'',visible:!!(visibleInput && visibleInput.checked),badge:badge};
+      }).filter(function(tool){ return !!tool.id; });
+      var body=JSON.stringify({tools:tools});
+      setToolManagementBusy(true);
+      setStatus('toolManagementStatus','正在保存工具配置...');
+      try{
+        var r=await apiFetch('/api/admin/tool-management',{method:'PUT',body:body});
+        if(r.status===404 || r.status===405){
+          r=await apiFetch('/api/admin/tool-management',{method:'POST',body:body});
+        }
+        if(r.status===401){
+          setStatus('toolManagementStatus','请先登录管理员账号。');
+          return;
+        }
+        if(r.status===403){
+          setStatus('toolManagementStatus','没有权限：仅管理员可管理工具。');
+          return;
+        }
+        var data=await r.json().catch(function(){ return {}; });
+        if(!r.ok) throw new Error(data && data.error ? data.error : 'HTTP '+r.status);
+        if(Array.isArray(data.tools)) renderToolManagement(data);
+        setStatus('toolManagementStatus','工具配置已保存。');
+      }catch(e){
+        setStatus('toolManagementStatus','保存失败：'+(e.message||'网络错误'));
+      }finally{
+        setToolManagementBusy(false);
+      }
     }
     function sanitizeUrl(url){
       if(!url) return '';
@@ -4584,6 +4777,7 @@
       else if(currentPage==='shop'){ if(typeof window.loadShopAdmin==='function') window.loadShopAdmin(); }
       else if(currentPage==='activation-codes'){ if(typeof window.loadActivationCodesAdmin==='function') window.loadActivationCodesAdmin(); }
       else if(currentPage==='aeroplane-chess'){ if(window.adminAeroplaneChess && window.adminAeroplaneChess.init) window.adminAeroplaneChess.init(); }
+      else if(currentPage==='tool-management') loadToolManagement();
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='site-footer') loadSiteFooterAdmin();
@@ -4672,6 +4866,8 @@
     document.getElementById('adminReloadBtn')&&document.getElementById('adminReloadBtn').addEventListener('click',loadAdmins);
     document.getElementById('moderatorAddBtn')&&document.getElementById('moderatorAddBtn').addEventListener('click',addModerator);
     document.getElementById('moderatorReloadBtn')&&document.getElementById('moderatorReloadBtn').addEventListener('click',loadModerators);
+    document.getElementById('toolManagementReloadBtn')&&document.getElementById('toolManagementReloadBtn').addEventListener('click',loadToolManagement);
+    document.getElementById('toolManagementSaveBtn')&&document.getElementById('toolManagementSaveBtn').addEventListener('click',saveToolManagement);
 
     document.getElementById('reviewReloadBtn')&&document.getElementById('reviewReloadBtn').addEventListener('click',loadPendingPosts);
     document.getElementById('violationReloadBtn')&&document.getElementById('violationReloadBtn').addEventListener('click',loadViolationPosts);
