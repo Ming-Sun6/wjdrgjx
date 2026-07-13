@@ -16,11 +16,16 @@ const read = (file) => fs.readFileSync(file);
 const html = (file) => read(file).toString('utf8');
 const hash = (file) => crypto.createHash('sha256').update(read(file)).digest('hex');
 
-test('launcher exposes exactly the two migrated tools', () => {
+test('launcher contains only the requested title and two tool links', () => {
   const launcher = html(path.join(target, 'fpgj.html'));
-  const hrefs = [...launcher.matchAll(/<a\b[^>]*\bhref=["']([^"']+)["']/gi)]
-    .map((match) => match[1]);
-  assert.deepEqual(hrefs, ['ai.html', 'v2.6.html']);
+  const links = [...launcher.matchAll(/<a\b[^>]*\bhref=["']([^"']+)["'][^>]*>([^<]+)<\/a>/gi)]
+    .map((match) => ({ href: match[1], label: match[2].trim() }));
+  assert.match(launcher, /<h1>脚本&amp;云机分配工具<\/h1>/);
+  assert.deepEqual(links, [
+    { href: 'v2.6.html', label: '脚本链接' },
+    { href: 'ai.html', label: '云机链接' },
+  ]);
+  assert.doesNotMatch(launcher, /analytics-tracker\.js|备案|隐私声明|用户协议|<footer\b/i);
 });
 
 test('migrated tools match the source file hashes', () => {

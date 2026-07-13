@@ -44,6 +44,7 @@ test('served html pages load the shared notice injector', () => {
   const skipped = new Set([
     'baidu_verify_codeva-BN4sg0Yffy.html',
     'public/function/wjdeyj/fpgj/ai.html',
+    'public/function/wjdeyj/fpgj/fpgj.html',
     'public/function/wjdeyj/fpgj/v2.6.html',
     'verification.html',
   ]);

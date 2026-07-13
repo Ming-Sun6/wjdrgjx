@@ -3,58 +3,149 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>云机分配工具</title>
+  <title>脚本&amp;云机分配工具</title>
   <style>
+    :root {
+      color-scheme: dark;
+      --cyan: #4df7ff;
+      --blue: #4285ff;
+      --void: #02040d;
+    }
+
     * { box-sizing: border-box; }
+
     body {
-      margin: 0;
       min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
       display: grid;
       place-items: center;
       padding: 24px;
-      color: #1e293b;
-      font-family: "Microsoft YaHei", sans-serif;
-      background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 52%, #ecfdf5 100%);
+      color: #eefcff;
+      font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(30, 102, 255, .2), transparent 34%),
+        radial-gradient(circle at 12% 18%, rgba(0, 239, 255, .13), transparent 25%),
+        linear-gradient(145deg, #061127 0%, var(--void) 55%, #071329 100%);
     }
-    main { width: min(760px, 100%); }
-    h1 { margin: 0 0 10px; text-align: center; font-size: clamp(28px, 6vw, 42px); }
-    p { margin: 0 0 30px; text-align: center; color: #64748b; }
-    .tools { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-    a {
-      display: flex;
-      min-height: 150px;
-      align-items: center;
-      justify-content: center;
-      padding: 28px;
-      border: 1px solid #e2e8f0;
-      border-radius: 18px;
-      color: #fff;
-      font-size: 20px;
-      font-weight: 700;
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(77, 247, 255, .07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(77, 247, 255, .07) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,255,255,.9) 1px, transparent 1.5px);
+      background-size: 54px 54px, 54px 54px, 110px 110px;
+      mask-image: linear-gradient(to bottom, transparent, #000 35%, #000);
+      transform: perspective(500px) rotateX(58deg) scale(1.65) translateY(18%);
+      animation: grid-drift 9s linear infinite;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      width: min(72vw, 780px);
+      aspect-ratio: 1;
+      border: 1px solid rgba(77, 247, 255, .15);
+      border-radius: 50%;
+      box-shadow:
+        0 0 80px rgba(66, 133, 255, .18),
+        inset 0 0 70px rgba(77, 247, 255, .1);
+      animation: orbit 18s linear infinite;
+      pointer-events: none;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      width: min(760px, 100%);
       text-align: center;
-      text-decoration: none;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-      transition: transform 160ms ease, box-shadow 160ms ease;
     }
-    a:first-child { background: linear-gradient(135deg, #4f46e5, #2563eb); }
-    a:last-child { background: linear-gradient(135deg, #059669, #10b981); }
-    a:hover { transform: translateY(-3px); box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18); }
-    a:focus-visible { outline: 4px solid #f59e0b; outline-offset: 4px; }
-    @media (max-width: 600px) {
-      .tools { grid-template-columns: 1fr; }
-      a { min-height: 120px; }
+
+    h1 {
+      margin: 0 0 54px;
+      font-size: clamp(30px, 7vw, 58px);
+      letter-spacing: .12em;
+      text-shadow: 0 0 12px rgba(77, 247, 255, .8), 0 0 42px rgba(66, 133, 255, .65);
+    }
+
+    .links {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    a {
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      place-items: center;
+      min-height: 112px;
+      padding: 24px;
+      overflow: hidden;
+      border: 1px solid rgba(77, 247, 255, .75);
+      clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+      color: #fff;
+      font-size: clamp(18px, 4vw, 24px);
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-decoration: none;
+      background: linear-gradient(120deg, rgba(15, 49, 95, .78), rgba(4, 16, 38, .9));
+      box-shadow: inset 0 0 28px rgba(77, 247, 255, .1), 0 0 26px rgba(34, 164, 255, .18);
+      transition: transform .2s ease, color .2s ease, box-shadow .2s ease;
+    }
+
+    a::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 25%, rgba(77, 247, 255, .35) 48%, transparent 70%);
+      transform: translateX(-130%);
+      transition: transform .55s ease;
+    }
+
+    a:hover,
+    a:focus-visible {
+      color: var(--cyan);
+      transform: translateY(-4px);
+      box-shadow: inset 0 0 34px rgba(77, 247, 255, .2), 0 0 34px rgba(66, 133, 255, .4);
+      outline: none;
+    }
+
+    a:hover::before,
+    a:focus-visible::before { transform: translateX(130%); }
+
+    @keyframes grid-drift {
+      to { background-position: 0 54px, 54px 0, 110px 110px; }
+    }
+
+    @keyframes orbit {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 560px) {
+      h1 { margin-bottom: 40px; letter-spacing: .06em; }
+      .links { grid-template-columns: 1fr; gap: 18px; }
+      a { min-height: 96px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::before,
+      body::after { animation: none; }
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>云机分配工具</h1>
-    <p>请选择需要使用的分配系统</p>
-    <div class="tools">
-      <a href="ai.html">AI云手机分配系统</a>
-      <a href="v2.6.html">最强冬日卡密分配工具</a>
+    <h1>脚本&amp;云机分配工具</h1>
+    <div class="links">
+      <a href="v2.6.html">脚本链接</a>
+      <a href="ai.html">云机链接</a>
     </div>
   </main>
-  <script src="/function/analytics-tracker.js"></script>
 </body>
 </html>
