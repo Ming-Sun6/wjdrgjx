@@ -19,6 +19,7 @@ Increase information density on mobile without reducing legibility or changing c
 - `scripts/regenerate-t12-html.js` (verification workflow; no behavior change expected)
 - `public/function/Zero/regular-gift-data.html`
 - `public/function/Zero/special-gift-data.html`
+- `public/function/Zero/gift-data-page.js`
 - `public/function/Zero/gift-rotation-schedule.html`
 - `index.html`
 
