@@ -15,6 +15,8 @@ Increase information density on mobile without reducing legibility or changing c
 - `public/function/expert-calculator.html`
 - `public/function/T12Calculator.html`
 - `public/function/T12DataOverview.html`
+- `scripts/generate-t12-pages.py`
+- `scripts/regenerate-t12-html.js` (verification workflow; no behavior change expected)
 - `public/function/Zero/regular-gift-data.html`
 - `public/function/Zero/special-gift-data.html`
 - `public/function/Zero/gift-rotation-schedule.html`
@@ -27,18 +29,21 @@ No calculator formulas, source data, API contracts, theme behavior, or desktop l
 ### Breakpoints
 
 - Desktop/tablet layout remains unchanged above `768px` unless an existing page already uses a wider breakpoint.
-- From `360px` through `768px`, eligible controls, buttons, cards, and metrics use two columns.
-- T12 detail metrics use four columns from `340px` upward.
-- Below `340px`, ordinary two-column regions may fall back to one column and T12 four-column details fall back to two columns.
+- From `340px` through `768px` inclusive, eligible controls, buttons, cards, and metrics use two columns.
+- T12 detail metrics use four columns from `340px` through `768px` inclusive.
+- At `339px` and below, ordinary two-column regions fall back to one column and T12 four-column details fall back to two columns.
 - Long descriptions, notices, totals, and wide tables may span the full grid width at every breakpoint.
 
 ### Shared Quality Constraints
 
 - Every grid child uses `min-width: 0` so content cannot force horizontal overflow.
-- Numeric values may wrap only at safe boundaries; labels may wrap to two lines.
-- Inputs and command buttons retain at least a 42px touch target.
+- Four-column labels use at least `10px/1.2` typography and values use at least `11px/1.2`; labels are limited to two lines.
+- Long numeric values use tabular numerals, `overflow-wrap: anywhere`, and may shrink within their grid cell without increasing the grid width.
+- Text and controls retain the existing theme contrast variables in both day and night modes.
+- Inputs and command buttons retain at least a `44px` touch target.
 - Font sizes are fixed by breakpoint and do not scale with viewport width.
 - Day and night theme variables remain the source of colors.
+- Page-specific mobile overrides are scoped after, or made more specific than, `mobile-responsive.css`; its generic `.grid { grid-template-columns: 1fr !important; }` rule must not force these approved grids back to one column.
 
 ## Page Designs
 
@@ -53,20 +58,21 @@ No calculator formulas, source data, API contracts, theme behavior, or desktop l
 ### Data Pages
 
 - **Hero Data:** generation/hero entry cards use two columns on normal phones and one column below `340px`. Card titles and short metadata are compact; long descriptions remain readable.
-- **T12 Calculator:** the existing two-tech-card mobile layout remains. Each expanded technology detail uses a four-column metric grid; labels and values are compact and do not create horizontal scrolling. Below `340px`, details use two columns.
-- **T12 Data Overview:** filter/statistic regions remain two columns. Every expanded level detail uses four compact metric columns; below `340px`, it uses two columns. A level row should not consume card-sized vertical space for each metric.
+- **T12 Calculator:** the existing two-tech-card mobile layout remains. In the "科技详情" result section, the three KPI values and five resource values are rendered as one eight-item `.tech-detail-grid`, producing two rows of four metrics. At `339px` and below it uses two columns. The generated HTML and `scripts/generate-t12-pages.py` template must stay equivalent.
+- **T12 Data Overview:** filter/statistic regions remain two columns. Every expanded level detail uses four compact metric columns at `340-768px` and two at `<=339px`; the existing three-column-at-360 behavior and test are replaced. A level row should not consume card-sized vertical space for each metric. The generated HTML and Python template must stay equivalent.
 
 ### Gift Pages
 
-- **Regular and Special Gifts:** the mobile gift selector/list uses two columns. The active gift's detail spans both columns and appears directly after the selected item so context remains clear. Below `340px`, the list may use one column.
-- **Gift Rotation Schedule:** desktop keeps a semantic table. Mobile presents each record as a compact three-part row/card: gift name, emphasized cycle, and a wrapping note. Search behavior and source data remain unchanged. Rows use restrained borders and alternating/hover states instead of oversized floating cards.
+- **Regular and Special Gifts:** the mobile gift selector/list uses two columns. Existing multi-expand behavior is retained: each button exposes its own associated full-width detail region and multiple gifts may remain open. Expanded names survive filtering when still present and survive resize; a URL-selected gift becomes the sole initially expanded mobile item. Buttons expose `aria-expanded` and `aria-controls`, detail regions have stable IDs, rerendering restores focus to the toggled button, and the existing result count/empty state remains visible to assistive technology. At `<=339px`, the list uses one column.
+- **Gift Rotation Schedule:** desktop keeps its semantic table. Mobile restyles the same `table`/`tr`/`td` DOM into compact three-part records, so there is one data source and no duplicate accessibility tree. Each cell retains an accessible visible label for gift name, cycle, and note; document reading order remains name -> cycle -> note. Search and empty-result behavior remain equivalent, and interactive search controls retain `:focus-visible` styling. Rows use restrained borders and alternating states instead of oversized floating cards.
 
 ### Home Page Tool Titles
 
 - Every managed tool title uses the same `.tool-tile-name-inner` wrapper.
-- Mobile titles use a stable centered grid area with equal line-height and vertical alignment.
+- Mobile titles use a stable centered grid area with a minimum three-line title height, equal line-height, and centered vertical alignment for one-, two-, and three-line names.
 - Long names wrap naturally to two or more lines without rotation, baseline drift, clipping, or different anonymous flex-item behavior.
-- Dynamic `new` and `hot` badges continue to render and must not shift the title off-center.
+- Dynamic `new` and `hot` badges are absolutely positioned in a reserved top-right card area and must not participate in title layout or shift the title off-center.
+- Pet Data Query and WJTI Personality Test are explicitly checked with no badge, `new`, and `hot` states.
 
 ## Error and Empty States
 
@@ -76,10 +82,10 @@ No calculator formulas, source data, API contracts, theme behavior, or desktop l
 
 ## Testing
 
-- Add static contract tests for each target page's mobile grid rules before implementation.
+- Add static contract tests for each target page's mobile grid rules before implementation. Update the existing T12 overview test that currently expects three columns at `360px`.
 - Preserve existing calculator/data tests and run the full Node test suite.
-- Run `node --check` for any changed JavaScript-bearing server file when applicable and `git diff --check` for all edits.
-- Use headless Edge at `390x844` and `360x800` in day and night themes to inspect horizontal overflow, clipped text, touch targets, and grid density.
-- Verify T12 detail grids at four columns and the `<340px` fallback at two columns.
-- Verify regular/special gift active details span both list columns and the rotation schedule remains searchable.
-
+- Update the Python T12 template and generated HTML together, run `npm run regenerate:t12`, and verify the regeneration produces no loss of the new markup or CSS.
+- Run the full suite with `$tests=(Get-ChildItem tests -Filter '*.test.js').FullName; node --test $tests`, then run `git diff --check`.
+- Use computed-layout checks and headless Edge at widths `339`, `340`, `360`, `390`, `430`, `768`, and `769` in day and night themes. Assert expected column counts, `scrollWidth <= clientWidth`, and `44px` interactive targets.
+- Verify keyboard gift expansion, focus restoration, `aria-expanded`, search counts/empty states, and rotation-table reading order.
+- Verify T12 detail grids use four columns at `340-768px` and two columns at `<=339px`.
