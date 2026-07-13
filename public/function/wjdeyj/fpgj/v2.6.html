@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最强冬日卡密分配工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5', // 更深的紫蓝色作为主色调
+                        secondary: '#10B981', // 更深的绿色作为辅助色
+                        accent: '#F59E0B', // 更深的橙色作为强调色
+                        danger: '#EF4444',
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
+                        daily: '#7C3AED', // 天卡专属深紫色
+                        card1: '#2563EB', // 月卡卡片深蓝色
+                        card2: '#D97706', // 季卡卡片深橙色
+                        card3: '#059669'  // 年卡卡片深绿色
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
+                        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .bg-gradient-primary {
+                background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            }
+            
+            .bg-gradient-secondary {
+                background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            }
+            
+            .bg-gradient-accent {
+                background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            }
+            .bg-glass {
+                background: rgba(255, 255, 255, 0.65);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+            }
+            
+            .bg-frosted {
+                background: rgba(255, 255, 255, 0.6);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.45);
+            }
+            
+            .bg-frosted-dark {
+                background: rgba(255, 255, 255, 0.68);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+            }
+            .transition-all-300 {
+                transition: all 0.3s ease;
+            }
+            .scale-hover {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .scale-hover:hover {
+                transform: translateY(-3px);
+            }
+            
+            /* 脉冲动画 */
+            .animate-pulse {
+                animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: .5;
+                }
+            }
+            
+            /* 弹跳动画 */
+            .animate-bounce {
+                animation: bounce 0.5s ease;
+            }
+            
+            @keyframes bounce {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+            
+            /* 适配表格内换行显示 */
+            .whitespace-pre-line {
+                white-space: pre-line;
+            }
+            
+            /* 鼠标悬停渐变效果 */
+            .hover-gradient {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .hover-gradient::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(124, 58, 237, 0.2));
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                z-index: -1;
+            }
+            
+            .hover-gradient:hover::before {
+                opacity: 1;
+            }
+            
+            /* 彩虹背景动画 */
+            @keyframes rainbow {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            
+            .rainbow-bg {
+                background: linear-gradient(45deg, #ffebee, #fff3e0, #fff8e1, #f1f8e9, #e8f5e8, #e0f2f1, #e0f7fa, #e3f2fd, #e8eaf6, #f3e5f5, #fce4ec, #f9ebea, #ffebee);
+                background-size: 200% 200%;
+                animation: rainbow 15s ease infinite;
+            }
+            
+            /* 下雪特效 */
+            .snowflake {
+                position: fixed;
+                top: -20px;
+                z-index: 9999;
+                user-select: none;
+                pointer-events: none;
+                font-size: 1em;
+                animation-name: snowFall;
+                animation-timing-function: linear;
+                animation-iteration-count: infinite;
+            }
+            
+            @keyframes snowFall {
+                0% {
+                    transform: translateY(-10vh) rotate(0deg);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 1;
+                }
+                90% {
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        }
+    </style>
+</head>
+<body class="rainbow-bg min-h-screen font-inter text-dark relative">
+    <!-- 下雪特效容器 -->
+    <div id="snow-container"></div>
+    
+    <!-- 顶部装饰条 -->
+    <div class="bg-gradient-primary h-1 w-full"></div>
+    
+    <header class="bg-frosted shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+            <h1 class="text-[clamp(1.25rem,3vw,1.75rem)] font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center">
+                <i class="fa fa-table mr-2 text-amber-500"></i>最强冬日卡密分配工具
+            </h1>
+            <div class="text-sm text-gray-500 flex items-center">
+                <span class="bg-gradient-to-r from-indigo-200/70 to-purple-200/70 text-indigo-700 px-2 py-1 rounded text-xs font-medium rounded-lg">版本V2.6</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 hover-gradient bg-white/70 rounded-2xl p-2">
+        <!-- 引导卡片 -->
+        <div class="bg-frosted-dark rounded-xl shadow-card p-4 mb-6 flex flex-col md:flex-row items-center gap-4 hover-gradient">
+            <div class="flex-shrink-0 bg-primary/70 p-3 rounded-full">
+                <i class="fa fa-lightbulb-o text-2xl text-primary"></i>
+            </div>
+            <div class="text-gray-600 text-sm md:text-base">
+                <p class="font-medium text-primary">使用流程：</p>
+                <p class="mt-1">① 粘贴表格数据并解析 → ② 输入卡密列表 → ③ 分配卡密（含赠送） → ④ 导出结果</p>
+                <p class="mt-1 text-accent text-sm">赠送规则：单次每满<span id="tipGiftMonthlyThreshold">70</span>月送<span id="tipGiftMonthlyCount">1</span>张月卡，不足时每<span id="tipGiftDailyThreshold">20</span>月送<span id="tipGiftDailyCount">7</span>张天卡（可在右侧赠送规则中修改）</p>
+                <p class="mt-1 text-daily text-sm">导出格式：序号 微信名 手机号 月卡-需/分 月卡 季卡-需/分 季卡 年卡-需/分 年卡 赠送月卡-需/分 赠送月卡 赠送天卡-需/分 赠送天卡</p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 左侧表格区域 -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 原始表格数据卡片 -->
+                <div class="bg-frosted-dark rounded-xl shadow-card p-6 scale-hover hover-gradient">
+                    <h2 class="text-xl font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-list-alt mr-2 text-primary"></i>原始表格数据
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <label for="tableInput" class="block text-sm font-medium text-gray-700 mb-2">粘贴表格数据（仅需数据行，支持制表符分隔）：</label>
+                        <div class="bg-gray-100/80 p-3 rounded-lg mb-3 text-sm text-gray-600 border border-gray-100">
+                            <i class="fa fa-info-circle mr-1 text-accent"></i>
+                            固定列格式：微信名	手机号	月卡数量	季卡数量	年卡数量（无需输入表头）
+                        </div>
+                        <textarea 
+                            id="tableInput" 
+                            class="w-full h-64 p-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请“粘贴”纯数据行，例如：
+茗子	13800138000	1	0	0
+煤球	13900139000	2	3   0
+某某某    13700137000    1   2   3
+
+格式为 名字 手机号 月卡数量 季卡数量 年卡数量
+直接选择表格Ctrl+C复制粘贴到此处⚠️请勿手动敲字到这里 手敲解析会出错
+"></textarea>
+                    </div>
+                    
+                    <button 
+                        id="parseTableBtn" 
+                        class="bg-gradient-primary hover:bg-gradient-to-r from-indigo-700 to-purple-700 text-white py-3 px-6 rounded-xl transition-all-300 flex items-center font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                        <i class="fa fa-refresh mr-2"></i>解析表格数据
+                    </button>
+                </div>
+                
+                <!-- 预览表格卡片 -->
+                <div class="bg-frosted-dark rounded-xl shadow-card p-6 scale-hover hover-gradient">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-table mr-2 text-primary"></i>预览/编辑表格
+                    </h3>
+                    
+                    <div class="overflow-x-auto mb-4 rounded-lg border border-gray-100">
+                        <table id="previewTable" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr id="tableHeader">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">微信名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">月卡</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">季卡</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年卡</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">是否赠送</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">赠送月卡</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">赠送天卡</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="bg-white/80 divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 表格统计信息 -->
+                    <div class="border-t border-gray-200 pt-4 mt-2">
+                        <div id="tableSummary" class="grid grid-cols-1 md:grid-cols-4 gap-3 px-6">
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500 mb-1">总计</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <!-- 月卡统计卡片 -->
+                                    <div class="flex items-center bg-gradient-to-r from-blue-200/80 to-indigo-200/80 rounded-lg p-2 border border-blue-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                        <div class="bg-blue-300/80 p-2 rounded-lg mr-2">
+                                            <i class="fa fa-calendar text-blue-700"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-600">月卡</div>
+                                            <div id="totalMonthly" class="text-lg font-bold text-blue-800">0</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 季卡统计卡片 -->
+                                    <div class="flex items-center bg-gradient-to-r from-amber-200/80 to-orange-200/80 rounded-lg p-2 border border-amber-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                        <div class="bg-amber-300/80 p-2 rounded-lg mr-2">
+                                            <i class="fa fa-calendar-check-o text-amber-700"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-600">季卡</div>
+                                            <div id="totalQuarterly" class="text-lg font-bold text-amber-800">0</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 年卡统计卡片 -->
+                                    <div class="flex items-center bg-gradient-to-r from-emerald-200/80 to-teal-200/80 rounded-lg p-2 border border-emerald-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                        <div class="bg-emerald-300/80 p-2 rounded-lg mr-2">
+                                            <i class="fa fa-calendar-plus-o text-emerald-700"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-600">年卡</div>
+                                            <div id="totalYearly" class="text-lg font-bold text-emerald-800">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 折算总月数卡片 -->
+                            <div class="flex items-center bg-gradient-to-r from-purple-200/80 to-violet-200/80 rounded-lg p-3 border border-purple-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                <div class="bg-purple-300/80 p-2 rounded-lg mr-3">
+                                    <i class="fa fa-calculator text-purple-700"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-600">折算总月数</div>
+                                    <div id="totalConvertedMonths" class="text-xl font-bold text-purple-800">0</div>
+                                    <div class="text-xs text-gray-600 mt-1">（季卡×3/年卡×12）</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 总费用卡片 -->
+                            <div class="flex items-center bg-gradient-to-r from-rose-200/80 to-pink-200/80 rounded-lg p-3 border border-rose-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                <div class="bg-rose-300/80 p-2 rounded-lg mr-3">
+                                    <i class="fa fa-yen text-rose-700"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-600">总费用</div>
+                                    <div id="totalCost" class="text-xl font-bold text-rose-800">0</div>
+                                    <div class="text-xs text-gray-600 mt-1">元</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="tableError" class="hidden text-danger mt-4 p-4 bg-gradient-to-r from-red-200/80 to-rose-200/80 rounded-xl border border-red-200 shadow-sm">
+                        <div class="flex items-center">
+                            <i class="fa fa-exclamation-triangle text-red-500 mr-3 text-lg"></i>
+                            <span id="tableErrorText" class="font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 分配结果卡片 -->
+                <div id="assignedResultTable" class="bg-frosted-dark rounded-xl shadow-card p-6 scale-hover hidden hover-gradient">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-gift mr-2 text-secondary"></i>卡密分配结果（同名合并）
+                    </h3>
+                    <div class="overflow-x-auto mb-4 max-h-80 overflow-y-auto rounded-lg border border-gray-100 bg-white/80">
+                        <table class="min-w-full divide-y divide-gray-200 bg-white/90">
+                            <thead class="bg-gray-100/80 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">序号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">微信名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">月卡-需/分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">月卡</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">季卡-需/分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">季卡</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年卡-需/分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">年卡</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">赠送月卡-需/分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">赠送月卡</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">赠送天卡-需/分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">赠送天卡</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignedResultBody" class="divide-y divide-gray-200 bg-white/80"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 剩余卡密卡片 -->
+                <div id="remainingCardsTable" class="bg-frosted-dark rounded-xl shadow-card p-6 scale-hover hidden hover-gradient">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-archive mr-2 text-primary"></i>剩余未分配卡密
+                    </h3>
+                    <div class="overflow-x-auto mb-4 rounded-lg border border-gray-100 bg-white/80">
+                        <table class="min-w-full divide-y divide-gray-200 bg-white/90">
+                            <thead class="bg-gray-100/80">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">卡类型</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余数量</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余卡密列表</th>
+                                </tr>
+                            </thead>
+                            <tbody id="remainingCardsBody" class="divide-y divide-gray-200 bg-white/80"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧卡密设置区域 -->
+            <div class="space-y-6">
+                <!-- 卡密列表设置卡片 -->
+                <div class="bg-frosted-dark/40 rounded-xl shadow-card p-6 scale-hover hover-gradient">
+                    <h2 class="text-xl font-semibold text-dark mb-5 flex items-center">
+                        <i class="fa fa-tasks mr-2 text-primary"></i>卡密列表设置
+                    </h2>
+                    
+                    <!-- 天卡密（新增） -->
+                    <div class="mb-6">
+                        <label for="dailyCardsInput" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fa fa-calendar-o mr-1 text-daily"></i>天卡密列表（一行一个）：
+                        </label>
+                        <textarea 
+                            id="dailyCardsInput" 
+                            class="w-full h-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请输入天卡密，一行一个
+例如：
+TK2025001
+TK2025002
+TK2025003"></textarea>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            <span id="dailyCardCount">当前数量：0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 月卡密 -->
+                    <div class="mb-6">
+                        <label for="monthlyCardsInput" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fa fa-calendar mr-1 text-secondary"></i>月卡密列表（一行一个）：
+                        </label>
+                        <textarea 
+                            id="monthlyCardsInput" 
+                            class="w-full h-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请输入月卡密，一行一个
+例如：
+YK2025001
+YK2025002
+YK2025003"></textarea>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            <span id="monthlyCardCount">当前数量：0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 季卡密 -->
+                    <div class="mb-6">
+                        <label for="quarterlyCardsInput" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fa fa-calendar-check-o mr-1 text-accent"></i>季卡密列表（一行一个）：
+                        </label>
+                        <textarea 
+                            id="quarterlyCardsInput" 
+                            class="w-full h-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请输入季卡密，一行一个
+例如：
+JK2025001
+JK2025002
+JK2025003"></textarea>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            <span id="quarterlyCardCount">当前数量：0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 年卡密 -->
+                    <div class="mb-6">
+                        <label for="yearlyCardsInput" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fa fa-calendar-plus-o mr-1 text-primary"></i>年卡密列表（一行一个）：
+                        </label>
+                        <textarea 
+                            id="yearlyCardsInput" 
+                            class="w-full h-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请输入年卡密，一行一个
+例如：
+NK2025001
+NK2025002
+NK2025003"></textarea>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            <span id="yearlyCardCount">当前数量：0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 赠送机制开关 -->
+                    <div class="flex items-center justify-between mb-3 p-3 bg-gray-100/50 rounded-lg border border-gray-200">
+                        <div class="flex items-center">
+                            <i class="fa fa-gift text-accent mr-2"></i>
+                            <span class="text-gray-700 font-medium">启用赠送机制</span>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="giftToggle" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+                            <span id="giftToggleText" class="ml-3 text-sm font-medium text-gray-600">开启</span>
+                        </label>
+                    </div>
+                    <!-- 赠送规则（可修改） -->
+                    <div id="giftRulePanel" class="mb-4 p-3 bg-amber-50/80 rounded-lg border border-amber-200 space-y-2">
+                        <div class="text-sm font-medium text-amber-800 mb-2"><i class="fa fa-cog mr-1"></i>赠送规则（可自由修改）</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                            <div class="flex items-center flex-wrap gap-1">
+                                <span class="text-gray-600">月卡：每</span>
+                                <input type="number" id="giftMonthlyThreshold" min="1" value="70" class="w-14 px-2 py-1 border border-gray-300 rounded text-center text-gray-700">
+                                <span class="text-gray-600">月 送</span>
+                                <input type="number" id="giftMonthlyCount" min="1" value="1" class="w-12 px-2 py-1 border border-gray-300 rounded text-center text-gray-700">
+                                <span class="text-gray-600">张月卡</span>
+                            </div>
+                            <div class="flex items-center flex-wrap gap-1">
+                                <span class="text-gray-600">天卡：不足时每</span>
+                                <input type="number" id="giftDailyThreshold" min="1" value="20" class="w-14 px-2 py-1 border border-gray-300 rounded text-center text-gray-700">
+                                <span class="text-gray-600">月 送</span>
+                                <input type="number" id="giftDailyCount" min="1" value="7" class="w-12 px-2 py-1 border border-gray-300 rounded text-center text-gray-700">
+                                <span class="text-gray-600">张天卡</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="flex flex-col gap-3 mt-6">
+                        <button 
+                            id="assignBtn" 
+                            class="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-3.5 px-6 rounded-xl transition-all-300 flex items-center justify-center font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        >
+                            <i class="fa fa-gift mr-2"></i>按数量分配卡密
+                        </button>
+                        
+                        <button 
+                            id="exportBtn" 
+                            class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white py-3.5 px-6 rounded-xl transition-all-300 flex items-center justify-center font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        >
+                            <i class="fa fa-download mr-2"></i>导出Excel表格
+                        </button>
+                    </div>
+                    
+                    <!-- 分配结果提示 -->
+                    <div id="assignResult" class="mt-6 hidden">
+                        <h3 class="text-base font-semibold text-dark mb-2 flex items-center">
+                            <i class="fa fa-check-circle mr-2 text-secondary"></i>分配结果
+                        </h3>
+                        <div class="p-3 bg-green-200/80 border border-green-100 rounded-lg text-success text-sm">
+                            <p id="assignResultText"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- 错误提示 -->
+                    <div id="assignError" class="hidden text-danger mb-4 flex items-center mt-4 p-3 bg-red-200/80 rounded-lg border border-red-100">
+                        <i class="fa fa-exclamation-circle mr-2"></i>
+                        <span id="assignErrorText"></span>
+                    </div>
+                </div>
+                
+                <!-- 帮助卡片 -->
+                <div class="bg-frosted rounded-xl p-5 border border-primary/10 hover-gradient">
+                    <h3 class="text-base font-semibold text-primary mb-3 flex items-center">
+                        <i class="fa fa-question-circle mr-2"></i>使用帮助
+                    </h3>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>表格数据需从Excel或其他表格软件中复制粘贴</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>卡密会按顺序分配，确保输入的卡密不重复</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>相同微信名会自动合并计算总需求</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>赠送规则：每满<span id="helpGiftMonthlyThreshold">80</span>月送<span id="helpGiftMonthlyCount">1</span>张月卡，不足时每<span id="helpGiftDailyThreshold">20</span>月送<span id="helpGiftDailyCount">7</span>张天卡（可在上方赠送规则输入框修改）</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>导出卡密格式：1.月卡:xxx;<br>2.月卡:xxx;<br>3.月卡:xxx;</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gradient-to-r from-indigo-600/70 to-purple-600/70 text-white py-8 mt-12 rounded-t-2xl">
+        <div class="container mx-auto px-4 text-center">
+            <div class="mb-4">
+                <span class="inline-block bg-gradient-to-r from-blue-400/80 to-indigo-400/80 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">最强冬日卡密分配工具</span>
+            </div>
+            <p class="text-white/90 text-sm mt-4 font-medium">© 2025 小茗同学(*^▽^*)</p>
+        </div>
+    </footer>
+
+    <script>
+        let tableData = [];
+        const fixedHeaders = ['微信名', '手机号', '月卡', '季卡', '年卡'];
+        let mergedAssignedData = [];
+        let remainingCards = { 
+            daily: [],     // 新增天卡密
+            monthly: [],
+            quarterly: [],
+            yearly: []
+        };
+        
+        // 核心辅助函数：将卡密数组转换为换行的带类型序号格式
+        // 示例：['1a2f4c', 'c59c47'] → 1.月卡:1a2f4c29aef47c86;\n2.月卡:c59c4747a5070353;\n...
+        function formatCardList(cardArray, cardType) {
+            if (!cardArray || cardArray.length === 0) {
+                return '';
+            }
+            // 定义卡类型显示名称
+            const typeNames = {
+                monthly: '月卡',
+                quarterly: '季卡',
+                yearly: '年卡',
+                daily: '天卡',
+                giftMonthly: '月卡',
+                giftDaily: '天卡'
+            };
+            const displayType = typeNames[cardType] || cardType;
+            
+            // 生成每行带序号、类型、分号结尾的格式，换行分隔
+            return cardArray.map((card, index) => `${index + 1}.${displayType}:${card};`).join('\n');
+        }
+        
+        // 同步赠送规则说明文字（顶部与帮助区）
+        function syncGiftRuleDisplay() {
+            const t1 = document.getElementById('tipGiftMonthlyThreshold');
+            const t2 = document.getElementById('tipGiftMonthlyCount');
+            const t3 = document.getElementById('tipGiftDailyThreshold');
+            const t4 = document.getElementById('tipGiftDailyCount');
+            const h1 = document.getElementById('helpGiftMonthlyThreshold');
+            const h2 = document.getElementById('helpGiftMonthlyCount');
+            const h3 = document.getElementById('helpGiftDailyThreshold');
+            const h4 = document.getElementById('helpGiftDailyCount');
+            const v = getGiftRule();
+            if (t1) t1.textContent = v.monthlyThreshold;
+            if (t2) t2.textContent = v.monthlyCount;
+            if (t3) t3.textContent = v.dailyThreshold;
+            if (t4) t4.textContent = v.dailyCount;
+            if (h1) h1.textContent = v.monthlyThreshold;
+            if (h2) h2.textContent = v.monthlyCount;
+            if (h3) h3.textContent = v.dailyThreshold;
+            if (h4) h4.textContent = v.dailyCount;
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('parseTableBtn').addEventListener('click', parseTableData);
+            document.getElementById('assignBtn').addEventListener('click', assignCardsByCount);
+            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+            
+            // 新增天卡密输入监听
+            document.getElementById('dailyCardsInput').addEventListener('input', updateCardCount);
+            document.getElementById('monthlyCardsInput').addEventListener('input', updateCardCount);
+            document.getElementById('quarterlyCardsInput').addEventListener('input', updateCardCount);
+            document.getElementById('yearlyCardsInput').addEventListener('input', updateCardCount);
+            
+            // 赠送规则输入框变更时同步说明文字
+            ['giftMonthlyThreshold', 'giftMonthlyCount', 'giftDailyThreshold', 'giftDailyCount'].forEach(function(id) {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', syncGiftRuleDisplay);
+            });
+            syncGiftRuleDisplay();
+            
+            updateCardCount();
+            
+            if (document.getElementById('tableInput').value.trim()) {
+                parseTableData();
+            }
+            
+            // 初始化下雪特效
+            initSnowEffect();
+        });
+        
+        // 解析表格数据
+        function parseTableData() {
+            const input = document.getElementById('tableInput').value.trim();
+            const tableError = document.getElementById('tableError');
+            const tableErrorText = document.getElementById('tableErrorText');
+            tableData = [];
+            
+            if (!input) {
+                tableError.classList.remove('hidden');
+                tableErrorText.textContent = '请输入表格数据后再解析';
+                document.getElementById('tableBody').innerHTML = '';
+                calculateTableSummary(); // 清空统计
+                return;
+            }
+            
+            try {
+                const rows = input.split('\n');
+                let hasError = false;
+                
+                rows.forEach((row, rowIndex) => {
+                    if (!row.trim()) return;
+                    
+                    // 处理制表符和空格分隔
+                    let cells = row.split(/\t| {2,}/).filter(cell => cell.trim() !== '');
+                    
+                    // 验证列数
+                    if (cells.length < 5) {
+                        tableError.classList.remove('hidden');
+                        tableErrorText.textContent = `第${rowIndex + 1}行数据格式错误，至少需要5列数据`;
+                        hasError = true;
+                        return;
+                    }
+                    
+                    // 提取数据（是否赠送默认勾选；赠送月卡/天卡留空为自动）
+                    const rowData = {
+                        '微信名': cells[0].trim(),
+                        '手机号': cells[1].trim(),
+                        '月卡': cells[2].trim() || '0',
+                        '季卡': cells[3].trim() || '0',
+                        '年卡': cells[4].trim() || '0',
+                        '是否赠送': true,
+                        '赠送月卡': '',
+                        '赠送天卡': ''
+                    };
+                    
+                    // 验证数字列
+                    if (isNaN(parseInt(rowData['月卡']))) {
+                        tableError.classList.remove('hidden');
+                        tableErrorText.textContent = `第${rowIndex + 1}行月卡数量不是有效数字`;
+                        hasError = true;
+                    }
+                    
+                    if (isNaN(parseInt(rowData['季卡']))) {
+                        tableError.classList.remove('hidden');
+                        tableErrorText.textContent = `第${rowIndex + 1}行季卡数量不是有效数字`;
+                        hasError = true;
+                    }
+                    
+                    if (isNaN(parseInt(rowData['年卡']))) {
+                        tableError.classList.remove('hidden');
+                        tableErrorText.textContent = `第${rowIndex + 1}行年卡数量不是有效数字`;
+                        hasError = true;
+                    }
+                    
+                    tableData.push(rowData);
+                });
+                
+                if (hasError) {
+                    document.getElementById('tableBody').innerHTML = '';
+                    calculateTableSummary(); // 清空统计
+                    return;
+                }
+                
+                // 渲染表格
+                renderTable();
+                tableError.classList.add('hidden');
+                calculateTableSummary(); // 计算统计
+                addInputEventListeners(); // 添加输入事件监听
+                
+            } catch (error) {
+                tableError.classList.remove('hidden');
+                tableErrorText.textContent = `解析错误: ${error.message}`;
+                document.getElementById('tableBody').innerHTML = '';
+                calculateTableSummary(); // 清空统计
+            }
+        }
+        
+        // 渲染表格
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            tableData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                tr.dataset.index = index;
+                
+                fixedHeaders.forEach(header => {
+                    const td = document.createElement('td');
+                    td.className = 'px-6 py-4 whitespace-nowrap text-sm';
+                    td.dataset.column = header;
+                    
+                    if (header === '微信名' || header === '手机号') {
+                        // 文本输入框
+                        td.innerHTML = `
+                            <input type="text" value="${row[header] || ''}" 
+                                class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 bg-white/80"
+                            >
+                        `;
+                    } else {
+                        // 数字输入框
+                        td.innerHTML = `
+                            <input type="number" min="0" value="${row[header] || 0}" 
+                                class="w-20 p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 bg-white/80"
+                            >
+                        `;
+                    }
+                    
+                    tr.appendChild(td);
+                });
+                
+                // 是否赠送（每行独立勾选）
+                const giftTd = document.createElement('td');
+                giftTd.className = 'px-6 py-4 whitespace-nowrap text-sm text-center';
+                giftTd.dataset.column = '是否赠送';
+                const checked = row['是否赠送'] === true || row['是否赠送'] === 'true' || row['是否赠送'] === 1 || row['是否赠送'] === undefined;
+                giftTd.innerHTML = `
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" ${checked ? 'checked' : ''} class="gift-checkbox w-5 h-5 rounded border-gray-300 text-accent focus:ring-accent">
+                        <span class="ml-1 text-gray-600">赠送</span>
+                    </label>
+                `;
+                tr.appendChild(giftTd);
+                
+                // 赠送月卡（空=自动按规则）
+                const giftMTd = document.createElement('td');
+                giftMTd.className = 'px-2 py-4 text-center';
+                giftMTd.dataset.column = '赠送月卡';
+                const vM = (row['赠送月卡'] !== undefined && row['赠送月卡'] !== null && String(row['赠送月卡']).trim() !== '') ? String(row['赠送月卡']).trim() : '';
+                giftMTd.innerHTML = `<input type="number" min="0" placeholder="自动" value="${vM}" class="gift-monthly-input w-14 px-2 py-1 border border-gray-300 rounded text-center text-sm">`;
+                tr.appendChild(giftMTd);
+                
+                // 赠送天卡（空=自动按规则）
+                const giftDTd = document.createElement('td');
+                giftDTd.className = 'px-2 py-4 text-center';
+                giftDTd.dataset.column = '赠送天卡';
+                const vD = (row['赠送天卡'] !== undefined && row['赠送天卡'] !== null && String(row['赠送天卡']).trim() !== '') ? String(row['赠送天卡']).trim() : '';
+                giftDTd.innerHTML = `<input type="number" min="0" placeholder="自动" value="${vD}" class="gift-daily-input w-14 px-2 py-1 border border-gray-300 rounded text-center text-sm">`;
+                tr.appendChild(giftDTd);
+                
+                tableBody.appendChild(tr);
+            });
+        }
+        
+        // 为输入框添加事件监听（含每行「是否赠送」与自定义赠品）
+        function addInputEventListeners() {
+            document.querySelectorAll('#tableBody input').forEach(input => {
+                if (input.type === 'checkbox' && input.classList.contains('gift-checkbox')) {
+                    input.addEventListener('change', function() {
+                        const rowIndex = parseInt(this.closest('tr').dataset.index);
+                        if (tableData[rowIndex]) tableData[rowIndex]['是否赠送'] = this.checked;
+                    });
+                } else if (input.classList.contains('gift-monthly-input') || input.classList.contains('gift-daily-input')) {
+                    input.addEventListener('input', function() {
+                        const rowIndex = parseInt(this.closest('tr').dataset.index);
+                        const column = this.closest('td').dataset.column;
+                        if (tableData[rowIndex]) tableData[rowIndex][column] = this.value.trim();
+                    });
+                } else {
+                    input.addEventListener('input', function() {
+                        const rowIndex = parseInt(this.closest('tr').dataset.index);
+                        const column = this.closest('td').dataset.column;
+                        if (tableData[rowIndex]) {
+                            tableData[rowIndex][column] = this.value.trim();
+                            calculateTableSummary();
+                        }
+                    });
+                }
+            });
+        }
+        
+        // 计算并更新表格统计信息
+        function calculateTableSummary() {
+            let totalMonthly = 0;
+            let totalQuarterly = 0;
+            let totalYearly = 0;
+            
+            // 遍历表格数据计算各类卡原始总数
+            tableData.forEach(row => {
+                totalMonthly += parseInt(row['月卡'] || 0);
+                totalQuarterly += parseInt(row['季卡'] || 0);
+                totalYearly += parseInt(row['年卡'] || 0);
+            });
+            
+            // 折算总月数：季卡×3、年卡×12
+            const totalConvertedMonths = totalMonthly + (totalQuarterly * 3) + (totalYearly * 12);
+            
+            // 根据总折算月数计算总费用
+            let totalCost = 0;
+            if (totalConvertedMonths >= 500) {
+                totalCost = totalConvertedMonths * 5;
+            } else if (totalConvertedMonths >= 300) {
+                totalCost = totalConvertedMonths * 6;
+            } else if (totalConvertedMonths >= 100) {
+                totalCost = totalConvertedMonths * 7;
+            } else if (totalConvertedMonths >= 50) {
+                totalCost = totalConvertedMonths * 8;
+            }
+            
+            // 更新DOM显示
+            // 添加数字动画效果
+            animateValue('totalMonthly', parseInt(document.getElementById('totalMonthly').textContent), totalMonthly);
+            animateValue('totalQuarterly', parseInt(document.getElementById('totalQuarterly').textContent), totalQuarterly);
+            animateValue('totalYearly', parseInt(document.getElementById('totalYearly').textContent), totalYearly);
+            animateValue('totalConvertedMonths', parseInt(document.getElementById('totalConvertedMonths').textContent), totalConvertedMonths);
+            animateValue('totalCost', parseInt(document.getElementById('totalCost').textContent), totalCost);
+        }
+        
+        // 数字动画函数
+        function animateValue(id, start, end) {
+            if (start === end) return; // 如果值没有变化，不执行动画
+            
+            const obj = document.getElementById(id);
+            const container = obj.closest('div'); // 获取父容器以添加特效
+            
+            // 添加脉冲动画效果
+            container.classList.add('animate-pulse');
+            
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            const duration = 800; // 动画持续时间
+            const stepTime = Math.abs(end - start) > 100 ? 10 : 20; // 根据数字大小调整步长时间
+            const step = Math.max(1, Math.abs(end - start) / (duration / stepTime));
+            
+            const timer = setInterval(() => {
+                current += increment * step;
+                
+                if ((increment === 1 && current >= end) || (increment === -1 && current <= end)) {
+                    clearInterval(timer);
+                    current = end;
+                    
+                    // 移除脉冲动画并添加强调效果
+                    setTimeout(() => {
+                        container.classList.remove('animate-pulse');
+                        container.classList.add('animate-bounce');
+                        setTimeout(() => {
+                            container.classList.remove('animate-bounce');
+                        }, 500);
+                    }, 50);
+                }
+                
+                obj.textContent = Math.round(current);
+                
+                // 为数字添加动态颜色效果
+                obj.style.color = getColorForValue(id, Math.round(current));
+            }, stepTime);
+        }
+        
+        // 根据值返回对应的颜色
+        function getColorForValue(id, value) {
+            if (value === 0) {
+                switch(id) {
+                    case 'totalMonthly': return '#3B82F6'; // blue-500
+                    case 'totalQuarterly': return '#F59E0B'; // amber-500
+                    case 'totalYearly': return '#10B981'; // emerald-500
+                    case 'totalConvertedMonths': return '#8B5CF6'; // violet-500
+                    case 'totalCost': return '#F43F5E'; // rose-500
+                    default: return '#1F2937'; // gray-800
+                }
+            } else {
+                // 当数字大于0时，使用更鲜艳的颜色
+                switch(id) {
+                    case 'totalMonthly': return '#1D4ED8'; // blue-700
+                    case 'totalQuarterly': return '#B45309'; // amber-700
+                    case 'totalYearly': return '#047857'; // emerald-700
+                    case 'totalConvertedMonths': return '#7C3AED'; // violet-600
+                    case 'totalCost': return '#E11D48'; // rose-600
+                    default: return '#1F2937'; // gray-800
+                }
+            }
+        }
+        
+        // 更新卡密数量显示（新增天卡密统计）
+        function updateCardCount() {
+            // 天卡密数量
+            const dailyCount = document.getElementById('dailyCardsInput').value.trim() 
+                ? document.getElementById('dailyCardsInput').value.trim().split('\n').filter(line => line.trim()).length 
+                : 0;
+            
+            const monthlyCount = document.getElementById('monthlyCardsInput').value.trim() 
+                ? document.getElementById('monthlyCardsInput').value.trim().split('\n').filter(line => line.trim()).length 
+                : 0;
+            
+            const quarterlyCount = document.getElementById('quarterlyCardsInput').value.trim()
+                ? document.getElementById('quarterlyCardsInput').value.trim().split('\n').filter(line => line.trim()).length
+                : 0;
+            
+            const yearlyCount = document.getElementById('yearlyCardsInput').value.trim()
+                ? document.getElementById('yearlyCardsInput').value.trim().split('\n').filter(line => line.trim()).length
+                : 0;
+            
+            document.getElementById('dailyCardCount').textContent = `当前数量：${dailyCount}`;
+            document.getElementById('monthlyCardCount').textContent = `当前数量：${monthlyCount}`;
+            document.getElementById('quarterlyCardCount').textContent = `当前数量：${quarterlyCount}`;
+            document.getElementById('yearlyCardCount').textContent = `当前数量：${yearlyCount}`;
+        }
+        
+        // 获取赠送规则（可从页面输入框自由修改）
+        function getGiftRule() {
+            const monthlyThreshold = parseInt(document.getElementById('giftMonthlyThreshold')?.value, 10) || 80;
+            const monthlyCount = parseInt(document.getElementById('giftMonthlyCount')?.value, 10) || 1;
+            const dailyThreshold = parseInt(document.getElementById('giftDailyThreshold')?.value, 10) || 20;
+            const dailyCount = parseInt(document.getElementById('giftDailyCount')?.value, 10) || 7;
+            return { monthlyThreshold, monthlyCount, dailyThreshold, dailyCount };
+        }
+        
+        // 计算赠送卡密数量（核心逻辑，使用可配置规则）
+        function calculateGiftCards(userTotalMonths) {
+            const { monthlyThreshold, monthlyCount, dailyThreshold, dailyCount } = getGiftRule();
+            const giftMonthly = Math.floor(userTotalMonths / monthlyThreshold) * monthlyCount;
+            const remainingMonths = userTotalMonths % monthlyThreshold;
+            const giftDaily = Math.floor(remainingMonths / dailyThreshold) * dailyCount;
+            return { giftMonthly, giftDaily };
+        }
+        
+        // 单行赠品：若该行填写了赠送月卡/天卡则用自定义值，否则按规则自动计算
+        function getRowGift(row) {
+            const m = row['赠送月卡'];
+            const d = row['赠送天卡'];
+            const hasCustomM = m !== undefined && m !== null && String(m).trim() !== '' && !isNaN(parseInt(m));
+            const hasCustomD = d !== undefined && d !== null && String(d).trim() !== '' && !isNaN(parseInt(d));
+            if (hasCustomM || hasCustomD) {
+                return {
+                    giftMonthly: hasCustomM ? Math.max(0, parseInt(m)) : calculateGiftCards(
+                        parseInt(row['月卡'] || 0) + parseInt(row['季卡'] || 0) * 3 + parseInt(row['年卡'] || 0) * 12
+                    ).giftMonthly,
+                    giftDaily: hasCustomD ? Math.max(0, parseInt(d)) : calculateGiftCards(
+                        parseInt(row['月卡'] || 0) + parseInt(row['季卡'] || 0) * 3 + parseInt(row['年卡'] || 0) * 12
+                    ).giftDaily
+                };
+            }
+            const userMonths = parseInt(row['月卡'] || 0) + parseInt(row['季卡'] || 0) * 3 + parseInt(row['年卡'] || 0) * 12;
+            return calculateGiftCards(userMonths);
+        }
+        
+        // 按数量分配卡密（新增赠送卡密逻辑，适配换行卡密格式）
+        function assignCardsByCount() {
+            if (tableData.length === 0) {
+                showAssignError('请先解析表格数据');
+                return;
+            }
+            
+            // 获取赠送开关状态
+            const isGiftEnabled = document.getElementById('giftToggle').checked;
+            
+            // 获取所有卡密列表
+            const dailyCards = document.getElementById('dailyCardsInput').value.trim()
+                ? document.getElementById('dailyCardsInput').value.trim().split('\n').filter(line => line.trim())
+                : [];
+            
+            const monthlyCards = document.getElementById('monthlyCardsInput').value.trim()
+                ? document.getElementById('monthlyCardsInput').value.trim().split('\n').filter(line => line.trim())
+                : [];
+            
+            const quarterlyCards = document.getElementById('quarterlyCardsInput').value.trim()
+                ? document.getElementById('quarterlyCardsInput').value.trim().split('\n').filter(line => line.trim())
+                : [];
+            
+            const yearlyCards = document.getElementById('yearlyCardsInput').value.trim()
+                ? document.getElementById('yearlyCardsInput').value.trim().split('\n').filter(line => line.trim())
+                : [];
+            
+            // 先计算基础需求（用户需要的卡密）
+            const totalMonthlyNeeded = tableData.reduce((sum, row) => sum + parseInt(row['月卡'] || 0), 0);
+            const totalQuarterlyNeeded = tableData.reduce((sum, row) => sum + parseInt(row['季卡'] || 0), 0);
+            const totalYearlyNeeded = tableData.reduce((sum, row) => sum + parseInt(row['年卡'] || 0), 0);
+            
+            // 合并相同微信名的数据（同名中任一行勾选「是否赠送」则该用户参与赠送）
+            const mergedData = {};
+            tableData.forEach(row => {
+                const key = row['微信名'].trim();
+                const rowGift = row['是否赠送'] === true || row['是否赠送'] === 'true' || row['是否赠送'] === 1;
+                if (!mergedData[key]) {
+                    mergedData[key] = {
+                        '微信名': row['微信名'].trim(),
+                        '手机号': row['手机号'].trim(),
+                        '月卡': 0,
+                        '季卡': 0,
+                        '年卡': 0,
+                        '是否赠送': false,
+                        'giftMonthlyTotal': 0,
+                        'giftDailyTotal': 0
+                    };
+                }
+                mergedData[key]['月卡'] += parseInt(row['月卡'] || 0);
+                mergedData[key]['季卡'] += parseInt(row['季卡'] || 0);
+                mergedData[key]['年卡'] += parseInt(row['年卡'] || 0);
+                if (rowGift) {
+                    mergedData[key]['是否赠送'] = true;
+                    const rg = getRowGift(row);
+                    mergedData[key]['giftMonthlyTotal'] += rg.giftMonthly;
+                    mergedData[key]['giftDailyTotal'] += rg.giftDaily;
+                }
+            });
+            
+            let totalGiftMonthly = 0;
+            let totalGiftDaily = 0;
+            if (isGiftEnabled) {
+                Object.values(mergedData).forEach(item => {
+                    if (item['是否赠送']) {
+                        totalGiftMonthly += item['giftMonthlyTotal'] || 0;
+                        totalGiftDaily += item['giftDailyTotal'] || 0;
+                    }
+                });
+            }
+            
+            // 验证卡密总数（基础需求+赠送需求，如果启用赠送）
+            if (monthlyCards.length < totalMonthlyNeeded + totalGiftMonthly) {
+                showAssignError(`月卡密数量不足，基础需要${totalMonthlyNeeded}个${isGiftEnabled ? ` + 赠送需要${totalGiftMonthly}个 = 共需${totalMonthlyNeeded + totalGiftMonthly}个` : ''}，实际只有${monthlyCards.length}个`);
+                return;
+            }
+            
+            if (isGiftEnabled && dailyCards.length < totalGiftDaily) {
+                showAssignError(`天卡密数量不足，赠送需要${totalGiftDaily}个，实际只有${dailyCards.length}个`);
+                return;
+            }
+            
+            if (quarterlyCards.length < totalQuarterlyNeeded) {
+                showAssignError(`季卡密数量不足，需要${totalQuarterlyNeeded}个，实际只有${quarterlyCards.length}个`);
+                return;
+            }
+            
+            if (yearlyCards.length < totalYearlyNeeded) {
+                showAssignError(`年卡密数量不足，需要${totalYearlyNeeded}个，实际只有${yearlyCards.length}个`);
+                return;
+            }
+            
+            // 开始分配卡密
+            mergedAssignedData = [];
+            let dailyIndex = 0;
+            let monthlyIndex = 0;
+            let quarterlyIndex = 0;
+            let yearlyIndex = 0;
+            
+            Object.values(mergedData).forEach((item, index) => {
+                const monthlyCount = item['月卡'];
+                const quarterlyCount = item['季卡'];
+                const yearlyCount = item['年卡'];
+                
+                // 1. 分配基础卡密（用户需要的）
+                const assignedMonthly = monthlyCards.slice(monthlyIndex, monthlyIndex + monthlyCount);
+                monthlyIndex += monthlyCount;
+                
+                const assignedQuarterly = quarterlyCards.slice(quarterlyIndex, quarterlyIndex + quarterlyCount);
+                quarterlyIndex += quarterlyCount;
+                
+                const assignedYearly = yearlyCards.slice(yearlyIndex, yearlyIndex + yearlyCount);
+                yearlyIndex += yearlyCount;
+                
+                // 2. 计算并分配赠送卡密（仅当全局启用且该用户勾选「是否赠送」时）
+                let giftMonthly = 0, giftDaily = 0;
+                let assignedGiftMonthly = [], assignedGiftDaily = [];
+                const userGiftEnabled = item['是否赠送'] === true || item['是否赠送'] === 'true' || item['是否赠送'] === 1;
+                
+                if (isGiftEnabled && userGiftEnabled) {
+                    giftMonthly = item['giftMonthlyTotal'] || 0;
+                    giftDaily = item['giftDailyTotal'] || 0;
+                    assignedGiftMonthly = monthlyCards.slice(monthlyIndex, monthlyIndex + giftMonthly);
+                    monthlyIndex += giftMonthly;
+                    assignedGiftDaily = dailyCards.slice(dailyIndex, dailyIndex + giftDaily);
+                    dailyIndex += giftDaily;
+                }
+                
+                // 整理分配结果（适配换行卡密格式）
+                const resultItem = {
+                    '序号': index + 1,
+                    '微信名': item['微信名'],
+                    '手机号': item['手机号'],
+                    '月卡-需/分': `${monthlyCount}/${assignedMonthly.length}`,
+                    '月卡': formatCardList(assignedMonthly, 'monthly'),
+                    '季卡-需/分': `${quarterlyCount}/${assignedQuarterly.length}`,
+                    '季卡': formatCardList(assignedQuarterly, 'quarterly'),
+                    '年卡-需/分': `${yearlyCount}/${assignedYearly.length}`,
+                    '年卡': formatCardList(assignedYearly, 'yearly'),
+                    '赠送月卡-需/分': `${giftMonthly}/${assignedGiftMonthly.length}`,
+                    '赠送月卡': formatCardList(assignedGiftMonthly, 'giftMonthly'),
+                    '赠送天卡-需/分': `${giftDaily}/${assignedGiftDaily.length}`,
+                    '赠送天卡': formatCardList(assignedGiftDaily, 'giftDaily')
+                };
+                mergedAssignedData.push(resultItem);
+            });
+            
+            // 记录剩余卡密
+            remainingCards = {
+                daily: dailyCards.slice(dailyIndex),
+                monthly: monthlyCards.slice(monthlyIndex),
+                quarterly: quarterlyCards.slice(quarterlyIndex),
+                yearly: yearlyCards.slice(yearlyIndex)
+            };
+            
+            // 显示分配结果
+            renderAssignedResult();
+            renderRemainingCards();
+            document.getElementById('assignedResultTable').classList.remove('hidden');
+            document.getElementById('remainingCardsTable').classList.remove('hidden');
+            
+            // 显示成功提示
+            showAssignSuccess(`卡密分配成功！
+基础分配：${totalMonthlyNeeded}张月卡、${totalQuarterlyNeeded}张季卡、${totalYearlyNeeded}张年卡
+赠送分配：${totalGiftMonthly}张月卡、${totalGiftDaily}张天卡`);
+        }
+        
+        // 渲染分配结果（适配换行显示）
+        function renderAssignedResult() {
+            const resultBody = document.getElementById('assignedResultBody');
+            resultBody.innerHTML = '';
+            
+            mergedAssignedData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-all-300';
+                
+                Object.values(item).forEach((value, colIndex) => {
+                    const td = document.createElement('td');
+                    // 卡密列使用pre-line样式支持换行显示
+                    if ([4,6,8,10,12].includes(colIndex)) { // 月卡、季卡、年卡、赠送月卡、赠送天卡列
+                        td.className = 'px-6 py-4 whitespace-pre-line text-sm text-gray-900';
+                    } else {
+                        td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+                    }
+                    td.textContent = value || '';
+                    tr.appendChild(td);
+                });
+                
+                resultBody.appendChild(tr);
+            });
+        }
+        
+        // 渲染剩余卡密（适配换行格式）
+        function renderRemainingCards() {
+            const remainingBody = document.getElementById('remainingCardsBody');
+            remainingBody.innerHTML = '';
+            
+            const cardTypes = [
+                { type: '天卡', list: remainingCards.daily, color: 'text-daily', formatType: 'daily' },
+                { type: '月卡', list: remainingCards.monthly, color: 'text-primary', formatType: 'monthly' },
+                { type: '季卡', list: remainingCards.quarterly, color: 'text-accent', formatType: 'quarterly' },
+                { type: '年卡', list: remainingCards.yearly, color: 'text-secondary', formatType: 'yearly' }
+            ];
+            
+            cardTypes.forEach(cardType => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-all-300';
+                
+                // 卡类型
+                const typeTd = document.createElement('td');
+                typeTd.className = `px-6 py-4 whitespace-nowrap text-sm ${cardType.color} font-medium`;
+                typeTd.textContent = cardType.type;
+                tr.appendChild(typeTd);
+                
+                // 剩余数量
+                const countTd = document.createElement('td');
+                countTd.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+                countTd.textContent = cardType.list.length;
+                tr.appendChild(countTd);
+                
+                // 剩余卡密列表（换行格式）
+                const listTd = document.createElement('td');
+                listTd.className = 'px-6 py-4 whitespace-pre-line text-sm text-gray-900';
+                listTd.textContent = formatCardList(cardType.list, cardType.formatType) || '无';
+                tr.appendChild(listTd);
+                
+                remainingBody.appendChild(tr);
+            });
+        }
+        
+        // 显示分配成功提示
+        function showAssignSuccess(message) {
+            document.getElementById('assignError').classList.add('hidden');
+            const resultEl = document.getElementById('assignResult');
+            const resultText = document.getElementById('assignResultText');
+            
+            resultText.textContent = message.replace(/\n/g, ' ');
+            resultEl.classList.remove('hidden');
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                resultEl.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // 显示分配错误提示
+        function showAssignError(message) {
+            document.getElementById('assignResult').classList.add('hidden');
+            const errorEl = document.getElementById('assignError');
+            const errorText = document.getElementById('assignErrorText');
+            
+            errorText.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
+        
+        // 导出到Excel（支持单元格内换行）
+        function exportToExcel() {
+            if (mergedAssignedData.length === 0) {
+                showAssignError('请先分配卡密再导出');
+                return;
+            }
+            
+            // 准备工作簿
+            const wb = XLSX.utils.book_new();
+            
+            // 严格按照用户指定的列顺序生成分配结果工作表
+            const exportData = mergedAssignedData.map(item => ({
+                '序号': item['序号'],
+                '微信名': item['微信名'],
+                '手机号': item['手机号'],
+                '月卡-需/分': item['月卡-需/分'],
+                '月卡': item['月卡'],
+                '季卡-需/分': item['季卡-需/分'],
+                '季卡': item['季卡'],
+                '年卡-需/分': item['年卡-需/分'],
+                '年卡': item['年卡'],
+                '赠送月卡-需/分': item['赠送月卡-需/分'],
+                '赠送月卡': item['赠送月卡'],
+                '赠送天卡-需/分': item['赠送天卡-需/分'],
+                '赠送天卡': item['赠送天卡']
+            }));
+            
+            const resultWS = XLSX.utils.json_to_sheet(exportData, {
+                // 配置单元格格式支持换行
+                cellStyles: true
+            });
+            
+            // 设置卡密列的单元格格式为自动换行
+            const cardColumns = ['E', 'G', 'I', 'K', 'M']; // 月卡、季卡、年卡、赠送月卡、赠送天卡列
+            cardColumns.forEach(col => {
+                for (let row = 2; row <= exportData.length + 1; row++) {
+                    const cellRef = `${col}${row}`;
+                    if (resultWS[cellRef]) {
+                        // 设置单元格自动换行
+                        resultWS[cellRef].s = {
+                            alignment: {
+                                wrapText: true,
+                                vertical: 'top'
+                            }
+                        };
+                    }
+                }
+            });
+            
+            XLSX.utils.book_append_sheet(wb, resultWS, '卡密分配结果');
+            
+            // 剩余卡密工作表（换行格式）
+            const remainingData = [
+                { 
+                    '卡类型': '天卡', 
+                    '剩余数量': remainingCards.daily.length, 
+                    '剩余卡密': formatCardList(remainingCards.daily, 'daily') || '无' 
+                },
+                { 
+                    '卡类型': '月卡', 
+                    '剩余数量': remainingCards.monthly.length, 
+                    '剩余卡密': formatCardList(remainingCards.monthly, 'monthly') || '无' 
+                },
+                { 
+                    '卡类型': '季卡', 
+                    '剩余数量': remainingCards.quarterly.length, 
+                    '剩余卡密': formatCardList(remainingCards.quarterly, 'quarterly') || '无' 
+                },
+                { 
+                    '卡类型': '年卡', 
+                    '剩余数量': remainingCards.yearly.length, 
+                    '剩余卡密': formatCardList(remainingCards.yearly, 'yearly') || '无' 
+                }
+            ];
+            const remainingWS = XLSX.utils.json_to_sheet(remainingData, {
+                cellStyles: true
+            });
+            
+            // 设置剩余卡密列自动换行
+            for (let row = 2; row <= 5; row++) {
+                const cellRef = `C${row}`;
+                if (remainingWS[cellRef]) {
+                    remainingWS[cellRef].s = {
+                        alignment: {
+                            wrapText: true,
+                            vertical: 'top'
+                        }
+                    };
+                }
+            }
+            
+            XLSX.utils.book_append_sheet(wb, remainingWS, '剩余卡密');
+            
+            // 导出文件
+            XLSX.writeFile(wb, `卡密分配结果_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+        }
+        
+        // 初始化下雪特效
+        function initSnowEffect() {
+            const snowContainer = document.getElementById('snow-container');
+            const snowflakeCount = 100; // 增加雪花数量
+            
+            // 雪花字符数组
+            const snowflakeChars = ['❄', '❅', '❆', '•', '*', '◈', '◇', '◈', '✦', '✧'];
+            
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                // 随机选择雪花字符
+                snowflake.innerHTML = snowflakeChars[Math.floor(Math.random() * snowflakeChars.length)];
+                
+                // 随机位置
+                const startLeft = Math.random() * 100;
+                snowflake.style.left = `${startLeft}vw`;
+                
+                // 随机大小
+                const size = Math.random() * 1.5 + 0.5;
+                snowflake.style.fontSize = `${size}em`;
+                
+                // 随机浅彩色
+                const colors = [
+                    'rgba(255, 182, 193, 0.7)', // 浅粉色
+                    'rgba(173, 216, 230, 0.7)', // 浅蓝色
+                    'rgba(144, 238, 144, 0.7)', // 浅绿色
+                    'rgba(255, 255, 224, 0.7)', // 浅黄色
+                    'rgba(221, 160, 221, 0.7)', // 浅紫色
+                    'rgba(255, 218, 185, 0.7)', // 浅橙色
+                    'rgba(175, 238, 238, 0.7)', // 浅青色
+                    'rgba(255, 192, 203, 0.7)', // 浅粉红
+                    'rgba(230, 230, 250, 0.7)'  // 浅薰衣草色
+                ];
+                snowflake.style.color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // 随机透明度
+                snowflake.style.opacity = Math.random() * 0.4 + 0.3;
+                
+                // 随机动画持续时间
+                const duration = Math.random() * 10 + 5;
+                snowflake.style.animationDuration = `${duration}s`;
+                
+                // 随机延迟
+                const delay = Math.random() * 5;
+                snowflake.style.animationDelay = `${delay}s`;
+                
+                snowContainer.appendChild(snowflake);
+            }
+        }
+        
+        // 分配记录管理功能
+        
+        // 保存分配记录到localStorage
+        function saveAssignmentRecord() {
+            if (mergedAssignedData.length === 0) {
+                showAssignError('请先完成一次分配再保存记录');
+                return;
+            }
+            
+            const record = {
+                id: Date.now(), // 使用时间戳作为唯一ID
+                timestamp: new Date().toLocaleString(),
+                data: JSON.parse(JSON.stringify(mergedAssignedData)), // 深拷贝数据
+                remainingCards: JSON.parse(JSON.stringify(remainingCards))
+            };
+            
+            // 获取现有记录
+            let records = JSON.parse(localStorage.getItem('assignmentRecords') || '[]');
+            
+            // 添加新记录
+            records.unshift(record); // 添加到数组开头
+            
+            // 限制记录数量为50条，防止localStorage过大
+            if (records.length > 50) {
+                records = records.slice(0, 50);
+            }
+            
+            // 保存记录
+            localStorage.setItem('assignmentRecords', JSON.stringify(records));
+            
+            // 显示成功提示
+            const successEl = document.getElementById('assignResult');
+            const successText = document.getElementById('assignResultText');
+            successText.innerHTML = '分配记录已保存！';
+            successEl.classList.remove('hidden');
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                successEl.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // 查看历史记录
+        function viewHistoryRecords() {
+            const records = JSON.parse(localStorage.getItem('assignmentRecords') || '[]');
+            
+            // 创建历史记录模态框
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+            modal.id = 'historyModal';
+            
+            if (records.length === 0) {
+                modal.innerHTML = '<div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"><div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 text-white flex justify-between items-center"><h3 class="text-lg font-bold flex items-center"><i class="fa fa-history mr-2"></i>历史分配记录</h3><button onclick="closeHistoryModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button></div><div class="p-6 text-center"><i class="fa fa-inbox text-5xl text-gray-300 mb-4"></i><p class="text-gray-600 text-lg">暂无分配记录</p><p class="text-gray-500 mt-2">完成一次分配后，记录将自动保存</p></div></div>';
+            } else {
+                let recordsHtml = '';
+                records.forEach((record, index) => {
+                    recordsHtml += '<div class="border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md transition-shadow"><div class="flex justify-between items-start"><div><h4 class="font-medium text-gray-900">记录 #' + record.id + '</h4><p class="text-sm text-gray-500">' + record.timestamp + '</p></div><div class="flex space-x-2"><button onclick="loadRecordData(' + index + ')" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1 rounded-lg text-sm transition-colors"><i class="fa fa-eye mr-1"></i>查看</button><button onclick="deleteRecord(' + index + ')" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-lg text-sm transition-colors"><i class="fa fa-trash mr-1"></i>删除</button></div></div></div>';
+                });
+                
+                modal.innerHTML = '<div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"><div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 text-white flex justify-between items-center"><h3 class="text-lg font-bold flex items-center"><i class="fa fa-history mr-2"></i>历史分配记录 (' + records.length + '条)</h3><button onclick="closeHistoryModal()" class="text-white hover:text-gray-200 text-2xl">&times;</button></div><div class="p-4 bg-gray-50 border-b"><div class="flex justify-between"><p class="text-gray-600">点击"查看"按钮可查看具体分配详情</p><button onclick="clearAllRecords()" class="bg-red-100 hover:bg-red-200 text-red-700 px-3 py-1 rounded-lg text-sm transition-colors"><i class="fa fa-trash mr-1"></i>清空所有</button></div></div><div class="p-4 overflow-y-auto flex-grow">' + recordsHtml + '</div></div>';
+            }
+            
+            document.body.appendChild(modal);
+        }
+        
+        // 关闭历史记录模态框
+        function closeHistoryModal() {
+            const modal = document.getElementById('historyModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // 加载特定记录的数据
+        function loadRecordData(index) {
+            const records = JSON.parse(localStorage.getItem('assignmentRecords') || '[]');
+            if (records[index]) {
+                const record = records[index];
+                
+                // 在新窗口中显示详细记录
+                const recordDetail = document.createElement('div');
+                recordDetail.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4';
+                recordDetail.id = 'recordDetail';
+                
+                // 构建分配结果表格
+                let detailHtml = '';
+                record.data.forEach(item => {
+                    let rowHtml = '<tr class="hover:bg-gray-50 transition-all-300">';
+                    Object.values(item).forEach((value, colIndex) => {
+                        if ([4,6,8,10,12].includes(colIndex)) { // 卡密列使用换行显示
+                            rowHtml += '<td class="px-4 py-3 whitespace-pre-line text-sm text-gray-900 border border-gray-200">' + (value || '') + '</td>';
+                        } else {
+                            rowHtml += '<td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900 border border-gray-200">' + (value || '') + '</td>';
+                        }
+                    });
+                    rowHtml += '</tr>';
+                    detailHtml += rowHtml;
+                });
+                
+                recordDetail.innerHTML = '<div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col"><div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-4 text-white flex justify-between items-center"><h3 class="text-lg font-bold flex items-center"><i class="fa fa-file-text mr-2"></i>分配记录详情</h3><div class="flex space-x-2"><button onclick="exportRecordToExcel(' + index + ')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm transition-colors"><i class="fa fa-download mr-1"></i>导出</button><button onclick="closeRecordDetail()" class="text-white hover:text-gray-200 text-2xl">&times;</button></div></div><div class="p-4 bg-gray-50 border-b"><p class="text-gray-600">记录ID: ' + record.id + ' | 时间: ' + record.timestamp + '</p></div><div class="overflow-y-auto flex-grow"><table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-100 sticky top-0 z-10"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">序号</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">微信名</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">手机号</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">月卡-需/分</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">月卡</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">季卡-需/分</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">季卡</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">年卡-需/分</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">年卡</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">赠送月卡-需/分</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">赠送月卡</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">赠送天卡-需/分</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border border-gray-200">赠送天卡</th></tr></thead><tbody class="divide-y divide-gray-200 bg-white">' + detailHtml + '</tbody></table></div></div>';
+                
+                document.body.appendChild(recordDetail);
+            }
+        }
+        
+        // 关闭记录详情
+        function closeRecordDetail() {
+            const detail = document.getElementById('recordDetail');
+            if (detail) {
+                detail.remove();
+            }
+        }
+        
+        // 删除特定记录
+        function deleteRecord(index) {
+            if (confirm('确定要删除这条记录吗？')) {
+                let records = JSON.parse(localStorage.getItem('assignmentRecords') || '[]');
+                records.splice(index, 1); // 删除指定索引的记录
+                localStorage.setItem('assignmentRecords', JSON.stringify(records));
+                closeHistoryModal();
+                viewHistoryRecords(); // 重新打开记录列表
+            }
+        }
+        
+        // 清空所有记录
+        function clearAllRecords() {
+            if (confirm('确定要清空所有记录吗？此操作不可恢复')) {
+                localStorage.removeItem('assignmentRecords');
+                closeHistoryModal();
+            }
+        }
+        
+        // 导出特定记录到Excel
+        function exportRecordToExcel(index) {
+            const records = JSON.parse(localStorage.getItem('assignmentRecords') || '[]');
+            if (records[index]) {
+                const record = records[index];
+                
+                // 准备工作簿
+                const wb = XLSX.utils.book_new();
+                
+                // 创建工作表
+                const ws = XLSX.utils.json_to_sheet(record.data);
+                XLSX.utils.book_append_sheet(wb, ws, '分配记录');
+                
+                // 导出文件
+                XLSX.writeFile(wb, `分配记录_${record.id}.xlsx`);
+            }
+        }
+        
+        // 修改原来的分配成功函数，在其中添加保存记录的功能
+        const originalShowAssignSuccess = showAssignSuccess;
+        showAssignSuccess = function(message) {
+            originalShowAssignSuccess(message);
+            
+            // 添加保存记录的按钮
+            const successEl = document.getElementById('assignResult');
+            if (!successEl.querySelector('#saveRecordBtn')) {
+                const saveBtn = document.createElement('button');
+                saveBtn.id = 'saveRecordBtn';
+                saveBtn.className = 'ml-4 bg-blue-500 hover:bg-blue-600 text-white py-1.5 px-3 rounded-lg text-sm transition-colors';
+                saveBtn.innerHTML = '<i class="fa fa-save mr-1"></i>保存记录';
+                saveBtn.onclick = saveAssignmentRecord;
+                successEl.querySelector('p').appendChild(saveBtn);
+            }
+        };
+    </script>
+    
+    <!-- 添加查看历史记录按钮 -->
+    <div class="fixed bottom-6 right-6 z-40">
+        <button 
+            onclick="viewHistoryRecords()" 
+            class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white p-4 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 flex items-center justify-center"
+            title="查看历史分配记录"
+        >
+            <i class="fa fa-history text-xl"></i>
+        </button>
+    </div>
+</body>
+</html>

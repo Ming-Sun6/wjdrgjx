@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ai云手机分配系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5', // 更深的紫蓝色作为主色调
+                        secondary: '#10B981', // 更深的绿色作为辅助色
+                        accent: '#F59E0B', // 更深的橙色作为强调色
+                        danger: '#EF4444',
+                        dark: '#1E293B',
+                        light: '#F8FAFC',
+                        daily: '#7C3AED', // 天卡专属深紫色
+                        card1: '#2563EB', // 月卡卡片深蓝色
+                        card2: '#D97706', // 季卡卡片深橙色
+                        card3: '#059669'  // 年卡卡片深绿色
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'card': '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
+                        'card-hover': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .bg-gradient-primary {
+                background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            }
+            
+            .bg-gradient-secondary {
+                background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            }
+            
+            .bg-gradient-accent {
+                background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            }
+            .bg-glass {
+                background: rgba(255, 255, 255, 0.65);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+            }
+            
+            .bg-frosted {
+                background: rgba(255, 255, 255, 0.6);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.45);
+            }
+            
+            .bg-frosted-dark {
+                background: rgba(255, 255, 255, 0.68);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.5);
+            }
+            .transition-all-300 {
+                transition: all 0.3s ease;
+            }
+            .scale-hover {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .scale-hover:hover {
+                transform: translateY(-3px);
+            }
+            
+            /* 脉冲动画 */
+            .animate-pulse {
+                animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: .5;
+                }
+            }
+            
+            /* 弹跳动画 */
+            .animate-bounce {
+                animation: bounce 0.5s ease;
+            }
+            
+            @keyframes bounce {
+                0%, 100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+            }
+            
+            /* 适配表格内换行显示 */
+            .whitespace-pre-line {
+                white-space: pre-line;
+            }
+            
+            /* 鼠标悬停渐变效果 */
+            .hover-gradient {
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .hover-gradient::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(135deg, rgba(79, 70, 229, 0.2), rgba(124, 58, 237, 0.2));
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                z-index: -1;
+            }
+            
+            .hover-gradient:hover::before {
+                opacity: 1;
+            }
+            
+            /* 彩虹背景动画 */
+            @keyframes rainbow {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+            }
+            
+            .rainbow-bg {
+                background: linear-gradient(45deg, #ffebee, #fff3e0, #fff8e1, #f1f8e9, #e8f5e8, #e0f2f1, #e0f7fa, #e3f2fd, #e8eaf6, #f3e5f5, #fce4ec, #f9ebea, #ffebee);
+                background-size: 200% 200%;
+                animation: rainbow 15s ease infinite;
+            }
+            
+            /* 下雪特效 */
+            .snowflake {
+                position: fixed;
+                top: -20px;
+                z-index: 9999;
+                user-select: none;
+                pointer-events: none;
+                font-size: 1em;
+                animation-name: snowFall;
+                animation-timing-function: linear;
+                animation-iteration-count: infinite;
+            }
+            
+            @keyframes snowFall {
+                0% {
+                    transform: translateY(-10vh) rotate(0deg);
+                    opacity: 0;
+                }
+                10% {
+                    opacity: 1;
+                }
+                90% {
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        }
+    </style>
+</head>
+<body class="rainbow-bg min-h-screen font-inter text-dark relative">
+    <!-- 下雪特效容器 -->
+    <div id="snow-container"></div>
+    
+    <!-- 顶部装饰条 -->
+    <div class="bg-gradient-primary h-1 w-full"></div>
+    
+    <header class="bg-frosted shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+            <h1 class="text-[clamp(1.25rem,3vw,1.75rem)] font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent flex items-center">
+                <i class="fa fa-table mr-2 text-amber-500"></i>Ai云手机分配系统
+            </h1>
+            <div class="text-sm text-gray-500 flex items-center">
+                <span class="bg-gradient-to-r from-indigo-200/70 to-purple-200/70 text-indigo-700 px-2 py-1 rounded text-xs font-medium rounded-lg">版本V1.0</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 hover-gradient bg-white/70 rounded-2xl p-2">
+        <!-- 引导卡片 -->
+        <div class="bg-frosted-dark rounded-xl shadow-card p-4 mb-6 flex flex-col md:flex-row items-center gap-4 hover-gradient">
+            <div class="flex-shrink-0 bg-primary/70 p-3 rounded-full">
+                <i class="fa fa-lightbulb-o text-2xl text-primary"></i>
+            </div>
+            <div class="text-gray-600 text-sm md:text-base">
+                <p class="font-medium text-primary">使用流程：</p>
+                <p class="mt-1">① 粘贴表格数据并解析 → ② 输入卡密列表 → ③ 分配卡密 → ④ 导出结果</p>
+                <p class="mt-1 text-daily text-sm">导出格式：序号 微信名 手机号 QVIP-需/分 QVIP BVIP-需/分 BVIP VIP-需/分 VIP（新开与续费已合并）</p>
+                <p class="mt-1 text-primary text-sm">卡密格式：1.QVIP:xxx;<br>2.QVIP:xxx;<br>3.BVIP:xxx;</p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- 左侧表格区域 -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- 原始表格数据卡片 -->
+                <div class="bg-frosted-dark rounded-xl shadow-card p-6 scale-hover hover-gradient">
+                    <h2 class="text-xl font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-list-alt mr-2 text-primary"></i>原始表格数据
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <label for="tableInput" class="block text-sm font-medium text-gray-700 mb-2">粘贴表格数据（仅需数据行，支持制表符分隔）：</label>
+                        <div class="bg-gray-100/80 p-3 rounded-lg mb-3 text-sm text-gray-600 border border-gray-100">
+                            <i class="fa fa-info-circle mr-1 text-accent"></i>
+                            固定列格式：微信名	手机号	QVIP数量	BVIP数量	VIP数量（新开与续费合并，无需输入表头）
+                        </div>
+                        <textarea 
+                            id="tableInput" 
+                            class="w-full h-64 p-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请"粘贴"纯数据行，例如：
+茗子	13800138000	1	0	0
+煤球	13900139000	5	1	0
+某某某	13700137000	3	2	1
+
+格式为 微信名 手机号 QVIP数量 BVIP数量 VIP数量（新开与续费已合并）
+直接选择表格Ctrl+C复制粘贴到此处⚠️请勿手动敲字到这里 手敲解析会出错
+"></textarea>
+                    </div>
+                    
+                    <button 
+                        id="parseTableBtn" 
+                        class="bg-gradient-primary hover:bg-gradient-to-r from-indigo-700 to-purple-700 text-white py-3 px-6 rounded-xl transition-all-300 flex items-center font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    >
+                        <i class="fa fa-refresh mr-2"></i>解析表格数据
+                    </button>
+                </div>
+                
+                <!-- 预览表格卡片 -->
+                <div class="bg-frosted-dark rounded-xl shadow-card p-6 scale-hover hover-gradient">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-table mr-2 text-primary"></i>预览/编辑表格
+                    </h3>
+                    
+                    <div class="overflow-x-auto mb-4 rounded-lg border border-gray-100">
+                        <table id="previewTable" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr id="tableHeader">
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">微信名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QVIP</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BVIP</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">VIP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="bg-white/80 divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 表格统计信息 -->
+                    <div class="border-t border-gray-200 pt-4 mt-2">
+                        <div id="tableSummary" class="grid grid-cols-1 md:grid-cols-4 gap-3 px-6">
+                            <div class="flex flex-col">
+                                <span class="text-sm text-gray-500 mb-1">总计</span>
+                                <div class="flex flex-wrap gap-2">
+                                    <!-- QVIP统计卡片（新开+续费合并） -->
+                                    <div class="flex items-center bg-gradient-to-r from-blue-200/80 to-indigo-200/80 rounded-lg p-2 border border-blue-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                        <div class="bg-blue-300/80 p-2 rounded-lg mr-2">
+                                            <i class="fa fa-calendar text-blue-700"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-600">QVIP</div>
+                                            <div id="totalQVIP" class="text-lg font-bold text-blue-800">0</div>
+                                        </div>
+                                    </div>
+                                    <!-- BVIP统计卡片（新开+续费合并） -->
+                                    <div class="flex items-center bg-gradient-to-r from-emerald-200/80 to-teal-200/80 rounded-lg p-2 border border-emerald-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                        <div class="bg-emerald-300/80 p-2 rounded-lg mr-2">
+                                            <i class="fa fa-calendar-plus-o text-emerald-700"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-600">BVIP</div>
+                                            <div id="totalBVIP" class="text-lg font-bold text-emerald-800">0</div>
+                                        </div>
+                                    </div>
+                                    <!-- VIP统计卡片（新开+续费合并） -->
+                                    <div class="flex items-center bg-gradient-to-r from-rose-200/80 to-pink-200/80 rounded-lg p-2 border border-rose-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                        <div class="bg-rose-300/80 p-2 rounded-lg mr-2">
+                                            <i class="fa fa-star text-rose-700"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-600">VIP</div>
+                                            <div id="totalVIP" class="text-lg font-bold text-rose-800">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 折算总月数卡片 -->
+                            <div class="flex items-center bg-gradient-to-r from-purple-200/80 to-violet-200/80 rounded-lg p-3 border border-purple-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                <div class="bg-purple-300/80 p-2 rounded-lg mr-3">
+                                    <i class="fa fa-calculator text-purple-700"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-600">折算总月数</div>
+                                    <div id="totalConvertedMonths" class="text-xl font-bold text-purple-800">0</div>
+                                    <div class="text-xs text-gray-600 mt-1">（VIP总数量）</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 总费用卡片 -->
+                            <div class="flex items-center bg-gradient-to-r from-rose-200/80 to-pink-200/80 rounded-lg p-3 border border-rose-200 shadow-sm transition-all-300 hover:shadow-md hover-gradient">
+                                <div class="bg-rose-300/80 p-2 rounded-lg mr-3">
+                                    <i class="fa fa-yen text-rose-700"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-gray-600">总费用</div>
+                                    <div id="totalCost" class="text-xl font-bold text-rose-800">0</div>
+                                    <div class="text-xs text-gray-600 mt-1">元</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="tableError" class="hidden text-danger mt-4 p-4 bg-gradient-to-r from-red-200/80 to-rose-200/80 rounded-xl border border-red-200 shadow-sm">
+                        <div class="flex items-center">
+                            <i class="fa fa-exclamation-triangle text-red-500 mr-3 text-lg"></i>
+                            <span id="tableErrorText" class="font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 分配结果卡片 -->
+                <div id="assignedResultTable" class="bg-frosted-dark rounded-xl shadow-card p-6 scale-hover hidden hover-gradient">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-gift mr-2 text-secondary"></i>卡密分配结果（同名合并）
+                    </h3>
+                    <div class="overflow-x-auto mb-4 max-h-80 overflow-y-auto rounded-lg border border-gray-100 bg-white/80">
+                        <table class="min-w-full divide-y divide-gray-200 bg-white/90">
+                            <thead class="bg-gray-100/80 sticky top-0 z-10">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">序号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">微信名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">手机号</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QVIP-需/分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QVIP</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BVIP-需/分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BVIP</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">VIP-需/分</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">VIP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignedResultBody" class="divide-y divide-gray-200 bg-white/80"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 剩余卡密卡片 -->
+                <div id="remainingCardsTable" class="bg-frosted-dark rounded-xl shadow-card p-6 scale-hover hidden hover-gradient">
+                    <h3 class="text-lg font-semibold text-dark mb-4 flex items-center">
+                        <i class="fa fa-archive mr-2 text-primary"></i>剩余未分配卡密
+                    </h3>
+                    <div class="overflow-x-auto mb-4 rounded-lg border border-gray-100 bg-white/80">
+                        <table class="min-w-full divide-y divide-gray-200 bg-white/90">
+                            <thead class="bg-gray-100/80">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">卡类型</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余数量</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">剩余卡密列表</th>
+                                </tr>
+                            </thead>
+                            <tbody id="remainingCardsBody" class="divide-y divide-gray-200 bg-white/80"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧卡密设置区域 -->
+            <div class="space-y-6">
+                <!-- 卡密列表设置卡片 -->
+                <div class="bg-frosted-dark/40 rounded-xl shadow-card p-6 scale-hover hover-gradient">
+                    <h2 class="text-xl font-semibold text-dark mb-5 flex items-center">
+                        <i class="fa fa-tasks mr-2 text-primary"></i>卡密列表设置
+                    </h2>
+                    
+                    <!-- QVIP卡密（新开+续费合并为一个池） -->
+                    <div class="mb-6">
+                        <label for="qVipCardsInput" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fa fa-calendar mr-1 text-secondary"></i>QVIP卡密列表（一行一个，新开与续费通用）：
+                        </label>
+                        <textarea 
+                            id="qVipCardsInput" 
+                            class="w-full h-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请输入QVIP卡密，一行一个（新开/续费合并）
+例如：
+QVIP2025001
+QVIP2025002"></textarea>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            <span id="qVipCardCount">当前数量：0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- BVIP卡密（新开+续费合并为一个池） -->
+                    <div class="mb-6">
+                        <label for="bVipCardsInput" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fa fa-calendar-plus-o mr-1 text-primary"></i>BVIP卡密列表（一行一个，新开与续费通用）：
+                        </label>
+                        <textarea 
+                            id="bVipCardsInput" 
+                            class="w-full h-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请输入BVIP卡密，一行一个（新开/续费合并）
+例如：
+BVIP2025001
+BVIP2025002"></textarea>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            <span id="bVipCardCount">当前数量：0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- VIP卡密（新开+续费合并为一个池） -->
+                    <div class="mb-6">
+                        <label for="vipCardsInput" class="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                            <i class="fa fa-star mr-1 text-secondary"></i>VIP卡密列表（一行一个，新开与续费通用）：
+                        </label>
+                        <textarea 
+                            id="vipCardsInput" 
+                            class="w-full h-28 p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 resize-y shadow-sm bg-white/90"
+                            placeholder="请输入VIP卡密，一行一个（新开/续费合并）
+例如：
+VIP2025001
+VIP2025002"></textarea>
+                        <div class="text-xs text-gray-500 mt-1 flex items-center">
+                            <i class="fa fa-info-circle mr-1"></i>
+                            <span id="vipCardCount">当前数量：0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="flex flex-col gap-3 mt-6">
+                        <button 
+                            id="assignBtn" 
+                            class="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white py-3.5 px-6 rounded-xl transition-all-300 flex items-center justify-center font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        >
+                            <i class="fa fa-gift mr-2"></i>按数量分配卡密
+                        </button>
+                        
+                        <button 
+                            id="exportBtn" 
+                            class="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white py-3.5 px-6 rounded-xl transition-all-300 flex items-center justify-center font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        >
+                            <i class="fa fa-download mr-2"></i>导出Excel表格
+                        </button>
+                    </div>
+                    
+                    <!-- 分配结果提示 -->
+                    <div id="assignResult" class="mt-6 hidden">
+                        <h3 class="text-base font-semibold text-dark mb-2 flex items-center">
+                            <i class="fa fa-check-circle mr-2 text-secondary"></i>分配结果
+                        </h3>
+                        <div class="p-3 bg-green-200/80 border border-green-100 rounded-lg text-success text-sm">
+                            <p id="assignResultText"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- 错误提示 -->
+                    <div id="assignError" class="hidden text-danger mb-4 flex items-center mt-4 p-3 bg-red-200/80 rounded-lg border border-red-100">
+                        <i class="fa fa-exclamation-circle mr-2"></i>
+                        <span id="assignErrorText"></span>
+                    </div>
+                </div>
+                
+                <!-- 帮助卡片 -->
+                <div class="bg-frosted rounded-xl p-5 border border-primary/10 hover-gradient">
+                    <h3 class="text-base font-semibold text-primary mb-3 flex items-center">
+                        <i class="fa fa-question-circle mr-2"></i>使用帮助
+                    </h3>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>表格数据需从Excel或其他表格软件中复制粘贴</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>卡密会按顺序分配，确保输入的卡密不重复</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>相同微信名会自动合并计算总需求</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fa fa-check text-secondary mt-1 mr-2"></i>
+                            <span>导出卡密格式：1.QVIP:xxx;<br>2.BVIP:xxx;<br>3.VIP:xxx;</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gradient-to-r from-indigo-600/70 to-purple-600/70 text-white py-8 mt-12 rounded-t-2xl">
+        <div class="container mx-auto px-4 text-center">
+            <div class="mb-4">
+                <span class="inline-block bg-gradient-to-r from-blue-400/80 to-indigo-400/80 text-white px-6 py-2 rounded-full text-lg font-bold shadow-lg">Ai云手机分配系统</span>
+            </div>
+            <p class="text-white/90 text-sm mt-4 font-medium">© 2025 小茗同学(*^▽^*)</p>
+        </div>
+    </footer>
+
+    <script>
+        let tableData = [];
+        const fixedHeaders = ['微信名', '手机号', 'QVIP', 'BVIP', 'VIP'];
+        let mergedAssignedData = [];
+        let remainingCards = { 
+            qVip: [],   // QVIP卡密（新开+续费合并）
+            bVip: [],   // BVIP卡密（新开+续费合并）
+            vip: []     // VIP卡密（新开+续费合并）
+        };
+        
+        // 核心辅助函数：将卡密数组转换为换行的带类型序号格式
+        function formatCardList(cardArray, cardType) {
+            if (!cardArray || cardArray.length === 0) {
+                return '';
+            }
+            const typeNames = { qVip: 'QVIP', bVip: 'BVIP', vip: 'VIP' };
+            const displayType = typeNames[cardType] || cardType;
+            return cardArray.map((card, index) => `${index + 1}.${displayType}:${card};`).join('\n');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('parseTableBtn').addEventListener('click', parseTableData);
+            document.getElementById('assignBtn').addEventListener('click', assignCardsByCount);
+            document.getElementById('exportBtn').addEventListener('click', exportToExcel);
+            
+            // 卡密输入监听（QVIP/BVIP/VIP 三池）
+            document.getElementById('qVipCardsInput').addEventListener('input', updateCardCount);
+            document.getElementById('bVipCardsInput').addEventListener('input', updateCardCount);
+            document.getElementById('vipCardsInput').addEventListener('input', updateCardCount);
+            
+            updateCardCount();
+            
+            if (document.getElementById('tableInput').value.trim()) {
+                parseTableData();
+            }
+            
+            // 初始化下雪特效
+            initSnowEffect();
+        });
+        
+        // 解析表格数据
+        function parseTableData() {
+            const input = document.getElementById('tableInput').value.trim();
+            const tableError = document.getElementById('tableError');
+            const tableErrorText = document.getElementById('tableErrorText');
+            tableData = [];
+            
+            if (!input) {
+                tableError.classList.remove('hidden');
+                tableErrorText.textContent = '请输入表格数据后再解析';
+                document.getElementById('tableBody').innerHTML = '';
+                calculateTableSummary(); // 清空统计
+                return;
+            }
+            
+            try {
+                const rows = input.split('\n');
+                let hasError = false;
+                
+                rows.forEach((row, rowIndex) => {
+                    if (!row.trim()) return;
+                    
+                    // 处理制表符和空格分隔
+                    let cells = row.split(/\t| {2,}/).filter(cell => cell.trim() !== '');
+                    
+                    // 支持5列（QVIP BVIP VIP）或8列（新开QVIP 续费QVIP ... 合并为QVIP/BVIP/VIP）
+                    if (cells.length < 5) {
+                        tableError.classList.remove('hidden');
+                        tableErrorText.textContent = `第${rowIndex + 1}行数据格式错误，至少需要5列（微信名 手机号 QVIP BVIP VIP）`;
+                        hasError = true;
+                        return;
+                    }
+                    
+                    let qVipVal, bVipVal, vipVal;
+                    if (cells.length >= 8) {
+                        // 8列：新开QVIP+续费QVIP -> QVIP，新开BVIP+续费BVIP -> BVIP，新开VIP+续费VIP -> VIP
+                        qVipVal = String(parseInt(cells[2].trim() || 0) + parseInt(cells[3].trim() || 0));
+                        bVipVal = String(parseInt(cells[4].trim() || 0) + parseInt(cells[5].trim() || 0));
+                        vipVal = String(parseInt(cells[6].trim() || 0) + parseInt(cells[7].trim() || 0));
+                    } else {
+                        qVipVal = cells[2].trim() || '0';
+                        bVipVal = cells[3].trim() || '0';
+                        vipVal = cells[4].trim() || '0';
+                    }
+                    
+                    const rowData = {
+                        '微信名': cells[0].trim(),
+                        '手机号': cells[1].trim(),
+                        'QVIP': qVipVal,
+                        'BVIP': bVipVal,
+                        'VIP': vipVal
+                    };
+                    
+                    if (isNaN(parseInt(rowData['QVIP']))) {
+                        tableError.classList.remove('hidden');
+                        tableErrorText.textContent = `第${rowIndex + 1}行QVIP数量不是有效数字`;
+                        hasError = true;
+                    }
+                    if (isNaN(parseInt(rowData['BVIP']))) {
+                        tableError.classList.remove('hidden');
+                        tableErrorText.textContent = `第${rowIndex + 1}行BVIP数量不是有效数字`;
+                        hasError = true;
+                    }
+                    if (isNaN(parseInt(rowData['VIP']))) {
+                        tableError.classList.remove('hidden');
+                        tableErrorText.textContent = `第${rowIndex + 1}行VIP数量不是有效数字`;
+                        hasError = true;
+                    }
+                    
+                    tableData.push(rowData);
+                });
+                
+                if (hasError) {
+                    document.getElementById('tableBody').innerHTML = '';
+                    calculateTableSummary(); // 清空统计
+                    return;
+                }
+                
+                // 渲染表格
+                renderTable();
+                tableError.classList.add('hidden');
+                calculateTableSummary(); // 计算统计
+                addInputEventListeners(); // 添加输入事件监听
+                
+            } catch (error) {
+                tableError.classList.remove('hidden');
+                tableErrorText.textContent = `解析错误: ${error.message}`;
+                document.getElementById('tableBody').innerHTML = '';
+                calculateTableSummary(); // 清空统计
+            }
+        }
+        
+        // 渲染表格
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            tableData.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                tr.dataset.index = index;
+                
+                fixedHeaders.forEach(header => {
+                    const td = document.createElement('td');
+                    td.className = 'px-6 py-4 whitespace-nowrap text-sm';
+                    td.dataset.column = header;
+                    
+                    if (header === '微信名' || header === '手机号') {
+                        // 文本输入框
+                        td.innerHTML = `
+                            <input type="text" value="${row[header] || ''}" 
+                                class="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 bg-white/80"
+                            >
+                        `;
+                    } else {
+                        // 数字输入框
+                        td.innerHTML = `
+                            <input type="number" min="0" value="${row[header] || 0}" 
+                                class="w-20 p-3 border-2 border-gray-200 rounded-lg focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all-300 bg-white/80"
+                            >
+                        `;
+                    }
+                    
+                    tr.appendChild(td);
+                });
+                
+                tableBody.appendChild(tr);
+            });
+        }
+        
+        // 为输入框添加事件监听
+        function addInputEventListeners() {
+            document.querySelectorAll('#tableBody input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const rowIndex = parseInt(this.closest('tr').dataset.index);
+                    const column = this.closest('td').dataset.column;
+                    
+                    if (tableData[rowIndex]) {
+                        tableData[rowIndex][column] = this.value.trim();
+                        calculateTableSummary(); // 实时更新统计
+                    }
+                });
+            });
+        }
+        
+        // 计算并更新表格统计信息（QVIP/BVIP/VIP 合并）
+        function calculateTableSummary() {
+            let totalQVIP = 0, totalBVIP = 0, totalVIP = 0;
+            tableData.forEach(row => {
+                totalQVIP += parseInt(row['QVIP'] || 0);
+                totalBVIP += parseInt(row['BVIP'] || 0);
+                totalVIP += parseInt(row['VIP'] || 0);
+            });
+            const totalConvertedMonths = totalQVIP + totalBVIP + totalVIP;
+            let totalCost = 0;
+            if (totalConvertedMonths >= 500) totalCost = totalConvertedMonths * 5;
+            else if (totalConvertedMonths >= 300) totalCost = totalConvertedMonths * 6;
+            else if (totalConvertedMonths >= 100) totalCost = totalConvertedMonths * 7;
+            else if (totalConvertedMonths >= 50) totalCost = totalConvertedMonths * 8;
+            
+            const el = id => document.getElementById(id);
+            animateValue('totalQVIP', parseInt((el('totalQVIP') || {}).textContent || 0), totalQVIP);
+            animateValue('totalBVIP', parseInt((el('totalBVIP') || {}).textContent || 0), totalBVIP);
+            animateValue('totalVIP', parseInt((el('totalVIP') || {}).textContent || 0), totalVIP);
+            animateValue('totalConvertedMonths', parseInt((el('totalConvertedMonths') || {}).textContent || 0), totalConvertedMonths);
+            animateValue('totalCost', parseInt((el('totalCost') || {}).textContent || 0), totalCost);
+        }
+        
+        // 数字动画函数
+        function animateValue(id, start, end) {
+            if (start === end) return; // 如果值没有变化，不执行动画
+            
+            const obj = document.getElementById(id);
+            const container = obj.closest('div'); // 获取父容器以添加特效
+            
+            // 添加脉冲动画效果
+            container.classList.add('animate-pulse');
+            
+            let current = start;
+            const increment = end > start ? 1 : -1;
+            const duration = 800; // 动画持续时间
+            const stepTime = Math.abs(end - start) > 100 ? 10 : 20; // 根据数字大小调整步长时间
+            const step = Math.max(1, Math.abs(end - start) / (duration / stepTime));
+            
+            const timer = setInterval(() => {
+                current += increment * step;
+                
+                if ((increment === 1 && current >= end) || (increment === -1 && current <= end)) {
+                    clearInterval(timer);
+                    current = end;
+                    
+                    // 移除脉冲动画并添加强调效果
+                    setTimeout(() => {
+                        container.classList.remove('animate-pulse');
+                        container.classList.add('animate-bounce');
+                        setTimeout(() => {
+                            container.classList.remove('animate-bounce');
+                        }, 500);
+                    }, 50);
+                }
+                
+                obj.textContent = Math.round(current);
+                
+                // 为数字添加动态颜色效果
+                obj.style.color = getColorForValue(id, Math.round(current));
+            }, stepTime);
+        }
+        
+        // 根据值返回对应的颜色
+        function getColorForValue(id, value) {
+            const zero = value === 0;
+            const colors = {
+                totalQVIP: zero ? '#3B82F6' : '#1D4ED8',
+                totalBVIP: zero ? '#10B981' : '#047857',
+                totalVIP: zero ? '#F43F5E' : '#E11D48',
+                totalConvertedMonths: zero ? '#8B5CF6' : '#7C3AED',
+                totalCost: zero ? '#F43F5E' : '#E11D48'
+            };
+            return colors[id] || '#1F2937';
+        }
+        
+        // 更新卡密数量显示（QVIP/BVIP/VIP 三池）
+        function updateCardCount() {
+            const count = (id) => {
+                const el = document.getElementById(id);
+                if (!el || !el.value || !el.value.trim()) return 0;
+                return el.value.trim().split('\n').filter(line => line.trim()).length;
+            };
+            const q = count('qVipCardsInput');
+            const b = count('bVipCardsInput');
+            const v = count('vipCardsInput');
+            const qEl = document.getElementById('qVipCardCount');
+            const bEl = document.getElementById('bVipCardCount');
+            const vEl = document.getElementById('vipCardCount');
+            if (qEl) qEl.textContent = `当前数量：${q}`;
+            if (bEl) bEl.textContent = `当前数量：${b}`;
+            if (vEl) vEl.textContent = `当前数量：${v}`;
+        }
+        
+
+        
+        // 按数量分配卡密（取消赠送机制）
+        function assignCardsByCount() {
+            if (tableData.length === 0) {
+                showAssignError('请先解析表格数据');
+                return;
+            }
+            
+            // 获取卡密列表（新开+续费合并，每类一个池）
+            const qVipCards = (document.getElementById('qVipCardsInput').value.trim() || '').split('\n').filter(line => line.trim());
+            const bVipCards = (document.getElementById('bVipCardsInput').value.trim() || '').split('\n').filter(line => line.trim());
+            const vipCards = (document.getElementById('vipCardsInput').value.trim() || '').split('\n').filter(line => line.trim());
+            
+            const totalQVipNeeded = tableData.reduce((sum, row) => sum + parseInt(row['QVIP'] || 0), 0);
+            const totalBVipNeeded = tableData.reduce((sum, row) => sum + parseInt(row['BVIP'] || 0), 0);
+            const totalVipNeeded = tableData.reduce((sum, row) => sum + parseInt(row['VIP'] || 0), 0);
+            
+            const mergedData = {};
+            tableData.forEach(row => {
+                const key = row['微信名'].trim();
+                if (!mergedData[key]) {
+                    mergedData[key] = { '微信名': row['微信名'].trim(), '手机号': row['手机号'].trim(), 'QVIP': 0, 'BVIP': 0, 'VIP': 0 };
+                }
+                mergedData[key]['QVIP'] += parseInt(row['QVIP'] || 0);
+                mergedData[key]['BVIP'] += parseInt(row['BVIP'] || 0);
+                mergedData[key]['VIP'] += parseInt(row['VIP'] || 0);
+            });
+            
+            if (qVipCards.length < totalQVipNeeded) {
+                showAssignError(`QVIP卡密数量不足，需要${totalQVipNeeded}个，实际只有${qVipCards.length}个`);
+                return;
+            }
+            if (bVipCards.length < totalBVipNeeded) {
+                showAssignError(`BVIP卡密数量不足，需要${totalBVipNeeded}个，实际只有${bVipCards.length}个`);
+                return;
+            }
+            if (vipCards.length < totalVipNeeded) {
+                showAssignError(`VIP卡密数量不足，需要${totalVipNeeded}个，实际只有${vipCards.length}个`);
+                return;
+            }
+            
+            mergedAssignedData = [];
+            let qIdx = 0, bIdx = 0, vIdx = 0;
+            
+            Object.values(mergedData).forEach((item, index) => {
+                const qc = item['QVIP'], bc = item['BVIP'], vc = item['VIP'];
+                const aq = qVipCards.slice(qIdx, qIdx + qc); qIdx += qc;
+                const ab = bVipCards.slice(bIdx, bIdx + bc); bIdx += bc;
+                const av = vipCards.slice(vIdx, vIdx + vc); vIdx += vc;
+                mergedAssignedData.push({
+                    '序号': index + 1,
+                    '微信名': item['微信名'],
+                    '手机号': item['手机号'],
+                    'QVIP-需/分': `${qc}/${aq.length}`,
+                    'QVIP': formatCardList(aq, 'qVip'),
+                    'BVIP-需/分': `${bc}/${ab.length}`,
+                    'BVIP': formatCardList(ab, 'bVip'),
+                    'VIP-需/分': `${vc}/${av.length}`,
+                    'VIP': formatCardList(av, 'vip')
+                });
+            });
+            
+            remainingCards = {
+                qVip: qVipCards.slice(qIdx),
+                bVip: bVipCards.slice(bIdx),
+                vip: vipCards.slice(vIdx)
+            };
+            
+            renderAssignedResult();
+            renderRemainingCards();
+            document.getElementById('assignedResultTable').classList.remove('hidden');
+            document.getElementById('remainingCardsTable').classList.remove('hidden');
+            showAssignSuccess(`卡密分配成功！\n分配：QVIP ${totalQVipNeeded}个、BVIP ${totalBVipNeeded}个、VIP ${totalVipNeeded}个`);
+        }
+        
+        // 渲染分配结果（适配换行显示）
+        function renderAssignedResult() {
+            const resultBody = document.getElementById('assignedResultBody');
+            resultBody.innerHTML = '';
+            
+            mergedAssignedData.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-all-300';
+                
+                Object.values(item).forEach((value, colIndex) => {
+                    const td = document.createElement('td');
+                    if ([4, 6, 8].includes(colIndex)) { // QVIP、BVIP、VIP 卡密列
+                        td.className = 'px-6 py-4 whitespace-pre-line text-sm text-gray-900';
+                    } else {
+                        td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+                    }
+                    td.textContent = value || '';
+                    tr.appendChild(td);
+                });
+                
+                resultBody.appendChild(tr);
+            });
+        }
+        
+        // 渲染剩余卡密（适配换行格式）
+        function renderRemainingCards() {
+            const remainingBody = document.getElementById('remainingCardsBody');
+            remainingBody.innerHTML = '';
+            
+            const cardTypes = [
+                { type: 'QVIP', list: remainingCards.qVip, color: 'text-primary', formatType: 'qVip' },
+                { type: 'BVIP', list: remainingCards.bVip, color: 'text-secondary', formatType: 'bVip' },
+                { type: 'VIP', list: remainingCards.vip, color: 'text-rose-600', formatType: 'vip' }
+            ];
+            
+            cardTypes.forEach(cardType => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition-all-300';
+                
+                // 卡类型
+                const typeTd = document.createElement('td');
+                typeTd.className = `px-6 py-4 whitespace-nowrap text-sm ${cardType.color} font-medium`;
+                typeTd.textContent = cardType.type;
+                tr.appendChild(typeTd);
+                
+                // 剩余数量
+                const countTd = document.createElement('td');
+                countTd.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+                countTd.textContent = cardType.list.length;
+                tr.appendChild(countTd);
+                
+                // 剩余卡密列表（换行格式）
+                const listTd = document.createElement('td');
+                listTd.className = 'px-6 py-4 whitespace-pre-line text-sm text-gray-900';
+                listTd.textContent = formatCardList(cardType.list, cardType.formatType) || '无';
+                tr.appendChild(listTd);
+                
+                remainingBody.appendChild(tr);
+            });
+        }
+        
+        // 显示分配成功提示
+        function showAssignSuccess(message) {
+            document.getElementById('assignError').classList.add('hidden');
+            const resultEl = document.getElementById('assignResult');
+            const resultText = document.getElementById('assignResultText');
+            
+            resultText.textContent = message.replace(/\n/g, ' ');
+            resultEl.classList.remove('hidden');
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                resultEl.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // 显示分配错误提示
+        function showAssignError(message) {
+            document.getElementById('assignResult').classList.add('hidden');
+            const errorEl = document.getElementById('assignError');
+            const errorText = document.getElementById('assignErrorText');
+            
+            errorText.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
+        
+        // 导出到Excel（支持单元格内换行）
+        function exportToExcel() {
+            if (mergedAssignedData.length === 0) {
+                showAssignError('请先分配卡密再导出');
+                return;
+            }
+            
+            // 准备工作簿
+            const wb = XLSX.utils.book_new();
+            
+            // 严格按照用户指定的列顺序生成分配结果工作表
+            const exportData = mergedAssignedData.map(item => ({
+                '序号': item['序号'],
+                '微信名': item['微信名'],
+                '手机号': item['手机号'],
+                'QVIP-需/分': item['QVIP-需/分'],
+                'QVIP': item['QVIP'],
+                'BVIP-需/分': item['BVIP-需/分'],
+                'BVIP': item['BVIP'],
+                'VIP-需/分': item['VIP-需/分'],
+                'VIP': item['VIP']
+            }));
+            
+            const resultWS = XLSX.utils.json_to_sheet(exportData, {
+                // 配置单元格格式支持换行
+                cellStyles: true
+            });
+            
+            // 设置卡密列的单元格格式为自动换行
+            const cardColumns = ['E', 'G', 'I']; // QVIP、BVIP、VIP列
+            cardColumns.forEach(col => {
+                for (let row = 2; row <= exportData.length + 1; row++) {
+                    const cellRef = `${col}${row}`;
+                    if (resultWS[cellRef]) {
+                        // 设置单元格自动换行
+                        resultWS[cellRef].s = {
+                            alignment: {
+                                wrapText: true,
+                                vertical: 'top'
+                            }
+                        };
+                    }
+                }
+            });
+            
+            XLSX.utils.book_append_sheet(wb, resultWS, '卡密分配结果');
+            
+            // 剩余卡密工作表（QVIP/BVIP/VIP 三类）
+            const remainingData = [
+                { '卡类型': 'QVIP', '剩余数量': remainingCards.qVip.length, '剩余卡密': formatCardList(remainingCards.qVip, 'qVip') || '无' },
+                { '卡类型': 'BVIP', '剩余数量': remainingCards.bVip.length, '剩余卡密': formatCardList(remainingCards.bVip, 'bVip') || '无' },
+                { '卡类型': 'VIP', '剩余数量': remainingCards.vip.length, '剩余卡密': formatCardList(remainingCards.vip, 'vip') || '无' }
+            ];
+            const remainingWS = XLSX.utils.json_to_sheet(remainingData, {
+                cellStyles: true
+            });
+            
+            // 设置剩余卡密列自动换行
+            for (let row = 2; row <= 4; row++) {
+                const cellRef = `C${row}`;
+                if (remainingWS[cellRef]) {
+                    remainingWS[cellRef].s = {
+                        alignment: {
+                            wrapText: true,
+                            vertical: 'top'
+                        }
+                    };
+                }
+            }
+            
+            XLSX.utils.book_append_sheet(wb, remainingWS, '剩余卡密');
+            
+            // 导出文件
+            XLSX.writeFile(wb, `卡密分配结果_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+        }
+        
+        // 初始化下雪特效
+        function initSnowEffect() {
+            const snowContainer = document.getElementById('snow-container');
+            const snowflakeCount = 100; // 增加雪花数量
+            
+            // 雪花字符数组
+            const snowflakeChars = ['❄', '❅', '❆', '•', '*', '◈', '◇', '◈', '✦', '✧'];
+            
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                // 随机选择雪花字符
+                snowflake.innerHTML = snowflakeChars[Math.floor(Math.random() * snowflakeChars.length)];
+                
+                // 随机位置
+                const startLeft = Math.random() * 100;
+                snowflake.style.left = `${startLeft}vw`;
+                
+                // 随机大小
+                const size = Math.random() * 1.5 + 0.5;
+                snowflake.style.fontSize = `${size}em`;
+                
+                // 随机浅彩色
+                const colors = [
+                    'rgba(255, 182, 193, 0.7)', // 浅粉色
+                    'rgba(173, 216, 230, 0.7)', // 浅蓝色
+                    'rgba(144, 238, 144, 0.7)', // 浅绿色
+                    'rgba(255, 255, 224, 0.7)', // 浅黄色
+                    'rgba(221, 160, 221, 0.7)', // 浅紫色
+                    'rgba(255, 218, 185, 0.7)', // 浅橙色
+                    'rgba(175, 238, 238, 0.7)', // 浅青色
+                    'rgba(255, 192, 203, 0.7)', // 浅粉红
+                    'rgba(230, 230, 250, 0.7)'  // 浅薰衣草色
+                ];
+                snowflake.style.color = colors[Math.floor(Math.random() * colors.length)];
+                
+                // 随机透明度
+                snowflake.style.opacity = Math.random() * 0.4 + 0.3;
+                
+                // 随机动画持续时间
+                const duration = Math.random() * 10 + 5;
+                snowflake.style.animationDuration = `${duration}s`;
+                
+                // 随机延迟
+                const delay = Math.random() * 5;
+                snowflake.style.animationDelay = `${delay}s`;
+                
+                snowContainer.appendChild(snowflake);
+            }
+        }
+    </script>
+</body>
+</html>
