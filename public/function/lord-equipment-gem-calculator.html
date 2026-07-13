@@ -150,6 +150,20 @@
   </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style id="wjdr-mobile-density">
+    @media (min-width: 340px) and (max-width: 768px) {
+      .box .grid,
+      .stats { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+      .box .grid > *, .stats > * { min-width:0; }
+      .box .grid .f, .box .grid .f2 { grid-column:auto; }
+      .row2 { grid-template-columns:1fr; }
+      input, select, button { min-width:0; min-height:44px; }
+      .table-wrap, table, .hint { grid-column:1 / -1; }
+    }
+    @media (max-width: 339px) {
+      .box .grid, .stats { grid-template-columns:1fr !important; }
+    }
+  </style>
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
 </head>

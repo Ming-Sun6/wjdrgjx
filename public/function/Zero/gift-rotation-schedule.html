@@ -193,6 +193,86 @@
   </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style id="wjdr-mobile-density">
+    .search:focus-visible,
+    .btn:focus-visible {
+      outline:3px solid var(--accent);
+      outline-offset:2px;
+    }
+    @media (max-width: 768px) {
+      .wrap { padding-inline:10px; }
+      .search, .btn { min-height:44px; }
+      .card { padding:8px; border-radius:12px; }
+      .table-wrap { overflow:visible; border:0; background:transparent; }
+      table, #bodyRows { display:block; width:auto !important; max-width:100%; min-width:0; }
+      thead,
+      table > tbody:first-of-type {
+        position:absolute;
+        width:1px;
+        height:1px;
+        padding:0;
+        margin:-1px;
+        overflow:hidden;
+        clip:rect(0,0,0,0);
+        white-space:nowrap;
+        border:0;
+      }
+      #bodyRows { display:grid; gap:8px; }
+      #bodyRows tr {
+        display:grid;
+        width:100%;
+        max-width:100%;
+        min-width:0;
+        grid-template-columns:minmax(0,1fr) auto;
+        gap:7px 10px;
+        padding:11px;
+        border:1px solid var(--line);
+        border-radius:10px;
+        background:var(--card);
+        box-shadow:0 5px 14px rgba(15,23,42,.06);
+      }
+      #bodyRows tr:nth-child(even) { background:var(--head); }
+      #bodyRows td {
+        display:grid;
+        width:auto !important;
+        grid-template-columns:auto minmax(0,1fr);
+        gap:7px;
+        align-items:start;
+        min-width:0;
+        padding:0;
+        border:0;
+        font-size:13px;
+        line-height:1.45;
+        overflow-wrap:anywhere;
+      }
+      #bodyRows td::before,
+      td::before {
+        content:attr(data-label);
+        color:var(--muted);
+        font-size:10px;
+        font-weight:800;
+        line-height:1.65;
+        white-space:nowrap;
+      }
+      #bodyRows td:nth-child(1) { font-size:15px; font-weight:900; }
+      #bodyRows td:nth-child(2) {
+        color:var(--accent);
+        font-weight:800;
+        white-space:normal;
+      }
+      #bodyRows td:nth-child(3) {
+        grid-column:1 / -1;
+        color:var(--muted);
+      }
+      #bodyRows td.empty {
+        display:block;
+        grid-column:1 / -1;
+        padding:18px 10px;
+        text-align:center;
+      }
+      #bodyRows td.empty::before { content:none; }
+    }
+  </style>
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
 </head>
@@ -208,7 +288,7 @@
       <input id="searchInput" class="search" type="search" placeholder="搜索礼包名 / 周期 / 备注" />
       <button id="clearBtn" class="btn" type="button">清空</button>
     </div>
-    <p id="meta" class="meta"></p>
+    <p id="meta" class="meta" aria-live="polite"></p>
 
     <section class="card">
       <div class="table-wrap">
@@ -288,9 +368,9 @@
         }
         bodyRows.innerHTML = list.map((item) => {
           return "<tr>" +
-            "<td>" + item.gift + "</td>" +
-            "<td>" + item.cycle + "</td>" +
-            "<td>" + (item.note || "—") + "</td>" +
+            '<td data-label="礼包">' + item.gift + "</td>" +
+            '<td data-label="周期">' + item.cycle + "</td>" +
+            '<td data-label="说明">' + (item.note || "—") + "</td>" +
           "</tr>";
         }).join("");
       }

@@ -360,6 +360,7 @@ COMMON_CSS = """
     .tech-grid,
     .results-grid,
     .resource-grid,
+    .tech-detail-grid,
     .card-grid {
       display: grid;
       gap: 12px;
@@ -453,6 +454,10 @@ COMMON_CSS = """
 
     .resource-grid {
       grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    }
+
+    .tech-detail-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .resource-sub {
@@ -591,6 +596,7 @@ COMMON_CSS = """
       display: block;
       color: var(--muted);
       font-size: 11px;
+      line-height: 1.2;
       margin-bottom: 4px;
     }
 
@@ -636,85 +642,245 @@ COMMON_CSS = """
     }
 
     @media (max-width: 768px) {
+      html:root { --wjdr-fab-size: 44px; }
+
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      body {
+        padding: 8px max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left));
+      }
+
+      .app-shell {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 60px auto 18px;
+        gap: 12px;
+      }
+
+      .shell-card {
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        border-radius: 18px;
+      }
+
       .hero-title {
+        margin-bottom: 10px;
         font-size: clamp(26px, 8vw, 34px);
+        line-height: 1.12;
+        letter-spacing: 0;
       }
 
       .section,
       .hero-shell {
-        padding: 16px;
+        padding: 12px;
+        gap: 12px;
+      }
+
+      .hero-shell { grid-template-columns: 1fr; }
+
+      .section-head {
+        display: grid;
+        align-items: start;
+        gap: 8px;
+      }
+
+      .nav-row,
+      .btn-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
       }
 
       .controls-grid,
-      .stats,
-      .results-grid,
-      .tech-grid {
-        grid-template-columns: 1fr;
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .overview-table-wrap {
-        display: none;
+      .controls-grid { gap: 8px; }
+      .stats { gap: 6px; }
+
+      .tech-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-width: 0;
       }
+
+      .results-grid {
+        grid-template-columns: 1fr;
+        min-width: 0;
+      }
+
+      .note-card,
+      .control-card,
+      .tech-card,
+      .result-card,
+      .data-card,
+      .stat {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 10px;
+        border-radius: 14px;
+      }
+
+      .control-card,
+      .stat { min-width: 0; }
+
+      .level-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+      input,
+      select,
+      .btn,
+      .nav-link,
+      .home-btn {
+        min-width: 0;
+        min-height: 44px;
+      }
+
+      input,
+      select {
+        padding: 9px 8px;
+        font-size: 13px;
+      }
+
+      .btn-row .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .overview-table-wrap { display: none; }
 
       .mobile-overview-list {
         display: grid;
-        gap: 12px;
+        gap: 8px;
+      }
+
+      .mobile-group-card,
+      .mobile-detail-card {
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .mobile-group-card {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        border-radius: 14px;
       }
 
       .mobile-card-head,
       .group-summary {
         display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px;
       }
 
-      .mobile-kpis,
-      .mobile-detail-grid {
-        grid-template-columns: 1fr;
+      .mobile-card-title strong {
+        font-size: 13px;
+        line-height: 1.25;
       }
 
       .mobile-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+      }
+
+      .mobile-detail-list { gap: 6px; }
+
+      .mobile-detail-card {
+        padding: 8px;
+        border-radius: 12px;
       }
 
       .mobile-detail-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
+        margin-top: 6px !important;
       }
 
-      .btn-row .btn,
-      .group-toggle {
-        width: 100%;
-        justify-content: center;
+      .tech-detail-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
       }
+
+      .mobile-kpi,
+      .mobile-detail-item {
+        padding: 6px 4px;
+        border-radius: 9px;
+        overflow: hidden;
+      }
+
+      .mobile-kpi span,
+      .mobile-detail-item span {
+        margin-bottom: 3px;
+        font-size: 10px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+
+      .mobile-kpi strong,
+      .mobile-detail-item strong {
+        min-width: 0;
+        font-size: 11px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      .result-card-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .result-card-head .pill { justify-self: start; }
+
+      .stat .value,
+      .result-card,
+      .tech-card,
+      .control-card,
+      .note-card,
+      .nav-link,
+      .pill {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+
+      body .table-wrap {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
+      }
+
+      body .table-wrap > table {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+      }
+    }
+
+    @media (max-width: 339px) {
+      .tech-grid { grid-template-columns: 1fr; }
+      .tech-detail-grid,
+      .mobile-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 """
 
 
 THEME_JS = """
-    function initTheme() {
-      const root = document.documentElement;
-      const body = document.body;
-      const btn = document.getElementById("themeToggle");
-      const key = "wjdr_theme";
-      let saved = null;
-      try { saved = localStorage.getItem(key); } catch (e) {}
-      let preferLight = false;
-      try { preferLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches; } catch (e) {}
-
-      const apply = mode => {
-        const theme = mode === "day" ? "day" : "night";
-        root.setAttribute("data-theme", theme);
-        body.classList.toggle("theme-day", theme === "day");
-        if (btn) btn.textContent = theme === "day" ? "切换到夜间" : "切换到日间";
-      };
-
-      apply(saved || (preferLight ? "day" : "night"));
-      if (btn) {
-        btn.addEventListener("click", () => {
-          const next = root.getAttribute("data-theme") === "day" ? "night" : "day";
-          apply(next);
-          try { localStorage.setItem(key, next); } catch (e) {}
-        });
-      }
-    }
 """
 
 
@@ -728,11 +894,13 @@ def shell(title, body, script):
   <style>
 {COMMON_CSS}
   </style>
+  <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
 </head>
 <body>
   <a class="home-btn" href="../rukou.html">返回主页</a>
-  <button id="themeToggle" class="theme-toggle" type="button">夜间</button>
 {body}
   <script>
     "use strict";
@@ -789,15 +957,20 @@ def overview_page(data_json, groups_json):
         <article class="control-card">
           <div class="input-stack">
             <label for="searchInput">关键词</label>
-            <input id="searchInput" type="search" placeholder="输入科技名、描述或资源关键字" />
+            <input id="searchInput" type="search" placeholder="输入科技名、技能描述或兵种名称" />
           </div>
         </article>
       </div>
       <div class="stats">
         <div class="stat"><div class="label">当前记录</div><div id="visibleRows" class="value">0</div></div>
-        <div class="stat"><div class="label">科技卡组</div><div id="visibleGroups" class="value">0</div></div>
-        <div class="stat"><div class="label">所需时间</div><div id="visibleDays" class="value">0</div></div>
+        <div class="stat"><div class="label">肉</div><div id="visibleMeat" class="value">0</div></div>
+        <div class="stat"><div class="label">木材</div><div id="visibleWood" class="value">0</div></div>
+        <div class="stat"><div class="label">煤</div><div id="visibleCoal" class="value">0</div></div>
+        <div class="stat"><div class="label">铁</div><div id="visibleIron" class="value">0</div></div>
+        <div class="stat"><div class="label">钢材</div><div id="visibleSteel" class="value">0</div></div>
+        <div class="stat"><div class="label">精炼火晶</div><div id="visibleRefinedCrystal" class="value">0</div></div>
         <div class="stat"><div class="label">火晶微粒</div><div id="visibleMicro" class="value">0</div></div>
+        <div class="stat"><div class="label">所需时间</div><div id="visibleTime" class="value">0</div></div>
       </div>
     </section>
 
@@ -912,16 +1085,23 @@ def overview_page(data_json, groups_json):
       }});
     }}
 
+    function sumRows(rows, key) {{
+      return rows.reduce((sum, item) => sum + (Number(item[key]) || 0), 0);
+    }}
+
     function renderStats(rows) {{
-      const groupIds = new Set(rows.map(item => item.groupId));
-      const seconds = rows.reduce((sum, item) => sum + item.seconds, 0);
-      const micro = rows.reduce((sum, item) => sum + item.microCrystal, 0);
+      const seconds = sumRows(rows, "seconds");
       document.getElementById("sourceRows").textContent = fmt(t12Data.length);
       document.getElementById("sourceGroups").textContent = fmt(t12Groups.length);
       document.getElementById("visibleRows").textContent = fmt(rows.length);
-      document.getElementById("visibleGroups").textContent = fmt(groupIds.size);
-      document.getElementById("visibleDays").textContent = fmtSmart(seconds / 86400);
-      document.getElementById("visibleMicro").textContent = fmt(micro);
+      document.getElementById("visibleMeat").textContent = fmt(sumRows(rows, "meat"));
+      document.getElementById("visibleWood").textContent = fmt(sumRows(rows, "wood"));
+      document.getElementById("visibleCoal").textContent = fmt(sumRows(rows, "coal"));
+      document.getElementById("visibleIron").textContent = fmt(sumRows(rows, "iron"));
+      document.getElementById("visibleSteel").textContent = fmt(sumRows(rows, "steel"));
+      document.getElementById("visibleRefinedCrystal").textContent = fmt(sumRows(rows, "refinedCrystal"));
+      document.getElementById("visibleMicro").textContent = fmt(sumRows(rows, "microCrystal"));
+      document.getElementById("visibleTime").textContent = fmtTime(seconds);
     }}
 
     function renderDesktopRows(groupedRows) {{
@@ -1026,7 +1206,6 @@ def overview_page(data_json, groups_json):
     }}
 
     function init() {{
-      initTheme();
       document.getElementById("troopFilter").addEventListener("change", renderRows);
       document.getElementById("searchInput").addEventListener("input", renderRows);
       document.getElementById("expandAllGroups").addEventListener("click", () => {{
@@ -1064,7 +1243,7 @@ def overview_page(data_json, groups_json):
 
     init();
 """
-    return shell("T12 煌耀系列数据总览", body, script)
+    return shell("T12 煌耀系列数据总览-冬日工具箱", body, script)
 
 
 def calculator_page(data_json, groups_json, unlock_targets_json):
@@ -1120,11 +1299,13 @@ def calculator_page(data_json, groups_json, unlock_targets_json):
         <article class="control-card">
           <h3>预设方案</h3>
           <div class="btn-row" style="margin-top: 10px;">
-            <button class="btn primary" id="presetUnlockT12">解锁T12</button>
-            <button class="btn accent" id="presetAllFull">全部全满</button>
+            <button class="btn primary" id="presetUnlockSingle">解锁单路 T12</button>
+            <button class="btn accent" id="presetFullSingle">单路 T12 拉满</button>
+            <button class="btn primary" id="presetUnlockThree">解锁三路 T12</button>
+            <button class="btn accent" id="presetFullThree">三路 T12 拉满</button>
             <button class="btn" id="presetEmpty">清空</button>
           </div>
-          <p class="hint" style="margin-top: 10px;">“解锁T12”会先清空所有科技，再只设置当前兵种的五个前置科技和兵种解锁项。</p>
+          <p class="hint" style="margin-top: 10px;">单路方案作用于当前「显示兵种」；选「全部兵种」时默认按煌耀盾兵。三路方案会同时设置三个兵种并切到全部显示。</p>
         </article>
       </div>
     </section>
@@ -1242,15 +1423,18 @@ def calculator_page(data_json, groups_json, unlock_targets_json):
       }});
     }}
 
-    function unlockTargetGroups() {{
-      const selectedTroop = document.getElementById("troopSelect").value;
-      const troops = selectedTroop === "all" ? Object.keys(unlockT12Targets) : [selectedTroop];
+    function unlockTargetGroupsForTroops(troops) {{
       return troops.flatMap(troop => {{
         return (unlockT12Targets[troop] || []).map(target => {{
           const group = t12Groups.find(item => item.troop === troop && item.name === target.name);
           return group ? {{ group, target: target.target }} : null;
         }}).filter(Boolean);
       }});
+    }}
+
+    function selectedSingleTroop() {{
+      const selected = document.getElementById("troopSelect").value;
+      return selected === "all" ? "煌耀盾兵" : selected;
     }}
 
     function renderCards() {{
@@ -1320,12 +1504,10 @@ def calculator_page(data_json, groups_json, unlock_targets_json):
             </div>
             <span class="pill">${{fmtSeconds(item.seconds)}}</span>
           </div>
-          <div class="result-kpis">
+          <div class="tech-detail-grid">
             <div class="result-kpi"><span>所需时间</span><strong>${{fmtSmart(item.seconds / 86400)}} 天</strong></div>
             <div class="result-kpi"><span>精炼火晶</span><strong>${{fmt(item.refinedCrystal)}}</strong></div>
             <div class="result-kpi"><span>火晶微粒</span><strong>${{fmt(item.microCrystal)}}</strong></div>
-          </div>
-          <div class="resource-grid">
             ${{resourceMarkup("钢材", item.steel)}}
             ${{resourceMarkup("肉", item.meat)}}
             ${{resourceMarkup("木材", item.wood)}}
@@ -1389,13 +1571,32 @@ def calculator_page(data_json, groups_json, unlock_targets_json):
     function applyPreset(type) {{
       if (type === "empty") {{
         resetAllTargets();
-      }} else if (type === "unlockT12") {{
+      }} else if (type === "unlockSingle") {{
         resetAllTargets();
-        unlockTargetGroups().forEach(item => {{
+        const troop = selectedSingleTroop();
+        document.getElementById("troopSelect").value = troop;
+        unlockTargetGroupsForTroops([troop]).forEach(item => {{
           state[item.group.id].current = 0;
           state[item.group.id].target = item.target;
         }});
-      }} else if (type === "allFull") {{
+      }} else if (type === "fullSingle") {{
+        resetAllTargets();
+        const troop = selectedSingleTroop();
+        document.getElementById("troopSelect").value = troop;
+        t12Groups.filter(group => group.troop === troop).forEach(group => {{
+          state[group.id].current = 0;
+          state[group.id].target = group.max;
+        }});
+      }} else if (type === "unlockThree") {{
+        resetAllTargets();
+        document.getElementById("troopSelect").value = "all";
+        unlockTargetGroupsForTroops(Object.keys(unlockT12Targets)).forEach(item => {{
+          state[item.group.id].current = 0;
+          state[item.group.id].target = item.target;
+        }});
+      }} else if (type === "fullThree") {{
+        resetAllTargets();
+        document.getElementById("troopSelect").value = "all";
         t12Groups.forEach(group => {{
           state[group.id].current = 0;
           state[group.id].target = group.max;
@@ -1407,21 +1608,22 @@ def calculator_page(data_json, groups_json, unlock_targets_json):
     }}
 
     function init() {{
-      initTheme();
       renderCards();
       calc();
       document.getElementById("troopSelect").addEventListener("change", () => {{
         renderCards();
       }});
       document.getElementById("speed").addEventListener("input", calc);
-      document.getElementById("presetUnlockT12").addEventListener("click", () => applyPreset("unlockT12"));
-      document.getElementById("presetAllFull").addEventListener("click", () => applyPreset("allFull"));
+      document.getElementById("presetUnlockSingle").addEventListener("click", () => applyPreset("unlockSingle"));
+      document.getElementById("presetFullSingle").addEventListener("click", () => applyPreset("fullSingle"));
+      document.getElementById("presetUnlockThree").addEventListener("click", () => applyPreset("unlockThree"));
+      document.getElementById("presetFullThree").addEventListener("click", () => applyPreset("fullThree"));
       document.getElementById("presetEmpty").addEventListener("click", () => applyPreset("empty"));
     }}
 
     init();
 """
-    return shell("T12 煌耀系列科技计算器", body, script)
+    return shell("T12 煌耀系列科技计算器-冬日工具箱", body, script)
 
 
 def main():

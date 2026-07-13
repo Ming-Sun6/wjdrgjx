@@ -114,19 +114,40 @@
       detailBody.innerHTML = renderDetailMarkup(pack);
     }
 
+    function detailIdFor(pack) {
+      return 'gift-inline-detail-' + Math.max(0, packs.indexOf(pack));
+    }
+
+    function focusGiftButton(name) {
+      const buttons = listEl.querySelectorAll('.gift-item');
+      for (let i = 0; i < buttons.length; i += 1) {
+        if (buttons[i].getAttribute('data-name') === name) {
+          buttons[i].focus();
+          return;
+        }
+      }
+    }
+
     function renderList() {
       listEl.innerHTML = filtered
         .map(function (pack) {
-          const isExpanded = isMobileLayout() ? expandedNames.has(pack.name) : pack.name === activeName;
-          const activeCls = isExpanded ? ' active' : '';
+          const mobileLayout = isMobileLayout();
+          const isExpanded = mobileLayout && expandedNames.has(pack.name);
+          const isActive = mobileLayout ? isExpanded : pack.name === activeName;
+          const activeCls = isActive ? ' active' : '';
+          const detailId = detailIdFor(pack);
+          const showInline = mobileLayout && expandedNames.has(pack.name);
+          const hiddenAttr = showInline ? '' : ' hidden';
+          const disclosureAttrs = mobileLayout
+            ? ' aria-expanded="' + (isExpanded ? 'true' : 'false') + '" aria-controls="' + detailId + '"'
+            : '';
           const inlineDetail =
-            isMobileLayout() && expandedNames.has(pack.name)
-              ? '<div class="gift-inline-detail">' + renderDetailMarkup(pack) + '</div>'
-              : '';
+            '<div id="' + detailId + '" class="gift-inline-detail" role="region"' + hiddenAttr +
+            ' aria-label="' + escHtml(pack.name) + ' 详情">' + renderDetailMarkup(pack) + '</div>';
           return (
             '<button class="gift-item' +
             activeCls +
-            '" type="button" data-name="' +
+            '" type="button"' + disclosureAttrs + ' data-name="' +
             escHtml(pack.name) +
             '">' +
             escHtml(pack.name) +
@@ -165,6 +186,7 @@
       }
       renderList();
       renderDetail(activeName);
+      focusGiftButton(nextName);
     });
 
     window.addEventListener('resize', function () {

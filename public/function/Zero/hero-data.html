@@ -189,6 +189,20 @@
   </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style id="wjdr-mobile-density">
+    @media (min-width: 340px) and (max-width: 768px) {
+      #heroGrid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:9px; }
+      #heroGrid > * { min-width:0; }
+      #heroGrid .card { padding:11px; border-radius:10px; }
+      #heroGrid .title { font-size:16px; line-height:1.3; overflow-wrap:anywhere; }
+      #heroGrid .desc { font-size:12px; line-height:1.45; }
+      .search-input, .search-clear, .back { min-height:44px; }
+      .empty-state { grid-column:1 / -1; }
+    }
+    @media (max-width: 339px) {
+      #heroGrid { grid-template-columns:1fr !important; }
+    }
+  </style>
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
 </head>

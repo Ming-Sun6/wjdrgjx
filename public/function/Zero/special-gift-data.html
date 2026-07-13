@@ -268,6 +268,7 @@
       border-radius:0 0 12px 12px;
       background:var(--hover-soft);
     }
+    .gift-inline-detail[hidden]{display:none !important;}
     .gift-inline-detail .detail-note{
       margin:0 0 10px;
     }
@@ -281,6 +282,23 @@
   </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style id="wjdr-mobile-density">
+    @media (min-width: 340px) and (max-width: 768px) {
+      .gift-list { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px; }
+      .gift-list > *, .gift-item { min-width:0; }
+      .gift-item { min-height:44px; padding:10px 8px; overflow-wrap:anywhere; }
+      .gift-inline-detail { grid-column:1 / -1; min-width:0; margin-top:0; }
+    }
+    @media (min-width: 769px) and (max-width: 920px) {
+      .gift-list { display:grid !important; grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px; }
+      .gift-list > *, .gift-item { min-width:0; }
+      .gift-item { min-height:44px; overflow-wrap:anywhere; }
+      .gift-inline-detail { grid-column:1 / -1; min-width:0; margin-top:0; }
+    }
+    @media (max-width: 339px) {
+      .gift-list { grid-template-columns:1fr !important; }
+    }
+  </style>
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
 </head>
@@ -296,11 +314,11 @@
       <input id="searchInput" class="search-input" type="search" placeholder="搜索礼包名称或关键词" />
       <button id="clearBtn" class="search-clear" type="button">清空</button>
     </div>
-    <p id="meta" class="meta"></p>
+    <p id="meta" class="meta" aria-live="polite"></p>
     <div class="layout">
       <aside class="left">
         <div id="giftList" class="gift-list"></div>
-        <div id="emptyLeft" class="empty-left">未找到匹配礼包</div>
+        <div id="emptyLeft" class="empty-left" aria-live="polite">未找到匹配礼包</div>
       </aside>
       <section class="right">
         <h2 id="detailTitle" class="detail-title">请选择礼包</h2>

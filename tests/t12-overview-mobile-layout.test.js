@@ -7,6 +7,10 @@ const html = fs.readFileSync(
   path.join(__dirname, '..', 'public', 'function', 'T12DataOverview.html'),
   'utf8'
 );
+const generator = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'generate-t12-pages.py'),
+  'utf8'
+);
 
 function mediaBlock(maxWidth) {
   const marker = new RegExp(`@media\\s*\\(max-width:\\s*${maxWidth}px\\)\\s*\\{`, 'g');
@@ -32,13 +36,14 @@ test('T12 overview keeps filters and statistics in two mobile columns', () => {
   assert.match(mobile, /\.control-card,\s*\.stat\s*\{[^}]*min-width:\s*0/s);
 });
 
-test('T12 overview uses four compact metric columns and three on very narrow screens', () => {
+test('T12 overview uses four compact metric columns and two below 340px', () => {
   const mobile = mediaBlock(768);
-  const narrow = mediaBlock(360);
+  const narrow = mediaBlock(339);
 
   assert.match(mobile, /\.mobile-detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)[^}]*gap:\s*4px/s);
-  assert.match(narrow, /\.mobile-detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(narrow, /\.mobile-detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
   assert.match(mobile, /\.mobile-detail-item\s*\{[^}]*padding:\s*6px\s+4px/s);
+  assert.match(generator, /@media \(max-width: 339px\)/);
 });
 
 test('T12 overview compresses expanded levels without allowing horizontal overflow', () => {

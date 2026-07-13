@@ -244,6 +244,7 @@
     .tech-grid,
     .results-grid,
     .resource-grid,
+    .tech-detail-grid,
     .card-grid {
       display: grid;
       gap: 12px;
@@ -337,6 +338,10 @@
 
     .resource-grid {
       grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    }
+
+    .tech-detail-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .resource-sub {
@@ -475,6 +480,7 @@
       display: block;
       color: var(--muted);
       font-size: 11px;
+      line-height: 1.2;
       margin-bottom: 4px;
     }
 
@@ -520,23 +526,59 @@
     }
 
     @media (max-width: 768px) {
+      html:root { --wjdr-fab-size: 44px; }
+
       html,
       body {
         max-width: 100%;
         overflow-x: hidden;
       }
 
+      body {
+        padding: 8px max(8px, env(safe-area-inset-right)) 8px max(8px, env(safe-area-inset-left));
+      }
+
+      .app-shell {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        margin: 60px auto 18px;
+        gap: 12px;
+      }
+
+      .shell-card {
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        border-radius: 18px;
+      }
+
       .hero-title {
+        margin-bottom: 10px;
         font-size: clamp(26px, 8vw, 34px);
+        line-height: 1.12;
+        letter-spacing: 0;
       }
 
       .section,
       .hero-shell {
         padding: 12px;
+        gap: 12px;
       }
 
-      .section {
-        gap: 12px;
+      .hero-shell { grid-template-columns: 1fr; }
+
+      .section-head {
+        display: grid;
+        align-items: start;
+        gap: 8px;
+      }
+
+      .nav-row,
+      .btn-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: stretch;
       }
 
       .controls-grid,
@@ -544,45 +586,58 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .results-grid,
+      .controls-grid { gap: 8px; }
+      .stats { gap: 6px; }
+
       .tech-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        min-width: 0;
       }
 
-      .controls-grid {
-        gap: 8px;
+      .results-grid {
+        grid-template-columns: 1fr;
+        min-width: 0;
+      }
+
+      .note-card,
+      .control-card,
+      .tech-card,
+      .result-card,
+      .data-card,
+      .stat {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        padding: 10px;
+        border-radius: 14px;
       }
 
       .control-card,
-      .stat {
-        min-width: 0;
-        padding: 10px;
-      }
+      .stat { min-width: 0; }
 
-      .input-stack {
-        gap: 7px;
+      .level-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+      input,
+      select,
+      .btn,
+      .nav-link,
+      .home-btn {
+        min-width: 0;
+        min-height: 44px;
       }
 
       input,
       select {
-        min-width: 0;
         padding: 9px 8px;
         font-size: 13px;
       }
 
-      .stats {
-        gap: 6px;
+      .btn-row .btn {
+        width: 100%;
+        justify-content: center;
       }
 
-      .stat .value {
-        margin-top: 4px;
-        font-size: clamp(13px, 4vw, 18px);
-        line-height: 1.15;
-      }
-
-      .overview-table-wrap {
-        display: none;
-      }
+      .overview-table-wrap { display: none; }
 
       .mobile-overview-list {
         display: grid;
@@ -609,28 +664,17 @@
         gap: 6px;
       }
 
-      .mobile-kpis {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 4px;
-      }
-
-      .mobile-card-title {
-        gap: 2px;
-      }
-
       .mobile-card-title strong {
         font-size: 13px;
         line-height: 1.25;
       }
 
-      .group-meta {
-        font-size: 10px;
-        line-height: 1.35;
+      .mobile-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
       }
 
-      .mobile-detail-list {
-        gap: 6px;
-      }
+      .mobile-detail-list { gap: 6px; }
 
       .mobile-detail-card {
         padding: 8px;
@@ -643,6 +687,11 @@
         margin-top: 6px !important;
       }
 
+      .tech-detail-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
+      }
+
       .mobile-kpi,
       .mobile-detail-item {
         padding: 6px 4px;
@@ -653,7 +702,7 @@
       .mobile-kpi span,
       .mobile-detail-item span {
         margin-bottom: 3px;
-        font-size: 9px;
+        font-size: 10px;
         line-height: 1.2;
         overflow-wrap: anywhere;
       }
@@ -667,38 +716,60 @@
         word-break: break-word;
       }
 
+      .result-card-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      .result-card-head .pill { justify-self: start; }
+
+      .stat .value,
+      .result-card,
+      .tech-card,
+      .control-card,
+      .note-card,
+      .nav-link,
       .pill {
-        padding: 3px 6px;
-        font-size: 10px;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
-      .btn-row .btn {
+      body .table-wrap {
         width: 100%;
-        justify-content: center;
+        max-width: 100%;
+        min-width: 0;
+        overflow-x: hidden;
       }
 
-      .group-toggle {
-        width: auto;
-        min-width: 58px;
-        padding: 7px 9px;
-        justify-content: center;
+      body .table-wrap > table {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        table-layout: fixed;
+      }
+
+      th,
+      td {
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
     }
 
-    @media (max-width: 360px) {
-      .mobile-detail-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
+    @media (max-width: 339px) {
+      .tech-grid { grid-template-columns: 1fr; }
+      .tech-detail-grid,
+      .mobile-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
   </style>
-  <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
 </head>
 <body>
-  <a class="home-btn" href="/rukou.html">返回主页</a>
+  <a class="home-btn" href="../rukou.html">返回主页</a>
 
   <main class="app-shell">
     <section class="shell-card hero-shell">
@@ -805,32 +876,6 @@
     const expandedTechNames = new Set();
 
 
-    function initTheme() {
-      const root = document.documentElement;
-      const body = document.body;
-      const btn = document.getElementById("themeToggle");
-      const key = "wjdr_theme";
-      let saved = null;
-      try { saved = localStorage.getItem(key); } catch (e) {}
-      let preferLight = false;
-      try { preferLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches; } catch (e) {}
-
-      const apply = mode => {
-        const theme = mode === "day" ? "day" : "night";
-        root.setAttribute("data-theme", theme);
-        body.classList.toggle("theme-day", theme === "day");
-        if (btn) btn.textContent = theme === "day" ? "切换到夜间" : "切换到日间";
-      };
-
-      apply(saved || (preferLight ? "day" : "night"));
-      if (btn) {
-        btn.addEventListener("click", () => {
-          const next = root.getAttribute("data-theme") === "day" ? "night" : "day";
-          apply(next);
-          try { localStorage.setItem(key, next); } catch (e) {}
-        });
-      }
-    }
 
     function fmt(n, d = 0) {
       return Number(n || 0).toLocaleString("zh-CN", { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -1021,7 +1066,6 @@
     }
 
     function init() {
-      initTheme();
       document.getElementById("troopFilter").addEventListener("change", renderRows);
       document.getElementById("searchInput").addEventListener("input", renderRows);
       document.getElementById("expandAllGroups").addEventListener("click", () => {

@@ -7,6 +7,10 @@ const html = fs.readFileSync(
   path.join(__dirname, '..', 'public', 'function', 'T12Calculator.html'),
   'utf8'
 );
+const generator = fs.readFileSync(
+  path.join(__dirname, '..', 'scripts', 'generate-t12-pages.py'),
+  'utf8'
+);
 
 function mediaBlock(maxWidth) {
   const marker = new RegExp(`@media\\s*\\(max-width:\\s*${maxWidth}px\\)\\s*\\{`, 'g');
@@ -35,11 +39,22 @@ test('T12 mobile shell and cards stay inside the viewport', () => {
 
 test('T12 mobile tech cards stay in two columns until truly narrow screens', () => {
   const mobile = mediaBlock(768);
-  const narrow = mediaBlock(340);
+  const narrow = mediaBlock(339);
 
   assert.match(mobile, /\.tech-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
   assert.doesNotMatch(mobile, /\.tech-grid\s*\{[^}]*grid-template-columns:\s*1fr/s);
   assert.match(narrow, /\.tech-grid\s*\{[^}]*grid-template-columns:\s*1fr/s);
+});
+
+test('T12 technology details use four metric columns with an exact narrow fallback', () => {
+  const mobile = mediaBlock(768);
+  const narrow = mediaBlock(339);
+
+  assert.match(html, /class="tech-detail-grid"/);
+  assert.match(mobile, /\.tech-detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(narrow, /\.tech-detail-grid[\s\S]{0,100}grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(generator, /class="tech-detail-grid"/);
+  assert.match(generator, /@media \(max-width: 339px\)/);
 });
 
 test('T12 mobile controls provide touch-sized targets without forced widths', () => {
@@ -55,7 +70,7 @@ test('T12 mobile summaries and results remain scannable', () => {
 
   assert.match(mobile, /\.stats\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
   assert.match(mobile, /\.results-grid\s*\{[^}]*grid-template-columns:\s*1fr/s);
-  assert.match(mobile, /\.result-kpis,\s*\.resource-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(mobile, /\.tech-detail-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/s);
   assert.match(mobile, /\.stat \.value,\s*\.result-card[^}]*\{[^}]*overflow-wrap:\s*anywhere/s);
 });
 

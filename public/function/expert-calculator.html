@@ -294,6 +294,21 @@
   </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style id="wjdr-mobile-density">
+    @media (min-width: 340px) and (max-width: 768px) {
+      .top-grid,
+      .skill-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+      .top-grid > *, .skill-grid > * { min-width:0; }
+      .top-grid .form-actions { grid-column:1 / -1; }
+      .skill-card { padding:12px; border-radius:14px; }
+      .skill-name { font-size:16px; }
+      .skill-main, .total-grid { grid-template-columns:1fr; }
+      select, button { min-width:0; min-height:44px; }
+    }
+    @media (max-width: 339px) {
+      .top-grid, .skill-grid { grid-template-columns:1fr !important; }
+    }
+  </style>
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
 </head>

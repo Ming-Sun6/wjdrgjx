@@ -1433,7 +1433,7 @@
       align-items:center;
       justify-content:center;
       padding:2px 6px;
-      margin:0 4px 0 0;
+      margin:0;
       border-radius:999px;
       background:#0891b2;
       color:#fff;
@@ -1442,8 +1442,10 @@
       line-height:1.1;
       box-shadow:0 8px 18px rgba(8,145,178,.24);
       vertical-align:middle;
-      position:relative;
-      top:-1px;
+      position:absolute;
+      top:8px;
+      right:8px;
+      z-index:3;
     }
     .tool-status-badge.badge-hot{
       background:#ef4444;
@@ -3360,6 +3362,41 @@
   </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style id="wjdr-home-mobile-title-fix">
+    @media (max-width: 768px){
+      .tool-tile-card{position:relative;}
+      .tool-tile-name,
+      .tool-tile-name.card-title{
+        display:grid;
+        place-items:center;
+        width:100%;
+        min-height:3.84em;
+        line-height:1.28;
+        overflow:visible;
+        text-align:center;
+      }
+      .tool-tile-name-inner{
+        display:block;
+        width:100%;
+        max-width:100%;
+        text-align:center;
+        white-space:normal;
+        overflow-wrap:anywhere;
+        word-break:break-word;
+      }
+      .tool-status-badge{
+        top:7px;
+        right:7px;
+      }
+      .tool-tile-card.has-tool-status-badge .tool-tile-link{
+        padding-top:28px !important;
+        align-content:start !important;
+      }
+      .featured-tool-card.has-tool-status-badge .featured-tool-link{
+        padding-top:38px !important;
+      }
+    }
+  </style>
   <link rel="stylesheet" href="/function/theme.css?v=20260501-0103" />
   <!-- 窄屏下 mobile-responsive 为避开固定 auth-bar 会加大 .container 的 padding-top；
        首页已包含活动横幅时不应再预留整块顶部空白，否则标题与横幅间距过大 -->
@@ -3613,7 +3650,7 @@
               <span class="featured-tool-badge">&#x7EC3;&#x5175;&#x6838;&#x5FC3;</span>
               <div class="featured-tool-main">
                 <div>
-                  <div class="card-title tool-entry-title">&#x7EC3;&#x5175;&#x8BA1;&#x7B97;&#x7AD9;</div>
+                  <div class="card-title tool-entry-title"><span class="tool-tile-name-inner">&#x7EC3;&#x5175;&#x8BA1;&#x7B97;&#x7AD9;</span></div>
                   <div class="desc">&#x8BAD;&#x7EC3;&#x8017;&#x65F6;&#x3001;&#x5F97;&#x5206;&#x4E0E;&#x8D44;&#x6E90;&#x4E00;&#x4F53;&#x8BA1;&#x7B97;&#x3002;</div>
                 </div>
                 <div class="tool-tile-icon featured-tool-icon" aria-hidden="true">
@@ -3629,7 +3666,7 @@
               <span class="featured-tool-badge">&#x8D44;&#x6E90;&#x89C4;&#x5212;</span>
               <div class="featured-tool-main">
                 <div>
-                  <div class="card-title tool-entry-title">&#x706B;&#x6676;&#x5EFA;&#x7B51;&#x8BA1;&#x7B97;&#x5668;</div>
+                  <div class="card-title tool-entry-title"><span class="tool-tile-name-inner">&#x706B;&#x6676;&#x5EFA;&#x7B51;&#x8BA1;&#x7B97;&#x5668;</span></div>
                   <div class="desc">&#x8986;&#x76D6; 30 &#x7EA7;&#x5230;&#x706B; 10 &#x9636;&#x6BB5;&#x7684;&#x5EFA;&#x7B51;&#x6D88;&#x8017;&#x4E0E;&#x89C4;&#x5212;&#x8BA1;&#x7B97;&#x3002;</div>
                 </div>
                 <div class="tool-tile-icon featured-tool-icon" aria-hidden="true">
@@ -3645,7 +3682,7 @@
               <span class="featured-tool-badge">&#x88C5;&#x5907;&#x8FDB;&#x9636;</span>
               <div class="featured-tool-main">
                 <div>
-                  <div class="card-title tool-entry-title">&#x9886;&#x4E3B;&#x88C5;&#x5907;&#x4E0E;&#x5B9D;&#x77F3;&#x8BA1;&#x7B97;&#x5668;</div>
+                  <div class="card-title tool-entry-title"><span class="tool-tile-name-inner">&#x9886;&#x4E3B;&#x88C5;&#x5907;&#x4E0E;&#x5B9D;&#x77F3;&#x8BA1;&#x7B97;&#x5668;</span></div>
                   <div class="desc">&#x9886;&#x4E3B;&#x88C5;&#x5907;&#x4E0E;&#x5B9D;&#x77F3;&#x5347;&#x7EA7;&#x8BA1;&#x7B97;&#x3002;</div>
                 </div>
                 <div class="tool-tile-icon featured-tool-icon" aria-hidden="true">
@@ -3661,7 +3698,7 @@
               <span class="featured-tool-badge">&#x6570;&#x636E;&#x603B;&#x89C8;</span>
               <div class="featured-tool-main">
                 <div>
-                  <div class="card-title tool-entry-title">&#x82F1;&#x96C4;&#x6570;&#x636E;</div>
+                  <div class="card-title tool-entry-title"><span class="tool-tile-name-inner">&#x82F1;&#x96C4;&#x6570;&#x636E;</span></div>
                   <div class="desc">&#x4F5C;&#x4E3A;&#x6570;&#x636E;&#x67E5;&#x8BE2;&#x603B;&#x5165;&#x53E3;&#xFF0C;&#x96C6;&#x4E2D;&#x67E5;&#x770B;&#x82F1;&#x96C4;&#x8D44;&#x6599;&#x4E0E;&#x540E;&#x7EED;&#x4EE3;&#x9645;&#x6269;&#x5C55;&#x3002;</div>
                 </div>
                 <div class="tool-tile-icon featured-tool-icon" aria-hidden="true">
@@ -3686,7 +3723,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="bear-pit">
             <a class="tool-tile-link" href="function/BeaPit.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F43B;</div>
-              <div class="card-title tool-tile-name">&#x718A;&#x5751;&#x6392;&#x5E03;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x718A;&#x5751;&#x6392;&#x5E03;</span></div>
             </a>
             <div class="pill">BeaPit.html</div>
             <div class="desc">&#x7528;&#x4E8E;&#x718A;&#x5751;/&#x5EFA;&#x7B51;&#x6392;&#x5E03;&#x4E0E;&#x6807;&#x8BB0;&#xFF0C;&#x652F;&#x6301;&#x7F29;&#x653E;&#x3001;&#x4FDD;&#x5B58;&#x548C;&#x5BFC;&#x51FA;&#x3002;</div>
@@ -3724,7 +3761,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="engineering-station-time">
             <a class="tool-tile-link" href="function/engineering-station-time.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x23F1;&#xFE0F;</div>
-              <div class="card-title tool-tile-name">&#x5DE5;&#x7A0B;&#x7AD9;&#x65F6;&#x95F4;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x5DE5;&#x7A0B;&#x7AD9;&#x65F6;&#x95F4;</span></div>
             </a>
             <div class="pill">engineering-station-time.html</div>
             <div class="desc">&#x7528;&#x4E8E;&#x5DE5;&#x7A0B;&#x7AD9;&#x5468;&#x671F;&#x5012;&#x8BA1;&#x65F6;&#x3001;&#x7B5B;&#x9009;&#x4E0E;&#x5BFC;&#x5165;&#x5BFC;&#x51FA;&#x914D;&#x7F6E;&#x3002;</div>
@@ -3733,7 +3770,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="gift-value-calculator">
             <a class="tool-tile-link" href="function/gift-value-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F381;</div>
-              <div class="card-title tool-tile-name">&#x793C;&#x5305;&#x6027;&#x4EF7;&#x6BD4;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x793C;&#x5305;&#x6027;&#x4EF7;&#x6BD4;</span></div>
             </a>
             <div class="pill">gift-value-calculator.html</div>
             <div class="desc">&#x652F;&#x6301;&#x6309;&#x9636;&#x6BB5;&#x4E0E;&#x6863;&#x4F4D;&#x8BA1;&#x7B97;&#x793C;&#x5305;&#x603B;&#x4EF7;&#x503C;&#x3002;</div>
@@ -3742,7 +3779,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="hero-equipment-calculator">
             <a class="tool-tile-link" href="function/hero-equipment-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F6E1;&#xFE0F;</div>
-              <div class="card-title tool-tile-name">&#x82F1;&#x96C4;&#x88C5;&#x5907;&#x8BA1;&#x7B97;&#x5668;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x82F1;&#x96C4;&#x88C5;&#x5907;&#x8BA1;&#x7B97;&#x5668;</span></div>
             </a>
             <div class="pill">hero-equipment-calculator.html</div>
             <div class="desc">&#x82F1;&#x96C4;&#x88C5;&#x5907;&#x517B;&#x6210;&#x4E0E;&#x5C5E;&#x6027;&#x8BA1;&#x7B97;&#x3002;</div>
@@ -3751,7 +3788,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="expert-calculator">
             <a class="tool-tile-link" href="function/expert-calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9D1;&#x200D;&#x1F4BC;</div>
-              <div class="card-title tool-tile-name">专家计算器</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">专家计算器</span></div>
             </a>
             <div class="pill">expert-calculator.html</div>
             <div class="desc">专家关系、技能等级与资源消耗计算，技能资料预留后续补充。</div>
@@ -3760,7 +3797,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="t11-calculator">
             <a class="tool-tile-link" href="function/T11Calculator.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9EA;</div>
-              <div class="card-title tool-tile-name">T11 &#x5347;&#x7EA7;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">T11 &#x5347;&#x7EA7;</span></div>
             </a>
             <div class="pill">T11Calculator.html</div>
             <div class="desc">&#x7528;&#x4E8E; T11 &#x76F8;&#x5173;&#x8D44;&#x6E90;&#x4E0E;&#x5347;&#x7EA7;&#x8BA1;&#x7B97;&#x3002;</div>
@@ -3788,7 +3825,7 @@
           <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="giftcode-center" hidden aria-hidden="true">
             <a class="tool-tile-link" href="/giftcode/" id="giftcode-dev-link">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F381;</div>
-              <div class="card-title tool-tile-name">无尽冬日兑换中心</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">无尽冬日兑换中心</span></div>
             </a>
             <div class="pill">giftcode</div>
             <div class="desc">自动兑换、码库管理、玩家提交新兑换码。</div>
@@ -3824,7 +3861,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="neighbor-progress">
             <a class="tool-tile-link" href="function/neighbor-progress.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F9ED;</div>
-              <div class="card-title tool-tile-name">&#x90BB;&#x90A6;&#x8FDB;&#x5EA6;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x90BB;&#x90A6;&#x8FDB;&#x5EA6;</span></div>
             </a>
             <div class="pill">neighbor-progress.html</div>
             <div class="desc">&#x652F;&#x6301;&#x5177;&#x4F53;&#x533A;&#x670D;&#x67E5;&#x8BE2;&#x3001;&#x6309;&#x65E5;&#x671F;&#x53CD;&#x67E5;&#x7B49;&#x8FDB;&#x5EA6;&#x4FE1;&#x606F;&#x67E5;&#x770B;&#x3002;</div>
@@ -3833,7 +3870,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="history-immigration-group">
             <a class="tool-tile-link" href="function/history-immigration-group.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F5FA;&#xFE0F;</div>
-              <div class="card-title tool-tile-name">&#x5386;&#x53F2;&#x79FB;&#x6C11;&#x5206;&#x7EC4;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x5386;&#x53F2;&#x79FB;&#x6C11;&#x5206;&#x7EC4;</span></div>
             </a>
             <div class="pill">history-immigration-group.html</div>
             <div class="desc">&#x67E5;&#x770B;&#x5386;&#x53F2;&#x79FB;&#x6C11;&#x5206;&#x7EC4;&#x77E9;&#x9635;&#xFF0C;&#x652F;&#x6301;&#x6309;&#x90BB;&#x90A6;&#x7B5B;&#x9009;&#x9AD8;&#x4EAE;&#x3002;</div>
@@ -3878,7 +3915,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="regular-gift-data" data-gift-search="regular">
             <a class="tool-tile-link" href="function/Zero/regular-gift-data.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4E6;</div>
-              <div class="card-title tool-tile-name">&#x5E38;&#x89C4;&#x793C;&#x5305;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x5E38;&#x89C4;&#x793C;&#x5305;</span></div>
             </a>
             <div class="pill">Zero/regular-gift-data.html</div>
             <div class="desc">&#x5E38;&#x89C4;&#x793C;&#x5305;&#x6570;&#x636E;&#x603B;&#x5165;&#x53E3;&#x3002;</div>
@@ -3887,7 +3924,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="special-gift-data" data-gift-search="special">
             <a class="tool-tile-link" href="function/Zero/special-gift-data.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F380;</div>
-              <div class="card-title tool-tile-name">&#x7279;&#x60E0;&#x793C;&#x5305;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x7279;&#x60E0;&#x793C;&#x5305;</span></div>
             </a>
             <div class="pill">Zero/special-gift-data.html</div>
             <div class="desc">&#x7279;&#x60E0;&#x793C;&#x5305;&#x603B;&#x5165;&#x53E3;&#xFF0C;&#x652F;&#x6301;&#x641C;&#x7D22;&#x4E0E;&#x70B9;&#x51FB;&#x67E5;&#x770B;&#x3002;</div>
@@ -3896,7 +3933,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="reference-hub">
             <a class="tool-tile-link" href="function/reference-hub/index.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F4DA;</div>
-              <div class="card-title tool-tile-name">礼包参考总览</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">礼包参考总览</span></div>
             </a>
             <div class="pill">reference-hub/index.html</div>
             <div class="desc">按工作表拆分的攻略参考总览页，目录切换后可直接内嵌查看每张独立页面。</div>
@@ -3905,7 +3942,7 @@
           <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="gift-rotation-schedule">
             <a class="tool-tile-link" href="function/Zero/gift-rotation-schedule.html">
               <div class="tool-tile-icon" aria-hidden="true">&#x1F5D3;&#xFE0F;</div>
-              <div class="card-title tool-tile-name">&#x793C;&#x5305;&#x8F6E;&#x6362;&#x8868;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x793C;&#x5305;&#x8F6E;&#x6362;&#x8868;</span></div>
             </a>
             <div class="pill">Zero/gift-rotation-schedule.html</div>
             <div class="desc">&#x67E5;&#x770B;&#x793C;&#x5305;&#x5F00;&#x542F;&#x5468;&#x671F;&#x4E0E;&#x5907;&#x6CE8;&#x8BF4;&#x660E;&#x3002;</div>
@@ -9374,6 +9411,7 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         if(!title)return;
         var current=title.querySelector('.tool-status-badge');
         var label=badgeLabel(badge);
+        card.classList.toggle('has-tool-status-badge',Boolean(label));
         if(!label){
           if(current)current.remove();
           return;

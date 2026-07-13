@@ -148,6 +148,26 @@
   </style>
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style id="wjdr-mobile-density">
+    @media (max-width: 768px) {
+      .app { width:100%; max-width:100%; min-width:0; }
+      .hero, .panel, .table-wrap { max-width:100%; min-width:0; }
+      .btn { min-height:44px; }
+    }
+    @media (min-width: 340px) and (max-width: 768px) {
+      #cards,
+      .stats,
+      .btn-row { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+      .btn-row { display:grid; gap:8px; }
+      #cards > *, .stats > *, .btn-row > * { min-width:0; }
+      .btn-row .btn { width:100%; min-height:44px; }
+      .stats .stat-wide { grid-column:1 / -1; }
+      #cards .row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width: 339px) {
+      #cards, .stats, .btn-row, #cards .row { grid-template-columns:1fr !important; }
+    }
+  </style>
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
 </head>

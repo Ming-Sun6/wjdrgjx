@@ -98,9 +98,13 @@ function jsJson(value) {
   return JSON.stringify(value).replace(/<\//g, "<\\/");
 }
 
+function readPythonTemplate() {
+  return fs.readFileSync(path.join(ROOT, "scripts", "generate-t12-pages.py"), "utf8")
+    .replace(/\r\n?/g, "\n");
+}
+
 function readCalculatorScriptTail() {
-  const pyPath = path.join(ROOT, "scripts", "generate-t12-pages.py");
-  const py = fs.readFileSync(pyPath, "utf8");
+  const py = readPythonTemplate();
   const marker = '    script = f"""';
   const calcStart = py.indexOf(marker, py.indexOf("def calculator_page"));
   if (calcStart === -1) throw new Error("calculator script block not found in .py");
@@ -115,20 +119,18 @@ function readCalculatorScriptTail() {
 }
 
 function readOverviewScriptTail() {
-  const pyPath = path.join(ROOT, "scripts", "generate-t12-pages.py");
-  const py = fs.readFileSync(pyPath, "utf8");
+  const py = readPythonTemplate();
   const marker = '    script = f"""';
   const ovStart = py.indexOf(marker, py.indexOf("def overview_page"));
   if (ovStart === -1) throw new Error("overview script block not found");
   const innerStart = ovStart + marker.length;
-  const innerEnd = py.indexOf('"""\n    return shell("T12 煌耀系列数据总览"', innerStart);
+  const innerEnd = py.indexOf('"""\n    return shell("T12', innerStart);
   if (innerEnd === -1) throw new Error("overview script block end not found");
   return py.slice(innerStart, innerEnd);
 }
 
 function extractPythonTripleAssign(varName) {
-  const pyPath = path.join(ROOT, "scripts", "generate-t12-pages.py");
-  const py = fs.readFileSync(pyPath, "utf8");
+  const py = readPythonTemplate();
   const needle = `${varName} = """`;
   const start = py.indexOf(needle);
   if (start === -1) throw new Error(`missing ${varName} in generate-t12-pages.py`);
@@ -187,7 +189,7 @@ function main() {
   const ovTpl = readOverviewScriptTail();
   const ovScript = fillTemplate(ovTpl, dataJson, groupsJson, null);
 
-  const py = fs.readFileSync(path.join(ROOT, "scripts", "generate-t12-pages.py"), "utf8");
+  const py = readPythonTemplate();
 
   function extractBody(fnName) {
     const fn = `def ${fnName}`;
@@ -204,8 +206,8 @@ function main() {
   const calcPath = path.join(OUT_DIR, "T12Calculator.html");
   const ovPath = path.join(OUT_DIR, "T12DataOverview.html");
 
-  const calcHtml = mergeShellHtml(calcPath, "T12 煌耀系列科技计算器", calcBody, calcScript);
-  const ovHtml = mergeShellHtml(ovPath, "T12 煌耀系列数据总览", ovBody, ovScript);
+  const calcHtml = mergeShellHtml(calcPath, "T12 煌耀系列科技计算器-冬日工具箱", calcBody, calcScript);
+  const ovHtml = mergeShellHtml(ovPath, "T12 煌耀系列数据总览-冬日工具箱", ovBody, ovScript);
 
   fs.writeFileSync(calcPath, calcHtml, "utf8");
   fs.writeFileSync(ovPath, ovHtml, "utf8");

@@ -244,6 +244,7 @@
     .tech-grid,
     .results-grid,
     .resource-grid,
+    .tech-detail-grid,
     .card-grid {
       display: grid;
       gap: 12px;
@@ -337,6 +338,10 @@
 
     .resource-grid {
       grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    }
+
+    .tech-detail-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
     .resource-sub {
@@ -475,6 +480,7 @@
       display: block;
       color: var(--muted);
       font-size: 11px;
+      line-height: 1.2;
       margin-bottom: 4px;
     }
 
@@ -514,14 +520,18 @@
       .hero-shell { grid-template-columns: 1fr; }
       .section-head { align-items: start; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .result-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .result-kpis { grid-template-columns: 1fr; }
       .filter-row > * { flex: 1 1 180px; }
       .level-row { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 768px) {
-      html:root {
-        --wjdr-fab-size: 44px;
+      html:root { --wjdr-fab-size: 44px; }
+
+      html,
+      body {
+        max-width: 100%;
+        overflow-x: hidden;
       }
 
       body {
@@ -545,20 +555,18 @@
 
       .hero-title {
         margin-bottom: 10px;
-        font-size: 30px;
+        font-size: clamp(26px, 8vw, 34px);
         line-height: 1.12;
         letter-spacing: 0;
       }
 
       .section,
       .hero-shell {
-        padding: 14px;
-        gap: 14px;
+        padding: 12px;
+        gap: 12px;
       }
 
-      .hero-shell {
-        grid-template-columns: 1fr;
-      }
+      .hero-shell { grid-template-columns: 1fr; }
 
       .section-head {
         display: grid;
@@ -566,34 +574,20 @@
         gap: 8px;
       }
 
-      .section-head h2 {
-        font-size: 20px;
-        line-height: 1.3;
-      }
-
-      .hero-copy,
-      .section-copy,
-      .hint,
-      .empty-state {
-        line-height: 1.65;
-      }
-
-      .eyebrow,
-      .pill {
-        max-width: 100%;
-        white-space: normal;
-      }
-
-      .nav-row {
+      .nav-row,
+      .btn-row {
         display: grid;
         grid-template-columns: 1fr;
         align-items: stretch;
       }
 
-      .controls-grid {
-        grid-template-columns: 1fr;
-        min-width: 0;
+      .controls-grid,
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
+      .controls-grid { gap: 8px; }
+      .stats { gap: 6px; }
 
       .tech-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -605,25 +599,23 @@
         min-width: 0;
       }
 
-      .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
       .note-card,
       .control-card,
       .tech-card,
       .result-card,
-      .data-card {
+      .data-card,
+      .stat {
         width: 100%;
         max-width: 100%;
         min-width: 0;
-        padding: 14px;
+        padding: 10px;
         border-radius: 14px;
       }
 
-      .level-row {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
+      .control-card,
+      .stat { min-width: 0; }
+
+      .level-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
       input,
       select,
@@ -636,42 +628,92 @@
 
       input,
       select {
-        padding: 10px 12px;
-        font-size: 16px;
+        padding: 9px 8px;
+        font-size: 13px;
       }
 
-      .nav-link {
-        display: flex;
+      .btn-row .btn {
         width: 100%;
-        align-items: center;
         justify-content: center;
-        text-align: center;
       }
 
-      .home-btn {
-        display: inline-flex;
-        max-width: calc(100vw - 24px);
-        align-items: center;
-      }
-
-      .overview-table-wrap {
-        display: none;
-      }
+      .overview-table-wrap { display: none; }
 
       .mobile-overview-list {
         display: grid;
-        gap: 12px;
+        gap: 8px;
+      }
+
+      .mobile-group-card,
+      .mobile-detail-card {
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .mobile-group-card {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        border-radius: 14px;
       }
 
       .mobile-card-head,
       .group-summary {
         display: grid;
-        gap: 10px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px;
       }
 
-      .mobile-kpis,
-      .mobile-detail-grid {
+      .mobile-card-title strong {
+        font-size: 13px;
+        line-height: 1.25;
+      }
+
+      .mobile-kpis {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+      }
+
+      .mobile-detail-list { gap: 6px; }
+
+      .mobile-detail-card {
+        padding: 8px;
+        border-radius: 12px;
+      }
+
+      .mobile-detail-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
+        margin-top: 6px !important;
+      }
+
+      .tech-detail-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
+      }
+
+      .mobile-kpi,
+      .mobile-detail-item {
+        padding: 6px 4px;
+        border-radius: 9px;
+        overflow: hidden;
+      }
+
+      .mobile-kpi span,
+      .mobile-detail-item span {
+        margin-bottom: 3px;
+        font-size: 10px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+
+      .mobile-kpi strong,
+      .mobile-detail-item strong {
+        min-width: 0;
+        font-size: 11px;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .result-card-head {
@@ -680,22 +722,7 @@
         gap: 8px;
       }
 
-      .result-card-head .pill {
-        justify-self: start;
-      }
-
-      .result-kpis,
-      .resource-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .stat,
-      .result-kpi,
-      .resource-item,
-      .mobile-kpi,
-      .mobile-detail-item {
-        min-width: 0;
-      }
+      .result-card-head .pill { justify-self: start; }
 
       .stat .value,
       .result-card,
@@ -706,23 +733,6 @@
       .pill {
         overflow-wrap: anywhere;
         word-break: break-word;
-      }
-
-      .btn-row .btn,
-      .group-toggle {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .btn-row {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-        align-items: stretch;
-      }
-
-      .btn-row .btn {
-        width: 100%;
       }
 
       body .table-wrap {
@@ -741,36 +751,25 @@
 
       th,
       td {
-        padding: 8px;
-        white-space: normal;
         overflow-wrap: anywhere;
         word-break: break-word;
       }
     }
 
-    @media (max-width: 420px) {
-      .hero-title { font-size: 27px; }
-      .section,
-      .hero-shell { padding: 12px; }
-      .level-row,
-      .result-kpis,
-      .resource-grid,
-      .mobile-kpis,
-      .mobile-detail-grid { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 340px) {
+    @media (max-width: 339px) {
       .tech-grid { grid-template-columns: 1fr; }
+      .tech-detail-grid,
+      .mobile-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
   </style>
-  <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
 </head>
 <body>
-  <a class="home-btn" href="/rukou.html">返回主页</a>
+  <a class="home-btn" href="../rukou.html">返回主页</a>
 
   <main class="app-shell">
     <section class="shell-card hero-shell">
@@ -894,6 +893,7 @@
     t12Groups.forEach(group => {
       state[group.id] = { current: 0, target: 0, max: group.max };
     });
+
 
 
     function fmt(n, d = 0) {
@@ -1029,12 +1029,10 @@
             </div>
             <span class="pill">${fmtSeconds(item.seconds)}</span>
           </div>
-          <div class="result-kpis">
+          <div class="tech-detail-grid">
             <div class="result-kpi"><span>所需时间</span><strong>${fmtSmart(item.seconds / 86400)} 天</strong></div>
             <div class="result-kpi"><span>精炼火晶</span><strong>${fmt(item.refinedCrystal)}</strong></div>
             <div class="result-kpi"><span>火晶微粒</span><strong>${fmt(item.microCrystal)}</strong></div>
-          </div>
-          <div class="resource-grid">
             ${resourceMarkup("钢材", item.steel)}
             ${resourceMarkup("肉", item.meat)}
             ${resourceMarkup("木材", item.wood)}
