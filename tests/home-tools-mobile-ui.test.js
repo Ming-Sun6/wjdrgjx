@@ -55,10 +55,13 @@ test('home and admin changelogs describe the current toolbox release', () => {
   const admin = read('public/function/_ops/console-7a9/internal/admin.html');
 
   for (const html of [home, admin]) {
-    assert.match(html, /V0\.9\.26/);
-    assert.match(html, /2026-07-12/);
+    assert.match(html, /V0\.9\.27/);
+    assert.match(html, /2026-07-24/);
+    assert.match(html, /加雷斯/);
+    assert.match(html, /专家计算器/);
     assert.match(html, /建筑升级计算器/);
     assert.match(html, /移民券/);
+    assert.doesNotMatch(html, /加雷斯[^<]*(?:\.xlsx|原始表|数据来源)/);
   }
   assert.match(admin, /活动横幅/);
   assert.doesNotMatch(home, /<li><strong>公告与活动横幅<\/strong>/);
