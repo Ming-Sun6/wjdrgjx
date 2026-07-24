@@ -14,9 +14,19 @@ function loadExpertData() {
   return sandbox.window.ExpertCalculatorData;
 }
 
+function loadExpertCore() {
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', 'expert-calculator-core.js'),
+    'utf8'
+  );
+  const sandbox = { window: {} };
+  vm.runInNewContext(source, sandbox);
+  return sandbox.window.ExpertCalculatorCore;
+}
+
 test('expert calculator data includes level rows and reserved skills', () => {
   const data = loadExpertData();
-  assert.equal(data.experts.length, 8);
+  assert.equal(data.experts.length, 9);
 
   const bald = data.experts.find(expert => expert.name === '巴尔德');
   assert.ok(bald);
@@ -26,6 +36,36 @@ test('expert calculator data includes level rows and reserved skills', () => {
   assert.equal(bald.levels[99].level, 100);
   assert.equal(bald.relationMilestones.at(-1).relation, '莫逆于心');
   assert.ok(Array.isArray(bald.skills));
+});
+
+test('expert calculator imports Gareth skill costs without inventing expert levels', () => {
+  const data = loadExpertData();
+  const gareth = data.experts.find(expert => expert.name === '加雷斯');
+  assert.ok(gareth);
+  assert.equal(gareth.hasExpertLevelData, false);
+  assert.equal(gareth.levels.length, 0);
+  assert.equal(gareth.relationMilestones.length, 0);
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(gareth.skills.map(skill => [skill.name, skill.type, skill.levels.length]))),
+    [
+      ['铁森林馈赠', 'skill', 10],
+      ['铁棘战阵', 'skill', 20],
+      ['不败铁军', 'skill', 20],
+      ['威名震慑', 'skill', 20],
+      ['重振旗鼓', 'talent', 11]
+    ]
+  );
+
+  const normalSkills = gareth.skills.filter(skill => skill.type === 'skill');
+  assert.equal(normalSkills.flatMap(skill => skill.levels).reduce((sum, row) => sum + row.xp, 0), 226663800);
+  assert.equal(normalSkills.flatMap(skill => skill.levels).reduce((sum, row) => sum + row.books, 0), 1313500);
+  assert.equal(normalSkills[0].levels[1].xp, 25800);
+  assert.equal(normalSkills[0].levels[1].books, 300);
+  assert.equal(normalSkills[0].levels[2].cumulativeBooks, 900);
+  assert.ok(data.experts.filter(expert => expert !== gareth).every(expert => expert.hasExpertLevelData === true));
+  assert.equal(data.source, undefined);
+  assert.equal(data.sources, undefined);
 });
 
 test('expert calculator parses Ronie skill names, costs, and talent rows', () => {
@@ -53,6 +93,42 @@ test('expert calculator parses Ronie skill names, costs, and talent rows', () =>
   assert.match(talent.levels[10].description, /攻击力和防御力\+30%/);
 });
 
+test('expert calculator core models partial expert selection and reset state', () => {
+  const data = loadExpertData();
+  const core = loadExpertCore();
+  const gareth = data.experts.find(expert => expert.name === '加雷斯');
+  const bald = data.experts.find(expert => expert.name === '巴尔德');
+
+  const garethState = core.calculatorViewState(gareth);
+  assert.equal(garethState.levels.disabled, true);
+  assert.equal(garethState.levels.placeholder, '暂无数据');
+  assert.equal(garethState.expertEffect, '暂无数据');
+  assert.equal(garethState.totalFavor, '暂无数据');
+  assert.equal(garethState.totalMarks, '暂无数据');
+
+  const completeState = core.calculatorViewState(bald);
+  assert.equal(completeState.levels.disabled, false);
+  assert.equal(completeState.levels.values.length, 100);
+  assert.deepEqual(Array.from(completeState.levels.values.slice(0, 3)), [1, 2, 3]);
+  assert.deepEqual(Array.from(completeState.levels.values.slice(-2)), [99, 100]);
+
+  const firstReset = JSON.parse(JSON.stringify(core.initialRanges(gareth)));
+  const secondReset = JSON.parse(JSON.stringify(core.initialRanges(gareth)));
+  assert.deepEqual(firstReset, secondReset);
+  assert.equal(firstReset.expert, null);
+  assert.equal(firstReset.skills.length, 4);
+  assert.deepEqual(JSON.parse(JSON.stringify(core.initialRanges(bald).expert)), { from: 1, to: 100 });
+  assert.deepEqual(JSON.parse(JSON.stringify(core.expertTotals(gareth, 1, 100))), {
+    available: false,
+    favor: null,
+    marks: null
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(core.skillCost(gareth.skills[0], 1, 10))), {
+    xp: 1164000,
+    books: 13500
+  });
+});
+
 test('expert calculator page loads data and exposes calculator controls', () => {
   const html = fs.readFileSync(
     path.join(__dirname, '..', 'public', 'function', 'expert-calculator.html'),
@@ -60,6 +136,7 @@ test('expert calculator page loads data and exposes calculator controls', () => 
   );
 
   assert.match(html, /expert-calculator-data\.js/);
+  assert.match(html, /expert-calculator-core\.js/);
   assert.match(html, /id="expertSelect"/);
   assert.match(html, /id="currentLevel"/);
   assert.match(html, /id="targetLevel"/);
@@ -70,7 +147,17 @@ test('expert calculator page loads data and exposes calculator controls', () => 
   assert.match(html, /id="totalSkillXp"/);
   assert.match(html, /技能升级计算/);
   assert.match(html, /skill-level-table/);
+  assert.match(html, /暂无数据/);
   assert.match(html, /待补充/);
+  assert.doesNotMatch(html, /\.xlsx|数据来源|id="dataSource"/i);
+});
+
+test('published expert calculator data does not disclose workbook sources', () => {
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', 'expert-calculator-data.js'),
+    'utf8'
+  );
+  assert.doesNotMatch(source, /\.xlsx|public\/参考|Auto-generated from/i);
 });
 
 test('expert calculator has dedicated mobile layout rules', () => {

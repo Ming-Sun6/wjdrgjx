@@ -4,6 +4,7 @@ const XLSX = require('xlsx');
 
 const rootDir = path.join(__dirname, '..');
 const workbookPath = path.join(rootDir, 'public', '参考', '专家数据表.xlsx');
+const garethWorkbookPath = path.join(rootDir, 'public', '参考', '加雷斯.xlsx');
 const outputPath = path.join(rootDir, 'public', 'function', 'expert-calculator-data.js');
 
 function cleanText(value) {
@@ -152,6 +153,7 @@ function readExpert(workbook, sheetName) {
     id: cleanName(sheetName),
     name: cleanName(sheetName),
     sheetName: cleanText(sheetName),
+    hasExpertLevelData: true,
     statLabel,
     levels,
     relationMilestones: [...left.milestones, ...right.milestones].filter(item => item.relation),
@@ -159,15 +161,110 @@ function readExpert(workbook, sheetName) {
   };
 }
 
+function requiredSheet(workbook, name) {
+  const sheet = workbook.Sheets[name];
+  if (!sheet) throw new Error(`Missing required Gareth sheet: ${name}`);
+  return sheet;
+}
+
+function requiredNumber(value, label) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) throw new Error(`Invalid numeric value for ${label}`);
+  return number;
+}
+
+function readGareth(workbook) {
+  const summaryRows = XLSX.utils.sheet_to_json(requiredSheet(workbook, '分技能汇总'), {
+    header: 1,
+    defval: null
+  });
+  const detailRows = XLSX.utils.sheet_to_json(requiredSheet(workbook, '技能经验与书明细'), {
+    header: 1,
+    defval: null
+  });
+  const summary = summaryRows.slice(1)
+    .filter(row => row[0] === '技能' || row[0] === '天赋')
+    .map(row => ({
+      type: row[0] === '天赋' ? 'talent' : 'skill',
+      name: cleanText(row[1]),
+      maxLevel: requiredNumber(row[2], `${row[1]} max level`),
+      totalXp: requiredNumber(row[3], `${row[1]} total XP`),
+      totalBooks: requiredNumber(row[5], `${row[1]} total books`)
+    }));
+  const normalSummary = summary.filter(item => item.type === 'skill');
+  const talentSummary = summary.filter(item => item.type === 'talent');
+  if (normalSummary.length !== 4 || talentSummary.length !== 1) {
+    throw new Error('Gareth workbook must contain exactly four skills and one talent');
+  }
+
+  const headers = detailRows[0] || [];
+  const requirementCol = headers.indexOf('关系要求');
+  const descriptionCol = headers.indexOf('技能效果');
+  const skills = normalSummary.map(meta => {
+    let cumulativeBooks = 0;
+    const levels = detailRows.slice(1)
+      .filter(row => cleanText(row[0]) === meta.name)
+      .map(row => {
+        const level = requiredNumber(row[1], `${meta.name} level`);
+        const xp = requiredNumber(row[3], `${meta.name} Lv.${level} XP`);
+        const books = requiredNumber(row[5], `${meta.name} Lv.${level} books`);
+        cumulativeBooks += books;
+        return {
+          level,
+          books,
+          xp,
+          requirement: requirementCol >= 0 ? cleanText(row[requirementCol]) : '',
+          cumulativeBooks,
+          description: descriptionCol >= 0 ? cleanText(row[descriptionCol]) : ''
+        };
+      });
+    const actualLevels = levels.map(row => row.level);
+    const expectedLevels = Array.from({ length: meta.maxLevel }, (_, index) => index + 1);
+    if (JSON.stringify(actualLevels) !== JSON.stringify(expectedLevels)) {
+      throw new Error(`${meta.name} levels must be unique and contiguous from 1 to ${meta.maxLevel}`);
+    }
+    const totalXp = levels.reduce((sum, row) => sum + row.xp, 0);
+    const totalBooks = levels.reduce((sum, row) => sum + row.books, 0);
+    if (totalXp !== meta.totalXp || totalBooks !== meta.totalBooks) {
+      throw new Error(`${meta.name} detail totals do not match summary`);
+    }
+    return { name: meta.name, status: '已导入', type: 'skill', levels };
+  });
+
+  const talent = talentSummary[0];
+  skills.push({
+    name: talent.name,
+    status: '已导入',
+    type: 'talent',
+    levels: Array.from({ length: talent.maxLevel }, (_, index) => ({
+      level: index + 1,
+      relation: '',
+      talentLevel: index + 1,
+      description: ''
+    }))
+  });
+
+  return {
+    id: '加雷斯',
+    name: '加雷斯',
+    sheetName: '加雷斯',
+    hasExpertLevelData: false,
+    statLabel: '',
+    levels: [],
+    relationMilestones: [],
+    skills
+  };
+}
+
 function build() {
   const workbook = XLSX.readFile(workbookPath, { cellFormula: false, cellDates: false });
+  const garethWorkbook = XLSX.readFile(garethWorkbookPath, { cellFormula: false, cellDates: false });
   const data = {
-    source: 'public/参考/专家数据表.xlsx',
     note: '技能名称和部分技能数据预留为待补充；可直接在本文件中继续完善。',
-    experts: workbook.SheetNames.map(sheetName => readExpert(workbook, sheetName))
+    experts: [...workbook.SheetNames.map(sheetName => readExpert(workbook, sheetName)), readGareth(garethWorkbook)]
   };
 
-  const content = `/* Auto-generated from ${data.source}. Edit skill placeholders here when new data is available. */\n` +
+  const content = `/* Generated expert calculator data. */\n` +
     `(function(){\n` +
     `  window.ExpertCalculatorData = ${JSON.stringify(data, null, 2)};\n` +
     `})();\n`;

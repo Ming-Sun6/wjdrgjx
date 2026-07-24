@@ -1,13 +1,13 @@
-/* Auto-generated from public/参考/专家数据表.xlsx. Edit skill placeholders here when new data is available. */
+/* Generated expert calculator data. */
 (function(){
   window.ExpertCalculatorData = {
-  "source": "public/参考/专家数据表.xlsx",
   "note": "技能名称和部分技能数据预留为待补充；可直接在本文件中继续完善。",
   "experts": [
     {
       "id": "巴尔德",
       "name": "巴尔德",
       "sheetName": "巴尔德",
+      "hasExpertLevelData": true,
       "statLabel": "部队攻击力 部队防御力",
       "levels": [
         {
@@ -1401,6 +1401,7 @@
       "id": "法比安",
       "name": "法比安",
       "sheetName": "法比安",
+      "hasExpertLevelData": true,
       "statLabel": "部队穿透力 部队生命力",
       "levels": [
         {
@@ -2869,6 +2870,7 @@
       "id": "西里尔",
       "name": "西里尔",
       "sheetName": "西里尔",
+      "hasExpertLevelData": true,
       "statLabel": "部队攻击力",
       "levels": [
         {
@@ -4109,6 +4111,7 @@
       "id": "艾格尼丝",
       "name": "艾格尼丝",
       "sheetName": "艾 格 尼 丝",
+      "hasExpertLevelData": true,
       "statLabel": "部队防御力",
       "levels": [
         {
@@ -5382,6 +5385,7 @@
       "id": "霍尔格",
       "name": "霍尔格",
       "sheetName": "霍 尔 格",
+      "hasExpertLevelData": true,
       "statLabel": "部队攻击力 部队防御力",
       "levels": [
         {
@@ -6775,6 +6779,7 @@
       "id": "罗慕路斯",
       "name": "罗慕路斯",
       "sheetName": "罗 慕 路 斯",
+      "hasExpertLevelData": true,
       "statLabel": "部队穿透力 部队生命力",
       "levels": [
         {
@@ -8335,6 +8340,7 @@
       "id": "瓦莱莉亚",
       "name": "瓦莱莉亚",
       "sheetName": "瓦 莱 莉 亚",
+      "hasExpertLevelData": true,
       "statLabel": "部队穿透力 部队生命力",
       "levels": [
         {
@@ -9815,6 +9821,7 @@
       "id": "罗妮",
       "name": "罗妮",
       "sheetName": "罗 妮",
+      "hasExpertLevelData": true,
       "statLabel": "部队攻击力 部队防御力",
       "levels": [
         {
@@ -11199,6 +11206,678 @@
               "relation": "莫逆于心",
               "talentLevel": 11,
               "description": "在雪原商路遭遇掠夺抑或主动攻击其他货车时，部队攻击力和防御力+30%"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "加雷斯",
+      "name": "加雷斯",
+      "sheetName": "加雷斯",
+      "hasExpertLevelData": false,
+      "statLabel": "",
+      "levels": [],
+      "relationMilestones": [],
+      "skills": [
+        {
+          "name": "铁森林馈赠",
+          "status": "已导入",
+          "type": "skill",
+          "levels": [
+            {
+              "level": 1,
+              "books": 0,
+              "xp": 0,
+              "requirement": "",
+              "cumulativeBooks": 0,
+              "description": ""
+            },
+            {
+              "level": 2,
+              "books": 300,
+              "xp": 25800,
+              "requirement": "",
+              "cumulativeBooks": 300,
+              "description": ""
+            },
+            {
+              "level": 3,
+              "books": 600,
+              "xp": 51600,
+              "requirement": "",
+              "cumulativeBooks": 900,
+              "description": ""
+            },
+            {
+              "level": 4,
+              "books": 900,
+              "xp": 77400,
+              "requirement": "",
+              "cumulativeBooks": 1800,
+              "description": ""
+            },
+            {
+              "level": 5,
+              "books": 1200,
+              "xp": 103200,
+              "requirement": "",
+              "cumulativeBooks": 3000,
+              "description": ""
+            },
+            {
+              "level": 6,
+              "books": 1500,
+              "xp": 129600,
+              "requirement": "",
+              "cumulativeBooks": 4500,
+              "description": ""
+            },
+            {
+              "level": 7,
+              "books": 1800,
+              "xp": 155400,
+              "requirement": "",
+              "cumulativeBooks": 6300,
+              "description": ""
+            },
+            {
+              "level": 8,
+              "books": 2100,
+              "xp": 181200,
+              "requirement": "",
+              "cumulativeBooks": 8400,
+              "description": ""
+            },
+            {
+              "level": 9,
+              "books": 2400,
+              "xp": 207000,
+              "requirement": "",
+              "cumulativeBooks": 10800,
+              "description": ""
+            },
+            {
+              "level": 10,
+              "books": 2700,
+              "xp": 232800,
+              "requirement": "",
+              "cumulativeBooks": 13500,
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "铁棘战阵",
+          "status": "已导入",
+          "type": "skill",
+          "levels": [
+            {
+              "level": 1,
+              "books": 0,
+              "xp": 0,
+              "requirement": "",
+              "cumulativeBooks": 0,
+              "description": ""
+            },
+            {
+              "level": 2,
+              "books": 1250,
+              "xp": 172800,
+              "requirement": "",
+              "cumulativeBooks": 1250,
+              "description": ""
+            },
+            {
+              "level": 3,
+              "books": 2500,
+              "xp": 345600,
+              "requirement": "",
+              "cumulativeBooks": 3750,
+              "description": ""
+            },
+            {
+              "level": 4,
+              "books": 3750,
+              "xp": 518400,
+              "requirement": "",
+              "cumulativeBooks": 7500,
+              "description": ""
+            },
+            {
+              "level": 5,
+              "books": 5000,
+              "xp": 691200,
+              "requirement": "",
+              "cumulativeBooks": 12500,
+              "description": ""
+            },
+            {
+              "level": 6,
+              "books": 6250,
+              "xp": 864000,
+              "requirement": "",
+              "cumulativeBooks": 18750,
+              "description": ""
+            },
+            {
+              "level": 7,
+              "books": 7500,
+              "xp": 1036800,
+              "requirement": "",
+              "cumulativeBooks": 26250,
+              "description": ""
+            },
+            {
+              "level": 8,
+              "books": 8750,
+              "xp": 1209600,
+              "requirement": "",
+              "cumulativeBooks": 35000,
+              "description": ""
+            },
+            {
+              "level": 9,
+              "books": 10000,
+              "xp": 1382400,
+              "requirement": "",
+              "cumulativeBooks": 45000,
+              "description": ""
+            },
+            {
+              "level": 10,
+              "books": 11250,
+              "xp": 1555200,
+              "requirement": "",
+              "cumulativeBooks": 56250,
+              "description": ""
+            },
+            {
+              "level": 11,
+              "books": 12500,
+              "xp": 1728000,
+              "requirement": "",
+              "cumulativeBooks": 68750,
+              "description": ""
+            },
+            {
+              "level": 12,
+              "books": 13750,
+              "xp": 1900800,
+              "requirement": "",
+              "cumulativeBooks": 82500,
+              "description": ""
+            },
+            {
+              "level": 13,
+              "books": 15000,
+              "xp": 2073600,
+              "requirement": "",
+              "cumulativeBooks": 97500,
+              "description": ""
+            },
+            {
+              "level": 14,
+              "books": 17500,
+              "xp": 2419200,
+              "requirement": "",
+              "cumulativeBooks": 115000,
+              "description": ""
+            },
+            {
+              "level": 15,
+              "books": 20000,
+              "xp": 2764800,
+              "requirement": "",
+              "cumulativeBooks": 135000,
+              "description": ""
+            },
+            {
+              "level": 16,
+              "books": 20000,
+              "xp": 2764800,
+              "requirement": "",
+              "cumulativeBooks": 155000,
+              "description": ""
+            },
+            {
+              "level": 17,
+              "books": 22500,
+              "xp": 3110400,
+              "requirement": "",
+              "cumulativeBooks": 177500,
+              "description": ""
+            },
+            {
+              "level": 18,
+              "books": 22500,
+              "xp": 3110400,
+              "requirement": "",
+              "cumulativeBooks": 200000,
+              "description": ""
+            },
+            {
+              "level": 19,
+              "books": 25000,
+              "xp": 3456000,
+              "requirement": "",
+              "cumulativeBooks": 225000,
+              "description": ""
+            },
+            {
+              "level": 20,
+              "books": 25000,
+              "xp": 3456000,
+              "requirement": "",
+              "cumulativeBooks": 250000,
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "不败铁军",
+          "status": "已导入",
+          "type": "skill",
+          "levels": [
+            {
+              "level": 1,
+              "books": 0,
+              "xp": 0,
+              "requirement": "",
+              "cumulativeBooks": 0,
+              "description": ""
+            },
+            {
+              "level": 2,
+              "books": 1250,
+              "xp": 194400,
+              "requirement": "",
+              "cumulativeBooks": 1250,
+              "description": ""
+            },
+            {
+              "level": 3,
+              "books": 2500,
+              "xp": 388800,
+              "requirement": "",
+              "cumulativeBooks": 3750,
+              "description": ""
+            },
+            {
+              "level": 4,
+              "books": 3750,
+              "xp": 583200,
+              "requirement": "",
+              "cumulativeBooks": 7500,
+              "description": ""
+            },
+            {
+              "level": 5,
+              "books": 5000,
+              "xp": 777600,
+              "requirement": "",
+              "cumulativeBooks": 12500,
+              "description": ""
+            },
+            {
+              "level": 6,
+              "books": 6250,
+              "xp": 972000,
+              "requirement": "",
+              "cumulativeBooks": 18750,
+              "description": ""
+            },
+            {
+              "level": 7,
+              "books": 7500,
+              "xp": 1166400,
+              "requirement": "",
+              "cumulativeBooks": 26250,
+              "description": ""
+            },
+            {
+              "level": 8,
+              "books": 8750,
+              "xp": 1360800,
+              "requirement": "",
+              "cumulativeBooks": 35000,
+              "description": ""
+            },
+            {
+              "level": 9,
+              "books": 10000,
+              "xp": 1555200,
+              "requirement": "",
+              "cumulativeBooks": 45000,
+              "description": ""
+            },
+            {
+              "level": 10,
+              "books": 11250,
+              "xp": 1749600,
+              "requirement": "",
+              "cumulativeBooks": 56250,
+              "description": ""
+            },
+            {
+              "level": 11,
+              "books": 12500,
+              "xp": 1944000,
+              "requirement": "",
+              "cumulativeBooks": 68750,
+              "description": ""
+            },
+            {
+              "level": 12,
+              "books": 13750,
+              "xp": 2138400,
+              "requirement": "",
+              "cumulativeBooks": 82500,
+              "description": ""
+            },
+            {
+              "level": 13,
+              "books": 15000,
+              "xp": 2332800,
+              "requirement": "",
+              "cumulativeBooks": 97500,
+              "description": ""
+            },
+            {
+              "level": 14,
+              "books": 17500,
+              "xp": 2721600,
+              "requirement": "",
+              "cumulativeBooks": 115000,
+              "description": ""
+            },
+            {
+              "level": 15,
+              "books": 20000,
+              "xp": 3110400,
+              "requirement": "",
+              "cumulativeBooks": 135000,
+              "description": ""
+            },
+            {
+              "level": 16,
+              "books": 20000,
+              "xp": 3110400,
+              "requirement": "",
+              "cumulativeBooks": 155000,
+              "description": ""
+            },
+            {
+              "level": 17,
+              "books": 22500,
+              "xp": 3499200,
+              "requirement": "",
+              "cumulativeBooks": 177500,
+              "description": ""
+            },
+            {
+              "level": 18,
+              "books": 22500,
+              "xp": 3499200,
+              "requirement": "",
+              "cumulativeBooks": 200000,
+              "description": ""
+            },
+            {
+              "level": 19,
+              "books": 25000,
+              "xp": 3888000,
+              "requirement": "",
+              "cumulativeBooks": 225000,
+              "description": ""
+            },
+            {
+              "level": 20,
+              "books": 25000,
+              "xp": 3888000,
+              "requirement": "",
+              "cumulativeBooks": 250000,
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "威名震慑",
+          "status": "已导入",
+          "type": "skill",
+          "levels": [
+            {
+              "level": 1,
+              "books": 0,
+              "xp": 0,
+              "requirement": "",
+              "cumulativeBooks": 0,
+              "description": ""
+            },
+            {
+              "level": 2,
+              "books": 4000,
+              "xp": 760200,
+              "requirement": "",
+              "cumulativeBooks": 4000,
+              "description": ""
+            },
+            {
+              "level": 3,
+              "books": 8000,
+              "xp": 1520400,
+              "requirement": "",
+              "cumulativeBooks": 12000,
+              "description": ""
+            },
+            {
+              "level": 4,
+              "books": 12000,
+              "xp": 2280600,
+              "requirement": "",
+              "cumulativeBooks": 24000,
+              "description": ""
+            },
+            {
+              "level": 5,
+              "books": 16000,
+              "xp": 3040800,
+              "requirement": "",
+              "cumulativeBooks": 40000,
+              "description": ""
+            },
+            {
+              "level": 6,
+              "books": 20000,
+              "xp": 3801600,
+              "requirement": "",
+              "cumulativeBooks": 60000,
+              "description": ""
+            },
+            {
+              "level": 7,
+              "books": 24000,
+              "xp": 4561800,
+              "requirement": "",
+              "cumulativeBooks": 84000,
+              "description": ""
+            },
+            {
+              "level": 8,
+              "books": 28000,
+              "xp": 5322000,
+              "requirement": "",
+              "cumulativeBooks": 112000,
+              "description": ""
+            },
+            {
+              "level": 9,
+              "books": 32000,
+              "xp": 6082200,
+              "requirement": "",
+              "cumulativeBooks": 144000,
+              "description": ""
+            },
+            {
+              "level": 10,
+              "books": 36000,
+              "xp": 6842400,
+              "requirement": "",
+              "cumulativeBooks": 180000,
+              "description": ""
+            },
+            {
+              "level": 11,
+              "books": 40000,
+              "xp": 7603200,
+              "requirement": "",
+              "cumulativeBooks": 220000,
+              "description": ""
+            },
+            {
+              "level": 12,
+              "books": 44000,
+              "xp": 8363400,
+              "requirement": "",
+              "cumulativeBooks": 264000,
+              "description": ""
+            },
+            {
+              "level": 13,
+              "books": 48000,
+              "xp": 9123600,
+              "requirement": "",
+              "cumulativeBooks": 312000,
+              "description": ""
+            },
+            {
+              "level": 14,
+              "books": 56000,
+              "xp": 10644000,
+              "requirement": "",
+              "cumulativeBooks": 368000,
+              "description": ""
+            },
+            {
+              "level": 15,
+              "books": 64000,
+              "xp": 12165000,
+              "requirement": "",
+              "cumulativeBooks": 432000,
+              "description": ""
+            },
+            {
+              "level": 16,
+              "books": 64000,
+              "xp": 12165000,
+              "requirement": "",
+              "cumulativeBooks": 496000,
+              "description": ""
+            },
+            {
+              "level": 17,
+              "books": 72000,
+              "xp": 13685400,
+              "requirement": "",
+              "cumulativeBooks": 568000,
+              "description": ""
+            },
+            {
+              "level": 18,
+              "books": 72000,
+              "xp": 13685400,
+              "requirement": "",
+              "cumulativeBooks": 640000,
+              "description": ""
+            },
+            {
+              "level": 19,
+              "books": 80000,
+              "xp": 15206400,
+              "requirement": "",
+              "cumulativeBooks": 720000,
+              "description": ""
+            },
+            {
+              "level": 20,
+              "books": 80000,
+              "xp": 15206400,
+              "requirement": "",
+              "cumulativeBooks": 800000,
+              "description": ""
+            }
+          ]
+        },
+        {
+          "name": "重振旗鼓",
+          "status": "已导入",
+          "type": "talent",
+          "levels": [
+            {
+              "level": 1,
+              "relation": "",
+              "talentLevel": 1,
+              "description": ""
+            },
+            {
+              "level": 2,
+              "relation": "",
+              "talentLevel": 2,
+              "description": ""
+            },
+            {
+              "level": 3,
+              "relation": "",
+              "talentLevel": 3,
+              "description": ""
+            },
+            {
+              "level": 4,
+              "relation": "",
+              "talentLevel": 4,
+              "description": ""
+            },
+            {
+              "level": 5,
+              "relation": "",
+              "talentLevel": 5,
+              "description": ""
+            },
+            {
+              "level": 6,
+              "relation": "",
+              "talentLevel": 6,
+              "description": ""
+            },
+            {
+              "level": 7,
+              "relation": "",
+              "talentLevel": 7,
+              "description": ""
+            },
+            {
+              "level": 8,
+              "relation": "",
+              "talentLevel": 8,
+              "description": ""
+            },
+            {
+              "level": 9,
+              "relation": "",
+              "talentLevel": 9,
+              "description": ""
+            },
+            {
+              "level": 10,
+              "relation": "",
+              "talentLevel": 10,
+              "description": ""
+            },
+            {
+              "level": 11,
+              "relation": "",
+              "talentLevel": 11,
+              "description": ""
             }
           ]
         }
