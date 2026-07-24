@@ -22,7 +22,7 @@ Gareth uses the same expert object contract as existing experts:
 - The talent `重振旗鼓` is imported without XP or book costs.
 - Missing requirements and descriptions remain empty and are rendered as unavailable data.
 
-The Gareth reader uses `分技能汇总` to identify exactly four rows whose type is `技能` and exactly one row whose type is `天赋`. For each normal skill, `技能经验与书明细` supplies the skill name (column A), level (B), incremental XP from the previous level (D), and per-level book cost (F). Rows must be numeric, unique, contiguous from level 1 through the maximum declared by the summary, and their totals must equal the summary totals. Zero is valid; blank required numeric cells are rejected. The talent receives levels 1 through its declared maximum with zero costs and empty descriptions because the workbook supplies no talent level effects.
+The Gareth reader uses `分技能汇总` to identify exactly four rows whose type in column A is `技能` and exactly one row whose type is `天赋`. Column B supplies the name, C the declared maximum level, D the full XP total, and F the full book total. For each normal skill, `技能经验与书明细` supplies the skill name (column A), level (B), incremental XP from the previous level (D), and per-level book cost (F). Rows must be numeric, unique, contiguous from level 1 through the maximum declared by the summary, and their totals must equal the summary totals. Zero is valid; blank required numeric cells are rejected. The talent receives levels 1 through its declared maximum with zero costs and empty descriptions because the workbook supplies no talent level effects.
 
 If a future workbook supplies requirements or descriptions, the reader must preserve them. `暂无数据` is only a presentation fallback for genuinely absent fields.
 
