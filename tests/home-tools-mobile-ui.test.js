@@ -17,7 +17,7 @@ function sectionById(html, id) {
 }
 
 test('mobile tool tiles wrap long names and use a readable narrow-screen grid', () => {
-  const html = read('index.html');
+  const html = read('index.html') + '\n' + read('public/function/home.css');
 
   assert.match(html, /\.tool-tile-name\s*\{[^}]*white-space\s*:\s*normal[^}]*overflow-wrap\s*:\s*anywhere/s);
   assert.match(html, /\.tool-tile-name-inner\s*\{[^}]*width\s*:\s*100%[^}]*white-space\s*:\s*normal/s);
@@ -50,15 +50,21 @@ test('home page exposes separate building query and calculator entries', () => {
   assert.match(moreTools, /data-category="calcTools"[\s\S]*?function\/building-upgrade-calculator\.html[\s\S]*?1-30建筑升级(?:<wbr>)?计算器/);
 });
 
-test('home and admin changelogs describe the current toolbox release', () => {
+test('home and admin changelogs separate the Gareth launch from the data completion release', () => {
   const home = read('index.html');
   const admin = read('public/function/_ops/console-7a9/internal/admin.html');
 
   for (const html of [home, admin]) {
+    assert.match(html, /V0\.9\.28/);
+    assert.match(html, /2026-08-03/);
     assert.match(html, /V0\.9\.27/);
     assert.match(html, /2026-07-24/);
     assert.match(html, /加雷斯/);
     assert.match(html, /专家计算器/);
+    assert.match(html, /1–100 级/);
+    assert.match(html, /天赋与技能效果/);
+    assert.match(html, /新增专家「加雷斯」/);
+    assert.match(html, /尚未收录的专家等级与效果信息统一标记为「暂无数据」/);
     assert.match(html, /建筑升级计算器/);
     assert.match(html, /移民券/);
     assert.doesNotMatch(html, /加雷斯[^<]*(?:\.xlsx|原始表|数据来源)/);

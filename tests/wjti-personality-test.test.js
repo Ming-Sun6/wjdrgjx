@@ -28,7 +28,8 @@ test('homepage lists the wjti personality test entry', () => {
 });
 
 test('homepage keeps compact tool descriptions hidden on mobile', () => {
-  const html = fs.readFileSync(indexPath, 'utf8');
+  const html = fs.readFileSync(indexPath, 'utf8')
+    + '\n' + fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'home.css'), 'utf8');
   assert.match(
     html,
     /@media\s*\(max-width:\s*600px\)[\s\S]*\.tool-tile-card\s+\.desc\s*\{[^}]*display:\s*none\s*!important/

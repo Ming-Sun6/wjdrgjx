@@ -11215,10 +11215,972 @@
       "id": "加雷斯",
       "name": "加雷斯",
       "sheetName": "加雷斯",
-      "hasExpertLevelData": false,
-      "statLabel": "",
-      "levels": [],
-      "relationMilestones": [],
+      "hasExpertLevelData": true,
+      "statLabel": "部队穿透力 部队生命力",
+      "levels": [
+        {
+          "level": 1,
+          "favor": 1000,
+          "totalFavor": 1000,
+          "stat": 0.021,
+          "mark": null,
+          "relation": "萍水相逢",
+          "computedTotalFavor": 1000
+        },
+        {
+          "level": 2,
+          "favor": 3000,
+          "totalFavor": 4000,
+          "stat": 0.022,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 4000
+        },
+        {
+          "level": 3,
+          "favor": 3150,
+          "totalFavor": 7150,
+          "stat": 0.023,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 7150
+        },
+        {
+          "level": 4,
+          "favor": 3300,
+          "totalFavor": 10450,
+          "stat": 0.024,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 10450
+        },
+        {
+          "level": 5,
+          "favor": 3450,
+          "totalFavor": 13900,
+          "stat": 0.025,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 13900
+        },
+        {
+          "level": 6,
+          "favor": 3600,
+          "totalFavor": 17500,
+          "stat": 0.026,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 17500
+        },
+        {
+          "level": 7,
+          "favor": 3900,
+          "totalFavor": 21400,
+          "stat": 0.027,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 21400
+        },
+        {
+          "level": 8,
+          "favor": 4200,
+          "totalFavor": 25600,
+          "stat": 0.028,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 25600
+        },
+        {
+          "level": 9,
+          "favor": 4500,
+          "totalFavor": 30100,
+          "stat": 0.0315,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 30100
+        },
+        {
+          "level": 10,
+          "favor": 4800,
+          "totalFavor": 34900,
+          "stat": 0.045,
+          "mark": null,
+          "relation": "泛泛之交Ⅰ",
+          "computedTotalFavor": 34900
+        },
+        {
+          "level": 11,
+          "favor": 5100,
+          "totalFavor": 40000,
+          "stat": 0.0585,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 40000
+        },
+        {
+          "level": 12,
+          "favor": 5400,
+          "totalFavor": 45400,
+          "stat": 0.06,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 45400
+        },
+        {
+          "level": 13,
+          "favor": 5700,
+          "totalFavor": 51100,
+          "stat": 0.0615,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 51100
+        },
+        {
+          "level": 14,
+          "favor": 6000,
+          "totalFavor": 57100,
+          "stat": 0.063,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 57100
+        },
+        {
+          "level": 15,
+          "favor": 6300,
+          "totalFavor": 63400,
+          "stat": 0.0645,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 63400
+        },
+        {
+          "level": 16,
+          "favor": 6600,
+          "totalFavor": 70000,
+          "stat": 0.066,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 70000
+        },
+        {
+          "level": 17,
+          "favor": 6900,
+          "totalFavor": 76900,
+          "stat": 0.0675,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 76900
+        },
+        {
+          "level": 18,
+          "favor": 7200,
+          "totalFavor": 84100,
+          "stat": 0.069,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 84100
+        },
+        {
+          "level": 19,
+          "favor": 7500,
+          "totalFavor": 91600,
+          "stat": 0.0705,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 91600
+        },
+        {
+          "level": 20,
+          "favor": 7800,
+          "totalFavor": 99400,
+          "stat": 0.072,
+          "mark": null,
+          "relation": "泛泛之交Ⅱ",
+          "computedTotalFavor": 99400
+        },
+        {
+          "level": 21,
+          "favor": 8100,
+          "totalFavor": 107500,
+          "stat": 0.0855,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 107500
+        },
+        {
+          "level": 22,
+          "favor": 8400,
+          "totalFavor": 115900,
+          "stat": 0.087,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 115900
+        },
+        {
+          "level": 23,
+          "favor": 8700,
+          "totalFavor": 124600,
+          "stat": 0.0885,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 124600
+        },
+        {
+          "level": 24,
+          "favor": 9000,
+          "totalFavor": 133600,
+          "stat": 0.09,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 133600
+        },
+        {
+          "level": 25,
+          "favor": 9300,
+          "totalFavor": 142900,
+          "stat": 0.0915,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 142900
+        },
+        {
+          "level": 26,
+          "favor": 9600,
+          "totalFavor": 152500,
+          "stat": 0.093,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 152500
+        },
+        {
+          "level": 27,
+          "favor": 9900,
+          "totalFavor": 162400,
+          "stat": 0.0945,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 162400
+        },
+        {
+          "level": 28,
+          "favor": 10200,
+          "totalFavor": 172600,
+          "stat": 0.096,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 172600
+        },
+        {
+          "level": 29,
+          "favor": 10500,
+          "totalFavor": 183100,
+          "stat": 0.0975,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 183100
+        },
+        {
+          "level": 30,
+          "favor": 10950,
+          "totalFavor": 194050,
+          "stat": 0.099,
+          "mark": null,
+          "relation": "泛泛之交Ⅲ",
+          "computedTotalFavor": 194050
+        },
+        {
+          "level": 31,
+          "favor": 11400,
+          "totalFavor": 205450,
+          "stat": 0.1125,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 205450
+        },
+        {
+          "level": 32,
+          "favor": 11850,
+          "totalFavor": 217300,
+          "stat": 0.114,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 217300
+        },
+        {
+          "level": 33,
+          "favor": 12300,
+          "totalFavor": 229600,
+          "stat": 0.1155,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 229600
+        },
+        {
+          "level": 34,
+          "favor": 12750,
+          "totalFavor": 242350,
+          "stat": 0.117,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 242350
+        },
+        {
+          "level": 35,
+          "favor": 13200,
+          "totalFavor": 255550,
+          "stat": 0.1185,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 255550
+        },
+        {
+          "level": 36,
+          "favor": 13650,
+          "totalFavor": 269200,
+          "stat": 0.12,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 269200
+        },
+        {
+          "level": 37,
+          "favor": 14100,
+          "totalFavor": 283300,
+          "stat": 0.1215,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 283300
+        },
+        {
+          "level": 38,
+          "favor": 14550,
+          "totalFavor": 297850,
+          "stat": 0.123,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 297850
+        },
+        {
+          "level": 39,
+          "favor": 15000,
+          "totalFavor": 312850,
+          "stat": 0.1245,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 312850
+        },
+        {
+          "level": 40,
+          "favor": 15600,
+          "totalFavor": 328450,
+          "stat": 0.126,
+          "mark": null,
+          "relation": "志趣相投Ⅰ",
+          "computedTotalFavor": 328450
+        },
+        {
+          "level": 41,
+          "favor": 16200,
+          "totalFavor": 344650,
+          "stat": 0.1395,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 344650
+        },
+        {
+          "level": 42,
+          "favor": 16800,
+          "totalFavor": 361450,
+          "stat": 0.141,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 361450
+        },
+        {
+          "level": 43,
+          "favor": 17400,
+          "totalFavor": 378850,
+          "stat": 0.1425,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 378850
+        },
+        {
+          "level": 44,
+          "favor": 18000,
+          "totalFavor": 396850,
+          "stat": 0.144,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 396850
+        },
+        {
+          "level": 45,
+          "favor": 18600,
+          "totalFavor": 415450,
+          "stat": 0.1455,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 415450
+        },
+        {
+          "level": 46,
+          "favor": 19200,
+          "totalFavor": 434650,
+          "stat": 0.147,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 434650
+        },
+        {
+          "level": 47,
+          "favor": 19800,
+          "totalFavor": 454450,
+          "stat": 0.1485,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 454450
+        },
+        {
+          "level": 48,
+          "favor": 20400,
+          "totalFavor": 474850,
+          "stat": 0.15,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 474850
+        },
+        {
+          "level": 49,
+          "favor": 21000,
+          "totalFavor": 495850,
+          "stat": 0.1515,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 495850
+        },
+        {
+          "level": 50,
+          "favor": 21750,
+          "totalFavor": 517600,
+          "stat": 0.153,
+          "mark": null,
+          "relation": "志趣相投Ⅱ",
+          "computedTotalFavor": 517600
+        },
+        {
+          "level": 51,
+          "favor": 22500,
+          "totalFavor": 540100,
+          "stat": 0.1665,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 540100
+        },
+        {
+          "level": 52,
+          "favor": 23250,
+          "totalFavor": 563350,
+          "stat": 0.168,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 563350
+        },
+        {
+          "level": 53,
+          "favor": 24000,
+          "totalFavor": 587350,
+          "stat": 0.1695,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 587350
+        },
+        {
+          "level": 54,
+          "favor": 24750,
+          "totalFavor": 612100,
+          "stat": 0.171,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 612100
+        },
+        {
+          "level": 55,
+          "favor": 25500,
+          "totalFavor": 637600,
+          "stat": 0.1725,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 637600
+        },
+        {
+          "level": 56,
+          "favor": 26250,
+          "totalFavor": 663850,
+          "stat": 0.174,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 663850
+        },
+        {
+          "level": 57,
+          "favor": 27000,
+          "totalFavor": 690850,
+          "stat": 0.1755,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 690850
+        },
+        {
+          "level": 58,
+          "favor": 27750,
+          "totalFavor": 718600,
+          "stat": 0.177,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 718600
+        },
+        {
+          "level": 59,
+          "favor": 28500,
+          "totalFavor": 747100,
+          "stat": 0.1785,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 747100
+        },
+        {
+          "level": 60,
+          "favor": 29250,
+          "totalFavor": 776350,
+          "stat": 0.18,
+          "mark": null,
+          "relation": "志趣相投Ⅲ",
+          "computedTotalFavor": 776350
+        },
+        {
+          "level": 61,
+          "favor": 30000,
+          "totalFavor": 806350,
+          "stat": 0.1935,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 806350
+        },
+        {
+          "level": 62,
+          "favor": 30750,
+          "totalFavor": 837100,
+          "stat": 0.195,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 837100
+        },
+        {
+          "level": 63,
+          "favor": 31500,
+          "totalFavor": 868600,
+          "stat": 0.1965,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 868600
+        },
+        {
+          "level": 64,
+          "favor": 32250,
+          "totalFavor": 900850,
+          "stat": 0.198,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 900850
+        },
+        {
+          "level": 65,
+          "favor": 33000,
+          "totalFavor": 933850,
+          "stat": 0.1995,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 933850
+        },
+        {
+          "level": 66,
+          "favor": 33750,
+          "totalFavor": 967600,
+          "stat": 0.201,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 967600
+        },
+        {
+          "level": 67,
+          "favor": 34500,
+          "totalFavor": 1002100,
+          "stat": 0.2025,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1002100
+        },
+        {
+          "level": 68,
+          "favor": 35250,
+          "totalFavor": 1037350,
+          "stat": 0.204,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1037350
+        },
+        {
+          "level": 69,
+          "favor": 36000,
+          "totalFavor": 1073350,
+          "stat": 0.2055,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1073350
+        },
+        {
+          "level": 70,
+          "favor": 36750,
+          "totalFavor": 1110100,
+          "stat": 0.207,
+          "mark": null,
+          "relation": "推心置腹Ⅰ",
+          "computedTotalFavor": 1110100
+        },
+        {
+          "level": 71,
+          "favor": 37500,
+          "totalFavor": 1147600,
+          "stat": 0.2205,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1147600
+        },
+        {
+          "level": 72,
+          "favor": 38250,
+          "totalFavor": 1185850,
+          "stat": 0.222,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1185850
+        },
+        {
+          "level": 73,
+          "favor": 39000,
+          "totalFavor": 1224850,
+          "stat": 0.2235,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1224850
+        },
+        {
+          "level": 74,
+          "favor": 39750,
+          "totalFavor": 1264600,
+          "stat": 0.225,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1264600
+        },
+        {
+          "level": 75,
+          "favor": 40500,
+          "totalFavor": 1305100,
+          "stat": 0.2265,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1305100
+        },
+        {
+          "level": 76,
+          "favor": 41250,
+          "totalFavor": 1346350,
+          "stat": 0.228,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1346350
+        },
+        {
+          "level": 77,
+          "favor": 42000,
+          "totalFavor": 1388350,
+          "stat": 0.2295,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1388350
+        },
+        {
+          "level": 78,
+          "favor": 42750,
+          "totalFavor": 1431100,
+          "stat": 0.231,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1431100
+        },
+        {
+          "level": 79,
+          "favor": 43500,
+          "totalFavor": 1474600,
+          "stat": 0.2325,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1474600
+        },
+        {
+          "level": 80,
+          "favor": 44250,
+          "totalFavor": 1518850,
+          "stat": 0.234,
+          "mark": null,
+          "relation": "推心置腹Ⅱ",
+          "computedTotalFavor": 1518850
+        },
+        {
+          "level": 81,
+          "favor": 45000,
+          "totalFavor": 1563850,
+          "stat": 0.2475,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1563850
+        },
+        {
+          "level": 82,
+          "favor": 45750,
+          "totalFavor": 1609600,
+          "stat": 0.249,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1609600
+        },
+        {
+          "level": 83,
+          "favor": 46500,
+          "totalFavor": 1656100,
+          "stat": 0.2505,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1656100
+        },
+        {
+          "level": 84,
+          "favor": 47250,
+          "totalFavor": 1703350,
+          "stat": 0.252,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1703350
+        },
+        {
+          "level": 85,
+          "favor": 48000,
+          "totalFavor": 1751350,
+          "stat": 0.2535,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1751350
+        },
+        {
+          "level": 86,
+          "favor": 48750,
+          "totalFavor": 1800100,
+          "stat": 0.255,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1800100
+        },
+        {
+          "level": 87,
+          "favor": 49500,
+          "totalFavor": 1849600,
+          "stat": 0.2565,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1849600
+        },
+        {
+          "level": 88,
+          "favor": 50250,
+          "totalFavor": 1899850,
+          "stat": 0.258,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1899850
+        },
+        {
+          "level": 89,
+          "favor": 51000,
+          "totalFavor": 1950850,
+          "stat": 0.2595,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 1950850
+        },
+        {
+          "level": 90,
+          "favor": 51750,
+          "totalFavor": 2002600,
+          "stat": 0.261,
+          "mark": null,
+          "relation": "推心置腹Ⅲ",
+          "computedTotalFavor": 2002600
+        },
+        {
+          "level": 91,
+          "favor": 52500,
+          "totalFavor": 2055100,
+          "stat": 0.2745,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2055100
+        },
+        {
+          "level": 92,
+          "favor": 53250,
+          "totalFavor": 2108350,
+          "stat": 0.276,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2108350
+        },
+        {
+          "level": 93,
+          "favor": 54000,
+          "totalFavor": 2162350,
+          "stat": 0.2775,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2162350
+        },
+        {
+          "level": 94,
+          "favor": 54750,
+          "totalFavor": 2217100,
+          "stat": 0.279,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2217100
+        },
+        {
+          "level": 95,
+          "favor": 55500,
+          "totalFavor": 2272600,
+          "stat": 0.2805,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2272600
+        },
+        {
+          "level": 96,
+          "favor": 56250,
+          "totalFavor": 2328850,
+          "stat": 0.282,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2328850
+        },
+        {
+          "level": 97,
+          "favor": 57000,
+          "totalFavor": 2385850,
+          "stat": 0.2835,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2385850
+        },
+        {
+          "level": 98,
+          "favor": 57750,
+          "totalFavor": 2443600,
+          "stat": 0.285,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2443600
+        },
+        {
+          "level": 99,
+          "favor": 58500,
+          "totalFavor": 2502100,
+          "stat": 0.2865,
+          "mark": null,
+          "relation": "",
+          "computedTotalFavor": 2502100
+        },
+        {
+          "level": 100,
+          "favor": 59250,
+          "totalFavor": 2561350,
+          "stat": 0.288,
+          "mark": null,
+          "relation": "莫逆于心",
+          "computedTotalFavor": 2561350
+        }
+      ],
+      "relationMilestones": [
+        {
+          "afterLevel": 10,
+          "stat": 0.057,
+          "mark": 30,
+          "relation": "泛泛之交Ⅰ"
+        },
+        {
+          "afterLevel": 20,
+          "stat": 0.084,
+          "mark": 60,
+          "relation": "泛泛之交Ⅱ"
+        },
+        {
+          "afterLevel": 30,
+          "stat": 0.111,
+          "mark": 120,
+          "relation": "泛泛之交Ⅲ"
+        },
+        {
+          "afterLevel": 40,
+          "stat": 0.138,
+          "mark": 180,
+          "relation": "志趣相投Ⅰ"
+        },
+        {
+          "afterLevel": 50,
+          "stat": 0.165,
+          "mark": 240,
+          "relation": "志趣相投Ⅱ"
+        },
+        {
+          "afterLevel": 60,
+          "stat": 0.192,
+          "mark": 300,
+          "relation": "志趣相投Ⅲ"
+        },
+        {
+          "afterLevel": 70,
+          "stat": 0.219,
+          "mark": 360,
+          "relation": "推心置腹Ⅰ"
+        },
+        {
+          "afterLevel": 80,
+          "stat": 0.246,
+          "mark": 420,
+          "relation": "推心置腹Ⅱ"
+        },
+        {
+          "afterLevel": 90,
+          "stat": 0.273,
+          "mark": 480,
+          "relation": "推心置腹Ⅲ"
+        },
+        {
+          "afterLevel": 100,
+          "stat": 0.3,
+          "mark": 540,
+          "relation": "莫逆于心"
+        }
+      ],
       "skills": [
         {
           "name": "铁森林馈赠",
@@ -11229,9 +12191,9 @@
               "level": 1,
               "books": 0,
               "xp": 0,
-              "requirement": "",
+              "requirement": "专家关系泛泛之交Ⅰ",
               "cumulativeBooks": 0,
-              "description": ""
+              "description": "每训练100名士兵，获得1份“铁枝宝箱”，每日最多获得6份"
             },
             {
               "level": 2,
@@ -11239,7 +12201,7 @@
               "xp": 25800,
               "requirement": "",
               "cumulativeBooks": 300,
-              "description": ""
+              "description": "每训练100名士兵，获得1份“铁枝宝箱”，每日最多获得8份"
             },
             {
               "level": 3,
@@ -11247,7 +12209,7 @@
               "xp": 51600,
               "requirement": "",
               "cumulativeBooks": 900,
-              "description": ""
+              "description": "每训练100名士兵，获得1份“铁枝宝箱”，每日最多获得10份"
             },
             {
               "level": 4,
@@ -11255,15 +12217,15 @@
               "xp": 77400,
               "requirement": "",
               "cumulativeBooks": 1800,
-              "description": ""
+              "description": "每训练100名士兵，获得1份“铁枝宝箱”，每日最多获得12份"
             },
             {
               "level": 5,
               "books": 1200,
               "xp": 103200,
-              "requirement": "",
+              "requirement": "专家关系泛泛之交Ⅲ",
               "cumulativeBooks": 3000,
-              "description": ""
+              "description": "每训练100名士兵，获得2份“铁枝宝箱”，每日最多获得16份"
             },
             {
               "level": 6,
@@ -11271,7 +12233,7 @@
               "xp": 129600,
               "requirement": "",
               "cumulativeBooks": 4500,
-              "description": ""
+              "description": "每训练100名士兵，获得2份“铁枝宝箱”，每日最多获得18份"
             },
             {
               "level": 7,
@@ -11279,15 +12241,15 @@
               "xp": 155400,
               "requirement": "",
               "cumulativeBooks": 6300,
-              "description": ""
+              "description": "每训练100名士兵，获得2份“铁枝宝箱”，每日最多获得20份"
             },
             {
               "level": 8,
               "books": 2100,
               "xp": 181200,
-              "requirement": "",
+              "requirement": "专家关系志趣相投Ⅱ",
               "cumulativeBooks": 8400,
-              "description": ""
+              "description": "每训练100名士兵，获得2份“铁枝宝箱”，每日最多获得22份"
             },
             {
               "level": 9,
@@ -11295,15 +12257,15 @@
               "xp": 207000,
               "requirement": "",
               "cumulativeBooks": 10800,
-              "description": ""
+              "description": "每训练100名士兵，获得2份“铁枝宝箱”，每日最多获得24份"
             },
             {
               "level": 10,
               "books": 2700,
               "xp": 232800,
-              "requirement": "",
+              "requirement": "专家关系推心置腹Ⅰ",
               "cumulativeBooks": 13500,
-              "description": ""
+              "description": "每训练100名士兵，获得3份“铁枝宝箱”，每日最多获得30份"
             }
           ]
         },
@@ -11316,9 +12278,9 @@
               "level": 1,
               "books": 0,
               "xp": 0,
-              "requirement": "",
+              "requirement": "专家关系泛泛之交Ⅱ",
               "cumulativeBooks": 0,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+1%。"
             },
             {
               "level": 2,
@@ -11326,7 +12288,7 @@
               "xp": 172800,
               "requirement": "",
               "cumulativeBooks": 1250,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+2%。"
             },
             {
               "level": 3,
@@ -11334,7 +12296,7 @@
               "xp": 345600,
               "requirement": "",
               "cumulativeBooks": 3750,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+3%。"
             },
             {
               "level": 4,
@@ -11342,7 +12304,7 @@
               "xp": 518400,
               "requirement": "",
               "cumulativeBooks": 7500,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+4%。"
             },
             {
               "level": 5,
@@ -11350,15 +12312,15 @@
               "xp": 691200,
               "requirement": "",
               "cumulativeBooks": 12500,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+5%。"
             },
             {
               "level": 6,
               "books": 6250,
               "xp": 864000,
-              "requirement": "",
+              "requirement": "专家关系泛泛之交Ⅲ",
               "cumulativeBooks": 18750,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+7%。"
             },
             {
               "level": 7,
@@ -11366,7 +12328,7 @@
               "xp": 1036800,
               "requirement": "",
               "cumulativeBooks": 26250,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+9%。"
             },
             {
               "level": 8,
@@ -11374,7 +12336,7 @@
               "xp": 1209600,
               "requirement": "",
               "cumulativeBooks": 35000,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+11%。"
             },
             {
               "level": 9,
@@ -11382,7 +12344,7 @@
               "xp": 1382400,
               "requirement": "",
               "cumulativeBooks": 45000,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+13%。"
             },
             {
               "level": 10,
@@ -11390,15 +12352,15 @@
               "xp": 1555200,
               "requirement": "",
               "cumulativeBooks": 56250,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+15%。"
             },
             {
               "level": 11,
               "books": 12500,
               "xp": 1728000,
-              "requirement": "",
+              "requirement": "专家关系志趣相投Ⅱ",
               "cumulativeBooks": 68750,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+18%。"
             },
             {
               "level": 12,
@@ -11406,7 +12368,7 @@
               "xp": 1900800,
               "requirement": "",
               "cumulativeBooks": 82500,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+21%。"
             },
             {
               "level": 13,
@@ -11414,7 +12376,7 @@
               "xp": 2073600,
               "requirement": "",
               "cumulativeBooks": 97500,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+24%。"
             },
             {
               "level": 14,
@@ -11422,7 +12384,7 @@
               "xp": 2419200,
               "requirement": "",
               "cumulativeBooks": 115000,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+27%。"
             },
             {
               "level": 15,
@@ -11430,15 +12392,15 @@
               "xp": 2764800,
               "requirement": "",
               "cumulativeBooks": 135000,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+30%。"
             },
             {
               "level": 16,
               "books": 20000,
               "xp": 2764800,
-              "requirement": "",
+              "requirement": "专家关系推心置腹Ⅰ",
               "cumulativeBooks": 155000,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+34%。"
             },
             {
               "level": 17,
@@ -11446,7 +12408,7 @@
               "xp": 3110400,
               "requirement": "",
               "cumulativeBooks": 177500,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+38%。"
             },
             {
               "level": 18,
@@ -11454,7 +12416,7 @@
               "xp": 3110400,
               "requirement": "",
               "cumulativeBooks": 200000,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+42%。"
             },
             {
               "level": 19,
@@ -11462,7 +12424,7 @@
               "xp": 3456000,
               "requirement": "",
               "cumulativeBooks": 225000,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+46%。"
             },
             {
               "level": 20,
@@ -11470,7 +12432,7 @@
               "xp": 3456000,
               "requirement": "",
               "cumulativeBooks": 250000,
-              "description": ""
+              "description": "严密的阵型和钢铁纪律，使部队防御力+50%。"
             }
           ]
         },
@@ -11483,9 +12445,9 @@
               "level": 1,
               "books": 0,
               "xp": 0,
-              "requirement": "",
+              "requirement": "专家关系泛泛之交Ⅲ",
               "cumulativeBooks": 0,
-              "description": ""
+              "description": "部队生命值+1%"
             },
             {
               "level": 2,
@@ -11493,7 +12455,7 @@
               "xp": 194400,
               "requirement": "",
               "cumulativeBooks": 1250,
-              "description": ""
+              "description": "部队生命值+2%"
             },
             {
               "level": 3,
@@ -11501,7 +12463,7 @@
               "xp": 388800,
               "requirement": "",
               "cumulativeBooks": 3750,
-              "description": ""
+              "description": "部队生命值+3%"
             },
             {
               "level": 4,
@@ -11509,7 +12471,7 @@
               "xp": 583200,
               "requirement": "",
               "cumulativeBooks": 7500,
-              "description": ""
+              "description": "部队生命值+4%"
             },
             {
               "level": 5,
@@ -11517,15 +12479,15 @@
               "xp": 777600,
               "requirement": "",
               "cumulativeBooks": 12500,
-              "description": ""
+              "description": "部队生命值+5%"
             },
             {
               "level": 6,
               "books": 6250,
               "xp": 972000,
-              "requirement": "",
+              "requirement": "专家技能总等级20级",
               "cumulativeBooks": 18750,
-              "description": ""
+              "description": "部队生命值+7%"
             },
             {
               "level": 7,
@@ -11533,7 +12495,7 @@
               "xp": 1166400,
               "requirement": "",
               "cumulativeBooks": 26250,
-              "description": ""
+              "description": "部队生命值+9%"
             },
             {
               "level": 8,
@@ -11541,7 +12503,7 @@
               "xp": 1360800,
               "requirement": "",
               "cumulativeBooks": 35000,
-              "description": ""
+              "description": "部队生命值+11%"
             },
             {
               "level": 9,
@@ -11549,7 +12511,7 @@
               "xp": 1555200,
               "requirement": "",
               "cumulativeBooks": 45000,
-              "description": ""
+              "description": "部队生命值+13%"
             },
             {
               "level": 10,
@@ -11557,15 +12519,15 @@
               "xp": 1749600,
               "requirement": "",
               "cumulativeBooks": 56250,
-              "description": ""
+              "description": "部队生命值+15%"
             },
             {
               "level": 11,
               "books": 12500,
               "xp": 1944000,
-              "requirement": "",
+              "requirement": "专家技能总等级30级",
               "cumulativeBooks": 68750,
-              "description": ""
+              "description": "部队生命值+18%"
             },
             {
               "level": 12,
@@ -11573,7 +12535,7 @@
               "xp": 2138400,
               "requirement": "",
               "cumulativeBooks": 82500,
-              "description": ""
+              "description": "部队生命值+21%"
             },
             {
               "level": 13,
@@ -11581,7 +12543,7 @@
               "xp": 2332800,
               "requirement": "",
               "cumulativeBooks": 97500,
-              "description": ""
+              "description": "部队生命值+24%"
             },
             {
               "level": 14,
@@ -11589,7 +12551,7 @@
               "xp": 2721600,
               "requirement": "",
               "cumulativeBooks": 115000,
-              "description": ""
+              "description": "部队生命值+27%"
             },
             {
               "level": 15,
@@ -11597,15 +12559,15 @@
               "xp": 3110400,
               "requirement": "",
               "cumulativeBooks": 135000,
-              "description": ""
+              "description": "部队生命值+30%"
             },
             {
               "level": 16,
               "books": 20000,
               "xp": 3110400,
-              "requirement": "",
+              "requirement": "专家技能总等级40级",
               "cumulativeBooks": 155000,
-              "description": ""
+              "description": "部队生命值+34%"
             },
             {
               "level": 17,
@@ -11613,7 +12575,7 @@
               "xp": 3499200,
               "requirement": "",
               "cumulativeBooks": 177500,
-              "description": ""
+              "description": "部队生命值+38%"
             },
             {
               "level": 18,
@@ -11621,7 +12583,7 @@
               "xp": 3499200,
               "requirement": "",
               "cumulativeBooks": 200000,
-              "description": ""
+              "description": "部队生命值+42%"
             },
             {
               "level": 19,
@@ -11629,15 +12591,15 @@
               "xp": 3888000,
               "requirement": "",
               "cumulativeBooks": 225000,
-              "description": ""
+              "description": "部队生命值+46%"
             },
             {
               "level": 20,
               "books": 25000,
               "xp": 3888000,
-              "requirement": "",
+              "requirement": "专家技能总等级50级",
               "cumulativeBooks": 250000,
-              "description": ""
+              "description": "部队生命值+50%"
             }
           ]
         },
@@ -11650,9 +12612,9 @@
               "level": 1,
               "books": 0,
               "xp": 0,
-              "requirement": "",
+              "requirement": "专家关系志趣相投Ⅰ",
               "cumulativeBooks": 0,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低0.25%"
             },
             {
               "level": 2,
@@ -11660,7 +12622,7 @@
               "xp": 760200,
               "requirement": "",
               "cumulativeBooks": 4000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低0.50%"
             },
             {
               "level": 3,
@@ -11668,7 +12630,7 @@
               "xp": 1520400,
               "requirement": "",
               "cumulativeBooks": 12000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低0.75%"
             },
             {
               "level": 4,
@@ -11676,7 +12638,7 @@
               "xp": 2280600,
               "requirement": "",
               "cumulativeBooks": 24000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低1.00%"
             },
             {
               "level": 5,
@@ -11684,15 +12646,15 @@
               "xp": 3040800,
               "requirement": "",
               "cumulativeBooks": 40000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低1.25%"
             },
             {
               "level": 6,
               "books": 20000,
               "xp": 3801600,
-              "requirement": "",
+              "requirement": "专家技能总等级30级",
               "cumulativeBooks": 60000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低1.50%"
             },
             {
               "level": 7,
@@ -11700,7 +12662,7 @@
               "xp": 4561800,
               "requirement": "",
               "cumulativeBooks": 84000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低1.75%"
             },
             {
               "level": 8,
@@ -11708,7 +12670,7 @@
               "xp": 5322000,
               "requirement": "",
               "cumulativeBooks": 112000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低2.00%"
             },
             {
               "level": 9,
@@ -11716,7 +12678,7 @@
               "xp": 6082200,
               "requirement": "",
               "cumulativeBooks": 144000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低2.25%"
             },
             {
               "level": 10,
@@ -11724,15 +12686,15 @@
               "xp": 6842400,
               "requirement": "",
               "cumulativeBooks": 180000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低2.50%"
             },
             {
               "level": 11,
               "books": 40000,
               "xp": 7603200,
-              "requirement": "",
+              "requirement": "专家技能总等级45级",
               "cumulativeBooks": 220000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低2.75%"
             },
             {
               "level": 12,
@@ -11740,7 +12702,7 @@
               "xp": 8363400,
               "requirement": "",
               "cumulativeBooks": 264000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低3.00%"
             },
             {
               "level": 13,
@@ -11748,7 +12710,7 @@
               "xp": 9123600,
               "requirement": "",
               "cumulativeBooks": 312000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低3.25%"
             },
             {
               "level": 14,
@@ -11756,7 +12718,7 @@
               "xp": 10644000,
               "requirement": "",
               "cumulativeBooks": 368000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低3.50%"
             },
             {
               "level": 15,
@@ -11764,15 +12726,15 @@
               "xp": 12165000,
               "requirement": "",
               "cumulativeBooks": 432000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低3.75%"
             },
             {
               "level": 16,
               "books": 64000,
               "xp": 12165000,
-              "requirement": "",
+              "requirement": "专家技能总等级55级",
               "cumulativeBooks": 496000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低4.00%"
             },
             {
               "level": 17,
@@ -11780,7 +12742,7 @@
               "xp": 13685400,
               "requirement": "",
               "cumulativeBooks": 568000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低4.25%"
             },
             {
               "level": 18,
@@ -11788,7 +12750,7 @@
               "xp": 13685400,
               "requirement": "",
               "cumulativeBooks": 640000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低4.50%"
             },
             {
               "level": 19,
@@ -11796,15 +12758,15 @@
               "xp": 15206400,
               "requirement": "",
               "cumulativeBooks": 720000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低4.75%"
             },
             {
               "level": 20,
               "books": 80000,
               "xp": 15206400,
-              "requirement": "",
+              "requirement": "专家技能总等级69级",
               "cumulativeBooks": 800000,
-              "description": ""
+              "description": "部队出征战斗时，使敌方全体部队穿透力降低5.00%"
             }
           ]
         },
@@ -11815,69 +12777,69 @@
           "levels": [
             {
               "level": 1,
-              "relation": "",
+              "relation": "萍水相逢",
               "talentLevel": 1,
-              "description": ""
-            },
-            {
-              "level": 2,
-              "relation": "",
-              "talentLevel": 2,
-              "description": ""
-            },
-            {
-              "level": 3,
-              "relation": "",
-              "talentLevel": 3,
-              "description": ""
-            },
-            {
-              "level": 4,
-              "relation": "",
-              "talentLevel": 4,
-              "description": ""
-            },
-            {
-              "level": 5,
-              "relation": "",
-              "talentLevel": 5,
-              "description": ""
-            },
-            {
-              "level": 6,
-              "relation": "",
-              "talentLevel": 6,
-              "description": ""
-            },
-            {
-              "level": 7,
-              "relation": "",
-              "talentLevel": 7,
-              "description": ""
-            },
-            {
-              "level": 8,
-              "relation": "",
-              "talentLevel": 8,
-              "description": ""
-            },
-            {
-              "level": 9,
-              "relation": "",
-              "talentLevel": 9,
-              "description": ""
+              "description": "军医所容量+50000，治疗速度+3%"
             },
             {
               "level": 10,
-              "relation": "",
-              "talentLevel": 10,
-              "description": ""
+              "relation": "泛泛之交Ⅰ",
+              "talentLevel": 2,
+              "description": "军医所容量+60000，治疗速度+6%"
             },
             {
-              "level": 11,
-              "relation": "",
+              "level": 20,
+              "relation": "泛泛之交Ⅱ",
+              "talentLevel": 3,
+              "description": "军医所容量+70000，治疗速度+10%"
+            },
+            {
+              "level": 30,
+              "relation": "泛泛之交Ⅲ",
+              "talentLevel": 4,
+              "description": "军医所容量+80000，治疗速度+15%"
+            },
+            {
+              "level": 40,
+              "relation": "志趣相投Ⅰ",
+              "talentLevel": 5,
+              "description": "军医所容量+90000，治疗速度+20%"
+            },
+            {
+              "level": 50,
+              "relation": "志趣相投Ⅱ",
+              "talentLevel": 6,
+              "description": "军医所容量+100000，治疗速度+25%"
+            },
+            {
+              "level": 60,
+              "relation": "志趣相投Ⅲ",
+              "talentLevel": 7,
+              "description": "军医所容量+120000，治疗速度+30%"
+            },
+            {
+              "level": 70,
+              "relation": "推心置腹Ⅰ",
+              "talentLevel": 8,
+              "description": "军医所容量+140000，治疗速度+35%"
+            },
+            {
+              "level": 80,
+              "relation": "推心置腹Ⅱ",
+              "talentLevel": 9,
+              "description": "军医所容量+160000，治疗速度+40%"
+            },
+            {
+              "level": 90,
+              "relation": "推心置腹Ⅲ",
+              "talentLevel": 10,
+              "description": "军医所容量+180000，治疗速度+45%"
+            },
+            {
+              "level": 100,
+              "relation": "莫逆于心",
               "talentLevel": 11,
-              "description": ""
+              "description": "军医所容量+200000，治疗速度+50%"
             }
           ]
         }

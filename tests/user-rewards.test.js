@@ -158,6 +158,10 @@ test('admin activation codes page exposes searchable paginated redemption record
     path.join(__dirname, '..', 'public', 'function', 'admin-activation-codes-page.js'),
     'utf8'
   );
+  const adminCss = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin-dashboard.css'),
+    'utf8'
+  );
 
   assert.match(rewardsSource, /\/api\/admin\/activation-codes\/redemptions/);
   assert.match(rewardsSource, /JOIN users u ON u\.id = r\.user_id/);
@@ -169,4 +173,7 @@ test('admin activation codes page exposes searchable paginated redemption record
   assert.match(adminJs, /loadActivationRedemptionsAdmin/);
   assert.match(adminJs, /activationRedemptionPrevBtn/);
   assert.match(adminJs, /activationRedemptionNextBtn/);
+  assert.match(adminHtml, /currentPage==='activation-codes'[\s\S]*?loadActivationCodesAdmin[\s\S]*?loadActivationRedemptionsAdmin/);
+  assert.match(adminCss, /#page-activation-codes \.activation-create-grid/);
+  assert.match(adminCss, /#page-activation-codes \.activation-batch-grid/);
 });

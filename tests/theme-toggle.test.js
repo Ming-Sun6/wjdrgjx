@@ -28,7 +28,8 @@ test('shared theme button accepts mobile taps above overlays', () => {
 });
 
 test('homepage text colors use theme variables for day and night modes', () => {
-  const source = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8')
+    + '\n' + fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'home.css'), 'utf8');
   const themedSelectors = [
     ['.auth-panel', '--text'],
     ['.auth-head h3', '--text'],

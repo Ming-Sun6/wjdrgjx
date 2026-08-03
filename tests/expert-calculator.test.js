@@ -38,13 +38,32 @@ test('expert calculator data includes level rows and reserved skills', () => {
   assert.ok(Array.isArray(bald.skills));
 });
 
-test('expert calculator imports Gareth skill costs without inventing expert levels', () => {
+test('expert calculator imports complete Gareth expert, talent, and skill data', () => {
   const data = loadExpertData();
   const gareth = data.experts.find(expert => expert.name === '加雷斯');
   assert.ok(gareth);
-  assert.equal(gareth.hasExpertLevelData, false);
-  assert.equal(gareth.levels.length, 0);
-  assert.equal(gareth.relationMilestones.length, 0);
+  assert.equal(gareth.hasExpertLevelData, true);
+  assert.equal(gareth.statLabel, '部队穿透力 部队生命力');
+  assert.equal(gareth.levels.length, 100);
+  assert.deepEqual(JSON.parse(JSON.stringify(gareth.levels[0])), {
+    level: 1,
+    favor: 1000,
+    totalFavor: 1000,
+    stat: 0.021,
+    mark: null,
+    relation: '萍水相逢',
+    computedTotalFavor: 1000
+  });
+  assert.equal(gareth.levels[99].totalFavor, 2561350);
+  assert.equal(gareth.levels[99].stat, 0.288);
+  assert.equal(gareth.relationMilestones.length, 10);
+  assert.equal(gareth.relationMilestones.reduce((sum, row) => sum + row.mark, 0), 2730);
+  assert.deepEqual(JSON.parse(JSON.stringify(gareth.relationMilestones.at(-1))), {
+    afterLevel: 100,
+    stat: 0.3,
+    mark: 540,
+    relation: '莫逆于心'
+  });
 
   assert.deepEqual(
     JSON.parse(JSON.stringify(gareth.skills.map(skill => [skill.name, skill.type, skill.levels.length]))),
@@ -63,6 +82,14 @@ test('expert calculator imports Gareth skill costs without inventing expert leve
   assert.equal(normalSkills[0].levels[1].xp, 25800);
   assert.equal(normalSkills[0].levels[1].books, 300);
   assert.equal(normalSkills[0].levels[2].cumulativeBooks, 900);
+  assert.equal(normalSkills[0].levels[0].requirement, '专家关系泛泛之交Ⅰ');
+  assert.match(normalSkills[0].levels[9].description, /每日最多获得30份/);
+  assert.equal(normalSkills[1].levels[19].description, '严密的阵型和钢铁纪律，使部队防御力+50%。');
+  assert.equal(normalSkills[2].levels[19].requirement, '专家技能总等级50级');
+  assert.match(normalSkills[3].levels[19].description, /穿透力降低5\.00%/);
+  const talent = gareth.skills.find(skill => skill.type === 'talent');
+  assert.equal(talent.levels[0].description, '军医所容量+50000，治疗速度+3%');
+  assert.equal(talent.levels[10].description, '军医所容量+200000，治疗速度+50%');
   assert.ok(data.experts.filter(expert => expert !== gareth).every(expert => expert.hasExpertLevelData === true));
   assert.equal(data.source, undefined);
   assert.equal(data.sources, undefined);
@@ -93,18 +120,15 @@ test('expert calculator parses Ronie skill names, costs, and talent rows', () =>
   assert.match(talent.levels[10].description, /攻击力和防御力\+30%/);
 });
 
-test('expert calculator core models partial expert selection and reset state', () => {
+test('expert calculator core enables Gareth after complete level data is imported', () => {
   const data = loadExpertData();
   const core = loadExpertCore();
   const gareth = data.experts.find(expert => expert.name === '加雷斯');
   const bald = data.experts.find(expert => expert.name === '巴尔德');
 
   const garethState = core.calculatorViewState(gareth);
-  assert.equal(garethState.levels.disabled, true);
-  assert.equal(garethState.levels.placeholder, '暂无数据');
-  assert.equal(garethState.expertEffect, '暂无数据');
-  assert.equal(garethState.totalFavor, '暂无数据');
-  assert.equal(garethState.totalMarks, '暂无数据');
+  assert.equal(garethState.levels.disabled, false);
+  assert.equal(garethState.levels.values.length, 100);
 
   const completeState = core.calculatorViewState(bald);
   assert.equal(completeState.levels.disabled, false);
@@ -115,13 +139,13 @@ test('expert calculator core models partial expert selection and reset state', (
   const firstReset = JSON.parse(JSON.stringify(core.initialRanges(gareth)));
   const secondReset = JSON.parse(JSON.stringify(core.initialRanges(gareth)));
   assert.deepEqual(firstReset, secondReset);
-  assert.equal(firstReset.expert, null);
+  assert.deepEqual(firstReset.expert, { from: 1, to: 100 });
   assert.equal(firstReset.skills.length, 4);
   assert.deepEqual(JSON.parse(JSON.stringify(core.initialRanges(bald).expert)), { from: 1, to: 100 });
   assert.deepEqual(JSON.parse(JSON.stringify(core.expertTotals(gareth, 1, 100))), {
-    available: false,
-    favor: null,
-    marks: null
+    available: true,
+    favor: 2560350,
+    marks: 2730
   });
   assert.deepEqual(JSON.parse(JSON.stringify(core.skillCost(gareth.skills[0], 1, 10))), {
     xp: 1164000,

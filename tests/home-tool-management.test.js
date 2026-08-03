@@ -20,7 +20,7 @@ test('every home tool has a unique management id and no static badge', () => {
 });
 
 test('home page applies public tool visibility and badge settings', () => {
-  const html = read('index.html');
+  const html = read('index.html') + '\n' + read('public/function/home-app.js');
 
   assert.match(html, /fetch\('\/api\/tool-management'/);
   assert.match(html, /querySelectorAll\('\[data-tool-id\]'/);

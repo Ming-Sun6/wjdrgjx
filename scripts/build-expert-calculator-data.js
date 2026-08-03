@@ -198,7 +198,7 @@ function readGareth(workbook) {
   }
 
   const headers = detailRows[0] || [];
-  const requirementCol = headers.indexOf('关系要求');
+  const requirementCol = headers.indexOf('升级条件') >= 0 ? headers.indexOf('升级条件') : headers.indexOf('关系要求');
   const descriptionCol = headers.indexOf('技能效果');
   const skills = normalSummary.map(meta => {
     let cumulativeBooks = 0;
@@ -231,27 +231,61 @@ function readGareth(workbook) {
     return { name: meta.name, status: '已导入', type: 'skill', levels };
   });
 
+  const talentRows = XLSX.utils.sheet_to_json(requiredSheet(workbook, '天赋明细'), {
+    header: 1,
+    defval: null
+  }).slice(1);
   const talent = talentSummary[0];
-  skills.push({
-    name: talent.name,
-    status: '已导入',
-    type: 'talent',
-    levels: Array.from({ length: talent.maxLevel }, (_, index) => ({
-      level: index + 1,
-      relation: '',
-      talentLevel: index + 1,
-      description: ''
-    }))
-  });
+  const talentLevels = talentRows.map(row => ({
+    level: requiredNumber(row[1], `${talent.name} expert level`),
+    relation: cleanText(row[2]),
+    talentLevel: requiredNumber(row[3], `${talent.name} talent level`),
+    description: cleanText(row[4])
+  }));
+  if (talentLevels.length !== talent.maxLevel) {
+    throw new Error(`${talent.name} talent detail must contain ${talent.maxLevel} levels`);
+  }
+  skills.push({ name: talent.name, status: '已导入', type: 'talent', levels: talentLevels });
+
+  const expertRows = XLSX.utils.sheet_to_json(requiredSheet(workbook, '专家等级与关系'), {
+    header: 1,
+    defval: null
+  }).slice(1);
+  const levels = expertRows.map(row => ({
+    level: requiredNumber(row[0], '加雷斯 expert level'),
+    favor: requiredNumber(row[1], `加雷斯 Lv.${row[0]} favor`),
+    totalFavor: requiredNumber(row[2], `加雷斯 Lv.${row[0]} total favor`),
+    stat: percentValue(requiredNumber(row[3], `加雷斯 Lv.${row[0]} stat`)),
+    mark: null,
+    relation: cleanText(row[4])
+  }));
+  if (levels.length !== 100 || levels.some((row, index) => row.level !== index + 1)) {
+    throw new Error('加雷斯 expert levels must be contiguous from 1 to 100');
+  }
+  const computedLevels = addComputedTotals(levels);
+  if (computedLevels.some(row => row.totalFavor !== row.computedTotalFavor)) {
+    throw new Error('加雷斯 cumulative favor does not match per-level requirements');
+  }
+  const relationMilestones = expertRows
+    .filter(row => row[5] != null || row[6] != null || cleanText(row[7]))
+    .map(row => ({
+      afterLevel: requiredNumber(row[0], '加雷斯 milestone level'),
+      stat: percentValue(requiredNumber(row[5], `加雷斯 Lv.${row[0]} milestone stat`)),
+      mark: requiredNumber(row[6], `加雷斯 Lv.${row[0]} mark`),
+      relation: cleanText(row[7])
+    }));
+  if (relationMilestones.length !== 10) {
+    throw new Error('加雷斯 must contain 10 relation milestones');
+  }
 
   return {
     id: '加雷斯',
     name: '加雷斯',
     sheetName: '加雷斯',
-    hasExpertLevelData: false,
-    statLabel: '',
-    levels: [],
-    relationMilestones: [],
+    hasExpertLevelData: true,
+    statLabel: '部队穿透力 部队生命力',
+    levels: computedLevels,
+    relationMilestones,
     skills
   };
 }

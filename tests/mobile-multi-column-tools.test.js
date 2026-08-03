@@ -95,14 +95,15 @@ test('gift rotation keeps one semantic table and labels mobile records', () => {
 });
 
 test('all compact home tools share one title wrapper and badges stay out of flow', () => {
-  const html = read('index.html');
-  const names = [...html.matchAll(/<div class="card-title tool-tile-name">([\s\S]*?)<\/div>/g)];
+  const indexHtml = read('index.html');
+  const homeBundle = indexHtml + '\n' + read('public/function/home.css');
+  const names = [...indexHtml.matchAll(/<div class="card-title tool-tile-name">([\s\S]*?)<\/div>/g)];
   assert.ok(names.length >= 20, 'expected compact home tool titles');
   for (const [, content] of names) {
     assert.match(content, /^<span class="tool-tile-name-inner">[\s\S]*<\/span>$/);
   }
-  assert.match(html, /\.tool-status-badge\s*\{[^}]*position:\s*absolute[^}]*right:/s);
-  assert.match(html, /@media\s*\(max-width:\s*768px\)[\s\S]*\.tool-tile-name[\s\S]{0,160}display:\s*grid[^}]*min-height:\s*3\.84em/s);
-  assert.match(html, /data-tool-id="pet-data-query"[\s\S]*?tool-tile-name-inner/);
-  assert.match(html, /data-tool-id="wjti-personality-test"[\s\S]*?tool-tile-name-inner/);
+  assert.match(homeBundle, /\.tool-status-badge\s*\{[^}]*position:\s*absolute[^}]*right:/s);
+  assert.match(homeBundle, /@media\s*\(max-width:\s*768px\)[\s\S]*\.tool-tile-name[\s\S]{0,160}display:\s*grid[^}]*min-height:\s*3\.84em/s);
+  assert.match(indexHtml, /data-tool-id="pet-data-query"[\s\S]*?tool-tile-name-inner/);
+  assert.match(indexHtml, /data-tool-id="wjti-personality-test"[\s\S]*?tool-tile-name-inner/);
 });

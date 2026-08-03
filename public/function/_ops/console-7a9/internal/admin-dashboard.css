@@ -987,3 +987,73 @@
     grid-template-columns: 1fr;
   }
 }
+#page-activation-codes .activation-create-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin-bottom: 14px;
+}
+
+#page-activation-codes .activation-batch-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.06);
+}
+
+#page-activation-codes .activation-create-grid .form-group,
+#page-activation-codes .activation-batch-grid .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+#page-activation-codes .activation-create-grid label,
+#page-activation-codes .activation-batch-grid label {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+#page-activation-codes .activation-create-grid input,
+#page-activation-codes .activation-create-grid select,
+#page-activation-codes .activation-create-grid textarea,
+#page-activation-codes .activation-batch-grid input,
+#page-activation-codes .activation-batch-grid select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+#page-activation-codes .ac-span-3 { grid-column: span 3; }
+#page-activation-codes .ac-span-4 { grid-column: span 4; }
+#page-activation-codes .ac-span-6 { grid-column: span 6; }
+#page-activation-codes .ac-span-12 { grid-column: 1 / -1; }
+#page-activation-codes .activation-code-chip {
+  font-family: ui-monospace, Consolas, monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+#page-activation-codes .table-wrap table { min-width: 1180px; }
+#page-activation-codes .ac-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+@media (max-width: 900px) {
+  #page-activation-codes .ac-span-3,
+  #page-activation-codes .ac-span-4,
+  #page-activation-codes .ac-span-6 { grid-column: 1 / -1; }
+}

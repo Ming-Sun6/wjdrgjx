@@ -32,7 +32,8 @@ test('home page marks aeroplane chess as maintenance instead of linking to game'
 });
 
 test('homepage places aeroplane chess in mini games alliance activity section', () => {
-  const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(rootDir, 'index.html'), 'utf8')
+    + '\n' + fs.readFileSync(path.join(rootDir, 'public', 'function', 'home-app.js'), 'utf8');
   const miniStart = html.indexOf('id="miniGameWarehouse"');
   const miniEnd = html.indexOf('<!-- 暂时隐藏活动日历入口');
   const extendedStart = html.indexOf('id="extendedToolWarehouse"');

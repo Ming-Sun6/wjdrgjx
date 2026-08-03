@@ -32,7 +32,7 @@ test('admin users API selects points for user detail display', () => {
 });
 
 test('profile and admin moderation flows submit updates with POST for CDN compatibility', () => {
-  const indexSource = read('index.html');
+  const indexSource = read('index.html') + '\n' + read(path.join('public', 'function', 'home-app.js'));
   const adminSource = read(path.join('public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'));
   const serverSource = read('server.js');
 

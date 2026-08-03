@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('crypto');
+const { rankPointsRows } = require('./social-features');
 
 const DAILY_CHECKIN_POINTS = 2;
 const STREAK_BONUS_POINTS = 5;
@@ -576,6 +577,58 @@ function mountUserRewardsRoutes(deps) {
       if (/column.*points|points.*does not exist|Unknown column/i.test(msg)) {
         return res.status(503).json({ error: 'SCHEMA_NOT_READY' });
       }
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
+  app.get('/api/me/points-ranking', async (req, res) => {
+    try {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+      const rows = await queryRows(
+        `
+        SELECT id,username,avatar_url,COALESCE(points, 0) AS points
+        FROM users
+        WHERE COALESCE(is_banned, 0) = 0
+        ORDER BY COALESCE(points, 0) DESC, id ASC
+        LIMIT 50
+        `
+      );
+      const leaders = rankPointsRows(rows.map((row) => ({
+        id: Number(row.id),
+        username: String(row.username || `用户${row.id}`),
+        avatarUrl: row.avatar_url || null,
+        points: Math.max(0, Number(row.points || 0))
+      })));
+      const me = await queryOne(
+        `
+        SELECT u.id,u.username,u.avatar_url,COALESCE(u.points, 0) AS points,
+          1 + (
+            SELECT COUNT(*) FROM users ranked
+            WHERE COALESCE(ranked.is_banned, 0) = 0
+              AND COALESCE(ranked.points, 0) > COALESCE(u.points, 0)
+          ) AS points_rank
+        FROM users u
+        WHERE u.id = ?
+          AND COALESCE(u.is_banned, 0) = 0
+        LIMIT 1
+        `,
+        [Number(user.id)]
+      );
+      if (!me) return res.status(403).json({ error: 'BANNED' });
+      return res.json({
+        ok: true,
+        leaders,
+        me: {
+          id: Number(me.id),
+          username: String(me.username || `用户${me.id}`),
+          avatarUrl: me.avatar_url || null,
+          points: Math.max(0, Number(me.points || 0)),
+          rank: Math.max(1, Number(me.points_rank || 1))
+        }
+      });
+    } catch (err) {
+      console.error('points ranking get failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
     }
   });

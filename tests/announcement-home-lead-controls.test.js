@@ -9,10 +9,18 @@ function read(rel) {
   return fs.readFileSync(path.join(root, rel), 'utf8');
 }
 
+function readHomeBundle() {
+  return [
+    read('index.html'),
+    read('public/function/home.css'),
+    read('public/function/home-app.js'),
+  ].join('\n');
+}
+
 test('announcement supports an admin enabled switch and hides disabled announcements publicly', () => {
   const server = read('server.js');
   const admin = read('public/function/_ops/console-7a9/internal/admin.html');
-  const home = read('index.html');
+  const home = readHomeBundle();
 
   assert.match(server, /enabled:\s*req\.body\?\.enabled\s*!==\s*false/);
   assert.match(server, /normalizedAnnouncement\.enabled\s*\?\s*normalizedAnnouncement\s*:\s*null/);
@@ -25,7 +33,7 @@ test('announcement supports an admin enabled switch and hides disabled announcem
 test('home lead click switch is persisted and renders non-link slides when disabled', () => {
   const server = read('server.js');
   const admin = read('public/function/_ops/console-7a9/internal/admin.html');
-  const home = read('index.html');
+  const home = readHomeBundle();
 
   assert.match(server, /clickEnabled:\s*true/);
   assert.match(server, /clickEnabled\s*=\s*input\.clickEnabled\s*!==\s*false/);
@@ -37,7 +45,7 @@ test('home lead click switch is persisted and renders non-link slides when disab
 });
 
 test('home lead has responsive presentation and disabled-click styling', () => {
-  const home = read('index.html');
+  const home = readHomeBundle();
 
   assert.match(home, /\.wjdr-home-carousel-media/);
   assert.match(home, /aspect-ratio:/);

@@ -823,7 +823,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.27</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.28</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1974,9 +1974,17 @@
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口及每次发布的关键前后台联动。</div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.28（2026-08-03）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>专家计算器</strong>：补全专家「加雷斯」 1–100 级好感度、专家印记、关系进阶与部队属性，并补充「重振旗鼓」天赋与技能效果、升级条件及资源区间计算。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>积分与社交功能</strong>：积分中心新增前 50 名积分排行榜及个人积分排名；主页搜索新增用户名搜索并支持进入用户主页；聊天支持收到消息后免回关回复，双向会话保留每分钟 10 条限制，并可点击聊天用户名进入对方主页。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>后台激活码修复</strong>：恢复激活码表单与使用记录样式，并修复管理员已登录时使用记录仍提示“请先登录管理员账号”的问题。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>底层代码重构</strong>：重构底层代码，提升网页流畅性。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>发布信息</strong>：移除专家计算器页面及发布数据中的内部数据来源展示；新增积分榜与用户名搜索接口，无新增权限点或数据库字段。</div>
+          </div>
+
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.27（2026-07-24）</div>
-            <div style="color:var(--muted);line-height:1.6;"><strong>专家计算器</strong>：新增专家「加雷斯」及 4 项技能的学习经验、学识之书区间计算；缺失的专家等级、好感度、印记、属性、关系与效果统一显示「暂无数据」。</div>
-            <div style="color:var(--muted);line-height:1.6;"><strong>发布信息</strong>：移除专家计算器页面及发布数据中的内部数据来源展示；本轮无新增接口、权限点或数据库字段。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>专家计算器</strong>：新增专家「加雷斯」，支持铁森林馈赠、铁棘战阵、不败铁军和威名震慑的学习经验与学识之书升级计算；尚未收录的专家等级与效果信息统一标记为「暂无数据」。</div>
           </div>
 
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
@@ -4781,7 +4789,10 @@
       else if(currentPage==='heroes'){ if(typeof window.loadHeroesAdmin==='function') window.loadHeroesAdmin(); }
       else if(currentPage==='bearpit-data'){ if(typeof window.loadBearpitAdmin==='function') window.loadBearpitAdmin(); }
       else if(currentPage==='shop'){ if(typeof window.loadShopAdmin==='function') window.loadShopAdmin(); }
-      else if(currentPage==='activation-codes'){ if(typeof window.loadActivationCodesAdmin==='function') window.loadActivationCodesAdmin(); }
+      else if(currentPage==='activation-codes'){
+        if(typeof window.loadActivationCodesAdmin==='function') window.loadActivationCodesAdmin();
+        if(typeof window.loadActivationRedemptionsAdmin==='function') window.loadActivationRedemptionsAdmin();
+      }
       else if(currentPage==='aeroplane-chess'){ if(window.adminAeroplaneChess && window.adminAeroplaneChess.init) window.adminAeroplaneChess.init(); }
       else if(currentPage==='tool-management') loadToolManagement();
       else if(currentPage==='announcement') loadAnnouncementAdmin();
@@ -5068,7 +5079,7 @@
   <script src="/function/admin-heroes-page.js?v=6"></script>
   <script src="/function/admin-bearpit-page.js?v=1"></script>
   <script src="/function/admin-shop-page.js?v=1"></script>
-  <script src="/function/admin-activation-codes-page.js?v=2"></script>
+  <script src="/function/admin-activation-codes-page.js?v=3"></script>
   <script src="/function/admin-aeroplane-chess-page.js?v=1"></script>
   <script>
   (function(){

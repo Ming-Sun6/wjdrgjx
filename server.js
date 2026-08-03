@@ -65,8 +65,10 @@ const {
   FORUM_VISIBLE_VIEW_COUNT_EXPR,
   buildForumViewRows
 } = require('./forum-post-views');
+const { getChatSendPolicy, canReadChatThread, createKeyedSerialExecutor } = require('./social-features');
 
 const app = express();
+const runChatSendSerial = createKeyedSerialExecutor();
 const PORT = 3000;
 const SESSION_COOKIE_NAME = 'auth_token';
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -2602,6 +2604,46 @@ app.post('/api/profile/avatar', async (req, res) => {
   }
 });
 
+app.get('/api/users/search', async (req, res) => {
+  try {
+    const q = String(req.query.q || '').trim().slice(0, 40);
+    if (!q) return res.json({ ok: true, users: [] });
+    const rows = await queryRows(
+      `
+      SELECT id,username,avatar_url,membership_status,membership_expires_at,title_text,title_bg_color,title_color
+      FROM users
+      WHERE COALESCE(is_banned, 0) = 0
+        AND username IS NOT NULL
+        AND LOWER(username) LIKE ?
+      ORDER BY CASE WHEN LOWER(username) = ? THEN 0 ELSE 1 END, username ASC, id ASC
+      LIMIT 10
+      `,
+      [`%${q.toLowerCase()}%`, q.toLowerCase()]
+    );
+    return res.json({
+      ok: true,
+      users: rows.map((row) => {
+        const membershipStatus = normalizeMembershipStatus(row.membership_status);
+        const membershipExpiresAt = row.membership_expires_at || null;
+        return {
+          id: Number(row.id),
+          username: String(row.username || `用户${row.id}`),
+          avatarUrl: row.avatar_url || null,
+          membershipStatus,
+          membershipExpiresAt,
+          titleText: String(row.title_text || '').trim(),
+          titleBgColor: normalizeHexColor(row.title_bg_color),
+          titleColor: normalizeHexColor(row.title_color),
+          isVip: hasVipMembership(membershipStatus, membershipExpiresAt)
+        };
+      })
+    });
+  } catch (err) {
+    console.error('user search failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
 app.get('/api/users/:id/profile', async (req, res) => {
   try {
     const current = await currentUserFromRequest(req);
@@ -2731,6 +2773,24 @@ function applyAuthenticatedApiNoStoreHeaders(req, res, next) {
 app.use('/api/chat', applyAuthenticatedApiNoStoreHeaders);
 app.use('/api/me', applyAuthenticatedApiNoStoreHeaders);
 
+async function getChatDirectionCounts(dbApi, uid, peerId) {
+  const row = await dbApi.queryOne(
+    `
+    SELECT
+      SUM(CASE WHEN sender_id = ? AND receiver_id = ? THEN 1 ELSE 0 END) AS incoming_count,
+      SUM(CASE WHEN sender_id = ? AND receiver_id = ? THEN 1 ELSE 0 END) AS outgoing_count
+    FROM chat_messages
+    WHERE (sender_id = ? AND receiver_id = ?)
+       OR (sender_id = ? AND receiver_id = ?)
+    `,
+    [peerId, uid, uid, peerId, peerId, uid, uid, peerId]
+  );
+  return {
+    incomingCount: Math.max(0, Number(row?.incoming_count || 0)),
+    outgoingCount: Math.max(0, Number(row?.outgoing_count || 0))
+  };
+}
+
 app.get('/api/chat/conversations', async (req, res) => {
   try {
     const user = await requireAuth(req, res);
@@ -2820,7 +2880,13 @@ app.get('/api/chat/users/:id/messages', async (req, res) => {
     const exists = await queryOne('SELECT id FROM users WHERE id = ? LIMIT 1', [peerId]);
     if (!exists) return res.status(404).json({ error: 'NOT_FOUND' });
     const relation = await getFollowRelation(uid, peerId);
-    if (!relation.iFollow && !relation.followsMe) return res.status(403).json({ error: 'CHAT_FOLLOW_REQUIRED' });
+    const directionCounts = await getChatDirectionCounts({ queryOne }, uid, peerId);
+    if (!canReadChatThread({ ...relation, ...directionCounts })) {
+      return res.status(403).json({ error: 'CHAT_FOLLOW_REQUIRED' });
+    }
+    const readPolicy = getChatSendPolicy({ ...relation, ...directionCounts });
+    relation.canSend = readPolicy.allowed;
+    relation.chatEstablished = readPolicy.established;
     const rows = await queryRows(
       `
       SELECT id,sender_id,receiver_id,content,created_at
@@ -2890,59 +2956,68 @@ app.post('/api/chat/users/:id/messages', async (req, res) => {
     if (!content) return res.status(400).json({ error: 'EMPTY_CONTENT' });
     if (content.length > 1000) return res.status(400).json({ error: 'CONTENT_TOO_LONG' });
 
-    const relation = await getFollowRelation(uid, peerId);
-    if (!relation.iFollow) return res.status(403).json({ error: 'CHAT_FOLLOW_REQUIRED' });
+    const lockKey = [uid, peerId].sort((a, b) => a - b).join(':');
+    return await runChatSendSerial(lockKey, async () => {
+      const relation = await getFollowRelation(uid, peerId);
+      const directionCounts = await getChatDirectionCounts({ queryOne }, uid, peerId);
+      const policy = getChatSendPolicy({ ...relation, ...directionCounts });
+      if (!policy.allowed) return res.status(403).json({ error: 'CHAT_FOLLOW_REQUIRED' });
 
-    if (relation.mutualFollow) {
-      const row = await queryOne(
-        `
-        SELECT COUNT(*) AS c
-        FROM chat_messages
-        WHERE sender_id = ? AND receiver_id = ?
-          AND created_at >= DATE_SUB(CURRENT_TIMESTAMP(3), INTERVAL 1 MINUTE)
-        `,
-        [uid, peerId]
-      );
-      if (Number(row?.c || 0) >= 10) {
-        return res.status(429).json({ error: 'CHAT_RATE_LIMIT', limit: 10, windowSeconds: 60 });
+      if (policy.limit === 'minute') {
+        const row = await queryOne(
+          `
+          SELECT COUNT(*) AS c
+          FROM chat_messages
+          WHERE sender_id = ? AND receiver_id = ?
+            AND created_at >= ?
+          `,
+          [uid, peerId, new Date(Date.now() - 60 * 1000)]
+        );
+        if (Number(row?.c || 0) >= 10) {
+          return res.status(429).json({ error: 'CHAT_RATE_LIMIT', limit: 10, windowSeconds: 60 });
+        }
+      } else {
+        const dayStart = new Date();
+        dayStart.setHours(0, 0, 0, 0);
+        const row = await queryOne(
+          `
+          SELECT COUNT(*) AS c
+          FROM chat_messages
+          WHERE sender_id = ? AND receiver_id = ?
+            AND created_at >= ?
+          `,
+          [uid, peerId, dayStart]
+        );
+        if (Number(row?.c || 0) >= 1) {
+          return res.status(429).json({ error: 'CHAT_DAILY_LIMIT', limit: 1, period: 'day' });
+        }
       }
-    } else {
-      const row = await queryOne(
-        `
-        SELECT COUNT(*) AS c
-        FROM chat_messages
-        WHERE sender_id = ? AND receiver_id = ?
-          AND DATE(created_at) = CURDATE()
-        `,
-        [uid, peerId]
-      );
-      if (Number(row?.c || 0) >= 1) {
-        return res.status(429).json({ error: 'CHAT_DAILY_LIMIT', limit: 1, period: 'day' });
-      }
-    }
 
-    let created = null;
-    if (pgDatabase) {
-      created = await queryOne(
-        `
-        INSERT INTO chat_messages (sender_id, receiver_id, content, created_at)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP(3))
-        RETURNING id,sender_id,receiver_id,content,created_at
-        `,
-        [uid, peerId, content]
-      );
-    } else {
-      const ret = await execute(
-        'INSERT INTO chat_messages (sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP(3))',
-        [uid, peerId, content]
-      );
-      created = await queryOne(
-        'SELECT id,sender_id,receiver_id,content,created_at FROM chat_messages WHERE id = ? LIMIT 1',
-        [ret.insertId]
-      );
-    }
-    if (!created) return res.status(500).json({ error: 'INTERNAL_ERROR' });
-    return res.status(201).json({ ok: true, relation, message: toChatMessageDto(created, uid) });
+      let created = null;
+      if (pgDatabase) {
+        created = await queryOne(
+          `
+          INSERT INTO chat_messages (sender_id, receiver_id, content, created_at)
+          VALUES (?, ?, ?, CURRENT_TIMESTAMP(3))
+          RETURNING id,sender_id,receiver_id,content,created_at
+          `,
+          [uid, peerId, content]
+        );
+      } else {
+        const ret = await execute(
+          'INSERT INTO chat_messages (sender_id, receiver_id, content, created_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP(3))',
+          [uid, peerId, content]
+        );
+        created = await queryOne(
+          'SELECT id,sender_id,receiver_id,content,created_at FROM chat_messages WHERE id = ? LIMIT 1',
+          [ret.insertId]
+        );
+      }
+      if (!created) return res.status(500).json({ error: 'INTERNAL_ERROR' });
+      relation.canSend = true;
+      relation.chatEstablished = policy.established || (directionCounts.incomingCount > 0);
+      return res.status(201).json({ ok: true, relation, message: toChatMessageDto(created, uid) });
+    });
   } catch (err) {
     console.error('chat message post failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
