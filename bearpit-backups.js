@@ -28,7 +28,9 @@ const BEARPIT_BACKUPS_DDL_PG = `
 `;
 
 function countLayoutItems(data) {
-  return Array.isArray(data?.items) ? data.items.length : 0;
+  if (Array.isArray(data?.items)) return data.items.length;
+  if (Array.isArray(data?.placements)) return data.placements.length;
+  return Array.isArray(data?.members) ? data.members.length : 0;
 }
 
 function normalizeBackupTitle(value) {

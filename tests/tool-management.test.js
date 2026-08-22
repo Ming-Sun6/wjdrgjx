@@ -1,4 +1,4 @@
-const test = require('node:test');
+﻿const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -17,6 +17,7 @@ const expectedCatalog = [
   ['lord-equipment-gem', '领主装备与宝石计算器', 'featured', true],
   ['hero-data', '英雄数据', 'featured', true],
   ['bear-pit', '熊坑排布', 'core', true],
+  ['bear-pit-simple', '熊坑排布简约版', 'core', true],
   ['tiantian-strategy', '甜甜的攻略站', 'core', true],
   ['refine-crystal-calculator', '精炼提炼计算器', 'core', true],
   ['refine-crystal-simulator', '精炼提炼模拟器', 'core', true],
@@ -66,7 +67,7 @@ test('normalization fills missing tools and fields from defaults and discards un
   assert.equal(result.tools.length, expectedCatalog.length);
   assert.deepEqual(result.tools[0], { id: 'training-calculator', visible: false, badge: 'hot' });
   assert.deepEqual(result.tools[4], { id: 'bear-pit', visible: true, badge: 'new' });
-  assert.deepEqual(result.tools[14], { id: 'giftcode-center', visible: false, badge: 'none' });
+  assert.deepEqual(result.tools[15], { id: 'giftcode-center', visible: false, badge: 'none' });
   assert.equal(result.tools.some((tool) => tool.id === 'unknown-tool'), false);
 });
 
@@ -88,7 +89,7 @@ test('public and admin projections expose only their intended fields', () => {
 
   assert.deepEqual(Object.keys(publicTools[0]), ['id', 'visible', 'badge']);
   assert.deepEqual(Object.keys(adminTools[0]), ['id', 'name', 'group', 'defaultVisible', 'visible', 'badge']);
-  assert.equal(adminTools[14].defaultVisible, false);
+  assert.equal(adminTools[15].defaultVisible, false);
 });
 
 test('server mounts public and authenticated admin tool management routes', () => {
@@ -117,7 +118,7 @@ test('public handler falls back to the default visible catalog when settings rea
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.tools.length, expectedCatalog.length);
   assert.equal(response.body.tools[0].visible, true);
-  assert.equal(response.body.tools[14].visible, false);
+  assert.equal(response.body.tools[15].visible, false);
   assert.ok(response.body.tools.every((tool) => tool.badge === 'none'));
 });
 

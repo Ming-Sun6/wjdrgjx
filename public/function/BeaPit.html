@@ -4593,9 +4593,20 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
     </p>
   </footer>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var exportButton = document.getElementById('btnExportConfig');
+    var importButton = document.getElementById('btnImportConfig');
+    if (exportButton) exportButton.textContent = '生成分享秘钥';
+    if (importButton) importButton.textContent = '导入分享秘钥';
+    var importTitle = document.querySelector('#importBeaPitModal h3');
+    var exportTitle = document.querySelector('#exportBeaPitModal h3');
+    if (importTitle) importTitle.textContent = '导入分享秘钥';
+    if (exportTitle) exportTitle.textContent = '分享秘钥';
+  });
+</script>
 </body>
 </html>
-
 
 
 

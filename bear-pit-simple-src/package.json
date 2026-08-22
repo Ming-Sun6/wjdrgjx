@@ -1,0 +1,28 @@
+{
+  "name": "wjdr-bear-pit-designer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "无尽冬日 熊坑图（成员站位编排）设计工具",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "package": "powershell -ExecutionPolicy Bypass -File scripts/package.ps1"
+  },
+  "dependencies": {
+    "konva": "^9.3.16",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-konva": "^18.2.10",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

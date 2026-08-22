@@ -94,6 +94,7 @@ const TOOL_CATALOG = [
   { id: 'lord-equipment-gem', name: '领主装备与宝石计算器', group: 'featured', defaultVisible: true, badge: 'none' },
   { id: 'hero-data', name: '英雄数据', group: 'featured', defaultVisible: true, badge: 'none' },
   { id: 'bear-pit', name: '熊坑排布', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'bear-pit-simple', name: '熊坑排布简约版', group: 'core', defaultVisible: true, badge: 'none' },
   { id: 'tiantian-strategy', name: '甜甜的攻略站', group: 'core', defaultVisible: true, badge: 'none' },
   { id: 'refine-crystal-calculator', name: '精炼提炼计算器', group: 'core', defaultVisible: true, badge: 'none' },
   { id: 'refine-crystal-simulator', name: '精炼提炼模拟器', group: 'core', defaultVisible: true, badge: 'none' },

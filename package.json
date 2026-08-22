@@ -7,7 +7,8 @@
     "service:install": "node scripts/service-install.js",
     "service:uninstall": "node scripts/service-uninstall.js",
     "service:giftcode:install": "node scripts/giftcode-service-install.js",
-    "service:giftcode:uninstall": "node scripts/giftcode-service-uninstall.js"
+    "service:giftcode:uninstall": "node scripts/giftcode-service-uninstall.js",
+    "share-meta:inject": "node scripts/inject-static-share-meta.js"
   },
   "devDependencies": {
     "xlsx": "^0.18.5"
