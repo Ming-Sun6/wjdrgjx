@@ -1,7 +1,17 @@
 'use strict';
 
+const crypto = require('crypto');
+
 const MAX_BACKUPS_PER_USER = 50;
 const MAX_TITLE_LEN = 120;
+const SHARE_KEY_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+
+function generateShareKey() {
+  const bytes = crypto.randomBytes(16);
+  let key = '';
+  for (const byte of bytes) key += SHARE_KEY_ALPHABET[byte % SHARE_KEY_ALPHABET.length];
+  return key;
+}
 
 const BEARPIT_BACKUPS_DDL_MYSQL = `
   CREATE TABLE IF NOT EXISTS bearpit_layout_backups (
@@ -25,6 +35,15 @@ const BEARPIT_BACKUPS_DDL_PG = `
     created_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
   );
   CREATE INDEX IF NOT EXISTS idx_bearpit_backups_user_created ON bearpit_layout_backups (user_id, created_at DESC);
+`;
+
+const BEARPIT_SHARES_DDL_MYSQL = `
+  CREATE TABLE IF NOT EXISTS bearpit_share_links (
+    share_key VARCHAR(16) PRIMARY KEY,
+    data_json JSON NOT NULL,
+    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    KEY idx_bearpit_shares_created (created_at)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 `;
 
 function countLayoutItems(data) {
@@ -219,13 +238,55 @@ function mountBearpitBackupRoutes(deps) {
     }
   });
 
+  app.post('/api/bearpit/shares', async (req, res) => {
+    try {
+      const data = req.body?.data;
+      if (!data || typeof data !== 'object' || !data.grid || !Array.isArray(data.placements)) {
+        return res.status(400).json({ error: 'BAD_DATA' });
+      }
+      let shareKey = null;
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const candidate = generateShareKey();
+        try {
+          await execute('INSERT INTO bearpit_share_links (share_key, data_json, created_at) VALUES (?, ?, CURRENT_TIMESTAMP(3))', [candidate, JSON.stringify(data)]);
+          shareKey = candidate;
+          break;
+        } catch (err) {
+          if (!String(err?.message || '').toLowerCase().includes('duplicate') && !String(err?.code || '').toUpperCase().includes('DUP')) throw err;
+        }
+      }
+      if (!shareKey) return res.status(503).json({ error: 'SHARE_KEY_UNAVAILABLE' });
+      return res.json({ ok: true, shareKey });
+    } catch (err) {
+      console.error('bearpit share create failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
+  app.get('/api/bearpit/shares/:key', async (req, res) => {
+    try {
+      const key = String(req.params.key || '').trim();
+      if (!/^[A-Za-z0-9]{16}$/.test(key)) return res.status(400).json({ error: 'BAD_KEY' });
+      const row = await queryOne('SELECT share_key, data_json FROM bearpit_share_links WHERE share_key = ? LIMIT 1', [key]);
+      if (!row) return res.status(404).json({ error: 'NOT_FOUND' });
+      const data = row.data_json && typeof row.data_json === 'object' ? row.data_json : safeJsonParse(String(row.data_json || 'null'), null);
+      if (!data) return res.status(410).json({ error: 'BAD_DATA' });
+      return res.json({ data });
+    } catch (err) {
+      console.error('bearpit share get failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
   return { insertBackup, defaultBackupTitle };
 }
 
 module.exports = {
   BEARPIT_BACKUPS_DDL_MYSQL,
   BEARPIT_BACKUPS_DDL_PG,
+  BEARPIT_SHARES_DDL_MYSQL,
   mountBearpitBackupRoutes,
+  generateShareKey,
   countLayoutItems,
   normalizeBackupTitle,
   defaultBackupTitle

@@ -50,19 +50,38 @@ export default function Toolbar({ stageRef }: Props) {
     if (item) loadLayout(item.data)
   }
 
-  const encodeShare = () => {
-    const raw = JSON.stringify(exportLayout())
-    const key = btoa(unescape(encodeURIComponent(raw))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '')
-    setShareKey(key)
-    navigator.clipboard?.writeText(key).catch(() => undefined)
+  const encodeShare = async () => {
+    try {
+      const response = await fetch('/api/bearpit/shares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: exportLayout() }),
+      })
+      const payload = await response.json().catch(() => null)
+      if (!response.ok || !/^[A-Za-z0-9]{16}$/.test(String(payload?.shareKey || ''))) throw new Error('share failed')
+      const key = String(payload.shareKey)
+      setShareKey(key)
+      navigator.clipboard?.writeText(key).catch(() => undefined)
+    } catch {
+      window.alert('分享秘钥生成失败，请稍后重试')
+    }
   }
 
-  const importShare = () => {
+  const importShare = async () => {
     const key = window.prompt('请输入分享秘钥')?.trim()
     if (!key) return
     try {
-      const padded = key.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - key.length % 4) % 4)
-      const layout = JSON.parse(decodeURIComponent(escape(atob(padded)))) as Layout
+      let layout: Layout
+      if (/^[A-Za-z0-9]{16}$/.test(key)) {
+        const response = await fetch(`/api/bearpit/shares/${encodeURIComponent(key)}`)
+        const payload = await response.json().catch(() => null)
+        if (!response.ok || !payload?.data) throw new Error('share not found')
+        layout = payload.data as Layout
+      } else {
+        // 兼容旧版本：旧秘钥是 URL-safe Base64 编码的完整布局 JSON。
+        const padded = key.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - key.length % 4) % 4)
+        layout = JSON.parse(decodeURIComponent(escape(atob(padded)))) as Layout
+      }
       if (!layout.grid || !Array.isArray(layout.placements)) throw new Error('bad')
       loadLayout(layout)
     } catch { window.alert('分享秘钥无效或已损坏') }

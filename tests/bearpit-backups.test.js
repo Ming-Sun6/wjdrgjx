@@ -6,7 +6,8 @@ const path = require('node:path');
 const {
   normalizeBackupTitle,
   defaultBackupTitle,
-  countLayoutItems
+  countLayoutItems,
+  generateShareKey
 } = require('../bearpit-backups');
 
 test('normalizeBackupTitle trims and caps length', () => {
@@ -35,4 +36,16 @@ test('server mounts bearpit backup routes and BeaPit page has backup UI', () => 
   assert.match(page, /woam-save-scheme/);
   assert.match(page, /backupLoadModal/);
   assert.match(page, /\/api\/bearpit\/backups/);
+});
+
+test('share keys are short random alphanumeric codes', () => {
+  const key = generateShareKey();
+  assert.match(key, /^[A-Za-z0-9]{16}$/);
+  assert.notEqual(key, generateShareKey());
+});
+
+test('simple version keeps legacy base64 share import compatibility', () => {
+  const toolbar = fs.readFileSync(path.join(__dirname, '..', 'bear-pit-simple-src', 'src', 'components', 'Toolbar.tsx'), 'utf8');
+  assert.match(toolbar, /atob\(/);
+  assert.match(toolbar, /分享秘钥无效或已损坏/);
 });
