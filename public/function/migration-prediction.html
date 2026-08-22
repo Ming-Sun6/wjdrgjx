@@ -236,6 +236,10 @@
 
   <script>
   (function(){
+    var remoteConfigPromise = typeof fetch === 'function' ? Promise.all([
+      fetch('/api/neighbor-progress', { credentials: 'include', cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }),
+      fetch('/api/history-immigration', { credentials: 'include', cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+    ]) : Promise.resolve([null, null]);
     var labels = ["1~13","14~73","74~163","164~250","251~328","329~416","417~522","523~636","637~742","743~830","831~918","919~1040","1041~1180","1181~1334","1335~1469","1470~1579","1580~1702","1703~1833","1834~1925","1926~2021","2022~2138","2139~2285","2286~2441","2442~2511","2512~2577","2578~2647","2648~2731","2732~2790","2791~2858","2859~2913","2914~2982","2983~3075","3076~3176","3177~3236","3237~3311","3312~3383","3384~3442","3443~3509","3510~3556","3557~3591","3592~3627","3628~3671","3672~3716","3717~3755","3756~3799","NB39","NB40","NB41","NB42","NB43","NB44","NB45","NB46","NB47","NB48","NB49","NB50","NB51","NB52","NB53","NB54","NB55","NB56","NB57","NB58","NB59","NB60","NB61","NB62","NB63","NB64","NB65","NB66","NB67","NB68","NB69","NB70","NB71","NB72","NB73","NB74","NB75","NB76","NB77","NB78","NB79","NB80","NB81","NB82","NB83","NB84","NB85","NB86","NB87","NB88","NB89","NB90","NB91","NB92","NB93","NB94","NB95","NB96","NB97","NB98","NB99","NB100"];
     var stageDefs = [
       { name:"\u706b\u6676\u4e94", key:"FC5", offset:0 },
@@ -251,6 +255,19 @@
       { name:"10\u4ee3\u82f1\u96c4", key:"Hero10", offset:546 },
       { name:"11\u4ee3\u82f1\u96c4", key:"Hero11", offset:630 }
     ];
+    var historyImmigrationConfig = null;
+    function applyRemoteConfigs(payloads){
+      var neighbor = payloads && payloads[0], history = payloads && payloads[1];
+      historyImmigrationConfig = history;
+      if (neighbor && Array.isArray(neighbor.stages)) neighbor.stages.forEach(function(remote){
+        if (!remote || !remote.key || remote.enabled === false) return;
+        var found = null;
+        for (var i = 0; i < stageDefs.length; i++) if (stageDefs[i].key === remote.key) found = stageDefs[i];
+        if (found) { found.name = remote.name || found.name; found.remoteDates = remote.dates || []; }
+        else stageDefs.push({ key: remote.key, name: remote.name || remote.key, offset: 0, remoteDates: remote.dates || [] });
+      });
+      if (history && Array.isArray(history.dates)) historyDateMarks = history.dates.filter(function(item){ return item && item.enabled !== false && /^\d{4}-\d{2}-\d{2}$/.test(item.date); }).map(function(item){ return item.date; });
+    }
     function milestoneFlagsFromOpens(opensSerials, cutoffSerial){
       var fl = {};
       for (var fi = 0; fi < stageDefs.length; fi++){
@@ -303,6 +320,16 @@
     function progressBundleForCutoff(rangeIdx, cutoffSerial){
       if (rangeIdx < 0 || !Number.isFinite(cutoffSerial)){
         return { text: "-", sortKey: -1, bucketKey: "__empty__", domState: "" };
+      }
+      if (historyImmigrationConfig && Array.isArray(historyImmigrationConfig.dates)) {
+        for (var hi = 0; hi < historyImmigrationConfig.dates.length; hi++) {
+          var hd = historyImmigrationConfig.dates[hi];
+          var hs = dateStrToSerial(hd.date) + Number(historyImmigrationConfig.rules && historyImmigrationConfig.rules.displayOffsetDays || 1);
+          if (hd.enabled !== false && hs === cutoffSerial && hd.overrides && hd.overrides[labels[rangeIdx]]) {
+            var overrideText = hd.overrides[labels[rangeIdx]];
+            return { text: overrideText, sortKey: 999, bucketKey: overrideText, domState: "" };
+          }
+        }
       }
       var opens = getStageOpenSerialsForRange(rangeIdx);
       var fl = milestoneFlagsFromOpens(opens, cutoffSerial);
@@ -440,6 +467,10 @@
       var base = baseSerial + rangeIdx * stepDays;
       for (var i = 0; i < stageDefs.length; i++){
         var st = stageDefs[i];
+        if (st.remoteDates && st.remoteDates[rangeIdx]) {
+          var remoteSerial = dateStrToSerial(String(st.remoteDates[rangeIdx]));
+          if (Number.isFinite(remoteSerial)) { serials.push(remoteSerial); continue; }
+        }
         if (st.key === "Hero11"){
           if (override && override[i]){
             var sh = dateStrToSerial(String(override[i]));
@@ -802,7 +833,7 @@
     })();
     window.selectDefaultForecastIndex = selectDefaultForecastIndex;
     window.dateStrToSerial = dateStrToSerial;
-    renderAll();
+    remoteConfigPromise.then(function(payloads){ applyRemoteConfigs(payloads); renderAll(); }).catch(renderAll);
   })();
   </script>
 <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子、飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球、柒枫团队\A宣传大使：懒羊羊\A赞助：39 拙山枯水大江行\A\A感谢以上所有人对本攻略站的付出"}

@@ -366,6 +366,7 @@
     .history-state-hero9 { background: rgba(236, 72, 153, 0.42); }
     .history-state-hero10 { background: rgba(244, 63, 94, 0.44); }
     .history-state-hero11 { background: rgba(225, 29, 72, 0.46); }
+    .history-state-hero12 { background: rgba(190, 24, 93, 0.48); }
 
     .foot {
       margin-top: 14px;
@@ -466,6 +467,7 @@
   </div>
 
   <script>
+    window.__wjdrNeighborProgressConfigPromise = fetch('/api/neighbor-progress', { credentials: 'include', cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     (function () {
       var labels = ["1~13","14~73","74~163","164~250","251~328","329~416","417~522","523~636","637~742","743~830","831~918","919~1040","1041~1180","1181~1334","1335~1469","1470~1579","1580~1702","1703~1833","1834~1925","1926~2021","2022~2138","2139~2285","2286~2441","2442~2511","2512~2577","2578~2647","2648~2731","2732~2790","2791~2858","2859~2913","2914~2982","2983~3075","3076~3176","3177~3236","3237~3311","3312~3383","3384~3442","3443~3483","3484~3509","3510~3556","3557~3591","3592~3627","3628~3671","3672~3716","3717~3755","3756~3799","NB39","NB40","NB41","NB42","NB43","NB44","NB45","NB46","NB47","NB48","NB49","NB50","NB51","NB52","NB53","NB54","NB55","NB56","NB57","NB58","NB59","NB60","NB61","NB62","NB63","NB64","NB65","NB66","NB67","NB68","NB69","NB70","NB71","NB72","NB73","NB74","NB75","NB76","NB77","NB78","NB79","NB80","NB81","NB82","NB83","NB84","NB85","NB86","NB87","NB88","NB89","NB90","NB91","NB92","NB93","NB94","NB95","NB96","NB97","NB98","NB99","NB100"];
 
@@ -481,8 +483,23 @@
         { name: "8\u4ee3\u82f1\u96c4", key: "Hero8", offset: 378 },
         { name: "9\u4ee3\u82f1\u96c4", key: "Hero9", offset: 462 },
         { name: "10\u4ee3\u82f1\u96c4", key: "Hero10", offset: 546 },
-        { name: "11\u4ee3\u82f1\u96c4", key: "Hero11", offset: 630 }
+        { name: "11\u4ee3\u82f1\u96c4", key: "Hero11", offset: 630 },
+        { name: "12\u4ee3\u82f1\u96c4", key: "Hero12", offset: 714 }
       ];
+      var remoteConfig = null;
+      function applyRemoteConfig(config) {
+        if (!config || !Array.isArray(config.stages)) return;
+        remoteConfig = config;
+        config.stages.forEach(function (remote) {
+          if (!remote || !remote.key || !remote.name || remote.enabled === false) return;
+          var existing = null;
+          for (var i = 0; i < stageDefs.length; i++) if (stageDefs[i].key === remote.key) existing = stageDefs[i];
+          if (existing) { existing.name = remote.name; existing.remoteDates = remote.dates || []; }
+          else { stageDefs.push({ key: String(remote.key), name: String(remote.name), offset: 0, remoteDates: remote.dates || [] }); }
+          stateLabelMap[String(remote.key)] = String(remote.name).replace(/英雄$/, '');
+        });
+        if (Array.isArray(config.ranges) && config.ranges.length) labels = config.ranges.concat(labels.slice(config.ranges.length));
+      }
 
       var hero11OpenByLabel = {
         "1~13": "2026-05-25", "14~73": "2026-06-08", "74~163": "2026-06-22", "164~250": "2026-07-06", "251~328": "2026-07-20",
@@ -504,6 +521,7 @@
         Hero9: "9\u4ee3",
         Hero10: "10\u4ee3",
         Hero11: "11\u4ee3",
+        Hero12: "12\u4ee3",
         FC3: "\u706b3",
         FC5: "\u706b5",
         FC8: "\u706b8",
@@ -614,6 +632,10 @@
         var base = baseSerial + rangeIdx * stepDays;
         for (var gi = 0; gi < stageDefs.length; gi++) {
           var stg = stageDefs[gi];
+          if (stg.remoteDates && stg.remoteDates[rangeIdx]) {
+            var remoteSerial = dateStrToSerial(String(stg.remoteDates[rangeIdx]));
+            if (Number.isFinite(remoteSerial)) { serials.push(remoteSerial); continue; }
+          }
           if (stg.key === "Hero11") {
             if (override && override[gi]) {
               var sh = dateStrToSerial(String(override[gi]));
@@ -695,6 +717,8 @@
         if (state === "Hero9") return "history-state-hero9";
         if (state === "Hero10") return "history-state-hero10";
         if (state === "Hero11") return "history-state-hero11";
+        if (state === "Hero12") return "history-state-hero12";
+        if (/^Hero\d+$/.test(state)) return "history-state-" + state.toLowerCase();
         if (state === "FC3") return "history-state-fc3";
         if (state === "FC5") return "history-state-fc5";
         if (state === "FC8") return "history-state-fc8";
@@ -907,7 +931,9 @@
         bindEvents();
       }
 
-      init();
+      var configPromise = window.__wjdrNeighborProgressConfigPromise;
+      if (configPromise && typeof configPromise.then === 'function') configPromise.then(function (config) { applyRemoteConfig(config); init(); }).catch(init);
+      else init();
     })();
   </script>
 
@@ -942,7 +968,5 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 
 </body>
 </html>
-
-
 
 

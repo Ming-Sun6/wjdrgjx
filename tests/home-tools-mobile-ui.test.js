@@ -72,3 +72,21 @@ test('home and admin changelogs separate the Gareth launch from the data complet
   assert.match(admin, /活动横幅/);
   assert.doesNotMatch(home, /<li><strong>公告与活动横幅<\/strong>/);
 });
+
+test('latest changelogs keep public and admin release notes separated', () => {
+  const home = read('index.html');
+  const admin = read('public/function/_ops/console-7a9/internal/admin.html');
+  const homeLog = home.slice(home.indexOf('id="changelogModal"'), home.indexOf('</div>\n\n  <script', home.indexOf('id="changelogModal"')));
+  const adminLog = admin.slice(admin.indexOf('id="page-admin-log"'), admin.indexOf('</section>', admin.indexOf('id="page-admin-log"')));
+
+  assert.match(home, /版本 V0\.9\.32/);
+  assert.match(homeLog, /V0\.9\.32（2026-08-22）/);
+  assert.match(homeLog, /论坛阅读体验/);
+  assert.match(homeLog, /领主装备与宝石计算器/);
+  assert.doesNotMatch(homeLog, /后台|管理员|管理端|权限|数据库|管理接口/);
+
+  assert.match(admin, /admin-version[^>]*>V0\.9\.30</);
+  assert.match(adminLog, /历史移民分组配置/);
+  assert.match(adminLog, /邻邦进度管理/);
+  assert.doesNotMatch(adminLog, /分享卡片优化/);
+});

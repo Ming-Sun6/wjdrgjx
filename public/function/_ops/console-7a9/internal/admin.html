@@ -823,7 +823,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-          <span class="admin-version" title="与管理端打包版本一致">V0.9.28</span>
+          <span class="admin-version" title="与管理端打包版本一致">V0.9.30</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -848,6 +848,8 @@
         <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
         <button class="side-item" type="button" data-page="bearpit-data" data-admin-only="1">熊坑数据</button>
         <button class="side-item" type="button" data-page="tool-management" data-admin-only="1">工具管理</button>
+        <button class="side-item" type="button" data-page="neighbor-progress" data-admin-only="1">邻邦进度</button>
+        <button class="side-item" type="button" data-page="history-immigration" data-admin-only="1">历史移民分组</button>
         <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
         <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
         <button class="side-item" type="button" data-page="site-footer" data-admin-only="1">底部致谢</button>
@@ -1970,7 +1972,43 @@
           <div class="tool-management-groups" id="toolManagementGroups"></div>
         </section>
 
+        <section class="card page" id="page-neighbor-progress" data-page="neighbor-progress">
+          <!-- 管理接口：/api/admin/neighbor-progress -->
+          <div class="page-title">邻邦进度管理</div>
+          <div class="admin-status" id="neighborProgressStatus">请先登录管理员账号。</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;">
+            <label for="neighborProgressInterval">默认间隔天数</label>
+            <input id="neighborProgressInterval" type="number" min="1" max="60" value="14" style="width:110px;">
+            <button class="btn secondary" id="neighborProgressReloadBtn" type="button">重新加载</button>
+            <button class="btn" id="neighborProgressAddBtn" type="button">新增阶段</button>
+            <button class="btn" id="neighborProgressAddRangeBtn" type="button">新增区间</button>
+            <button class="btn" id="neighborProgressSaveBtn" type="button">保存配置</button>
+          </div>
+          <div id="neighborProgressStages"></div>
+        </section>
+
+        <section class="card page" id="page-history-immigration" data-page="history-immigration">
+          <!-- 管理接口：/api/admin/history-immigration -->
+          <div class="page-title">历史移民分组配置</div>
+          <div class="admin-status" id="historyImmigrationStatus">请先登录管理员账号。</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;">
+            <label for="historyImmigrationInterval">默认间隔天数</label><input id="historyImmigrationInterval" type="number" min="1" max="90" value="28" style="width:110px">
+            <label for="historyImmigrationOffset">展示日偏移</label><input id="historyImmigrationOffset" type="number" min="0" max="7" value="1" style="width:90px">
+            <button class="btn secondary" id="historyImmigrationReloadBtn" type="button">重新加载</button>
+            <button class="btn" id="historyImmigrationAddBtn" type="button">新增移民日期</button>
+            <button class="btn" id="historyImmigrationGenerateBtn" type="button">按间隔生成</button>
+            <button class="btn" id="historyImmigrationSaveBtn" type="button">保存配置</button>
+          </div>
+          <div id="historyImmigrationDates"></div>
+          <div id="historyImmigrationMatrix" style="overflow:auto;margin-top:14px"></div>
+        </section>
+
         <section class="card page" id="page-admin-log" data-page="admin-log">
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;"><div style="font-weight:800;margin-bottom:8px;">V0.9.30（2026-08-22）</div><div style="color:var(--muted);line-height:1.6;"><strong>历史移民分组配置</strong>：新增后台日期、分组规则和手动覆盖配置，历史移民分组与移民预测支持读取后台配置并随邻邦进度变化同步重算。</div></div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.29（2026-08-22）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>邻邦进度管理</strong>：新增后台配置工具，支持新增阶段、追加和修改区间、按间隔生成日期及单独覆盖日期；公开邻邦进度页读取配置并保留静态默认兜底。</div>
+          </div>
           <div class="page-title">后台更新日志</div>
           <div class="admin-status">此日志仅后台可见，用于记录管理端、权限、接口及每次发布的关键前后台联动。</div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
@@ -4795,6 +4833,8 @@
       }
       else if(currentPage==='aeroplane-chess'){ if(window.adminAeroplaneChess && window.adminAeroplaneChess.init) window.adminAeroplaneChess.init(); }
       else if(currentPage==='tool-management') loadToolManagement();
+      else if(currentPage==='neighbor-progress'){ if(window.loadNeighborProgressAdmin) window.loadNeighborProgressAdmin(); }
+      else if(currentPage==='history-immigration'){ if(window.loadHistoryImmigrationAdmin) window.loadHistoryImmigrationAdmin(); }
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='site-footer') loadSiteFooterAdmin();
@@ -5081,6 +5121,8 @@
   <script src="/function/admin-shop-page.js?v=1"></script>
   <script src="/function/admin-activation-codes-page.js?v=3"></script>
   <script src="/function/admin-aeroplane-chess-page.js?v=1"></script>
+  <script src="/function/admin-neighbor-progress-page.js?v=1"></script>
+  <script src="/function/admin-history-immigration-page.js?v=1"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){

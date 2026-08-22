@@ -66,6 +66,9 @@ const {
   buildForumViewRows
 } = require('./forum-post-views');
 const { getChatSendPolicy, canReadChatThread, createKeyedSerialExecutor } = require('./social-features');
+const { injectShareMeta, resolvePageMeta, resolvePublicHtmlPath } = require('./share-meta');
+const { defaultNeighborProgressConfig, normalizeNeighborProgressConfig } = require('./neighbor-progress-config');
+const { defaultHistoryImmigrationConfig, normalizeHistoryImmigrationConfig } = require('./history-immigration-config');
 
 const app = express();
 const runChatSendSerial = createKeyedSerialExecutor();
@@ -82,6 +85,8 @@ const FORUM_IMAGE_PUBLIC_PREFIX = '/uploads/forum/';
 const DEFAULT_ADMIN_LOGIN_ID = process.env.DEFAULT_ADMIN_LOGIN_ID || 'admin';
 const SITE_FOOTER_SETTING_KEY = 'site_footer';
 const TOOL_MANAGEMENT_SETTING_KEY = 'tool_management';
+const NEIGHBOR_PROGRESS_SETTING_KEY = 'neighbor_progress_schedule';
+const HISTORY_IMMIGRATION_SETTING_KEY = 'history_immigration_config';
 const TOOL_BADGES = new Set(['none', 'new', 'hot']);
 const TOOL_CATALOG = [
   { id: 'training-calculator', name: '练兵计算站', group: 'featured', defaultVisible: true, badge: 'none' },
@@ -190,6 +195,25 @@ if (GIFTCODE_UI_MODE !== 'live') {
 
 mountGiftcodeProxy(app);
 app.use(express.json({ limit: '8mb' }));
+app.use(async (req, res, next) => {
+  try {
+    if (req.method !== 'GET' || (req.path !== '/' && !req.path.toLowerCase().endsWith('.html'))) return next();
+    const filePath = resolvePublicHtmlPath(path.join(__dirname, 'public'), req.path);
+    if (!filePath || !fs.existsSync(filePath)) return next();
+    let post = null;
+    if (req.path === '/function/forum-post.html' && req.query.id) {
+      try { post = await queryOne('SELECT title,contentText,contentHtml,coverImage FROM forum_posts WHERE id = ? LIMIT 1', [Number(req.query.id)]); } catch (_) {}
+    }
+    const origin = `${isHttpsRequest(req) ? 'https' : 'http'}://${req.headers.host || 'wjgl.store'}`;
+    const meta = resolvePageMeta(req.path, post, origin);
+    const html = await fs.promises.readFile(filePath, 'utf8');
+    res.setHeader('Cache-Control', 'no-store');
+    return res.type('html').send(injectShareMeta(html, meta, `${origin}${req.originalUrl}`));
+  } catch (err) {
+    console.warn('share metadata injection skipped:', err.message);
+    return next();
+  }
+});
 app.use(
   '/function/aeroplane-chess',
   express.static(path.join(__dirname, 'aeroplane-chess', 'frontend', 'public'))
@@ -2434,6 +2458,87 @@ async function updateToolManagement(req, res) {
 
 app.put('/api/admin/tool-management', updateToolManagement);
 app.post('/api/admin/tool-management', updateToolManagement);
+
+app.get('/api/neighbor-progress', async (_req, res) => {
+  try {
+    const stored = await getSetting(NEIGHBOR_PROGRESS_SETTING_KEY, null);
+    return res.json(normalizeNeighborProgressConfig(stored || defaultNeighborProgressConfig()));
+  } catch (err) {
+    console.error('neighbor progress get failed:', err);
+    return res.json(defaultNeighborProgressConfig());
+  }
+});
+
+app.get('/api/admin/neighbor-progress', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const stored = await getSetting(NEIGHBOR_PROGRESS_SETTING_KEY, null);
+    return res.json(normalizeNeighborProgressConfig(stored || defaultNeighborProgressConfig()));
+  } catch (err) {
+    console.error('admin neighbor progress get failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+async function updateNeighborProgress(req, res) {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  const normalized = normalizeNeighborProgressConfig(req.body || {});
+  if (!normalized.stages.length && Array.isArray(req.body?.stages) && req.body.stages.length) {
+    return res.status(400).json({ error: 'BAD_STAGES' });
+  }
+  const setting = { ...normalized, updatedAt: new Date().toISOString(), updatedBy: admin.username || admin.login_id || String(admin.id) };
+  await setSetting(NEIGHBOR_PROGRESS_SETTING_KEY, setting);
+  await auditAdminAction(req, { actor: admin, action: 'neighbor_progress.update', targetType: 'neighbor_progress', targetId: 'current', riskLevel: 'watch', summary: '更新邻邦进度配置', metadata: { stageCount: normalized.stages.length, intervalDays: normalized.intervalDays } });
+  return res.json({ ok: true, ...normalized, updatedAt: setting.updatedAt, updatedBy: setting.updatedBy });
+}
+
+app.post('/api/admin/neighbor-progress', async (req, res) => {
+  try { await updateNeighborProgress(req, res); }
+  catch (err) { console.error('admin neighbor progress update failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+app.put('/api/admin/neighbor-progress', async (req, res) => {
+  try { await updateNeighborProgress(req, res); }
+  catch (err) { console.error('admin neighbor progress put failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+async function getHistoryImmigrationConfig() {
+  const neighbor = normalizeNeighborProgressConfig(await getSetting(NEIGHBOR_PROGRESS_SETTING_KEY, null) || defaultNeighborProgressConfig());
+  const stored = await getSetting(HISTORY_IMMIGRATION_SETTING_KEY, null);
+  return normalizeHistoryImmigrationConfig(stored || defaultHistoryImmigrationConfig(), neighbor.ranges);
+}
+
+app.get('/api/history-immigration', async (_req, res) => {
+  try { return res.json(await getHistoryImmigrationConfig()); }
+  catch (err) { console.error('history immigration get failed:', err); return res.json(defaultHistoryImmigrationConfig()); }
+});
+
+app.get('/api/admin/history-immigration', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    return res.json(await getHistoryImmigrationConfig());
+  } catch (err) { console.error('admin history immigration get failed:', err); return res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+async function updateHistoryImmigration(req, res) {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  const neighbor = normalizeNeighborProgressConfig(await getSetting(NEIGHBOR_PROGRESS_SETTING_KEY, null) || defaultNeighborProgressConfig());
+  const normalized = normalizeHistoryImmigrationConfig(req.body || {}, neighbor.ranges);
+  const setting = { ...normalized, updatedAt: new Date().toISOString(), updatedBy: admin.username || admin.login_id || String(admin.id) };
+  await setSetting(HISTORY_IMMIGRATION_SETTING_KEY, setting);
+  await auditAdminAction(req, { actor: admin, action: 'history_immigration.update', targetType: 'history_immigration', targetId: 'current', riskLevel: 'watch', summary: '更新历史移民分组配置', metadata: { dateCount: normalized.dates.length, overrideCount: normalized.dates.reduce((sum, item) => sum + Object.keys(item.overrides).length, 0) } });
+  return res.json({ ok: true, ...normalized, updatedAt: setting.updatedAt, updatedBy: setting.updatedBy });
+}
+
+app.post('/api/admin/history-immigration', async (req, res) => {
+  try { await updateHistoryImmigration(req, res); } catch (err) { console.error('admin history immigration update failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+app.put('/api/admin/history-immigration', async (req, res) => {
+  try { await updateHistoryImmigration(req, res); } catch (err) { console.error('admin history immigration put failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
 
 app.get('/api/site-footer', async (_req, res) => {
   try {
