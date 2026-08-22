@@ -46,7 +46,8 @@ const {
 const {
   mountBearpitBackupRoutes,
   BEARPIT_BACKUPS_DDL_MYSQL,
-  BEARPIT_SHARES_DDL_MYSQL
+  BEARPIT_SHARES_DDL_MYSQL,
+  BEARPIT_SHARES_DDL_PG
 } = require('./bearpit-backups');
 const { mountBearpitAdminRoutes } = require('./bearpit-admin');
 const {
@@ -1980,7 +1981,7 @@ async function initDB() {
   `);
   await execute(GIFT_PACKS_DDL_MYSQL);
   await execute(BEARPIT_BACKUPS_DDL_MYSQL);
-  await execute(BEARPIT_SHARES_DDL_MYSQL);
+  await execute(pgDatabase ? BEARPIT_SHARES_DDL_PG : BEARPIT_SHARES_DDL_MYSQL);
   await execute(HERO_GENERATIONS_DDL_MYSQL);
 
   await addColumnIfMissing('users', 'forum_publisher', 'forum_publisher TINYINT(1) NOT NULL DEFAULT 0');
