@@ -57,6 +57,12 @@ test('admin add range continues every stage from its latest date', () => {
   assert.match(script, /s\.dates\.push\(previousDate \? addDays\(previousDate, interval\) : ''\)/);
 });
 
+test('admin serializes neighbor progress config as JSON when saving', () => {
+  const script = fs.readFileSync(path.join(__dirname, '..', 'public/function/admin-neighbor-progress-page.js'), 'utf8');
+  assert.match(script, /body:\s*JSON\.stringify\(state\)/);
+  assert.doesNotMatch(script, /body:\s*state\s*}/);
+});
+
 test('neighbor progress default config includes Hero12 for downstream calculators', () => {
   const result = config.defaultNeighborProgressConfig();
   const hero12 = result.stages.find((stage) => stage.key === 'Hero12');
