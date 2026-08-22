@@ -143,9 +143,7 @@
     }
     #viewPill .icon svg{width:16px;height:16px;}
     #viewPill .count{font-size:.8rem;}
-    .content{font-size:.98rem;line-height:1.8;word-break:break-word;}
-    /* 文章：正文多为纯换行或 contenteditable 产生的文本节点，需保留换行（与首页论坛弹层 .forum-content-view 一致） */
-    .content.is-forum-article{white-space:pre-wrap;}
+    .content{font-size:.98rem;line-height:1.8;word-break:break-word;white-space:pre-wrap;}
     .content img{max-width:100%;height:auto;border-radius:10px;border:1px solid var(--border);display:block;margin:10px auto;cursor:zoom-in;}
     .content a{color:var(--accent);text-decoration:none;border-bottom:1px dotted currentColor;}
     .notice{color:var(--muted);font-size:.92rem;line-height:1.7;}
@@ -328,9 +326,14 @@
       backdrop-filter:blur(10px);
       z-index:4;
     }
-    .thanks-footer{
+    footer.wjdr-footer{
+      display:block;
+      width:100%;
       margin:18px auto 26px;
       max-width:min(860px, calc(100vw - 28px));
+      box-sizing:border-box;
+    }
+    #wjdr-footer-credits{
       padding:12px 14px;
       border:1px solid var(--border);
       border-radius:14px;
@@ -343,7 +346,7 @@
       box-sizing:border-box;
     }
     @media (max-width:520px){
-      .thanks-footer{font-size:11px;padding:10px 12px;}
+      #wjdr-footer-credits{font-size:11px;padding:10px 12px;}
       .lightbox{padding:10px;}
       .lightbox-stage{min-height:calc(100vh - 20px);padding:68px 0 82px;}
       .lightbox-zoom-controls{
@@ -365,6 +368,7 @@
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
   <script src="/function/analytics-tracker.js" defer></script>
+  <script src="/function/site-footer.js" defer></script>
 </head>
 <body>
   <div class="wrap">
@@ -451,7 +455,7 @@
     </div>
   </div>
 
-  <div class="thanks-footer">
+  <footer class="wjdr-footer"><div id="wjdr-footer-credits">
 制作：2041茗子、飞菇
 数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子
 测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球
@@ -459,7 +463,7 @@
 宣传大使：懒羊羊
 
 感谢以上所有人对本攻略站的付出
-  </div>
+  </div></footer>
 
   <script>
     function qs(name){
@@ -908,10 +912,6 @@
         favBtn.classList.toggle('favorited', !!post.favoritedByMe);
         favBtn.classList.toggle('primary', !!post.favoritedByMe);
 
-        var contentBox=document.getElementById('content');
-        if(contentBox){
-          contentBox.classList.toggle('is-forum-article', post.type === 'article');
-        }
         var bodyHtml='';
         if(post.contentHtml){
           bodyHtml=sanitizeHtml(post.contentHtml);
