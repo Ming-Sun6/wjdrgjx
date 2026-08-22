@@ -21,38 +21,76 @@ export default function Toolbar({ stageRef }: Props) {
   const canUndo = useDesigner((s) => s.past.length > 0)
   const canRedo = useDesigner((s) => s.future.length > 0)
 
-  const [archives, setArchives] = useState<Array<{ id: string; title: string; createdAt: number; data: Layout }>>([])
+  const [archives, setArchives] = useState<Array<{ id: number; title: string; createdAt: number; data?: Layout }>>([])
   const [shareKey, setShareKey] = useState('')
+  const [loggedIn, setLoggedIn] = useState(false)
 
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    try { setArchives(JSON.parse(localStorage.getItem('wjdr-bearpit-simple-archives') || '[]')) } catch { setArchives([]) }
+    let cancelled = false
+    ;(async () => {
+      try {
+        const auth = await fetch('/api/auth/me', { credentials: 'include' })
+        const authPayload = await auth.json().catch(() => null)
+        if (cancelled || !authPayload?.authenticated) return
+        setLoggedIn(true)
+        const response = await fetch('/api/bearpit/backups', { credentials: 'include' })
+        const payload = await response.json().catch(() => null)
+        if (!cancelled && response.ok && Array.isArray(payload?.backups)) {
+          setArchives(payload.backups.map((item: { id: number; title: string; createdAt: number }) => ({ ...item })))
+        }
+      } catch { /* 未登录或接口暂时不可用 */ }
+    })()
+    return () => { cancelled = true }
   }, [])
 
-  const rememberArchive = () => {
+  const requireLogin = () => {
+    if (loggedIn) return true
+    window.alert('登录后才能使用保存和生成分享秘钥功能')
+    return false
+  }
+
+  const rememberArchive = async () => {
+    if (!requireLogin()) return
     const title = window.prompt('请输入存档名称', name || '熊坑方案')?.trim()
     if (!title) return
     const data = exportLayout()
-    const next = [{ id: Math.random().toString(36).slice(2), title, createdAt: Date.now(), data }, ...archives].slice(0, 50)
-    localStorage.setItem('wjdr-bearpit-simple-archives', JSON.stringify(next))
-    setArchives(next)
-    fetch('/api/bearpit/layout', {
+    try {
+      const response = await fetch('/api/bearpit/backups', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data, backupTitle: title }),
-    }).catch(() => undefined)
+        body: JSON.stringify({ data, title }),
+      })
+      const payload = await response.json().catch(() => null)
+      if (!response.ok || !payload?.backup) throw new Error('save failed')
+      const saved = payload.backup
+      setArchives((current) => [{ id: Number(saved.id), title: String(saved.title || title), createdAt: saved.createdAt, data }, ...current.filter((item) => item.id !== Number(saved.id))].slice(0, 50))
+    } catch {
+      window.alert('存档保存失败，请稍后重试')
+    }
   }
 
-  const restoreArchive = (id: string) => {
+  const restoreArchive = async (id: number) => {
+    if (!requireLogin()) return
     const item = archives.find((entry) => entry.id === id)
-    if (item) loadLayout(item.data)
+    if (item?.data) { loadLayout(item.data); return }
+    try {
+      const response = await fetch(`/api/bearpit/backups/${encodeURIComponent(String(id))}`, { credentials: 'include' })
+      const payload = await response.json().catch(() => null)
+      if (!response.ok || !payload?.backup?.data) throw new Error('restore failed')
+      loadLayout(payload.backup.data as Layout)
+    } catch {
+      window.alert('存档读取失败，请稍后重试')
+    }
   }
 
   const encodeShare = async () => {
+    if (!requireLogin()) return
     try {
       const response = await fetch('/api/bearpit/shares', {
+        credentials: 'include',
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ data: exportLayout() }),

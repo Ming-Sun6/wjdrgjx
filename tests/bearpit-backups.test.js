@@ -31,6 +31,8 @@ test('server mounts bearpit backup routes and BeaPit page has backup UI', () => 
   const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'bearpit-backups.js'), 'utf8');
   assert.match(serverSource, /mountBearpitBackupRoutes\(/);
   assert.match(moduleSource, /\/api\/bearpit\/backups/);
+  assert.match(moduleSource, /\/api\/bearpit\/shares/);
+  assert.match(moduleSource, /requireAuth\(req, res\)/);
 
   const page = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'BeaPit.html'), 'utf8');
   assert.match(page, /woam-save-scheme/);
@@ -48,4 +50,11 @@ test('simple version keeps legacy base64 share import compatibility', () => {
   const toolbar = fs.readFileSync(path.join(__dirname, '..', 'bear-pit-simple-src', 'src', 'components', 'Toolbar.tsx'), 'utf8');
   assert.match(toolbar, /atob\(/);
   assert.match(toolbar, /分享秘钥无效或已损坏/);
+});
+
+test('simple version requires login for server-backed saves and shares', () => {
+  const toolbar = fs.readFileSync(path.join(__dirname, '..', 'bear-pit-simple-src', 'src', 'components', 'Toolbar.tsx'), 'utf8');
+  assert.match(toolbar, /\/api\/auth\/me/);
+  assert.match(toolbar, /\/api\/bearpit\/backups/);
+  assert.match(toolbar, /登录后才能/);
 });

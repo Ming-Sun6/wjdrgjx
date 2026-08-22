@@ -98,6 +98,13 @@ function safeJsonParse(raw, fallback) {
 
 function mountBearpitBackupRoutes(deps) {
   const { app, queryRows, queryOne, execute, requireAuth, pgDatabase } = deps;
+  let shareTableReady = false;
+
+  async function ensureShareTable() {
+    if (shareTableReady) return;
+    await execute(pgDatabase ? BEARPIT_SHARES_DDL_PG : BEARPIT_SHARES_DDL_MYSQL);
+    shareTableReady = true;
+  }
 
   async function trimOldBackups(userId) {
     const rows = await queryRows(
@@ -249,6 +256,9 @@ function mountBearpitBackupRoutes(deps) {
 
   app.post('/api/bearpit/shares', async (req, res) => {
     try {
+      const user = await requireAuth(req, res);
+      if (!user) return;
+      await ensureShareTable();
       const data = req.body?.data;
       if (!data || typeof data !== 'object' || !data.grid || !Array.isArray(data.placements)) {
         return res.status(400).json({ error: 'BAD_DATA' });
@@ -279,6 +289,7 @@ function mountBearpitBackupRoutes(deps) {
 
   app.get('/api/bearpit/shares/:key', async (req, res) => {
     try {
+      await ensureShareTable();
       const key = String(req.params.key || '').trim();
       if (!/^[A-Za-z0-9]{16}$/.test(key)) return res.status(400).json({ error: 'BAD_KEY' });
       const row = await queryOne('SELECT share_key, data_json FROM bearpit_share_links WHERE share_key = ? LIMIT 1', [key]);

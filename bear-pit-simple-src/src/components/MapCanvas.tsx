@@ -530,7 +530,7 @@ export default function MapCanvas({ stageRef }: Props) {
             width={stageW - 6}
             align="right"
             lineHeight={1.35}
-            text={'《2554王国 FBl 一口气吃十个大馒头》出品\n如有建议，敬请联系'}
+            text=""
             fontSize={11}
             fill="#475569"
             listening={false}

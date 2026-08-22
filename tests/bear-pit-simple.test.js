@@ -13,6 +13,7 @@ test('bear pit simple version is published and linked from the homepage', () => 
   assert.match(home, /function\/BearPitSimple\.html/);
   assert.match(page, /open-source-footer/);
   assert.match(page, /github\.com\/tianxiaofeng1014\/wjdr-bear-pit-designer/);
+  assert.doesNotMatch(page, /2554王国|FBl|一口气吃十个大馒头/);
 });
 
 test('bearpit backup counting accepts simple-version placements', () => {
