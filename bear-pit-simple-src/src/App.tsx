@@ -10,7 +10,6 @@ export default function App() {
   const stageRef = useRef<Konva.Stage>(null)
   const [authOpen, setAuthOpen] = useState(false)
   const [loggedIn, setLoggedIn] = useState(false)
-  const [footerCredits, setFooterCredits] = useState('')
 
   // 全局快捷键：Ctrl/⌘+Z 撤销，Ctrl/⌘+Shift+Z 或 Ctrl+Y 重做
   useEffect(() => {
@@ -35,14 +34,6 @@ export default function App() {
       .then((r) => r.json())
       .then((payload) => setLoggedIn(Boolean(payload?.authenticated)))
       .catch(() => setLoggedIn(false))
-  }, [])
-
-  useEffect(() => {
-    if (window.location.protocol === 'file:') return
-    fetch('/api/site-footer', { credentials: 'same-origin', cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((payload) => setFooterCredits(String(payload?.siteFooter?.credits || '').trim()))
-      .catch(() => setFooterCredits(''))
   }, [])
 
   return (
@@ -78,7 +69,7 @@ export default function App() {
             </div>
           </div>
         </div>
-        {footerCredits && <div id="wjdr-footer-credits" className="open-source-admin-credits">{footerCredits}</div>}
+        <div id="wjdr-footer-credits" className="open-source-admin-credits" aria-live="polite" />
       </footer>
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthenticated={() => setLoggedIn(true)} />
     </div>

@@ -649,6 +649,7 @@ button:disabled:hover {
  .open-source-title{color:#1e293b;font-size:14px;font-weight:700}
  .open-source-desc{font-size:12px;line-height:1.5}
  .open-source-admin-credits{white-space:pre-wrap;margin-top:4px;padding:6px 8px;border-left:3px solid #818cf8;border-radius:5px;background:#f8fafc;color:#64748b;font-size:11px;line-height:1.55}
+ .open-source-admin-credits:empty{display:none}
  .open-source-link{width:max-content;margin-top:3px;color:#2563eb;font-size:12px;font-weight:600;text-decoration:none}
  .open-source-link:hover{color:#1d4ed8;text-decoration:underline;text-underline-offset:2px}
  .open-source-thanks{width:min(720px,100%);box-sizing:border-box;margin:10px auto 0;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;text-align:center;font-size:12px;line-height:1.6}
