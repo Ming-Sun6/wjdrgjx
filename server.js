@@ -77,6 +77,7 @@ const { DEFAULT_HISTORY_IMMIGRATION_DATES, defaultHistoryImmigrationConfig, norm
 const app = express();
 const runChatSendSerial = createKeyedSerialExecutor();
 const PORT = 3000;
+const PUBLIC_SITE_ORIGIN = String(process.env.PUBLIC_SITE_ORIGIN || 'https://wjgl.store').replace(/\/$/, '');
 const SESSION_COOKIE_NAME = 'auth_token';
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const AVATAR_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -209,10 +210,16 @@ app.use(async (req, res, next) => {
     if (req.path === '/function/forum-post.html' && req.query.id) {
       try { post = await queryOne('SELECT title,contentText,contentHtml,coverImage FROM forum_posts WHERE id = ? LIMIT 1', [Number(req.query.id)]); } catch (_) {}
     }
-    const origin = `${isHttpsRequest(req) ? 'https' : 'http'}://${req.headers.host || 'wjgl.store'}`;
+    const origin = PUBLIC_SITE_ORIGIN;
     const meta = resolvePageMeta(req.path, post, origin);
     const html = await fs.promises.readFile(filePath, 'utf8');
     res.setHeader('Cache-Control', 'no-store');
+    if (req.path === '/function/forum-post.html') {
+      res.setHeader('CDN-Cache-Control', 'no-store');
+      res.setHeader('Surrogate-Control', 'no-store');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
     return res.type('html').send(injectShareMeta(html, meta, `${origin}${req.originalUrl}`));
   } catch (err) {
     console.warn('share metadata injection skipped:', err.message);

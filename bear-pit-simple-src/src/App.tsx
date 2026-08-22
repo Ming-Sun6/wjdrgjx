@@ -56,7 +56,7 @@ export default function App() {
           </div>
         </main>
       </div>
-      <footer className="open-source-footer">
+      <footer className="open-source-footer wjdr-footer">
         <div className="open-source-card">
           <div className="open-source-mark" aria-hidden="true">⌘</div>
           <div className="open-source-copy">
@@ -65,7 +65,6 @@ export default function App() {
             <div className="open-source-desc">
               本工具基于开源项目构建，感谢开源社区的分享与贡献。
             </div>
-            {footerCredits && <div className="open-source-admin-credits">{footerCredits}</div>}
             <a
               className="open-source-link"
               href="https://github.com/tianxiaofeng1014/wjdr-bear-pit-designer"
@@ -79,6 +78,7 @@ export default function App() {
             </div>
           </div>
         </div>
+        {footerCredits && <div id="wjdr-footer-credits" className="open-source-admin-credits">{footerCredits}</div>}
       </footer>
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthenticated={() => setLoggedIn(true)} />
     </div>

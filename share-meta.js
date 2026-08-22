@@ -25,6 +25,20 @@ function firstImageFromHtml(html) {
   return match ? match[1] : '';
 }
 
+function plainTextFromHtml(html) {
+  return String(html || '')
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function parseCoverImages(value) {
   if (Array.isArray(value)) return value;
   const raw = String(value || '').trim();
@@ -41,10 +55,11 @@ function resolvePageMeta(pathname, post, origin = 'https://wjgl.store') {
   let image = '';
   if (post) {
     title = String(post.title || title).slice(0, 120);
-    description = String(post.contentText || description).replace(/\s+/g, ' ').trim().slice(0, 160);
-    image = parseCoverImages(post.coverImage)[0] || firstImageFromHtml(post.contentHtml);
+    description = String(post.contentText || plainTextFromHtml(post.contentHtml) || description).replace(/\s+/g, ' ').trim().slice(0, 160);
+    const imageCandidates = parseCoverImages(post.coverImage).concat(firstImageFromHtml(post.contentHtml));
+    image = imageCandidates.map((value) => absoluteShareUrl(value, origin)).find(Boolean) || '';
   }
-  return { title, description, image: absoluteShareUrl(image, origin) || new URL(DEFAULT_SHARE_IMAGE, origin).toString() };
+  return { title, description, image: image || absoluteShareUrl(image, origin) || new URL(DEFAULT_SHARE_IMAGE, origin).toString() };
 }
 
 function buildShareMetaTags(meta, url) {
@@ -80,4 +95,4 @@ function resolvePublicHtmlPath(rootDir, pathname) {
   return filePath.startsWith(root + path.sep) ? filePath : null;
 }
 
-module.exports = { DEFAULT_SHARE_IMAGE, PAGE_SHARE_META, absoluteShareUrl, buildShareMetaTags, firstImageFromHtml, injectShareMeta, parseCoverImages, resolvePageMeta, resolvePublicHtmlPath };
+module.exports = { DEFAULT_SHARE_IMAGE, PAGE_SHARE_META, absoluteShareUrl, buildShareMetaTags, firstImageFromHtml, injectShareMeta, parseCoverImages, plainTextFromHtml, resolvePageMeta, resolvePublicHtmlPath };

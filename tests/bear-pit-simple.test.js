@@ -15,6 +15,8 @@ test('bear pit simple version is published and linked from the homepage', () => 
   assert.match(page, /github\.com\/tianxiaofeng1014\/wjdr-bear-pit-designer/);
   assert.match(page, /2554王国 FBI 一口气吃十个大馒头/);
   assert.match(page, /api\/site-footer/);
+  assert.match(page, /site-footer\.js/);
+  assert.match(page, /site-beian\.js/);
   const source = fs.readFileSync(path.join(root, 'bear-pit-simple-src/src/styles.css'), 'utf8');
   assert.match(source, /@media \(max-width: 700px\)/);
   assert.match(source, /\.workspace\s*\{[\s\S]*?flex-direction: column/);
