@@ -148,6 +148,17 @@ test('forum detail initializes the content container before rendering the post b
   assert.ok(initialization < render, 'contentBox must be initialized before its first render');
 });
 
+test('forum detail initializes its outer content container before binding image clicks', () => {
+  const source = read('public/function/forum-post.html');
+  const binding = source.indexOf("contentBox.addEventListener('click'");
+  const initialization = source.lastIndexOf("var contentBox=document.getElementById('content');", binding);
+  const loadPostStart = source.indexOf('async function loadPost()');
+
+  assert.notEqual(binding, -1, 'missing forum image click binding');
+  assert.ok(initialization > loadPostStart, 'outer contentBox must be initialized inside loadPost');
+  assert.ok(initialization < binding, 'outer contentBox must be initialized before image click binding');
+});
+
 test('forum detail page uses the shared footer with a single local fallback', () => {
   const source = read('public/function/forum-post.html');
   const html = stripHtmlComments(source);
