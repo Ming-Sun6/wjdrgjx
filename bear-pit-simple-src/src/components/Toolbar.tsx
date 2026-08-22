@@ -35,7 +35,7 @@ export default function Toolbar({ stageRef }: Props) {
         const authPayload = await auth.json().catch(() => null)
         if (cancelled || !authPayload?.authenticated) return
         setLoggedIn(true)
-        const response = await fetch('/api/bearpit/backups', { credentials: 'include' })
+        const response = await fetch('/api/bearpit-simple/backups', { credentials: 'include' })
         const payload = await response.json().catch(() => null)
         if (!cancelled && response.ok && Array.isArray(payload?.backups)) {
           setArchives(payload.backups.map((item: { id: number; title: string; createdAt: number }) => ({ ...item })))
@@ -57,7 +57,7 @@ export default function Toolbar({ stageRef }: Props) {
     if (!title) return
     const data = exportLayout()
     try {
-      const response = await fetch('/api/bearpit/backups', {
+      const response = await fetch('/api/bearpit-simple/backups', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -77,7 +77,7 @@ export default function Toolbar({ stageRef }: Props) {
     const item = archives.find((entry) => entry.id === id)
     if (item?.data) { loadLayout(item.data); return }
     try {
-      const response = await fetch(`/api/bearpit/backups/${encodeURIComponent(String(id))}`, { credentials: 'include' })
+      const response = await fetch(`/api/bearpit-simple/backups/${encodeURIComponent(String(id))}`, { credentials: 'include' })
       const payload = await response.json().catch(() => null)
       if (!response.ok || !payload?.backup?.data) throw new Error('restore failed')
       loadLayout(payload.backup.data as Layout)

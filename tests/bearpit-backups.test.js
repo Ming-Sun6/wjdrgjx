@@ -55,7 +55,7 @@ test('simple version keeps legacy base64 share import compatibility', () => {
 test('simple version requires login for server-backed saves and shares', () => {
   const toolbar = fs.readFileSync(path.join(__dirname, '..', 'bear-pit-simple-src', 'src', 'components', 'Toolbar.tsx'), 'utf8');
   assert.match(toolbar, /\/api\/auth\/me/);
-  assert.match(toolbar, /\/api\/bearpit\/backups/);
+  assert.match(toolbar, /\/api\/bearpit-simple\/backups/);
   assert.match(toolbar, /登录后才能/);
 });
 
