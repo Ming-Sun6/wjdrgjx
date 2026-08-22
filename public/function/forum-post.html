@@ -912,6 +912,8 @@
         favBtn.classList.toggle('favorited', !!post.favoritedByMe);
         favBtn.classList.toggle('primary', !!post.favoritedByMe);
 
+        var contentBox=document.getElementById('content');
+        if(!contentBox) throw new Error('FORUM_CONTENT_CONTAINER_MISSING');
         var bodyHtml='';
         if(post.contentHtml){
           bodyHtml=sanitizeHtml(post.contentHtml);
@@ -1522,7 +1524,6 @@
           if(targetId==='imgLightbox' || targetId==='imgLightboxStage') closeLightbox();
         });
         document.addEventListener('keydown',function(ev){ if(ev.key==='Escape') closeLightbox(); });
-        var contentBox=document.getElementById('content');
         if(contentBox){
           contentBox.addEventListener('click',function(ev){
             var img=ev.target && ev.target.closest ? ev.target.closest('img') : null;
