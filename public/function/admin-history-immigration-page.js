@@ -28,7 +28,7 @@
   async function save() {
     state.intervalDays = Math.max(1, Math.min(90, Number(el('historyImmigrationInterval').value) || 28));
     state.rules.displayOffsetDays = Math.max(0, Math.min(7, Number(el('historyImmigrationOffset').value) || 1));
-    try { var r = await apiFetch('/api/admin/history-immigration', { method: 'POST', body: state }); if (!r.ok) throw new Error('保存失败'); state = await r.json(); render(); status('保存成功。'); } catch (e) { status(e.message || '保存失败', true); }
+    try { var r = await apiFetch('/api/admin/history-immigration', { method: 'POST', body: JSON.stringify(state) }); if (!r.ok) throw new Error('保存失败'); state = await r.json(); render(); status('保存成功。'); } catch (e) { status(e.message || '保存失败', true); }
   }
   function bind() {
     el('historyImmigrationReloadBtn').onclick = load;

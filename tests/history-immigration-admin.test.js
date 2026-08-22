@@ -12,6 +12,7 @@ test('history immigration admin and public pages expose configuration hooks', ()
   const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
   assert.match(admin, /data-page="history-immigration"/);
   assert.match(adminJs, /api\/admin\/history-immigration/);
+  assert.match(adminJs, /body:\s*JSON\.stringify\(state\)/);
   assert.match(history, /api\/history-immigration/);
   assert.match(prediction, /api\/history-immigration/);
   assert.match(server, /api\/history-immigration/);

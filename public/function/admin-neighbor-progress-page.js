@@ -33,7 +33,7 @@
   }
   async function save() {
     state.intervalDays = Math.max(1, Math.min(60, Number(el('neighborProgressInterval').value) || 14));
-    try { var r = await apiFetch('/api/admin/neighbor-progress', { method: 'POST', body: state }); if (!r.ok) { var d = await r.json().catch(function () { return {}; }); throw new Error(d.error || '保存失败'); } state = await r.json(); render(); status('保存成功。'); }
+    try { var r = await apiFetch('/api/admin/neighbor-progress', { method: 'POST', body: JSON.stringify(state) }); if (!r.ok) { var d = await r.json().catch(function () { return {}; }); throw new Error(d.error || '保存失败'); } state = await r.json(); render(); status('保存成功。'); }
     catch (e) { status('保存失败：' + (e.message || '网络错误'), true); }
   }
   function bind() {
