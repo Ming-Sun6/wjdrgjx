@@ -138,6 +138,16 @@ test('forum detail base content style preserves source newlines for every post t
   assert.match(contentStyles.get('white-space') || '', /^pre-wrap(?:\s*!important)?$/i);
 });
 
+test('forum detail initializes the content container before rendering the post body', () => {
+  const source = read('public/function/forum-post.html');
+  const initialization = source.indexOf("var contentBox=document.getElementById('content');");
+  const render = source.indexOf('contentBox.innerHTML=bodyHtml + imgHtml;');
+
+  assert.notEqual(initialization, -1, 'missing forum content container initialization');
+  assert.notEqual(render, -1, 'missing forum body render');
+  assert.ok(initialization < render, 'contentBox must be initialized before its first render');
+});
+
 test('forum detail page uses the shared footer with a single local fallback', () => {
   const source = read('public/function/forum-post.html');
   const html = stripHtmlComments(source);
