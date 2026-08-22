@@ -90,3 +90,13 @@ test('latest changelogs keep public and admin release notes separated', () => {
   assert.match(adminLog, /邻邦进度管理/);
   assert.doesNotMatch(adminLog, /分享卡片优化/);
 });
+
+test('home changelog consolidates the August 22 public updates', () => {
+  const home = read('index.html');
+  const homeLog = home.slice(home.indexOf('id="changelogModal"'), home.indexOf('</div>\n\n  <script', home.indexOf('id="changelogModal"')));
+  assert.equal((homeLog.match(/2026-08-22/g) || []).length, 1);
+  assert.match(homeLog, /移民相关数据/);
+  assert.match(homeLog, /论坛阅读体验/);
+  assert.match(homeLog, /领主装备与宝石计算器/);
+  assert.match(homeLog, /分享卡片优化/);
+});

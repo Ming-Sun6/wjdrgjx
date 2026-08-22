@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type Konva from 'konva'
 import { Stage, Layer, Rect, Line, Group, Text, Circle, Ellipse } from 'react-konva'
@@ -72,6 +72,7 @@ export default function MapCanvas({ stageRef }: Props) {
   const placements = useDesigner((s) => s.placements)
   const bearColor = useDesigner((s) => s.bearColor)
   const bearLabel = useDesigner((s) => s.bearLabel)
+  const rotation = useDesigner((s) => s.rotation)
   const colors = useDesigner((s) => s.colors)
   const selectedColor = useDesigner((s) => s.selectedColor)
   const draftName = useDesigner((s) => s.draftName)
@@ -94,12 +95,39 @@ export default function MapCanvas({ stageRef }: Props) {
     x: number
     y: number
   } | null>(null)
+  const [areaSize, setAreaSize] = useState({ width: 0, height: 0 })
+
+  useEffect(() => {
+    const stage = stageRef.current
+    const scroll = stage?.container()?.parentElement
+    const area = scroll?.parentElement
+    if (!area) return
+    const update = () => setAreaSize({ width: area.clientWidth, height: area.clientHeight })
+    update()
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null
+    observer?.observe(area)
+    window.addEventListener('resize', update)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [stageRef])
 
   const { rows, cols, cellSize } = grid
-  const hw = cellSize / 2 // 菱形半宽 = 半高（与水平线呈 45°）
+  const fitCellSize = areaSize.width > 0 && areaSize.height > 0
+    ? Math.floor(Math.min((areaSize.width - PAD * 2) * 2 / (rows + cols), (areaSize.height - PAD * 2) * 2 / (rows + cols)))
+    : cellSize
+  const renderCellSize = areaSize.width > 0 && areaSize.width < 700
+    ? Math.max(28, Math.min(cellSize, fitCellSize))
+    : Math.min(120, Math.max(cellSize, fitCellSize))
+  const hw = renderCellSize / 2 // 菱形半宽 = 半高（与水平线呈 45°）
 
-  const stageW = (rows + cols) * hw + PAD * 2
-  const stageH = (rows + cols) * hw + PAD * 2
+  const baseStageW = (rows + cols) * hw + PAD * 2
+  const baseStageH = (rows + cols) * hw + PAD * 2
+  const rotationDelta = rotation - 45
+  const rotationRad = (rotationDelta * Math.PI) / 180
+  const stageW = Math.ceil(Math.abs(baseStageW * Math.cos(rotationRad)) + Math.abs(baseStageH * Math.sin(rotationRad)))
+  const stageH = Math.ceil(Math.abs(baseStageW * Math.sin(rotationRad)) + Math.abs(baseStageH * Math.cos(rotationRad)))
   const originX = PAD + rows * hw
   const originY = PAD + hw
 
@@ -151,13 +179,20 @@ export default function MapCanvas({ stageRef }: Props) {
     if (!stage) return
     const rect = stage.container().getBoundingClientRect()
     const c = footprintCenter(pl.row, pl.col, FOOTPRINT[pl.kind])
+    const a = (rotationDelta * Math.PI) / 180
+    const dx = c.x - baseStageW / 2
+    const dy = c.y - baseStageH / 2
+    const rotated = {
+      x: stageW / 2 + dx * Math.cos(a) - dy * Math.sin(a),
+      y: stageH / 2 + dx * Math.sin(a) + dy * Math.cos(a),
+    }
     // 容器若被 CSS 缩放，按比例换算（正常 1:1）
     const sx = stageW ? rect.width / stageW : 1
     const sy = stageH ? rect.height / stageH : 1
     setEditing({
       id: pl.id,
-      x: rect.left + c.x * sx,
-      y: rect.top + c.y * sy,
+      x: rect.left + rotated.x * sx,
+      y: rect.top + rotated.y * sy,
     })
   }
 
@@ -257,9 +292,9 @@ export default function MapCanvas({ stageRef }: Props) {
       >
         {/* ===== 静态层：背景 + 网格 + 熊坑。listening=false，拖动时不参与重绘，
             这是 Edge 拖动卡顿的主要修复点（原先所有内容同层，每帧重绘全部图形）。 ===== */}
-        <Layer listening={false}>
+        <Layer listening={false} x={stageW / 2} y={stageH / 2} offsetX={baseStageW / 2} offsetY={baseStageH / 2} rotation={rotationDelta}>
           {/* 白底：导出 PNG 不透明 */}
-          <Rect x={0} y={0} width={stageW} height={stageH} fill="#ffffff" />
+          <Rect x={0} y={0} width={baseStageW} height={baseStageH} fill="#ffffff" />
 
           {/* 菱形网格线（两族 45° 斜线） */}
           {Array.from({ length: cols + 1 }, (_, i) => {
@@ -340,7 +375,7 @@ export default function MapCanvas({ stageRef }: Props) {
         </Layer>
 
         {/* ===== 动态层：成员 / 旗帜 / 草稿幽灵 / 水印。拖动只重绘本层。 ===== */}
-        <Layer>
+        <Layer x={stageW / 2} y={stageH / 2} offsetX={baseStageW / 2} offsetY={baseStageH / 2} rotation={rotationDelta}>
           {placements.map((pl) => {
             const size = FOOTPRINT[pl.kind]
             const c = footprintCenter(pl.row, pl.col, size)
@@ -526,8 +561,8 @@ export default function MapCanvas({ stageRef }: Props) {
           {/* 水印（最上层，随 PNG 一起导出） */}
           <Text
             x={0}
-            y={stageH - 34}
-            width={stageW - 6}
+            y={baseStageH - 34}
+            width={baseStageW - 6}
             align="right"
             lineHeight={1.35}
             text=""

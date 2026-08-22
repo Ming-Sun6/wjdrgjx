@@ -31,6 +31,7 @@ interface DocSnapshot {
   selectedColor: string
   bearColor: string
   bearLabel: string
+  rotation: number
 }
 
 interface DesignerState {
@@ -45,6 +46,7 @@ interface DesignerState {
   /** 熊坑配色与文字（可自定义） */
   bearColor: string
   bearLabel: string
+  rotation: number
 
   /** 正在输入的新成员名称（用于图上幽灵预览；空串表示无草稿） */
   draftName: string
@@ -56,6 +58,7 @@ interface DesignerState {
   // —— 布局元信息 ——
   setName: (name: string) => void
   setGrid: (patch: Partial<GridConfig>) => void
+  setRotation: (rotation: number) => void
 
   // —— 熊坑 ——
   setBearColor: (c: string) => void
@@ -127,6 +130,7 @@ function docOf(s: DesignerState): DocSnapshot {
     selectedColor: s.selectedColor,
     bearColor: s.bearColor,
     bearLabel: s.bearLabel,
+    rotation: s.rotation,
   }
 }
 
@@ -334,6 +338,7 @@ export const useDesigner = create<DesignerState>()(
       selectedColor: PRESET_COLORS[0],
       bearColor: DEFAULT_BEAR_COLOR,
       bearLabel: DEFAULT_BEAR_LABEL,
+      rotation: 45,
       draftName: '',
       draftAnchor: null,
       draftFocused: false,
@@ -342,6 +347,8 @@ export const useDesigner = create<DesignerState>()(
       lastEditTag: null,
 
       setName: (name) => set((s) => ({ ...recordPast(s, 'name'), name })),
+      setRotation: (rotation) =>
+        set((s) => ({ ...recordPast(s, 'rotation'), rotation: Math.max(0, Math.min(360, Number(rotation) || 0)) })),
 
       setGrid: (patch) =>
         set((s) => {
@@ -603,6 +610,7 @@ export const useDesigner = create<DesignerState>()(
           placements: [],
           bearColor: DEFAULT_BEAR_COLOR,
           bearLabel: DEFAULT_BEAR_LABEL,
+          rotation: 45,
           draftName: '',
           draftAnchor: null,
         })),
@@ -616,6 +624,7 @@ export const useDesigner = create<DesignerState>()(
           placements: layout.placements,
           bearColor: layout.bearColor ?? s.bearColor,
           bearLabel: layout.bearLabel ?? s.bearLabel,
+          rotation: Number.isFinite(layout.rotation) ? Math.max(0, Math.min(360, Number(layout.rotation))) : 45,
           colors: layout.colors?.length ? layout.colors : s.colors,
           selectedColor: layout.colors?.length
             ? layout.colors[0]
@@ -634,6 +643,7 @@ export const useDesigner = create<DesignerState>()(
           placements: s.placements,
           bearColor: s.bearColor,
           bearLabel: s.bearLabel,
+          rotation: s.rotation,
           colors: s.colors,
           updatedAt: Date.now(),
         }
@@ -686,6 +696,7 @@ export const useDesigner = create<DesignerState>()(
         selectedColor: s.selectedColor,
         bearColor: s.bearColor,
         bearLabel: s.bearLabel,
+        rotation: s.rotation,
       }),
     },
   ),

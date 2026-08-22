@@ -1,12 +1,16 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type Konva from 'konva'
 import Toolbar from './components/Toolbar'
 import MemberPanel from './components/MemberPanel'
 import MapCanvas from './components/MapCanvas'
+import AuthModal from './components/AuthModal'
 import { useDesigner } from './store'
 
 export default function App() {
   const stageRef = useRef<Konva.Stage>(null)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [footerCredits, setFooterCredits] = useState('')
 
   // 全局快捷键：Ctrl/⌘+Z 撤销，Ctrl/⌘+Shift+Z 或 Ctrl+Y 重做
   useEffect(() => {
@@ -26,9 +30,24 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((payload) => setLoggedIn(Boolean(payload?.authenticated)))
+      .catch(() => setLoggedIn(false))
+  }, [])
+
+  useEffect(() => {
+    if (window.location.protocol === 'file:') return
+    fetch('/api/site-footer', { credentials: 'same-origin', cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((payload) => setFooterCredits(String(payload?.siteFooter?.credits || '').trim()))
+      .catch(() => setFooterCredits(''))
+  }, [])
+
   return (
     <div className="app">
-      <Toolbar stageRef={stageRef} />
+      <Toolbar stageRef={stageRef} loggedIn={loggedIn} openAuthModal={() => setAuthOpen(true)} />
       <div className="workspace">
         <MemberPanel />
         <main className="canvas-area">
@@ -38,10 +57,30 @@ export default function App() {
         </main>
       </div>
       <footer className="open-source-footer">
-        <span>熊坑排布简约版基于开源项目 </span>
-        <a href="https://github.com/tianxiaofeng1014/wjdr-bear-pit-designer" target="_blank" rel="noreferrer">wjdr-bear-pit-designer</a>
-        <span>，感谢开源作者。</span>
+        <div className="open-source-card">
+          <div className="open-source-mark" aria-hidden="true">⌘</div>
+          <div className="open-source-copy">
+            <div className="open-source-kicker">OPEN SOURCE PROJECT</div>
+            <div className="open-source-title">熊坑排布简约版</div>
+            <div className="open-source-desc">
+              本工具基于开源项目构建，感谢开源社区的分享与贡献。
+            </div>
+            {footerCredits && <div className="open-source-admin-credits">{footerCredits}</div>}
+            <a
+              className="open-source-link"
+              href="https://github.com/tianxiaofeng1014/wjdr-bear-pit-designer"
+              target="_blank"
+              rel="noreferrer"
+            >
+              查看 GitHub 项目 <span aria-hidden="true">↗</span>
+            </a>
+            <div className="open-source-thanks">
+              <span className="thanks-title">《2554王国 FBI 一口气吃十个大馒头》</span>
+            </div>
+          </div>
+        </div>
       </footer>
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} onAuthenticated={() => setLoggedIn(true)} />
     </div>
   )
 }

@@ -58,6 +58,7 @@ function mapAdminRow(row, options) {
     userId: Number(row.user_id),
     loginId: String(row.login_id || ''),
     username: String(row.username || ''),
+    tool: String(row.tool_type || 'standard'),
     recordType: String(row.record_type || 'current'),
     recordId: row.backup_id != null ? Number(row.backup_id) : Number(row.user_id),
     title: String(row.title || ''),
@@ -117,6 +118,7 @@ function rowsToCsv(rows) {
 async function fetchAdminBearpitRows(deps, filters) {
   const { queryRows, pgDatabase } = deps;
   const source = String(filters.source || 'current').trim();
+  const tool = String(filters.tool || 'standard').trim();
   const minItems = filters.minItems != null && filters.minItems !== '' ? Number(filters.minItems) : null;
   const userFilter = buildUserFilter(filters.q, filters.userId);
   const limit = parseListInt(filters.limit, LIST_DEFAULT_LIMIT, LIST_MAX_LIMIT);
@@ -126,7 +128,7 @@ async function fetchAdminBearpitRows(deps, filters) {
 
   const queries = [];
 
-  if (source === 'current' || source === 'all') {
+  if ((tool === 'standard' || tool === 'all') && (source === 'current' || source === 'all')) {
     let sql = `
       SELECT
         bl.user_id,
@@ -134,6 +136,7 @@ async function fetchAdminBearpitRows(deps, filters) {
         u.username,
         'current' AS record_type,
         NULL AS backup_id,
+        'standard' AS tool_type,
         '当前存档' AS title,
         bl.data_json,
         ${itemCurrent} AS item_count,
@@ -151,7 +154,7 @@ async function fetchAdminBearpitRows(deps, filters) {
     queries.push({ sql, params });
   }
 
-  if (source === 'backup' || source === 'all') {
+  if ((tool === 'standard' || tool === 'all') && (source === 'backup' || source === 'all')) {
     let sql = `
       SELECT
         bb.user_id,
@@ -159,6 +162,7 @@ async function fetchAdminBearpitRows(deps, filters) {
         u.username,
         'backup' AS record_type,
         bb.id AS backup_id,
+        'standard' AS tool_type,
         bb.title,
         bb.data_json,
         ${itemBackup} AS item_count,
@@ -171,6 +175,32 @@ async function fetchAdminBearpitRows(deps, filters) {
     const params = userFilter.params.slice();
     if (Number.isFinite(minItems)) {
       sql += ' AND bb.item_count >= ?';
+      params.push(minItems);
+    }
+    queries.push({ sql, params });
+  }
+
+  if (tool === 'simple' || tool === 'all') {
+    let sql = `
+      SELECT
+        sb.user_id,
+        u.login_id,
+        u.username,
+        'backup' AS record_type,
+        sb.id AS backup_id,
+        sb.title,
+        'simple' AS tool_type,
+        sb.data_json,
+        sb.item_count AS item_count,
+        sb.created_at AS record_at
+      FROM bearpit_simple_layout_backups sb
+      INNER JOIN users u ON u.id = sb.user_id
+      WHERE 1=1
+      ${userFilter.sql}
+    `;
+    const params = userFilter.params.slice();
+    if (Number.isFinite(minItems)) {
+      sql += ' AND sb.item_count >= ?';
       params.push(minItems);
     }
     queries.push({ sql, params });
@@ -211,6 +241,7 @@ function mountBearpitAdminRoutes(deps) {
         q: req.query.q,
         userId: req.query.userId,
         source: req.query.source || 'current',
+        tool: req.query.tool || 'standard',
         minItems: req.query.minItems,
         limit: req.query.limit,
         offset: req.query.offset,
@@ -228,6 +259,7 @@ function mountBearpitAdminRoutes(deps) {
       const admin = await requireAdmin(req, res);
       if (!admin) return;
       const recordType = String(req.query.type || 'current').trim();
+      const tool = String(req.query.tool || 'standard').trim();
       const recordId = Number(req.params.recordId);
       const userId = Number(req.query.userId);
       if (!Number.isFinite(recordId) || recordId <= 0) {
@@ -235,7 +267,28 @@ function mountBearpitAdminRoutes(deps) {
       }
 
       let row = null;
-      if (recordType === 'backup') {
+      if (recordType === 'backup' && tool === 'simple') {
+        row = await queryOne(
+          `
+          SELECT
+            sb.user_id,
+            u.login_id,
+            u.username,
+            'backup' AS record_type,
+            sb.id AS backup_id,
+            sb.title,
+            'simple' AS tool_type,
+            sb.data_json,
+            sb.item_count,
+            sb.created_at AS record_at
+          FROM bearpit_simple_layout_backups sb
+          INNER JOIN users u ON u.id = sb.user_id
+          WHERE sb.id = ?
+          LIMIT 1
+          `,
+          [recordId]
+        );
+      } else if (recordType === 'backup') {
         row = await queryOne(
           `
           SELECT
@@ -295,6 +348,7 @@ function mountBearpitAdminRoutes(deps) {
         q: req.query.q,
         userId: req.query.userId,
         source: req.query.source || 'current',
+        tool: req.query.tool || 'standard',
         minItems: req.query.minItems,
         limit: EXPORT_MAX_ROWS,
         offset: 0,

@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/store.ts","./src/types.ts","./src/components/mapcanvas.tsx","./src/components/memberpanel.tsx","./src/components/toolbar.tsx"],"version":"5.9.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/store.ts","./src/types.ts","./src/components/authmodal.tsx","./src/components/mapcanvas.tsx","./src/components/memberpanel.tsx","./src/components/toolbar.tsx"],"version":"5.9.3"}

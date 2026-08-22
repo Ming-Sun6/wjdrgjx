@@ -1490,6 +1490,11 @@
           </p>
           <div class="bearpit-admin-toolbar">
             <input id="bearpitSearchInput" type="search" placeholder="搜索用户 ID / 登录 ID / 用户名" />
+            <select id="bearpitToolFilter" aria-label="工具类型">
+              <option value="standard">熊坑工具</option>
+              <option value="simple">熊坑工具简约版</option>
+              <option value="all">全部工具</option>
+            </select>
             <select id="bearpitSourceFilter" aria-label="数据类型">
               <option value="current">仅当前存档</option>
               <option value="backup">仅历史备份</option>
@@ -1513,6 +1518,7 @@
                   <th style="width:160px;">时间</th>
                   <th style="min-width:220px;">数据摘要</th>
                   <th style="width:120px;">操作</th>
+                  <th style="width:140px;">工具</th>
                 </tr>
               </thead>
               <tbody id="bearpitDataTbody">
@@ -1979,6 +1985,7 @@
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;">
             <label for="neighborProgressInterval">默认间隔天数</label>
             <input id="neighborProgressInterval" type="number" min="1" max="60" value="14" style="width:110px;">
+            <span style="color:var(--muted);font-size:12px;">按间隔生成会保留第一个区间日期，只更新后续区间</span>
             <button class="btn secondary" id="neighborProgressReloadBtn" type="button">重新加载</button>
             <button class="btn" id="neighborProgressAddBtn" type="button">新增阶段</button>
             <button class="btn" id="neighborProgressAddRangeBtn" type="button">新增区间</button>
@@ -2004,6 +2011,7 @@
         </section>
 
         <section class="card page" id="page-admin-log" data-page="admin-log">
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;"><div style="font-weight:800;margin-bottom:8px;">V0.9.36（2026-08-23）</div><div style="color:var(--muted);line-height:1.6;"><strong>熊坑数据工具筛选</strong>：后台熊坑数据（含简约版）新增工具类型筛选，可分别查看“熊坑工具”和“熊坑工具简约版”存档数据，并支持详情查看与导出。</div></div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;"><div style="font-weight:800;margin-bottom:8px;">V0.9.35（2026-08-23）</div><div style="color:var(--muted);line-height:1.6;"><strong>熊坑简约版数据</strong>：首页新增熊坑排布简约版入口，后台熊坑数据页兼容简约版的成员、站位和存档数据统计查看。</div></div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;"><div style="font-weight:800;margin-bottom:8px;">V0.9.34（2026-08-22）</div><div style="color:var(--muted);line-height:1.6;"><strong>历史移民分组修复</strong>：兼容旧版已保存配置，自动补回 2026-08-16 历史日期；1~13 区间在 +1 展示日规则下恢复为 12 代分组。</div></div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;"><div style="font-weight:800;margin-bottom:8px;">V0.9.33（2026-08-22）</div><div style="color:var(--muted);line-height:1.6;"><strong>邻邦进度默认数据修复</strong>：将公开邻邦进度页原有历史阶段迁移到后台默认配置，恢复 FC5 至 12 代英雄等既有数据的展示，并保留新增、修改区间和日期的后台编辑能力。</div></div>

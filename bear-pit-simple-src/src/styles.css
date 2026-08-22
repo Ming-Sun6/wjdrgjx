@@ -41,6 +41,8 @@ body {
   background: var(--panel);
   border-bottom: 1px solid var(--border);
   box-shadow: 0 1px 3px #0000000d;
+  position: relative;
+  z-index: 5;
 }
 
 .tb-group {
@@ -161,6 +163,7 @@ button:disabled:hover {
   display: flex;
   flex: 1;
   min-height: 0;
+  min-width: 0;
 }
 
 /* ===== 实时统计 ===== */
@@ -183,7 +186,7 @@ button:disabled:hover {
 
 /* ===== 成员面板 ===== */
 .panel {
-  width: 280px;
+  width: 320px;
   flex-shrink: 0;
   background: var(--panel);
   border-right: 1px solid var(--border);
@@ -484,6 +487,7 @@ button:disabled:hover {
 .canvas-area {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   overflow: auto;
   background: #e2e8f0;
   background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
@@ -491,7 +495,11 @@ button:disabled:hover {
 }
 
 .canvas-scroll {
-  display: inline-block;
+  min-width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 24px;
 }
 
@@ -633,6 +641,116 @@ button:disabled:hover {
 .member-roster-row{display:flex;align-items:center;gap:7px}
 .member-roster-row input{min-width:0;flex:1;border:1px solid var(--border,#cbd5e1);border-radius:7px;padding:5px 7px;background:var(--surface,#fff);color:inherit}
 .actions > button:nth-of-type(6),.actions > button:nth-of-type(7),.actions > input[type="file"]{display:none}
-.open-source-footer{width:100%;box-sizing:border-box;padding:10px 16px 14px;text-align:center;color:var(--muted,#64748b);font-size:12px;line-height:1.6;border-top:1px solid var(--border,#cbd5e1);background:var(--surface,#fff)}
-.open-source-footer a{color:#2563eb;text-decoration:underline;text-underline-offset:2px}
-.open-source-footer a:hover{color:#1d4ed8}
+ .open-source-footer{width:100%;box-sizing:border-box;padding:18px 16px 16px;color:var(--muted,#64748b);border-top:1px solid var(--border,#cbd5e1);background:linear-gradient(180deg,#fff,#f8fafc)}
+ .open-source-card{width:min(720px,100%);box-sizing:border-box;margin:0 auto;display:flex;align-items:center;gap:14px;padding:14px 18px;border:1px solid #dbe3ef;border-radius:14px;background:#fff;box-shadow:0 5px 18px #1e293b0d;text-align:left}
+ .open-source-mark{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:12px;background:#111827;color:#fff;font-size:25px;font-weight:700;line-height:1}
+ .open-source-copy{min-width:0;display:grid;gap:2px}
+ .open-source-kicker{color:#64748b;font-size:10px;font-weight:700;letter-spacing:.12em}
+ .open-source-title{color:#1e293b;font-size:14px;font-weight:700}
+ .open-source-desc{font-size:12px;line-height:1.5}
+ .open-source-admin-credits{white-space:pre-wrap;margin-top:4px;padding:6px 8px;border-left:3px solid #818cf8;border-radius:5px;background:#f8fafc;color:#64748b;font-size:11px;line-height:1.55}
+ .open-source-link{width:max-content;margin-top:3px;color:#2563eb;font-size:12px;font-weight:600;text-decoration:none}
+ .open-source-link:hover{color:#1d4ed8;text-decoration:underline;text-underline-offset:2px}
+ .open-source-thanks{width:min(720px,100%);box-sizing:border-box;margin:10px auto 0;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;text-align:center;font-size:12px;line-height:1.6}
+ .thanks-label{padding:2px 7px;border-radius:999px;background:#eef2ff;color:#4f46e5;font-size:11px;font-weight:700}
+ .thanks-title{color:#475569;font-weight:600}
+.rotation-control{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.rotation-control input[type='range']{width:120px;padding:0}
+.rotation-number{width:64px}
+.simple-auth-modal,.share-key-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:16px;background:#0f172a66}
+.simple-auth-panel,.share-key-panel{width:min(420px,calc(100vw - 28px));display:flex;flex-direction:column;gap:10px;padding:18px;border:1px solid var(--border);border-radius:12px;background:var(--panel);box-shadow:0 16px 50px #0004}
+.simple-auth-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.simple-auth-head h3,.share-key-panel h3{margin:0;font-size:18px}
+.simple-auth-head button{border:0;background:transparent;font-size:22px;padding:0 4px}
+.simple-auth-panel input{width:100%;padding:9px 10px}
+.simple-auth-error{color:#b91c1c;font-size:13px}
+.simple-auth-actions,.share-key-actions{display:flex;justify-content:flex-end;gap:8px}
+.share-key-panel p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.share-key-panel code{display:block;padding:12px;border-radius:8px;background:#f1f5f9;color:var(--text);font:700 18px/1.4 ui-monospace,Consolas,monospace;text-align:center;letter-spacing:2px;user-select:all}
+
+@media (max-width: 900px) {
+  .toolbar {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+  .actions {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .actions button {
+    flex: 0 0 auto;
+  }
+  .panel {
+    width: 280px;
+  }
+}
+
+@media (max-width: 700px) {
+  .open-source-footer{padding:14px 10px}
+  .open-source-card{align-items:flex-start;padding:12px;gap:10px}
+  .open-source-mark{width:36px;height:36px;border-radius:10px;font-size:21px}
+  .open-source-desc{font-size:11px}
+  .open-source-thanks{margin-top:8px;font-size:11px}
+  html, body, #root {
+    min-height: 100%;
+    height: auto;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .app {
+    min-height: 100vh;
+    height: auto;
+  }
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+  }
+  .title-group,
+  .toolbar > .tb-group:not(.actions) {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .name-input {
+    min-width: 0;
+    flex: 1;
+  }
+  .workspace {
+    flex-direction: column;
+    min-height: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .panel {
+    width: 100%;
+    max-height: 46vh;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 10px;
+    overflow-y: auto;
+  }
+  .canvas-area {
+    width: 100%;
+    max-width: 100%;
+    min-height: 54vh;
+    overflow: auto;
+  }
+  .canvas-scroll {
+    min-width: max-content;
+    min-height: 100%;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 14px;
+  }
+  .share-key,
+  .archive-list {
+    width: 100%;
+  }
+  .rotation-control{flex-wrap:wrap}
+  .rotation-control input[type='range']{flex:1;min-width:120px}
+}

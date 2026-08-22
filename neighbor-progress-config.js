@@ -57,7 +57,7 @@ function normalizeNeighborProgressConfig(input) {
     const name = String(source.name || '').trim();
     if (!/^[A-Za-z][A-Za-z0-9_-]{1,31}$/.test(key) || !name || name.length > 40 || seen.has(key)) continue;
     const explicitDates = Array.isArray(source.dates) ? source.dates : [];
-    const anchorDate = isIsoDate(source.anchorDate) ? source.anchorDate : (isIsoDate(explicitDates[0]) ? explicitDates[0] : '');
+    const anchorDate = isIsoDate(explicitDates[0]) ? explicitDates[0] : (isIsoDate(source.anchorDate) ? source.anchorDate : '');
     if (!anchorDate) continue;
     const generatedDates = generateStageDates(anchorDate, ranges.length, intervalDays);
     const dates = generatedDates.map((fallback, index) => isIsoDate(explicitDates[index]) ? explicitDates[index] : fallback);

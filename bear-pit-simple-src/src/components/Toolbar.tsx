@@ -1,15 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type Konva from 'konva'
 import { useDesigner } from '../store'
 import type { Layout } from '../types'
 
 interface Props {
   stageRef: React.RefObject<Konva.Stage>
+  loggedIn: boolean
+  openAuthModal: () => void
 }
 
-export default function Toolbar({ stageRef }: Props) {
+export default function Toolbar({ stageRef, loggedIn, openAuthModal }: Props) {
   const name = useDesigner((s) => s.name)
   const grid = useDesigner((s) => s.grid)
+  const rotation = useDesigner((s) => s.rotation)
+  const setRotation = useDesigner((s) => s.setRotation)
   const setName = useDesigner((s) => s.setName)
   const setGrid = useDesigner((s) => s.setGrid)
   const newLayout = useDesigner((s) => s.newLayout)
@@ -23,9 +27,6 @@ export default function Toolbar({ stageRef }: Props) {
 
   const [archives, setArchives] = useState<Array<{ id: number; title: string; createdAt: number; data?: Layout }>>([])
   const [shareKey, setShareKey] = useState('')
-  const [loggedIn, setLoggedIn] = useState(false)
-
-  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -34,7 +35,6 @@ export default function Toolbar({ stageRef }: Props) {
         const auth = await fetch('/api/auth/me', { credentials: 'include' })
         const authPayload = await auth.json().catch(() => null)
         if (cancelled || !authPayload?.authenticated) return
-        setLoggedIn(true)
         const response = await fetch('/api/bearpit-simple/backups', { credentials: 'include' })
         const payload = await response.json().catch(() => null)
         if (!cancelled && response.ok && Array.isArray(payload?.backups)) {
@@ -47,7 +47,7 @@ export default function Toolbar({ stageRef }: Props) {
 
   const requireLogin = () => {
     if (loggedIn) return true
-    window.alert('登录后才能使用保存和生成分享秘钥功能')
+    if (window.confirm('登录后才能使用保存和生成分享秘钥功能，点击“确定”打开登录窗口。')) openAuthModal()
     return false
   }
 
@@ -135,38 +135,6 @@ export default function Toolbar({ stageRef }: Props) {
     a.click()
   }
 
-  // 保存设计：把整套设计下载成 .json 文件
-  const handleSaveDesign = () => {
-    const data = JSON.stringify(exportLayout(), null, 2)
-    const blob = new Blob([data], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${name || '熊坑图'}.设计.json`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-  // 打开设计：从 .json 文件载入
-  const handleOpenDesign = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        const layout = JSON.parse(String(reader.result)) as Layout
-        if (!layout.grid || !Array.isArray(layout.placements))
-          throw new Error('格式不对')
-        loadLayout(layout)
-      } catch {
-        alert('这个文件打不开，请选择之前“保存设计”导出的 .json 文件。')
-      }
-    }
-    reader.readAsText(file)
-    e.target.value = ''
-  }
-
-  void handleSaveDesign
   return (
     <header className="toolbar">
       <div className="tb-group title-group">
@@ -210,9 +178,15 @@ export default function Toolbar({ stageRef }: Props) {
             onChange={(e) => setGrid({ cellSize: Math.max(32, Number(e.target.value)) })}
           />
         </label>
+        <label className="rotation-control">
+          旋转
+          <input type="range" min={0} max={360} step={1} value={rotation} onChange={(e) => setRotation(Number(e.target.value))} />
+          <input className="rotation-number" type="number" min={0} max={360} step={1} value={rotation} onChange={(e) => setRotation(Number(e.target.value))} />°
+        </label>
       </div>
 
       <div className="tb-group actions">
+        <button onClick={() => { window.location.href = '/rukou.html' }}>返回主页</button>
         <button className="btn-primary" onClick={rememberArchive}>保存存档</button>
         <button onClick={importShare}>导入分享秘钥</button>
         <button onClick={encodeShare}>生成分享秘钥</button>
@@ -222,17 +196,6 @@ export default function Toolbar({ stageRef }: Props) {
         <button onClick={redo} disabled={!canRedo} title="重做 (Ctrl+Y)">
           ↷ 重做
         </button>
-        <button className="btn-primary" onClick={rememberArchive}>
-          💾 保存设计
-        </button>
-        <button onClick={() => fileRef.current?.click()}>📂 打开设计</button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="application/json,.json"
-          hidden
-          onChange={handleOpenDesign}
-        />
         <button onClick={handleExportPng}>🖼 保存 PNG</button>
         <button onClick={() => confirm('清空所有站位？（熊坑保留）') && clearPlacements()}>
           清空站位
@@ -241,7 +204,19 @@ export default function Toolbar({ stageRef }: Props) {
           新建
         </button>
       </div>
-      {shareKey && <div className="share-key" title="已复制到剪贴板">分享秘钥：{shareKey}</div>}
+      {shareKey && (
+        <div className="share-key-modal" role="dialog" aria-modal="true">
+          <div className="share-key-panel">
+            <h3>分享秘钥</h3>
+            <p>秘钥仅显示且仅可查看一次，请立即复制并妥善保存。</p>
+            <code>{shareKey}</code>
+            <div className="share-key-actions">
+              <button className="btn-primary" onClick={() => navigator.clipboard?.writeText(shareKey).catch(() => undefined)}>复制秘钥</button>
+              <button onClick={() => setShareKey('')}>我已保存</button>
+            </div>
+          </div>
+        </div>
+      )}
       {archives.length > 0 && <div className="archive-list">存档记录：{archives.map((item) => <button key={item.id} onClick={() => restoreArchive(item.id)}>{item.title}</button>)}</div>}
     </header>
   )

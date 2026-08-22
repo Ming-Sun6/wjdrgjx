@@ -63,6 +63,10 @@ test('server mounts bearpit admin routes and admin page includes menu', () => {
   );
   assert.match(serverSource, /mountBearpitAdminRoutes\(/);
   assert.match(moduleSource, /\/api\/admin\/bearpit-layouts-export\.csv/);
+  assert.match(moduleSource, /bearpit_simple_layout_backups/);
+  assert.match(moduleSource, /req\.query\.tool/);
   assert.match(adminHtml, /data-page="bearpit-data"/);
+  assert.match(adminHtml, /id="bearpitToolFilter"/);
+  assert.match(adminHtml, /熊坑工具简约版/);
   assert.match(adminHtml, /admin-bearpit-page\.js/);
 });

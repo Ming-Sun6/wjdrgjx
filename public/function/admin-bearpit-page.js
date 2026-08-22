@@ -7,6 +7,7 @@ function bpState(root) {
       total: 0,
       filters: {
         q: '',
+        tool: 'standard',
         source: 'current',
         minItems: ''
       }
@@ -59,17 +60,20 @@ function bpRenderTable(root) {
   var tbody = root.document.getElementById('bearpitDataTbody');
   if (!tbody) return;
   if (!st.rows.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);">暂无符合条件的熊坑数据。</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--muted);">暂无符合条件的熊坑数据。</td></tr>';
     return;
   }
   tbody.innerHTML = st.rows
     .map(function (row) {
       var typeLabel = row.recordType === 'backup' ? '历史备份' : '当前存档';
+      var toolLabel = row.tool === 'simple' ? '熊坑工具简约版' : '熊坑工具';
       return (
         '<tr data-user-id="' +
         row.userId +
         '" data-record-type="' +
         bpEsc(row.recordType) +
+        '" data-tool="' +
+        bpEsc(row.tool) +
         '" data-record-id="' +
         row.recordId +
         '">' +
@@ -99,6 +103,9 @@ function bpRenderTable(root) {
         '">' +
         bpEsc(row.dataPreview || '—') +
         '</div></td>' +
+        '<td>' +
+        bpEsc(toolLabel) +
+        '</td>' +
         '<td><div class="bearpit-row-actions">' +
         '<button type="button" class="btn secondary bearpit-view-btn">查看 JSON</button>' +
         '</div></td></tr>'
@@ -113,6 +120,7 @@ function bpRenderTable(root) {
       bpOpenDetail(root, {
         userId: Number(tr.getAttribute('data-user-id')),
         recordType: tr.getAttribute('data-record-type'),
+        tool: tr.getAttribute('data-tool'),
         recordId: Number(tr.getAttribute('data-record-id'))
       });
     });
@@ -123,6 +131,7 @@ function bpCollectFilters(root) {
   var st = bpState(root);
   var doc = root.document;
   st.filters.q = String((doc.getElementById('bearpitSearchInput') || {}).value || '').trim();
+  st.filters.tool = String((doc.getElementById('bearpitToolFilter') || {}).value || 'standard');
   st.filters.source = String((doc.getElementById('bearpitSourceFilter') || {}).value || 'current');
   st.filters.minItems = String((doc.getElementById('bearpitMinItemsFilter') || {}).value || '').trim();
 }
@@ -130,6 +139,7 @@ function bpCollectFilters(root) {
 function bpQueryString(st) {
   var params = [];
   if (st.filters.q) params.push('q=' + encodeURIComponent(st.filters.q));
+  if (st.filters.tool) params.push('tool=' + encodeURIComponent(st.filters.tool));
   if (st.filters.source) params.push('source=' + encodeURIComponent(st.filters.source));
   if (st.filters.minItems) params.push('minItems=' + encodeURIComponent(st.filters.minItems));
   params.push('limit=200');
@@ -177,6 +187,8 @@ async function bpOpenDetail(root, meta) {
       encodeURIComponent(meta.recordId) +
       '?type=' +
       encodeURIComponent(meta.recordType) +
+      '&tool=' +
+      encodeURIComponent(meta.tool || 'standard') +
       '&userId=' +
       encodeURIComponent(meta.userId);
     var r = await apiFetch(url, { method: 'GET' });
@@ -222,6 +234,7 @@ function bpExportCsv(root) {
 function bpBind(root) {
   var doc = root.document;
   var search = doc.getElementById('bearpitSearchInput');
+  var tool = doc.getElementById('bearpitToolFilter');
   var source = doc.getElementById('bearpitSourceFilter');
   var minItems = doc.getElementById('bearpitMinItemsFilter');
   var reloadBtn = doc.getElementById('bearpitReloadBtn');
@@ -236,6 +249,7 @@ function bpBind(root) {
     });
   }
   if (source) source.addEventListener('change', function () { bpLoad(root); });
+  if (tool) tool.addEventListener('change', function () { bpLoad(root); });
   if (minItems) {
     minItems.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') bpLoad(root);

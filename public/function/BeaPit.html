@@ -3234,20 +3234,35 @@
         }
 
         // 导出配置为序列码（可分享，使用紧凑格式减少字符）
-        function exportConfigBeaPit() {
+        async function exportConfigBeaPit() {
+            if (!authChecked) await refreshMe();
+            if (!authUser) {
+                if (window.confirm('登录后才能生成分享秘钥，点击“确定”打开登录窗口。')) openAuthModal();
+                return;
+            }
             if (CONFIG.placedList.length === 0) {
                 setStatus('当前没有摆放物品可导出', 'err');
                 return;
             }
             const data = serializeLayoutCompact();
-            const configString = JSON.stringify(data);
             const modal = document.getElementById('exportBeaPitModal');
             const output = document.getElementById('exportBeaPitOutput');
             const status = document.getElementById('exportBeaPitStatus');
             if (!modal || !output || !status) return;
-            output.value = configString;
-            status.className = 'export-status show info';
-            status.textContent = `已生成配置（${CONFIG.placedList.length} 个放置物）。可复制分享，他人通过「导入配置」粘贴即可还原。`;
+            try {
+                const response = await apiFetch('/api/bearpit/shares', {
+                    method: 'POST',
+                    body: JSON.stringify({ data })
+                });
+                const payload = await response.json().catch(() => null);
+                if (!response.ok || !/^[A-Za-z0-9]{16}$/.test(String(payload?.shareKey || ''))) throw new Error('share failed');
+                output.value = String(payload.shareKey);
+                status.className = 'export-status show info';
+                status.textContent = '秘钥仅显示且仅可查看一次，请立即复制并妥善保存。';
+            } catch {
+                setStatus('分享秘钥生成失败，请稍后重试', 'err');
+                return;
+            }
             modal.classList.add('open');
             modal.setAttribute('aria-hidden', 'false');
             setTimeout(() => { output.focus(); output.select(); }, 0);
@@ -4320,6 +4335,7 @@
                 const copyBtn = document.getElementById('copyExportBeaPit');
                 function closeExport() {
                     if (modal) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+                    if (output) output.value = '';
                     if (status) { status.className = 'export-status'; status.textContent = ''; }
                 }
                 async function copyExportText() {
@@ -4461,10 +4477,7 @@
             CONFIG.btnSave?.addEventListener('click', async () => {
                 if (!authChecked) await refreshMe();
                 if (!authUser) {
-                    // 未登录：保留本机保存能力，避免“保存/更新”不可用
-                    const ok = saveLayout({ silent: true });
-                    if (ok) setStatus('已保存到本机（可登录后同步）', 'ok');
-                    else saveLayout(); // 显示详细失败原因
+                    if (window.confirm('登录后才能保存，点击“确定”打开登录窗口。')) openAuthModal();
                     return;
                 }
                 try {
@@ -4484,8 +4497,7 @@
             document.getElementById('woam-save-scheme')?.addEventListener('click', async () => {
                 if (!authChecked) await refreshMe();
                 if (!authUser) {
-                    openAuthModal();
-                    setStatus('请先登录后再保存方案', 'err');
+                    if (window.confirm('登录后才能保存方案，点击“确定”打开登录窗口。')) openAuthModal();
                     return;
                 }
                 const defaultName = '方案 ' + formatBackupTime(new Date());
@@ -4607,6 +4619,3 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 </script>
 </body>
 </html>
-
-
-

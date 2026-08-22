@@ -69,6 +69,8 @@ export interface Layout {
   bearLabel?: string
   /** 成员色板 */
   colors?: string[]
+  /** 画布整体旋转角度，旧存档缺省按 45° 兼容 */
+  rotation?: number
   updatedAt: number
 }
 
