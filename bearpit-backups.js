@@ -46,6 +46,15 @@ const BEARPIT_SHARES_DDL_MYSQL = `
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 `;
 
+const BEARPIT_SHARES_DDL_PG = `
+  CREATE TABLE IF NOT EXISTS bearpit_share_links (
+    share_key varchar(16) PRIMARY KEY,
+    data_json jsonb NOT NULL,
+    created_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+  );
+  CREATE INDEX IF NOT EXISTS idx_bearpit_shares_created ON bearpit_share_links (created_at DESC);
+`;
+
 function countLayoutItems(data) {
   if (Array.isArray(data?.items)) return data.items.length;
   if (Array.isArray(data?.placements)) return data.placements.length;
@@ -248,7 +257,12 @@ function mountBearpitBackupRoutes(deps) {
       for (let attempt = 0; attempt < 5; attempt += 1) {
         const candidate = generateShareKey();
         try {
-          await execute('INSERT INTO bearpit_share_links (share_key, data_json, created_at) VALUES (?, ?, CURRENT_TIMESTAMP(3))', [candidate, JSON.stringify(data)]);
+          await execute(
+            pgDatabase
+              ? 'INSERT INTO bearpit_share_links (share_key, data_json, created_at) VALUES (?, ?::jsonb, CURRENT_TIMESTAMP(3))'
+              : 'INSERT INTO bearpit_share_links (share_key, data_json, created_at) VALUES (?, ?, CURRENT_TIMESTAMP(3))',
+            [candidate, JSON.stringify(data)]
+          );
           shareKey = candidate;
           break;
         } catch (err) {
@@ -285,6 +299,7 @@ module.exports = {
   BEARPIT_BACKUPS_DDL_MYSQL,
   BEARPIT_BACKUPS_DDL_PG,
   BEARPIT_SHARES_DDL_MYSQL,
+  BEARPIT_SHARES_DDL_PG,
   mountBearpitBackupRoutes,
   generateShareKey,
   countLayoutItems,
