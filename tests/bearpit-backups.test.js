@@ -58,3 +58,10 @@ test('simple version requires login for server-backed saves and shares', () => {
   assert.match(toolbar, /\/api\/bearpit\/backups/);
   assert.match(toolbar, /登录后才能/);
 });
+
+test('simple version archives use an isolated API namespace', () => {
+  const toolbar = fs.readFileSync(path.join(__dirname, '..', 'bear-pit-simple-src', 'src', 'components', 'Toolbar.tsx'), 'utf8');
+  const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'bearpit-backups.js'), 'utf8');
+  assert.match(toolbar, /\/api\/bearpit-simple\/backups/);
+  assert.match(moduleSource, /\/api\/bearpit-simple\/backups/);
+});
