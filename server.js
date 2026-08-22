@@ -68,7 +68,7 @@ const {
 const { getChatSendPolicy, canReadChatThread, createKeyedSerialExecutor } = require('./social-features');
 const { injectShareMeta, resolvePageMeta, resolvePublicHtmlPath } = require('./share-meta');
 const { defaultNeighborProgressConfig, normalizeNeighborProgressConfig } = require('./neighbor-progress-config');
-const { defaultHistoryImmigrationConfig, normalizeHistoryImmigrationConfig } = require('./history-immigration-config');
+const { DEFAULT_HISTORY_IMMIGRATION_DATES, defaultHistoryImmigrationConfig, normalizeHistoryImmigrationConfig } = require('./history-immigration-config');
 
 const app = express();
 const runChatSendSerial = createKeyedSerialExecutor();
@@ -2506,7 +2506,16 @@ app.put('/api/admin/neighbor-progress', async (req, res) => {
 async function getHistoryImmigrationConfig() {
   const neighbor = normalizeNeighborProgressConfig(await getSetting(NEIGHBOR_PROGRESS_SETTING_KEY, null) || defaultNeighborProgressConfig());
   const stored = await getSetting(HISTORY_IMMIGRATION_SETTING_KEY, null);
-  return normalizeHistoryImmigrationConfig(stored || defaultHistoryImmigrationConfig(), neighbor.ranges);
+  const source = stored || defaultHistoryImmigrationConfig();
+  const normalized = normalizeHistoryImmigrationConfig(source, neighbor.ranges);
+  // Older saved configurations predate the 2026-08-16 record. Backfill it so
+  // the 1~13 range correctly shows the 12th-generation grouping (+1 display day).
+  const latestDate = DEFAULT_HISTORY_IMMIGRATION_DATES[DEFAULT_HISTORY_IMMIGRATION_DATES.length - 1];
+  if (stored && Array.isArray(stored.dates) && stored.dates.length >= DEFAULT_HISTORY_IMMIGRATION_DATES.length - 1 && !normalized.dates.some((item) => item.date === latestDate)) {
+    normalized.dates.push({ date: latestDate, enabled: true, note: '', overrides: {} });
+    normalized.dates.sort((a, b) => a.date.localeCompare(b.date));
+  }
+  return normalized;
 }
 
 app.get('/api/history-immigration', async (_req, res) => {

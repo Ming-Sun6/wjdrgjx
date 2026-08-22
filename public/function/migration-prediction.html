@@ -253,12 +253,17 @@
       { name:"8\u4ee3\u82f1\u96c4", key:"Hero8", offset:378 },
       { name:"9\u4ee3\u82f1\u96c4", key:"Hero9", offset:462 },
       { name:"10\u4ee3\u82f1\u96c4", key:"Hero10", offset:546 },
-      { name:"11\u4ee3\u82f1\u96c4", key:"Hero11", offset:630 }
+      { name:"11\u4ee3\u82f1\u96c4", key:"Hero11", offset:630 },
+      { name:"12\u4ee3\u82f1\u96c4", key:"Hero12", offset:714 }
     ];
     var historyImmigrationConfig = null;
     function applyRemoteConfigs(payloads){
       var neighbor = payloads && payloads[0], history = payloads && payloads[1];
       historyImmigrationConfig = history;
+      if (neighbor && Array.isArray(neighbor.ranges) && neighbor.ranges.length) {
+        var staticNeighborTail = labels.filter(function (label) { return /^NB\d+$/.test(String(label)); });
+        labels = neighbor.ranges.map(function (label) { return String(label); }).concat(staticNeighborTail);
+      }
       if (neighbor && Array.isArray(neighbor.stages)) neighbor.stages.forEach(function(remote){
         if (!remote || !remote.key || remote.enabled === false) return;
         var found = null;
@@ -285,7 +290,7 @@
       else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662";
       else if (fc5) left = "\u706b5";
       var maxH = 0;
-      for (var g = 11; g >= 4; g--){
+      for (var g = 12; g >= 4; g--){
         if (fl["Hero" + g]){ maxH = g; break; }
       }
       var right = maxH ? (maxH + "\u4ee3") : "";
@@ -303,7 +308,7 @@
       else if (war && !fc8) leftCode = 25;
       else if (fc5) leftCode = 10;
       var maxH = 0;
-      for (var g2 = 11; g2 >= 4; g2--){
+      for (var g2 = 12; g2 >= 4; g2--){
         if (fl["Hero" + g2]){ maxH = g2; break; }
       }
       return leftCode * 40 + maxH;
@@ -348,7 +353,7 @@
         domState: dominantStateKeyFromFlags(fl)
       };
     }
-    var historyDateMarks = ["2024-11-10","2024-12-08","2025-01-05","2025-02-02","2025-03-30","2025-04-27","2025-06-08","2025-07-06","2025-08-17","2025-09-15","2025-10-12","2025-11-09","2025-12-08","2026-01-04","2026-02-01","2026-03-15","2026-04-26"];
+    var historyDateMarks = ["2024-11-10","2024-12-08","2025-01-05","2025-02-02","2025-03-30","2025-04-27","2025-06-08","2025-07-06","2025-08-17","2025-09-15","2025-10-12","2025-11-09","2025-12-08","2026-01-04","2026-02-01","2026-03-15","2026-04-26","2026-05-24","2026-07-19","2026-08-16"];
     var baseSerial = 45537;
     var stepDays = 14;
     var serialEpochUtc = Date.UTC(1899,11,30);

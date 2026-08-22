@@ -29,3 +29,11 @@ test('admin exposes neighbor progress management and public page fetch hook', ()
   assert.match(server, /api\/neighbor-progress/);
   assert.match(page, /api\/neighbor-progress/);
 });
+
+test('neighbor progress default config includes Hero12 for downstream calculators', () => {
+  const result = config.defaultNeighborProgressConfig();
+  const hero12 = result.stages.find((stage) => stage.key === 'Hero12');
+  assert.ok(hero12);
+  assert.equal(hero12.anchorDate, '2026-08-17');
+  assert.equal(hero12.dates[0], '2026-08-17');
+});

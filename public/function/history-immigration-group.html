@@ -351,6 +351,7 @@
     .history-state-hero9 { background: rgba(236, 72, 153, 0.42); }
     .history-state-hero10 { background: rgba(244, 63, 94, 0.44); }
     .history-state-hero11 { background: rgba(225, 29, 72, 0.46); }
+    .history-state-hero12 { background: rgba(190, 24, 93, 0.48); }
 
     .foot {
       margin-top: 14px;
@@ -464,7 +465,8 @@
         { name: "8\u4ee3\u82f1\u96c4", key: "Hero8", offset: 378 },
         { name: "9\u4ee3\u82f1\u96c4", key: "Hero9", offset: 462 },
         { name: "10\u4ee3\u82f1\u96c4", key: "Hero10", offset: 546 },
-        { name: "11\u4ee3\u82f1\u96c4", key: "Hero11", offset: 630 }
+        { name: "11\u4ee3\u82f1\u96c4", key: "Hero11", offset: 630 },
+        { name: "12\u4ee3\u82f1\u96c4", key: "Hero12", offset: 714 }
       ];
 
       var stateLabelMap = {
@@ -477,6 +479,7 @@
         Hero9: "9\u4ee3",
         Hero10: "10\u4ee3",
         Hero11: "11\u4ee3",
+        Hero12: "12\u4ee3",
         FC3: "\u706b3",
         FC5: "\u706b5",
         FC8: "\u706b8",
@@ -490,6 +493,11 @@
         var neighbor = payloads && payloads[0];
         var history = payloads && payloads[1];
         historyImmigrationConfig = history;
+        if (neighbor && Array.isArray(neighbor.ranges) && neighbor.ranges.length) {
+          var staticNeighborTail = labels.filter(function (label) { return /^NB\d+$/.test(String(label)); });
+          labels = neighbor.ranges.map(function (label) { return String(label); }).concat(staticNeighborTail);
+          historyRangeLabels = labels.slice(0, Math.min(42, labels.length));
+        }
         if (neighbor && Array.isArray(neighbor.stages)) neighbor.stages.forEach(function (remote) {
           if (!remote || !remote.key || remote.enabled === false) return;
           for (var i = 0; i < stageDefs.length; i++) if (stageDefs[i].key === remote.key) { stageDefs[i].remoteDates = remote.dates || []; stageDefs[i].name = remote.name || stageDefs[i].name; }
@@ -598,7 +606,7 @@
         else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662";
         else if (fc5) left = "\u706b5";
         var maxH = 0;
-        for (var g = 11; g >= 4; g--) {
+        for (var g = 12; g >= 4; g--) {
           if (fl["Hero" + g]) { maxH = g; break; }
         }
         var right = maxH ? (maxH + "\u4ee3") : "";
@@ -676,6 +684,7 @@
         if (state === "Hero9") return "history-state-hero9";
         if (state === "Hero10") return "history-state-hero10";
         if (state === "Hero11") return "history-state-hero11";
+        if (state === "Hero12") return "history-state-hero12";
         if (state === "FC3") return "history-state-fc3";
         if (state === "FC5") return "history-state-fc5";
         if (state === "FC8") return "history-state-fc8";
