@@ -53,3 +53,13 @@ test('migration prediction defaults to the first forecast whose +1 display day i
   assert.equal(typeof context.window.selectDefaultForecastIndex, 'function');
   assert.equal(context.window.selectDefaultForecastIndex(dates, todaySerial), 2);
 });
+
+test('migration prediction advances from the latest historical date in fixed 28-day periods', () => {
+  const context = loadMigrationScriptContext();
+  const history = ['2026-05-24', '2026-07-19', '2026-08-16'];
+
+  assert.equal(typeof context.window.forecastDatesFromHistory, 'function');
+  const result = context.window.forecastDatesFromHistory(history, 3, 28);
+  assert.deepEqual(Array.from(result.dates), ['2026-09-13', '2026-10-11', '2026-11-08']);
+  assert.equal(result.step, 28);
+});

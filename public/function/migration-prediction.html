@@ -515,21 +515,14 @@
       var b = progressBundleForCutoff(ri, getTodaySerial());
       return { text: b.text, rangeIdx: ri };
     }
-    function medianInt(arr){
-      if (!arr || !arr.length) return NaN;
-      var a = arr.slice().sort(function(x,y){ return x-y; });
-      var mid = Math.floor(a.length / 2);
-      if (a.length % 2) return a[mid];
-      return Math.round((a[mid - 1] + a[mid]) / 2);
-    }
-    function forecastDatesFromHistory(markStrs, count){
+    function forecastDatesFromHistory(markStrs, count, intervalDays){
       var serials = markStrs.map(function(d){ return dateStrToSerial(d); }).filter(function(x){ return Number.isFinite(x); });
       var gaps = [];
       for (var i = 1; i < serials.length; i++) gaps.push(serials[i] - serials[i - 1]);
       var last = serials[serials.length - 1];
       var slice = gaps.slice(-6);
-      var step = medianInt(slice);
-      if (!Number.isFinite(step) || step < 14) step = 28;
+      var step = Math.round(Number(intervalDays));
+      if (!Number.isFinite(step) || step < 1) step = 28;
       var out = [];
       var cur = last;
       for (var k = 0; k < count; k++){
@@ -692,7 +685,7 @@
       var sid = Number(input && input.value);
       if (!Number.isFinite(sid)) sid = 755;
       sid = Math.max(1, Math.floor(sid));
-      var fc = forecastDatesFromHistory(historyDateMarks, 10);
+      var fc = forecastDatesFromHistory(historyDateMarks, 10, historyImmigrationConfig && historyImmigrationConfig.intervalDays);
       var sel = document.getElementById("matrixForecastPeriodSelect");
       var idx = 0;
       if (sel && sel.value !== ""){
@@ -718,22 +711,17 @@
       var matrixPeriodSelect = document.getElementById("matrixForecastPeriodSelect");
       var summaryEl = document.getElementById("userSummary");
 
-      var fc = forecastDatesFromHistory(historyDateMarks, 10);
+      var fc = forecastDatesFromHistory(historyDateMarks, 10, historyImmigrationConfig && historyImmigrationConfig.intervalDays);
       var defaultForecastIndex = selectDefaultForecastIndex(fc.dates, getTodaySerial());
       var nextOpen = fc.dates.length ? fc.dates[defaultForecastIndex] : "-";
 
       if (rhythmEl){
-        var gapStr = fc.gapsSample.length ? fc.gapsSample.join("\u3001") + " \u5929" : "-";
         rhythmEl.innerHTML =
           "\u5386\u53f2\u79fb\u6c11\u5217\u6700\u540e\u4e00\u671f\u5c55\u793a\u65e5\uFF1A<b>" +
           historyDateMarks[historyDateMarks.length - 1] +
-          "</b>\u3002\u5916\u63a8\u4f9d\u6700\u8fd1 " +
-          fc.gapsSample.length +
-          "\u671f\u9593\u8DDD\u7684<strong>\u4E2D\u4F4D\u6570</strong>\uff1a<b>" +
+          "</b>\u3002\u540e\u7eed\u9884\u6d4b\u6309\u56fa\u5b9a\u5468\u671f\u9012\u589e\uff1a<b>" +
           fc.step +
-          "</b> \u5929\uff08\u6837\u672c\u9593\u8DDD\u5E8F\u5217\uFF1A" +
-          gapStr +
-          "\uff09\u3002";
+          "</b> \u5929\u4e00\u671f\u3002";
       }
 
       var curMine = currentProgressDisplayForSid(sid);
@@ -849,6 +837,7 @@
     })();
     window.selectDefaultForecastIndex = selectDefaultForecastIndex;
     window.dateStrToSerial = dateStrToSerial;
+    window.forecastDatesFromHistory = forecastDatesFromHistory;
     remoteConfigPromise.then(function(payloads){ applyRemoteConfigs(payloads); renderAll(); }).catch(renderAll);
   })();
   </script>
