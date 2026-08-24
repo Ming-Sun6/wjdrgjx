@@ -13,7 +13,10 @@ test('history immigration admin and public pages expose configuration hooks', ()
   assert.match(admin, /data-page="history-immigration"/);
   assert.match(adminJs, /api\/admin\/history-immigration/);
   assert.match(adminJs, /body:\s*JSON\.stringify\(state\)/);
+  assert.match(adminJs, /him-unopened/);
+  assert.match(adminJs, /\.unopened\s*=\s*n\.checked/);
   assert.match(history, /api\/history-immigration/);
   assert.match(prediction, /api\/history-immigration/);
+  assert.match(prediction, /未开放/);
   assert.match(server, /api\/history-immigration/);
 });

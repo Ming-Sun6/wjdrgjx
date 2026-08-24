@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
+const path = require('path');
 const { firstImageFromHtml, injectShareMeta, parseCoverImages, resolvePageMeta } = require('../share-meta');
 
 test('share metadata uses page defaults and injects Open Graph tags', () => {
@@ -51,4 +52,36 @@ test('public tool pages include a static share image for WeChat crawlers', () =>
   assert.match(html, /<meta property="og:image" content="https:\/\/wjgl\.store\//);
   assert.match(html, /<meta property="og:image:width" content="1200" \/>/);
   assert.match(html, /<meta property="og:image:height" content="675" \/>/);
+});
+
+test('every public user-facing html page includes static share metadata', () => {
+  const publicRoot = path.join(__dirname, '..', 'public');
+  const missing = [];
+
+  function walk(directory) {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const fullPath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === '_ops') continue;
+        walk(fullPath);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.toLowerCase().endsWith('.html') || entry.name.toLowerCase() === 'admin.html') continue;
+      const html = fs.readFileSync(fullPath, 'utf8');
+      if (!/<meta\s+property="og:title"/i.test(html) ||
+          !/<meta\s+property="og:description"/i.test(html) ||
+          !/<meta\s+property="og:image"\s+content="https:\/\/wjgl\.store\//i.test(html)) {
+        missing.push(path.relative(publicRoot, fullPath).split(path.sep).join('/'));
+      }
+    }
+  }
+
+  walk(publicRoot);
+  assert.deepEqual(missing, []);
+});
+
+test('static share metadata injector covers games and nested public tools', () => {
+  const script = fs.readFileSync('scripts/inject-static-share-meta.js', 'utf8');
+  assert.doesNotMatch(script, /startsWith\('function\/aeroplane-chess\/'\)/);
+  assert.doesNotMatch(script, /startsWith\('function\/wjdeyj\/fpgj\/'\)/);
 });

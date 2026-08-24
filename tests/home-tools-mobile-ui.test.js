@@ -79,13 +79,28 @@ test('latest changelogs keep public and admin release notes separated', () => {
   const homeLog = home.slice(home.indexOf('id="changelogModal"'), home.indexOf('</div>\n\n  <script', home.indexOf('id="changelogModal"')));
   const adminLog = admin.slice(admin.indexOf('id="page-admin-log"'), admin.indexOf('</section>', admin.indexOf('id="page-admin-log"')));
 
-  assert.match(home, /版本 V0\.9\.32/);
+  assert.match(home, /版本 V0\.9\.39/);
+  assert.match(homeLog, /V0\.9\.39（2026-08-25）/);
+  assert.match(homeLog, /活动日历上线/);
+  assert.match(homeLog, /V0\.9\.38（2026-08-25）/);
+  assert.match(homeLog, /最近两年/);
+  assert.match(homeLog, /未开放/);
+  assert.match(homeLog, /V0\.9\.37（2026-08-24）/);
+  assert.match(homeLog, /打熊车身推荐/);
+  assert.match(homeLog, /返回体验优化/);
   assert.match(homeLog, /V0\.9\.32（2026-08-22）/);
   assert.match(homeLog, /论坛阅读体验/);
   assert.match(homeLog, /领主装备与宝石计算器/);
-  assert.doesNotMatch(homeLog, /后台|管理员|管理端|权限|数据库|管理接口/);
+  assert.doesNotMatch(homeLog, /后台|管理员|管理端|权限|数据库|管理接口|工具管理|配置项/);
 
-  assert.match(admin, /admin-version[^>]*>V0\.9\.30</);
+  assert.match(admin, /admin-version[^>]*>V0\.9\.39</);
+  assert.match(adminLog, /V0\.9\.39（2026-08-25）/);
+  assert.match(adminLog, /首页菜单控制/);
+  assert.match(adminLog, /V0\.9\.38（2026-08-25）/);
+  assert.match(adminLog, /逐日期设置“未开放”/);
+  assert.match(adminLog, /V0\.9\.37（2026-08-24）/);
+  assert.match(adminLog, /打熊车身推荐/);
+  assert.match(adminLog, /新增阶段默认代次/);
   assert.match(adminLog, /历史移民分组配置/);
   assert.match(adminLog, /邻邦进度管理/);
   assert.doesNotMatch(adminLog, /分享卡片优化/);

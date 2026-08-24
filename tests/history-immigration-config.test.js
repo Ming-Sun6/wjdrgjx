@@ -13,3 +13,15 @@ test('history immigration config preserves only valid range overrides', () => {
   const result = config.normalizeHistoryImmigrationConfig({ dates: [{ date: '2026-08-17', overrides: { '1~13': 'group-2', bad: 'group-3', '14~73': 'nope' } }] }, ['1~13', '14~73']);
   assert.deepEqual(result.dates[0].overrides, { '1~13': 'group-2' });
 });
+
+test('history immigration config preserves the unopened marker with a safe default', () => {
+  const result = config.normalizeHistoryImmigrationConfig({
+    dates: [
+      { date: '2026-08-16', unopened: true },
+      { date: '2026-09-13' }
+    ]
+  });
+
+  assert.equal(result.dates[0].unopened, true);
+  assert.equal(result.dates[1].unopened, false);
+});

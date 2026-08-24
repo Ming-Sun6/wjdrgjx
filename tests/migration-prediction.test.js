@@ -64,6 +64,35 @@ test('migration prediction advances from the latest historical date in fixed 28-
   assert.equal(result.step, 28);
 });
 
+test('migration prediction offers enabled historical dates from the last two years before the current period', () => {
+  const context = loadMigrationScriptContext();
+  const todaySerial = context.window.dateStrToSerial('2026-08-25');
+  const historyDates = [
+    { date: '2024-08-24', enabled: true },
+    { date: '2024-08-26', enabled: true },
+    { date: '2026-07-19', enabled: true, unopened: true },
+    { date: '2026-08-16', enabled: false }
+  ];
+
+  assert.equal(typeof context.window.buildSelectableMigrationDates, 'function');
+  const result = context.window.buildSelectableMigrationDates(
+    historyDates,
+    ['2026-09-13', '2026-10-11'],
+    todaySerial
+  );
+
+  assert.deepEqual(Array.from(result, (item) => ({
+    date: item.date,
+    kind: item.kind,
+    unopened: item.unopened
+  })), [
+    { date: '2024-08-26', kind: 'history', unopened: false },
+    { date: '2026-07-19', kind: 'history', unopened: true },
+    { date: '2026-09-13', kind: 'forecast', unopened: false },
+    { date: '2026-10-11', kind: 'forecast', unopened: false }
+  ]);
+});
+
 test('migration prediction displays and sorts hero generations added after Hero12', () => {
   const context = loadMigrationScriptContext();
 

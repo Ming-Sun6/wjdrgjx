@@ -1602,6 +1602,9 @@ var forumSection = 'all';
 var forumMigrationGroup = 'all';
 var forumPage = 1;
 var forumPageSize = 10;
+var FORUM_RETURN_STATE_KEY = 'wjdr_forum_return_state_v1';
+var forumReturnScrollY = null;
+var forumViewReturnScrollY = 0;
 var forumPagination = null;
 var forumPostType = 'image';
 var forumImageListData = [];
@@ -1644,6 +1647,7 @@ var userHomeState = {
   followers: [],
   loaded: { posts: false, following: false, followers: false }
 };
+var userHomeReturnContext = null;
 var CHAT_SEEN_STORAGE_KEY_PREFIX = 'wjdr_chat_seen_v1_';
 var chatState = {
   conversations: [],
@@ -1670,6 +1674,42 @@ var MAX_FORUM_EMBED_IMAGE_FILE_SIZE = 2 * 1024 * 1024;
 var MAX_FORUM_TOTAL_IMAGE_FILE_SIZE = 12 * 1024 * 1024;
 var MAX_FORUM_TOTAL_EMBED_IMAGE_FILE_SIZE = 12 * 1024 * 1024;
 var MAX_FORUM_CONTENT_HTML = 4000000;
+function getWindowScrollY(){
+  return Math.max(0, Number(window.scrollY || window.pageYOffset || 0));
+}
+function saveForumReturnState(){
+  try{
+    sessionStorage.setItem(FORUM_RETURN_STATE_KEY, JSON.stringify({
+      forumSection: forumSection,
+      forumMigrationGroup: forumMigrationGroup,
+      forumPage: forumPage,
+      scrollY: getWindowScrollY()
+    }));
+  }catch(_e){}
+}
+function restoreForumReturnState(){
+  var state=null;
+  try{ state=JSON.parse(sessionStorage.getItem(FORUM_RETURN_STATE_KEY) || 'null'); }catch(_e){}
+  if(!state || typeof state!=='object') return;
+  if(forumSectionMap[state.forumSection]) forumSection=state.forumSection;
+  var group=String(state.forumMigrationGroup || 'all');
+  forumMigrationGroup=forumMigrationGroupLabels[group] ? group : 'all';
+  var page=Number(state.forumPage);
+  forumPage=Number.isFinite(page) && page>0 ? Math.floor(page) : 1;
+  var scrollY=Number(state.scrollY);
+  forumReturnScrollY=Number.isFinite(scrollY) && scrollY>=0 ? scrollY : null;
+}
+function restoreForumScrollPosition(scrollY){
+  var top=Number(scrollY);
+  if(!Number.isFinite(top) || top<0) return;
+  var apply=function(){ window.scrollTo(0, top); };
+  if(typeof window.requestAnimationFrame==='function'){
+    window.requestAnimationFrame(function(){ window.requestAnimationFrame(apply); });
+  }else{
+    setTimeout(apply, 0);
+  }
+}
+restoreForumReturnState();
 function escapeHtml(str){
   return String(str||'').replace(/[&<>"']/g,function(s){
     return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'})[s];
@@ -2248,11 +2288,16 @@ function setUserHomeView(view, options){
   if(options && options.silent) return;
   ensureUserHomeData(next, userHomeRequestSeq);
 }
-async function openUserHome(userId, view){
+async function openUserHome(userId, view, options){
   var uid=Number(userId);
   if(!Number.isFinite(uid) || uid<=0) return;
   var modal=document.getElementById('userHomeModal');
   if(!modal) return;
+  if(options && options.returnTo){
+    userHomeReturnContext={ returnTo:String(options.returnTo) };
+  }else if(!modal.classList.contains('open')){
+    userHomeReturnContext=null;
+  }
   var seq=++userHomeRequestSeq;
   resetUserHomeState(uid);
   setUserHomeStatus('');
@@ -2266,12 +2311,25 @@ async function openUserHome(userId, view){
   setUserHomeView(view || 'posts', { silent:true });
   ensureUserHomeData(userHomeState.view, seq);
 }
-function closeUserHome(){
+function restoreMePointsRanking(){
+  var modal=document.getElementById('mePointsRankingModal');
+  if(!modal) return;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden','false');
+  syncBodyNoScroll();
+}
+function closeUserHome(options){
   var modal=document.getElementById('userHomeModal');
   if(!modal) return;
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden','true');
-  syncBodyNoScroll();
+  var returnContext=userHomeReturnContext;
+  userHomeReturnContext=null;
+  if((!options || options.restoreParent!==false) && returnContext && returnContext.returnTo==='points-ranking'){
+    restoreMePointsRanking();
+  }else{
+    syncBodyNoScroll();
+  }
 }
 async function toggleUserHomeFollow(){
   var profile=userHomeState.profile;
@@ -2519,6 +2577,9 @@ function updateForumAccess(){
   var titleEl=document.getElementById('forumSectionTitle');
   var sectionInfo=forumSectionMap[forumSection] || {};
   var migrationLabel = forumSection==='migration' ? (' · ' + getForumMigrationGroupLabel(forumMigrationGroup)) : '';
+  document.querySelectorAll('.forum-tab').forEach(function(btn){
+    btn.classList.toggle('active', btn.getAttribute('data-section')===forumSection);
+  });
   if(titleEl){
     titleEl.textContent='交流论坛 · '+(sectionInfo.label||'')+migrationLabel;
   }
@@ -2726,6 +2787,13 @@ async function loadForumPosts(opts){
       forumPage = Math.max(1, Number(forumPagination.page));
     }
     renderForumPosts();
+    if(opts.restoreScrollY!==undefined && opts.restoreScrollY!==null){
+      restoreForumScrollPosition(opts.restoreScrollY);
+    }else if(forumReturnScrollY!==null){
+      restoreForumScrollPosition(forumReturnScrollY);
+      forumReturnScrollY=null;
+      try{ sessionStorage.removeItem(FORUM_RETURN_STATE_KEY); }catch(_e){}
+    }
     if(!opts.silent) setForumStatus('');
   }catch(e){
     if(!opts.silent){
@@ -2901,6 +2969,7 @@ function setForumSection(section){
   loadForumPosts();
 }
 async function openForumView(id){
+  forumViewReturnScrollY = getWindowScrollY();
   forumCurrentPostId = id;
   forumReplyToComment = null;
   forumExpandedReplyThreads = {};
@@ -3007,7 +3076,8 @@ function closeForumView(){
     replyHint.style.display='none';
     replyHint.innerHTML='';
   }
-  loadForumPosts({ silent: true });
+  loadForumPosts({ silent: true, restoreScrollY: forumViewReturnScrollY });
+  restoreForumScrollPosition(forumViewReturnScrollY);
 }
 function setForumReplyTarget(comment){
   forumReplyToComment = comment || null;
@@ -3890,7 +3960,7 @@ async function doRegister(){
 async function logout(){
   try{ await apiFetch('/api/auth/logout',{method:'POST',body:'{}'}); }catch(e){}
   authUser=null;
-  closeUserHome();
+  closeUserHome({restoreParent:false});
   closeMyCollectionModal();
   closeMeShopModal();
   closeMePointsRanking();
@@ -3927,7 +3997,10 @@ document.getElementById('mePointsRankingModal')&&document.getElementById('mePoin
   var userBtn=e.target.closest('[data-user-id]');
   if(userBtn){
     var userId=Number(userBtn.getAttribute('data-user-id'));
-    if(Number.isFinite(userId)&&userId>0){closeMePointsRanking();openUserHome(userId,'posts');}
+    if(Number.isFinite(userId)&&userId>0){
+      closeMePointsRanking();
+      openUserHome(userId,'posts',{ returnTo:'points-ranking' });
+    }
     return;
   }
   if(e.target&&e.target.id==='mePointsRankingModal') closeMePointsRanking();
@@ -4091,7 +4164,7 @@ document.getElementById('userHomeProfile')&&document.getElementById('userHomePro
       return;
     }
     openChatWithUser(Number(profile.id), profile);
-    closeUserHome();
+    closeUserHome({restoreParent:false});
     return;
   }
   var viewBtn=e.target.closest('[data-user-home-view]');
@@ -4112,7 +4185,7 @@ document.getElementById('userHomeList')&&document.getElementById('userHomeList')
   if(postBtn){
     var postId=Number(postBtn.getAttribute('data-open-post-id'));
     if(Number.isFinite(postId) && postId>0){
-      closeUserHome();
+      closeUserHome({restoreParent:false});
       if(typeof window.setHomeTab==='function') window.setHomeTab('forum');
       openForumView(postId);
     }
@@ -4389,7 +4462,8 @@ document.getElementById('forumList')&&document.getElementById('forumList').addEv
   if(readBtn && card){
     var postId=Number(card.getAttribute('data-id'));
     if(Number.isFinite(postId) && postId>0){
-      window.open('/function/forum-post.html?id='+encodeURIComponent(String(postId)),'_blank');
+      saveForumReturnState();
+      window.location.assign('/function/forum-post.html?id='+encodeURIComponent(String(postId)));
     }
     return;
   }
@@ -4560,6 +4634,9 @@ refreshMe();
   var userSearchLoading=false;
   var activeTab='all';
   var activeToolTab='calcTools';
+  var calendarEmbedLoaded=false;
+  var calendarEmbedLoading=false;
+  var homeNavigationReady=false;
   function normalizeTab(tab){
     if(!tab) return '';
     var raw=String(tab).trim();
@@ -4799,6 +4876,64 @@ refreshMe();
     var btn=tabBar.querySelector('[data-tab="'+tab+'"]');
     return !!(btn && !btn.hasAttribute('hidden'));
   }
+  function firstVisibleTab(){
+    var button=tabBar.querySelector('[data-tab]:not([hidden])');
+    return button ? button.getAttribute('data-tab') : 'all';
+  }
+  function renderCalendarEmbedError(){
+    var host=document.getElementById('homeCalendarEmbedHost');
+    if(!host) return;
+    calendarEmbedLoading=false;
+    calendarEmbedLoaded=false;
+    host.innerHTML='<div class="home-calendar-error"><strong>活动日历加载失败</strong><span>请检查网络后重试。</span><button class="home-calendar-retry" id="calendarEmbedRetry" type="button">重新加载</button></div>';
+    var retry=document.getElementById('calendarEmbedRetry');
+    if(retry) retry.addEventListener('click',function(){ ensureCalendarEmbed(true); });
+  }
+  function ensureCalendarEmbed(forceRetry){
+    if(!homeNavigationReady) return;
+    if(!isValidTab('calendar')) return;
+    var host=document.getElementById('homeCalendarEmbedHost');
+    if(!host || calendarEmbedLoading || (calendarEmbedLoaded && !forceRetry)) return;
+    var oldFrame=host.querySelector('iframe');
+    if(oldFrame && !forceRetry) return;
+    calendarEmbedLoading=true;
+    calendarEmbedLoaded=false;
+    host.innerHTML='<div class="home-calendar-loading"><strong>正在加载活动日历</strong><span>首次打开需要一点时间。</span></div>';
+    var iframe=document.createElement('iframe');
+    iframe.title='活动日历';
+    iframe.loading='eager';
+    iframe.src='/function/calendar.html?embed=1';
+    iframe.addEventListener('load',function(){
+      calendarEmbedLoading=false;
+      calendarEmbedLoaded=true;
+    },{once:true});
+    iframe.addEventListener('error',renderCalendarEmbedError,{once:true});
+    host.innerHTML='';
+    host.appendChild(iframe);
+  }
+  function applyHomeNavigation(items){
+    var visibility={};
+    (Array.isArray(items)?items:[]).forEach(function(item){
+      if(item && typeof item.id==='string' && typeof item.visible==='boolean') visibility[item.id]=item.visible;
+    });
+    document.querySelectorAll('[data-home-nav-id]').forEach(function(control){
+      var id=control.getAttribute('data-home-nav-id');
+      control.toggleAttribute('hidden', visibility[id]===false);
+    });
+    if(!isValidTab(activeTab)) setActiveTab(firstVisibleTab());
+    document.dispatchEvent(new CustomEvent('homenavigationchange',{detail:{items:items||[]}}));
+  }
+  async function loadHomeNavigation(){
+    try{
+      var response=await apiFetch('/api/home-navigation',{method:'GET'});
+      var data=await response.json().catch(function(){ return {}; });
+      homeNavigationReady=true;
+      if(response.ok && Array.isArray(data.items)) applyHomeNavigation(data.items);
+    }catch(_error){
+      homeNavigationReady=true;
+    }
+    if(activeTab==='calendar') ensureCalendarEmbed();
+  }
   function setSearchVisible(tab){
     if(!searchWrap) return;
     var show = tab==='all';
@@ -4848,7 +4983,7 @@ refreshMe();
   }
   function setActiveTab(tab){
     var normalized=normalizeTab(tab);
-    if(!isValidTab(normalized)) normalized='all';
+    if(!isValidTab(normalized)) normalized=firstVisibleTab();
     activeTab=normalized;
     setToolSubTabsVisible(activeTab);
     setSearchVisible(activeTab);
@@ -4859,6 +4994,7 @@ refreshMe();
     if(typeof window.refreshForumListView === 'function') window.refreshForumListView();
     if (window.updateForumFab) window.updateForumFab(activeTab);
     if(activeTab==='my' && authUser){ loadMeRewards(); }
+    if(activeTab==='calendar') ensureCalendarEmbed();
     updateTabQuery();
   }
   window.setHomeTab = setActiveTab;
@@ -4934,8 +5070,9 @@ refreshMe();
   var initialToolTab = normalizeToolTab(urlToolTab) || normalizeToolTab(urlTab) || 'calcTools';
   setActiveToolTab(initialToolTab, true);
   var initialTab = normalizeTab(urlTab);
-  initialTab = isValidTab(initialTab) ? initialTab : 'all';
+  initialTab = isValidTab(initialTab) ? initialTab : firstVisibleTab();
   setActiveTab(initialTab);
+  loadHomeNavigation();
   var deepOpenUser = '';
   if(urlParams) deepOpenUser = urlParams.get('openUser') || '';
   var deepUid = Number(deepOpenUser);

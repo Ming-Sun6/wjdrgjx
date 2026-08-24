@@ -10,10 +10,11 @@
     el('historyImmigrationInterval').value = state.intervalDays;
     el('historyImmigrationOffset').value = state.rules.displayOffsetDays;
     var dateBox = el('historyImmigrationDates');
-    dateBox.innerHTML = state.dates.map(function (item, i) { return '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><input type="date" class="him-date" data-i="' + i + '" value="' + esc(item.date) + '"><input class="him-note" data-i="' + i + '" placeholder="备注" value="' + esc(item.note) + '"><label><input type="checkbox" class="him-enabled" data-i="' + i + '"' + (item.enabled === false ? '' : ' checked') + '>启用</label><button type="button" class="btn secondary him-delete" data-i="' + i + '">删除</button></div>'; }).join('');
+    dateBox.innerHTML = state.dates.map(function (item, i) { return '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0"><input type="date" class="him-date" data-i="' + i + '" value="' + esc(item.date) + '"><input class="him-note" data-i="' + i + '" placeholder="备注" value="' + esc(item.note) + '"><label><input type="checkbox" class="him-enabled" data-i="' + i + '"' + (item.enabled === false ? '' : ' checked') + '>启用</label><label><input type="checkbox" class="him-unopened" data-i="' + i + '"' + (item.unopened === true ? ' checked' : '') + '>未开放</label><button type="button" class="btn secondary him-delete" data-i="' + i + '">删除</button></div>'; }).join('');
     dateBox.querySelectorAll('.him-date').forEach(function (n) { n.oninput = function () { state.dates[Number(n.dataset.i)].date = n.value; }; });
     dateBox.querySelectorAll('.him-note').forEach(function (n) { n.oninput = function () { state.dates[Number(n.dataset.i)].note = n.value; }; });
     dateBox.querySelectorAll('.him-enabled').forEach(function (n) { n.onchange = function () { state.dates[Number(n.dataset.i)].enabled = n.checked; }; });
+    dateBox.querySelectorAll('.him-unopened').forEach(function (n) { n.onchange = function () { state.dates[Number(n.dataset.i)].unopened = n.checked; }; });
     dateBox.querySelectorAll('.him-delete').forEach(function (n) { n.onclick = function () { state.dates.splice(Number(n.dataset.i), 1); render(); }; });
     var matrix = el('historyImmigrationMatrix');
     var html = '<table style="min-width:900px;width:100%;border-collapse:collapse"><thead><tr><th>邻邦区间</th>' + state.dates.map(function (d) { return '<th>' + esc(d.date) + '</th>'; }).join('') + '</tr></thead><tbody>';
@@ -33,8 +34,8 @@
   function bind() {
     el('historyImmigrationReloadBtn').onclick = load;
     el('historyImmigrationSaveBtn').onclick = save;
-    el('historyImmigrationAddBtn').onclick = function () { state.dates.push({ date: '', enabled: true, note: '', overrides: {} }); render(); };
-    el('historyImmigrationGenerateBtn').onclick = function () { var last = state.dates[state.dates.length - 1]; if (!last || !/^\d{4}-\d{2}-\d{2}$/.test(last.date)) return; state.dates.push({ date: addDays(last.date, state.intervalDays), enabled: true, note: '', overrides: {} }); render(); };
+    el('historyImmigrationAddBtn').onclick = function () { state.dates.push({ date: '', enabled: true, unopened: false, note: '', overrides: {} }); render(); };
+    el('historyImmigrationGenerateBtn').onclick = function () { var last = state.dates[state.dates.length - 1]; if (!last || !/^\d{4}-\d{2}-\d{2}$/.test(last.date)) return; state.dates.push({ date: addDays(last.date, state.intervalDays), enabled: true, unopened: false, note: '', overrides: {} }); render(); };
   }
   window.loadHistoryImmigrationAdmin = function () { if (!loaded) load(); };
   document.addEventListener('DOMContentLoaded', bind);

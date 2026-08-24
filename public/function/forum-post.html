@@ -772,6 +772,17 @@
         return;
       }
       document.getElementById('backBtn').addEventListener('click',function(){
+        if(typeof window.wjdrSmartBack==='function'){
+          window.wjdrSmartBack('/?tab=forum');
+          return;
+        }
+        try{
+          var previous=new URL(document.referrer, window.location.href);
+          if(previous.origin===window.location.origin && window.history.length>1){
+            window.history.back();
+            return;
+          }
+        }catch(_e){}
         location.href='/?tab=forum';
       });
 

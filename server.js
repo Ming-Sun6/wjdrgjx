@@ -73,6 +73,9 @@ const { getChatSendPolicy, canReadChatThread, createKeyedSerialExecutor } = requ
 const { injectShareMeta, resolvePageMeta, resolvePublicHtmlPath } = require('./share-meta');
 const { defaultNeighborProgressConfig, normalizeNeighborProgressConfig } = require('./neighbor-progress-config');
 const { DEFAULT_HISTORY_IMMIGRATION_DATES, defaultHistoryImmigrationConfig, normalizeHistoryImmigrationConfig } = require('./history-immigration-config');
+const { ensureCalendarSchema, createCalendarStore } = require('./calendar-store');
+const { mountCalendarRoutes } = require('./calendar-routes');
+const { mountHomeNavigationRoutes, HOME_NAVIGATION_CATALOG, normalizeHomeNavigation, createHomeNavigationHandlers } = require('./home-navigation');
 
 const app = express();
 const runChatSendSerial = createKeyedSerialExecutor();
@@ -1768,6 +1771,7 @@ async function initDB() {
     if (heroSeedPg.seeded) console.log(`Hero generations seeded: ${heroSeedPg.count}`);
     await ensureUserRewardsSchema({ execute, pgDatabase, addColumnIfMissing });
     await ensureShopSchema({ execute, pgDatabase });
+    await ensureCalendarSchema({ execute, queryRows, queryOne, runInTransaction, pgDatabase: true });
     return;
   }
 
@@ -2044,6 +2048,7 @@ async function initDB() {
 
   await ensureUserRewardsSchema({ execute, pgDatabase, addColumnIfMissing });
   await ensureShopSchema({ execute, pgDatabase });
+  await ensureCalendarSchema({ execute, queryRows, queryOne, runInTransaction, pgDatabase: false });
 }
 
 async function getPostById(postId) {
@@ -2527,7 +2532,7 @@ async function getHistoryImmigrationConfig() {
   // the 1~13 range correctly shows the 12th-generation grouping (+1 display day).
   const latestDate = DEFAULT_HISTORY_IMMIGRATION_DATES[DEFAULT_HISTORY_IMMIGRATION_DATES.length - 1];
   if (stored && Array.isArray(stored.dates) && stored.dates.length >= DEFAULT_HISTORY_IMMIGRATION_DATES.length - 1 && !normalized.dates.some((item) => item.date === latestDate)) {
-    normalized.dates.push({ date: latestDate, enabled: true, note: '', overrides: {} });
+    normalized.dates.push({ date: latestDate, enabled: true, unopened: false, note: '', overrides: {} });
     normalized.dates.sort((a, b) => a.date.localeCompare(b.date));
   }
   return normalized;
@@ -4736,142 +4741,19 @@ app.delete('/api/admin/moderators/:id', async (req, res) => {
   }
 });
 
-app.get('/api/calendar/schedules', async (_req, res) => {
-  try {
-    const rows = await queryRows(
-      `
-      SELECT id,original_id,name,date,start_time,end_time,color,description
-      FROM calendar_schedules
-      ORDER BY date ASC,start_time ASC,id ASC
-      `
-    );
-    return res.json({
-      schedules: rows.map((r) => ({
-        id: Number(r.id),
-        originalId: r.original_id,
-        name: r.name,
-        date: r.date,
-        startTime: r.start_time || '',
-        endTime: r.end_time || '',
-        color: r.color || '#4CAF50',
-        description: r.description || ''
-      }))
-    });
-  } catch (err) {
-    console.error('calendar get failed:', err);
-    return res.status(500).json({ error: 'INTERNAL_ERROR' });
-  }
+const calendarStore = createCalendarStore({ queryRows, queryOne, execute, runInTransaction, pgDatabase: !!pgDatabase });
+mountCalendarRoutes(app, {
+  store: calendarStore,
+  requireAdmin,
+  auditAdminAction,
+  logError: (label, error) => console.error(`${label}:`, error)
 });
-
-function validateCalendarPayload(body) {
-  const name = String(body?.name || '').trim();
-  const dates = Array.isArray(body?.dates) ? body.dates.map((x) => String(x).trim()).filter(Boolean) : [];
-  const startTime = String(body?.startTime || '').trim();
-  const endTime = String(body?.endTime || '').trim();
-  const color = String(body?.color || '#4CAF50').trim().slice(0, 16);
-  const description = String(body?.description || '').trim().slice(0, 5000);
-  if (!name || name.length > 120) return { error: 'BAD_NAME' };
-  if (!dates.length) return { error: 'BAD_DATE' };
-  if (!dates.every((d) => /^\d{4}-\d{2}-\d{2}$/.test(d))) return { error: 'BAD_DATE' };
-  if ((startTime && !/^\d{2}:\d{2}$/.test(startTime)) || (endTime && !/^\d{2}:\d{2}$/.test(endTime))) return { error: 'BAD_TIME' };
-  if (startTime && endTime && startTime >= endTime) return { error: 'TIME_RANGE' };
-  return { value: { name, dates, startTime, endTime, color: color || '#4CAF50', description } };
-}
-
-app.post('/api/calendar/schedules', async (req, res) => {
-  try {
-    const admin = await requireAdmin(req, res);
-    if (!admin) return;
-    const valid = validateCalendarPayload(req.body || {});
-    if (valid.error) return res.status(400).json({ error: valid.error });
-    const payload = valid.value;
-    const originalId = `cal_${Date.now().toString(36)}_${crypto.randomInt(1000, 9999)}`;
-    for (const date of payload.dates) {
-      await execute(
-        `
-        INSERT INTO calendar_schedules
-        (original_id,name,date,start_time,end_time,color,description,created_by,updated_at)
-        VALUES (?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP(3))
-        `,
-        [originalId, payload.name, date, payload.startTime || null, payload.endTime || null, payload.color, payload.description || null, Number(admin.id)]
-      );
-    }
-    await auditAdminAction(req, {
-      actor: admin,
-      action: 'calendar.create',
-      targetType: 'calendar_schedule',
-      targetId: originalId,
-      riskLevel: 'watch',
-      summary: `创建日历：${payload.name}`,
-      metadata: { originalId, name: payload.name, dates: payload.dates }
-    });
-    return res.status(201).json({ ok: true, originalId, count: payload.dates.length });
-  } catch (err) {
-    console.error('calendar post failed:', err);
-    return res.status(500).json({ error: 'INTERNAL_ERROR' });
-  }
-});
-
-app.patch('/api/calendar/schedules/:originalId', async (req, res) => {
-  try {
-    const admin = await requireAdmin(req, res);
-    if (!admin) return;
-    const originalId = String(req.params.originalId || '').trim();
-    if (!originalId) return res.status(400).json({ error: 'BAD_ID' });
-    const exists = await queryOne('SELECT id FROM calendar_schedules WHERE original_id = ? LIMIT 1', [originalId]);
-    if (!exists) return res.status(404).json({ error: 'NOT_FOUND' });
-    const valid = validateCalendarPayload(req.body || {});
-    if (valid.error) return res.status(400).json({ error: valid.error });
-    const payload = valid.value;
-    await execute('DELETE FROM calendar_schedules WHERE original_id = ?', [originalId]);
-    for (const date of payload.dates) {
-      await execute(
-        `
-        INSERT INTO calendar_schedules
-        (original_id,name,date,start_time,end_time,color,description,created_by,updated_at)
-        VALUES (?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP(3))
-        `,
-        [originalId, payload.name, date, payload.startTime || null, payload.endTime || null, payload.color, payload.description || null, Number(admin.id)]
-      );
-    }
-    await auditAdminAction(req, {
-      actor: admin,
-      action: 'calendar.update',
-      targetType: 'calendar_schedule',
-      targetId: originalId,
-      riskLevel: 'watch',
-      summary: `更新日历：${payload.name}`,
-      metadata: { originalId, name: payload.name, dates: payload.dates }
-    });
-    return res.json({ ok: true, originalId, count: payload.dates.length });
-  } catch (err) {
-    console.error('calendar patch failed:', err);
-    return res.status(500).json({ error: 'INTERNAL_ERROR' });
-  }
-});
-
-app.delete('/api/calendar/schedules/:originalId', async (req, res) => {
-  try {
-    const admin = await requireAdmin(req, res);
-    if (!admin) return;
-    const originalId = String(req.params.originalId || '').trim();
-    if (!originalId) return res.status(400).json({ error: 'BAD_ID' });
-    const ret = await execute('DELETE FROM calendar_schedules WHERE original_id = ?', [originalId]);
-    if (!Number(ret.affectedRows)) return res.status(404).json({ error: 'NOT_FOUND' });
-    await auditAdminAction(req, {
-      actor: admin,
-      action: 'calendar.delete',
-      targetType: 'calendar_schedule',
-      targetId: originalId,
-      riskLevel: 'watch',
-      summary: `删除日历 ${originalId}`,
-      metadata: { originalId, affectedRows: Number(ret.affectedRows || 0) }
-    });
-    return res.json({ ok: true });
-  } catch (err) {
-    console.error('calendar delete failed:', err);
-    return res.status(500).json({ error: 'INTERNAL_ERROR' });
-  }
+mountHomeNavigationRoutes(app, {
+  getSetting,
+  setSetting,
+  requireAdmin,
+  auditAdminAction,
+  logError: (label, error) => console.error(`${label}:`, error)
 });
 
 mountGiftPackRoutes({
@@ -5131,7 +5013,10 @@ module.exports = {
   normalizeToolManagement,
   toPublicToolManagement,
   toAdminToolManagement,
-  createToolManagementHandlers
+  createToolManagementHandlers,
+  HOME_NAVIGATION_CATALOG,
+  normalizeHomeNavigation,
+  createHomeNavigationHandlers
 };
 
 process.on('uncaughtException', (err) => {

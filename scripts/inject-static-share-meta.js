@@ -53,8 +53,7 @@ function inject(filePath) {
 
 const changed = walk(PUBLIC_ROOT).filter((filePath) => {
   const relative = path.relative(PUBLIC_ROOT, filePath).split(path.sep).join('/');
-  if (relative.startsWith('function/_ops/') || relative.startsWith('function/aeroplane-chess/')) return false;
-  if (relative.startsWith('function/wjdeyj/fpgj/')) return false;
+  if (relative.startsWith('function/_ops/')) return false;
   if (relative.endsWith('/admin.html')) return false;
   return inject(filePath);
 });

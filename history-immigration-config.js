@@ -27,7 +27,7 @@ function addDays(date, days) {
 function normalizeHistoryImmigrationConfig(input, validRanges = []) {
   const raw = input && typeof input === 'object' ? input : {};
   const intervalDays = Math.max(1, Math.min(90, Math.round(Number(raw.intervalDays) || DEFAULT_HISTORY_IMMIGRATION_INTERVAL_DAYS)));
-  const sourceDates = Array.isArray(raw.dates) ? raw.dates : DEFAULT_HISTORY_IMMIGRATION_DATES.map((date) => ({ date, enabled: true, note: '', overrides: {} }));
+  const sourceDates = Array.isArray(raw.dates) ? raw.dates : DEFAULT_HISTORY_IMMIGRATION_DATES.map((date) => ({ date, enabled: true, unopened: false, note: '', overrides: {} }));
   const rangeSet = new Set((Array.isArray(validRanges) ? validRanges : []).map((v) => String(v)));
   const seen = new Set();
   const dates = sourceDates.slice(0, 200).map((item) => {
@@ -41,13 +41,13 @@ function normalizeHistoryImmigrationConfig(input, validRanges = []) {
         if ((!rangeSet.size || rangeSet.has(key)) && /^group-[A-Za-z0-9_-]{1,24}$/.test(String(value.overrides[key] || ''))) overrides[key] = String(value.overrides[key]);
       });
     }
-    return { date, enabled: value.enabled !== false, note: String(value.note || '').slice(0, 120), overrides };
+    return { date, enabled: value.enabled !== false, unopened: value.unopened === true, note: String(value.note || '').slice(0, 120), overrides };
   }).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
   const rules = raw.rules && typeof raw.rules === 'object' ? raw.rules : {};
   return {
     version: 1,
     intervalDays,
-    dates: dates.length ? dates : DEFAULT_HISTORY_IMMIGRATION_DATES.map((date) => ({ date, enabled: true, note: '', overrides: {} })),
+    dates: dates.length ? dates : DEFAULT_HISTORY_IMMIGRATION_DATES.map((date) => ({ date, enabled: true, unopened: false, note: '', overrides: {} })),
     rules: {
       displayOffsetDays: Math.max(0, Math.min(7, Math.round(Number(rules.displayOffsetDays) || DEFAULT_HISTORY_IMMIGRATION_RULES.displayOffsetDays))),
       groupMode: rules.groupMode === 'manual' ? 'manual' : 'same-progress',

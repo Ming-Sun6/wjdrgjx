@@ -36,7 +36,7 @@
   <meta name="baidu_union_verify" content="535036ca27ac60074f8e14b175d8dfe5">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>冬日工具箱</title>
-  <link rel="stylesheet" href="/function/home.css?v=20260803">
+  <link rel="stylesheet" href="/function/home.css?v=20260825">
   <script src="/function/analytics-tracker.js" defer></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <style id="wjdr-home-mobile-title-fix">
@@ -277,7 +277,7 @@
     <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
     <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
   </div>
-  <div class="version-tag">版本 V0.9.32</div>
+        <div class="version-tag">版本 V0.9.39</div>
 	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告" style="display:none;">
 	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
 	    <span class="announcement-dot" id="announcementDot"></span>
@@ -294,12 +294,11 @@
     </header>
 
     <nav class="tab-bar" id="mainTabs">
-      <button class="tab-item" type="button" data-tab="all">全部</button>
-      <button class="tab-item" type="button" data-tab="tools">工具</button>
-      <button class="tab-item" type="button" data-tab="forum">交流论坛</button>
-      <!-- 暂时隐藏活动日历分栏；恢复时移除此按钮的 hidden -->
-      <button class="tab-item" type="button" data-tab="calendar" hidden>活动日历</button>
-      <button class="tab-item" type="button" data-tab="my">我的信息</button>
+      <button class="tab-item" type="button" data-tab="all" data-home-nav-id="all">全部</button>
+      <button class="tab-item" type="button" data-tab="tools" data-home-nav-id="tools">工具</button>
+      <button class="tab-item" type="button" data-tab="forum" data-home-nav-id="forum">交流论坛</button>
+      <button class="tab-item" type="button" data-tab="calendar" data-home-nav-id="calendar">活动日历</button>
+      <button class="tab-item" type="button" data-tab="my" data-home-nav-id="my">我的信息</button>
     </nav>
     <div class="tool-subtabs" id="toolSubTabs" style="display:none;">
       <button class="tool-subitem" type="button" data-tool-tab="calcTools">计算器/工具</button>
@@ -665,16 +664,12 @@
         </div>
       </section>
 
-      <!-- 暂时隐藏活动日历入口；恢复时移除此 section 的 hidden -->
-      <section class="card" data-category="calendar" hidden>
-        <div class="card-head">
-          <div class="card-title">活动日历</div>
-          <div class="pill">已上线</div>
-        </div>
-        <div class="desc">查看本周/本月活动安排，支持日历视图管理。</div>
-        <div class="actions">
-          <a class="btn" href="function/calendar.html">进入日历</a>
-          <a class="btn secondary" href="function/calendar.html" target="_blank" rel="noopener">新窗口打开</a>
+      <section class="card wide home-calendar-panel" id="homeCalendarPanel" data-category="calendar">
+        <div class="home-calendar-embed-host" id="homeCalendarEmbedHost" aria-live="polite">
+          <div class="home-calendar-placeholder">
+            <strong>活动日历</strong>
+            <span>点击“活动日历”后开始加载，节省首页流量。</span>
+          </div>
         </div>
       </section>
       <section class="card wide" data-category="forum">
@@ -926,6 +921,21 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
       </div>
       <div class="changelog-body">
+        <h4>V0.9.39（2026-08-25）</h4>
+        <ol>
+          <li><strong>活动日历上线</strong>：新增淡暖色活动日历，支持周视图、月视图、跨日日程、组合任务和每日清单，并可自由查看最近 18 个月的活动安排。</li>
+          <li><strong>首页加载优化</strong>：桌面顶部和手机版底部新增“活动日历”，仅在用户点击后加载日历内容，减少首页初次打开的流量消耗。</li>
+        </ol>
+        <h4>V0.9.38（2026-08-25）</h4>
+        <ol>
+          <li><strong>移民预测日期扩展</strong>：日期选择支持查看最近两年的历史移民日期，并继续保留当期与后续预测日期。</li>
+          <li><strong>移民日期状态</strong>：日期列表、当前日期标记及历史对照新增“未开放”状态提示。</li>
+        </ol>
+        <h4>V0.9.37（2026-08-24）</h4>
+        <ol>
+          <li><strong>打熊车身推荐上线</strong>：新增 S–D 级车身英雄、远征一技能与搭配特性查询，支持英雄关键词搜索和评级筛选。</li>
+          <li><strong>返回体验优化</strong>：优化工具、数据详情及论坛页面的返回行为；从站内进入时返回上次浏览位置，直接打开时回到对应功能分类。</li>
+        </ol>
         <h4>V0.9.35（2026-08-23）</h4>
         <ol><li><strong>熊坑排布简约版上线</strong>：更轻量、更简单的熊坑排布工具，适合快速完成成员与站位安排，并支持存档恢复和分享导入。</li></ol>
         <h4>V0.9.32（2026-08-22）</h4>
@@ -1747,6 +1757,6 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
         return window.__giftPackSearchBlobs;
       });
   </script>
-  <script src="/function/home-app.js?v=20260803"></script>
+  <script src="/function/home-app.js?v=20260825"></script>
 </body>
 </html>

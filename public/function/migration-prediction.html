@@ -84,6 +84,8 @@
     .tiny{color:var(--muted);font-size:.82rem;line-height:1.55;margin:6px 0 10px}
     .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:700;background:rgba(96,165,250,.2);border:1px solid rgba(96,165,250,.35);margin-right:8px;color:var(--text)}
     .pill.forecast{border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.15)}
+    .pill.unopened{border-color:rgba(251,191,36,.55);background:rgba(251,191,36,.16);color:#fde68a}
+    body.theme-light .pill.unopened{color:#92400e;background:#fef3c7;border-color:#f59e0b}
     .table-wrap{overflow:auto;border:1px solid var(--grid-s);border-radius:10px}
     table{width:100%;border-collapse:collapse;min-width:720px;font-size:.88rem}
     th,td{padding:9px 10px;border-bottom:1px solid var(--grid);border-right:1px solid var(--grid);text-align:left;white-space:nowrap}
@@ -549,6 +551,34 @@
       }
       return { dates: out, step: step, gapsSample: slice };
     }
+    function buildSelectableMigrationDates(historyEntries, forecastDates, todaySerial){
+      var today = Number.isFinite(todaySerial) ? todaySerial : getTodaySerial();
+      var cutoff = today - 730;
+      var byDate = {};
+      var items = [];
+      (Array.isArray(historyEntries) ? historyEntries : []).forEach(function(entry){
+        var item = typeof entry === "string" ? { date:entry } : entry;
+        var date = String(item && item.date || "");
+        var serial = dateStrToSerial(date);
+        if (!item || item.enabled === false || !Number.isFinite(serial) || serial < cutoff || byDate[date]) return;
+        byDate[date] = true;
+        items.push({ date:date, kind:"history", unopened:item.unopened === true });
+      });
+      (Array.isArray(forecastDates) ? forecastDates : []).forEach(function(dateValue){
+        var date = String(dateValue || "");
+        if (!Number.isFinite(dateStrToSerial(date)) || byDate[date]) return;
+        byDate[date] = true;
+        items.push({ date:date, kind:"forecast", unopened:false });
+      });
+      items.sort(function(a, b){ return a.date.localeCompare(b.date); });
+      return items;
+    }
+    function getSelectableMigrationDates(forecastDates){
+      var configured = historyImmigrationConfig && Array.isArray(historyImmigrationConfig.dates)
+        ? historyImmigrationConfig.dates
+        : historyDateMarks.map(function(date){ return { date:date, enabled:true, unopened:false }; });
+      return buildSelectableMigrationDates(configured, forecastDates, getTodaySerial());
+    }
     function displayRangeLabel(idx){
       if (idx < 0 || idx >= labels.length) return "";
       var t = labels[idx];
@@ -655,27 +685,33 @@
       }
       return parts.join("\u3001");
     }
-    function renderMatrixForecastUI(sid, fc, selectedIdx){
+    function renderMatrixForecastUI(sid, periods, selectedIdx){
       var matrixBody = document.getElementById("matrixGroupBody");
       var matrixForecastDateBadge = document.getElementById("matrixForecastDateBadge");
       var sectionLabel = document.getElementById("matrixForecastSectionLabel");
       var rangeIdx = findScheduleRangeIndex(sid);
-      var dates = fc && fc.dates ? fc.dates : [];
-      if (!dates.length){
+      var entries = Array.isArray(periods) ? periods : [];
+      if (!entries.length){
         if (sectionLabel) sectionLabel.textContent = "\u63a8\u7b97\u5c55\u793a\u65e5\uff08\u5f53\u671f\uff09";
         if (matrixForecastDateBadge) matrixForecastDateBadge.textContent = "\u2014";
         if (matrixBody) matrixBody.innerHTML = "<tr><td colspan=\"3\">\u6682\u65e0\u5916\u63a8\u65e5\u671f\u3002</td></tr>";
         return;
       }
-      var idx = Math.max(0, Math.min(Math.floor(Number(selectedIdx)) || 0, dates.length - 1));
-      var displayDate = dates[idx];
+      var idx = Math.max(0, Math.min(Math.floor(Number(selectedIdx)) || 0, entries.length - 1));
+      var selectedEntry = entries[idx];
+      var displayDate = selectedEntry.date;
+      var selectedMark = immigrationMarkSerial(displayDate);
+      var isPast = Number.isFinite(selectedMark) && selectedMark < getTodaySerial();
       if (sectionLabel){
         sectionLabel.textContent =
-          idx === 0
-            ? "\u63a8\u7b97\u5c55\u793a\u65e5\uff08\u5f53\u671f\uff09"
+          isPast
+            ? "\u5386\u53f2\u79fb\u6c11\u5c55\u793a\u65e5"
             : "\u63a8\u7b97\u5c55\u793a\u65e5\uff08" + displayDate + "\uff09";
       }
-      if (matrixForecastDateBadge) matrixForecastDateBadge.textContent = displayDate;
+      if (matrixForecastDateBadge){
+        matrixForecastDateBadge.textContent = displayDate + (selectedEntry.unopened ? " · 未开放" : "");
+        if (matrixForecastDateBadge.classList) matrixForecastDateBadge.classList.toggle("unopened", selectedEntry.unopened === true);
+      }
       var userBundleSel =
         rangeIdx >= 0 && displayDate
           ? progressBundleForCutoff(rangeIdx, immigrationMarkSerial(displayDate))
@@ -704,13 +740,14 @@
       if (!Number.isFinite(sid)) sid = 755;
       sid = Math.max(1, Math.floor(sid));
       var fc = forecastDatesFromHistory(historyDateMarks, 10, historyImmigrationConfig && historyImmigrationConfig.intervalDays);
+      var periods = getSelectableMigrationDates(fc.dates);
       var sel = document.getElementById("matrixForecastPeriodSelect");
       var idx = 0;
       if (sel && sel.value !== ""){
         var parsed = parseInt(sel.value, 10);
         if (Number.isFinite(parsed)) idx = parsed;
       }
-      renderMatrixForecastUI(sid, fc, idx);
+      renderMatrixForecastUI(sid, periods, idx);
     }
     function renderAll(){
       var input = document.getElementById("serverInput");
@@ -730,8 +767,10 @@
       var summaryEl = document.getElementById("userSummary");
 
       var fc = forecastDatesFromHistory(historyDateMarks, 10, historyImmigrationConfig && historyImmigrationConfig.intervalDays);
-      var defaultForecastIndex = selectDefaultForecastIndex(fc.dates, getTodaySerial());
-      var nextOpen = fc.dates.length ? fc.dates[defaultForecastIndex] : "-";
+      var matrixPeriods = getSelectableMigrationDates(fc.dates);
+      var matrixDates = matrixPeriods.map(function(item){ return item.date; });
+      var defaultForecastIndex = selectDefaultForecastIndex(matrixDates, getTodaySerial());
+      var nextOpen = matrixDates.length ? matrixDates[defaultForecastIndex] : "-";
 
       if (rhythmEl){
         rhythmEl.innerHTML =
@@ -782,12 +821,14 @@
 
       if (matrixPeriodSelect){
         matrixPeriodSelect.innerHTML = "";
-        if (fc.dates.length > 1){
+        if (matrixPeriods.length > 1){
           matrixPeriodSelect.hidden = false;
-          for (var pi = 0; pi < fc.dates.length; pi++){
+          for (var pi = 0; pi < matrixPeriods.length; pi++){
+            var period = matrixPeriods[pi];
             var opt = document.createElement("option");
             opt.value = String(pi);
-            opt.textContent = fc.dates[pi];
+            var periodLabel = pi < defaultForecastIndex ? "\u5386\u53f2" : (pi === defaultForecastIndex ? "\u5f53\u671f" : "\u9884\u6d4b");
+            opt.textContent = period.date + "\uff08" + periodLabel + (period.unopened ? "·未开放" : "") + "\uff09";
             matrixPeriodSelect.appendChild(opt);
           }
           matrixPeriodSelect.value = String(defaultForecastIndex);
@@ -795,7 +836,7 @@
           matrixPeriodSelect.hidden = true;
         }
       }
-      renderMatrixForecastUI(sid, fc, defaultForecastIndex);
+      renderMatrixForecastUI(sid, matrixPeriods, defaultForecastIndex);
 
       /* \u5c55\u958b\u5386\u53f2 */
       var hHtml = "";
@@ -809,7 +850,11 @@
           var d = historyDateMarks[h];
           var hb = progressBundleForCutoff(effectiveRangeIdx, immigrationMarkSerial(d));
           var past = immigrationMarkSerial(d) <= getTodaySerial();
-          hHtml += "<tr><td><span class=\"pill\">" + d + "</span></td>" +
+          var historyMeta = historyImmigrationConfig && Array.isArray(historyImmigrationConfig.dates)
+            ? historyImmigrationConfig.dates.find(function(item){ return item && item.date === d; })
+            : null;
+          var unopened = !!(historyMeta && historyMeta.unopened === true);
+          hHtml += "<tr><td><span class=\"pill" + (unopened ? " unopened" : "") + "\">" + d + (unopened ? " · 未开放" : "") + "</span></td>" +
             "<td class=\"st-accent\">" + hb.text + "</td>" +
             "<td>" + (past ? "\u5df2\u53d1\u751f\u8FC7\u7684\u79FB\u6C11\u5217\u65E5" : "\u5c55\u793a/\u9884\u6d4b") + "</td></tr>";
         }
@@ -856,6 +901,7 @@
     window.selectDefaultForecastIndex = selectDefaultForecastIndex;
     window.dateStrToSerial = dateStrToSerial;
     window.forecastDatesFromHistory = forecastDatesFromHistory;
+    window.buildSelectableMigrationDates = buildSelectableMigrationDates;
     window.compoundProgressText = compoundProgressText;
     window.compoundProgressSortKey = compoundProgressSortKey;
     window.applyRemoteConfigs = applyRemoteConfigs;

@@ -15,8 +15,8 @@ test('homepage keeps presentation and application logic in dedicated static asse
   const js = read('public/function/home-app.js');
 
   assert.ok(html.split(/\r?\n/).length < 3000, 'index.html should remain a readable document shell');
-  assert.match(html, /<link rel="stylesheet" href="\/function\/home\.css\?v=20260803">/);
-  assert.match(html, /<script src="\/function\/home-app\.js\?v=20260803"><\/script>/);
+  assert.match(html, /<link rel="stylesheet" href="\/function\/home\.css\?v=20260825">/);
+  assert.match(html, /<script src="\/function\/home-app\.js\?v=20260825"><\/script>/);
   assert.match(css, /\.points-ranking-list/);
   assert.match(css, /\.chat-wrap/);
   assert.match(js, /function openUserHome/);
