@@ -63,3 +63,31 @@ test('migration prediction advances from the latest historical date in fixed 28-
   assert.deepEqual(Array.from(result.dates), ['2026-09-13', '2026-10-11', '2026-11-08']);
   assert.equal(result.step, 28);
 });
+
+test('migration prediction displays and sorts hero generations added after Hero12', () => {
+  const context = loadMigrationScriptContext();
+
+  assert.equal(typeof context.window.compoundProgressText, 'function');
+  assert.equal(typeof context.window.compoundProgressSortKey, 'function');
+  assert.equal(context.window.compoundProgressText({ FC10: true, Hero12: true, Hero13: true, Hero14: true }), '火10 + 14代');
+  assert.ok(
+    context.window.compoundProgressSortKey({ FC10: true, Hero14: true }) >
+      context.window.compoundProgressSortKey({ FC10: true, Hero12: true })
+  );
+});
+
+test('migration prediction displays newly configured non-hero progress stages', () => {
+  const context = loadMigrationScriptContext();
+  assert.equal(typeof context.window.applyRemoteConfigs, 'function');
+  context.window.applyRemoteConfigs([{
+    stages: [
+      { key: 'Hero14Custom', name: '14代英雄', dates: [] },
+      { key: 'FC11', name: '火晶十一', dates: [] }
+    ]
+  }, null]);
+
+  assert.equal(
+    context.window.compoundProgressText({ Hero14Custom: true, FC11: true }),
+    '火晶十一 + 14代'
+  );
+});

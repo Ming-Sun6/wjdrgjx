@@ -165,7 +165,7 @@
     <div class="top">
       <div>
         <div class="title">移民开放时间 · 同期分组一览</div>
-        <div class="sub">与「历史移民分组」相同：<strong>展示日 +1 日</strong>对里程碑得到<strong>相同进度档</strong>即<strong>同期同组</strong>。下为外推矩阵与多期日期。<strong style="color:#fbbf24;">仅供参考。</strong></div>
+        <div class="sub">与「历史移民分组」相同：<strong>展示日 +1 日</strong>对里程碑得到<strong>相同进度档，</strong><strong style="color:#fbbf24;">仅供参考。</strong></div>
       </div>
       <div class="top-actions">
         <a class="btn" href="neighbor-progress.html">邻邦进度</a>
@@ -187,8 +187,7 @@
 
     <section class="card">
       <h2>下期推算日 · 分组</h2>
-      <p class="tiny">算法同<a href="history-immigration-group.html">历史移民分组矩阵</a>：<strong>展示日 +1 日</strong>聚合。列为火晶档+英雄代；末列为连续区服合并。</p>
-      <div class="matrix-table-toolbar">左上可选其他外推展示日
+      <div class="matrix-table-toolbar">
         <div class="matrix-forecast-tag">
           <span id="matrixForecastSectionLabel" class="matrix-forecast-label">推算展示日（当期）</span>
         </div>
@@ -238,10 +237,8 @@
 
     <div class="foot">
       说明：<br />
-      1. <strong>同组</strong>＝同一展示日、<strong>+1 日</strong>口径下进度档相同的邻邦行（见上方矩阵）。<br />
-      2. 区服分段为社区表（约至 3716），空档与表外以游戏为准。<br />
+      2. 区服分段为社区表，空档与表外以游戏为准。<br />
       3. 日期与档位为推算；里程碑有<strong>表内覆盖</strong>时按覆盖日（同邻邦进度页）。「第几组」仅为矩阵内排序。<br />
-      4. 「战争学院」指学院阶段（非 T11 兵）；里程碑含 11 代英雄等，随数据更新。
     </div>
   </div>
 
@@ -292,18 +289,46 @@
       }
       return fl;
     }
+    function heroGenerationForStage(stage){
+      if (!stage) return 0;
+      var keyMatch = /^Hero(\d+)$/i.exec(String(stage.key || ""));
+      if (keyMatch) return Number(keyMatch[1]) || 0;
+      var nameMatch = /(\d+)\s*\u4ee3(?:\u82f1\u96c4)?/.exec(String(stage.name || ""));
+      return nameMatch ? (Number(nameMatch[1]) || 0) : 0;
+    }
+    function maxHeroGenerationFromFlags(fl){
+      if (!fl) return 0;
+      var maxH = 0;
+      Object.keys(fl).forEach(function(key){
+        if (!fl[key]) return;
+        var keyMatch = /^Hero(\d+)$/i.exec(String(key));
+        if (keyMatch) maxH = Math.max(maxH, Number(keyMatch[1]) || 0);
+      });
+      for (var si = 0; si < stageDefs.length; si++){
+        var stage = stageDefs[si];
+        if (stage && fl[stage.key]) maxH = Math.max(maxH, heroGenerationForStage(stage));
+      }
+      return maxH;
+    }
+    function latestNonHeroStageFromFlags(fl){
+      var result = null;
+      if (!fl) return result;
+      for (var si = 0; si < stageDefs.length; si++){
+        var stage = stageDefs[si];
+        if (stage && fl[stage.key] && !heroGenerationForStage(stage)) result = { stage: stage, index: si };
+      }
+      return result;
+    }
+    function progressStageDisplayName(stage){
+      if (!stage) return "";
+      var known = { FC5:"\u706b5", FC8:"\u706b8", FC10:"\u706b10", WarAcad:"\u6218\u4e89\u5b66\u9662" };
+      return known[stage.key] || String(stage.name || stage.key || "");
+    }
     function compoundProgressText(fl){
       if (!fl) return "-";
-      var fc10 = fl.FC10, fc8 = fl.FC8, fc5 = fl.FC5, war = fl.WarAcad;
-      var left = "";
-      if (fc10) left = "\u706b10";
-      else if (fc8) left = "\u706b8";
-      else if (war && !fc8) left = "\u6218\u4e89\u5b66\u9662";
-      else if (fc5) left = "\u706b5";
-      var maxH = 0;
-      for (var g = 12; g >= 4; g--){
-        if (fl["Hero" + g]){ maxH = g; break; }
-      }
+      var nonHero = latestNonHeroStageFromFlags(fl);
+      var left = nonHero ? progressStageDisplayName(nonHero.stage) : "";
+      var maxH = maxHeroGenerationFromFlags(fl);
       var right = maxH ? (maxH + "\u4ee3") : "";
       if (left && right) return left + " + " + right;
       if (right) return right;
@@ -312,17 +337,10 @@
     }
     function compoundProgressSortKey(fl){
       if (!fl) return -1;
-      var fc10 = fl.FC10, fc8 = fl.FC8, fc5 = fl.FC5, war = fl.WarAcad;
-      var leftCode = 0;
-      if (fc10) leftCode = 40;
-      else if (fc8) leftCode = 30;
-      else if (war && !fc8) leftCode = 25;
-      else if (fc5) leftCode = 10;
-      var maxH = 0;
-      for (var g2 = 12; g2 >= 4; g2--){
-        if (fl["Hero" + g2]){ maxH = g2; break; }
-      }
-      return leftCode * 40 + maxH;
+      var nonHero = latestNonHeroStageFromFlags(fl);
+      var leftCode = nonHero ? nonHero.index + 1 : 0;
+      var maxH = maxHeroGenerationFromFlags(fl);
+      return leftCode * 1000 + maxH;
     }
     function dominantStateKeyFromFlags(fl){
       if (!fl) return "";
@@ -838,6 +856,9 @@
     window.selectDefaultForecastIndex = selectDefaultForecastIndex;
     window.dateStrToSerial = dateStrToSerial;
     window.forecastDatesFromHistory = forecastDatesFromHistory;
+    window.compoundProgressText = compoundProgressText;
+    window.compoundProgressSortKey = compoundProgressSortKey;
+    window.applyRemoteConfigs = applyRemoteConfigs;
     remoteConfigPromise.then(function(payloads){ applyRemoteConfigs(payloads); renderAll(); }).catch(renderAll);
   })();
   </script>
