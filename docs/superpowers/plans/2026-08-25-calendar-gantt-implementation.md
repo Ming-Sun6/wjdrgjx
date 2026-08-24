@@ -28,6 +28,13 @@
 - Modify `public/function/home-app.js`: apply menu settings, choose a visible fallback tab, and create the calendar iframe only on first activation.
 - Create/modify tests under `tests/` for each contract before implementation.
 
+## Dirty worktree safety
+
+- Before editing, capture `git status --short` and `git diff -- index.html public/function/_ops/console-7a9/internal/admin.html tests/home-tools-mobile-ui.test.js public/function/home-app.js server.js` as the baseline. These files may already contain user work.
+- Never restore, checkout, reset, rewrite, or replace a shared dirty file wholesale. Apply narrow patches around the target markup/functions and re-read surrounding content before every patch.
+- New files may be staged normally. For any file that was dirty in the baseline, use hunk-level staging (`git add -p -- <file>`) and inspect `git diff --cached -- <file>` so only this feature's hunks enter a commit. A pathspec commit is forbidden for baseline-dirty shared files.
+- Before each commit, compare the unstaged diff with the recorded baseline and leave unrelated hunks unstaged. If a feature hunk overlaps an existing user hunk and cannot be separated safely, keep it uncommitted and report it rather than overwriting the user change.
+
 ### Task 1: Calendar domain primitives and recurrence engine
 
 **Files:**
@@ -94,9 +101,13 @@ Assert that MySQL and PostgreSQL definitions include `calendar_categories`, `cal
 ['regular', 'kingdom', 'leaderboard', 'cross-server', 'limited']
 ```
 
+Also test that custom category creation produces `custom-<26 lowercase ULID characters>`, retries unique-code conflicts at most five times, returns `CATEGORY_CODE_GENERATION_FAILED` after the fifth conflict, never changes `code` on edit/reorder/status operations, and enforces category-name uniqueness across enabled and disabled rows.
+
 - [ ] **Step 2: Implement DDL exports and `ensureCalendarSchema`**
 
 Create tables before migration. Seed missing preset categories by `code` without renaming existing rows. Add the PostgreSQL statements to `POSTGRES_SCHEMA_SQL`; call the shared initializer from both DB startup branches in `server.js`.
+
+The startup order must be explicit and tested in both modes: create/retain legacy table → create three canonical tables and indexes → seed five categories → migrate old rows. The PostgreSQL branch must call the shared calendar initializer before its existing early `return`.
 
 - [ ] **Step 3: Write failing legacy migration tests**
 
@@ -110,9 +121,13 @@ Run category initialization first, then migrate each unmigrated legacy group tra
 
 Cover definition/item create, full-replacement PATCH semantics, copy-default-disabled, status changes, category reorder/status, unknown child IDs, foreign child IDs, and rollback on item failure.
 
+Add dialect-adapter tests that execute both MySQL and PostgreSQL branches against recording adapters and assert JSON serialization/parsing, inserted-ID mapping (`insertId` versus `RETURNING id`), unique-conflict normalization, transaction callback usage, upsert syntax, and index/DDL order.
+
 - [ ] **Step 6: Implement repository methods**
 
 Expose `listDefinitions`, `getDefinition`, `createDefinition`, `replaceDefinition`, `copyDefinition`, `setDefinitionStatus`, `deleteDefinition`, and category CRUD/reorder/status methods. Parse JSON columns consistently for both databases.
+
+Editing a schedule already assigned to a disabled category may retain that category while changing non-category fields; assigning a different schedule into a disabled category must return `CATEGORY_DISABLED`. Store nullable schedule/item colors as null so public projections dynamically resolve item color → schedule color → current category color on every read.
 
 - [ ] **Step 7: Run and commit**
 
@@ -133,17 +148,21 @@ Commit: `git commit -m "feat: add canonical calendar storage" -- calendar-store.
 
 Verify inclusive `from/to`, required paired range parameters, 366-day limit, canonical occurrence response, category projection, Gantt `items`, daily-list `cards`, no-card parent omission, and `422 EXPANSION_LIMIT`.
 
+For every response mode assert exact stable IDs, dynamic category/schedule/item color inheritance after a category-color change, `daily-list.firstCardDate/lastCardDate` across the complete parent occurrence, returned cards clipped to the requested range, same-name same-day cards kept separate, and atomic limit failure with no partial response body.
+
 - [ ] **Step 2: Implement `createCalendarHandlers` and mount routes**
 
 Mount `GET /api/calendar/schedules?from&to`, `GET /api/admin/calendar/schedules`, category routes, and new schedule CRUD/copy/status routes. Inject `queryRows`, `queryOne`, `execute`, `runInTransaction`, `requireAdmin`, and `auditAdminAction` so tests do not start the server.
 
 - [ ] **Step 3: Write failing legacy-shape tests**
 
-No-range GET must return the 366-day compatibility window as per-day rows with `rangeDefaulted: true`. Old POST/PATCH/DELETE must map `dates` to canonical definitions and locate rows by `legacy_original_id`/compatible original ID.
+No-range GET must use exactly today minus 31 days through today plus 334 days inclusive, return per-day legacy rows with `id`, `originalId`, `name`, `date`, `startTime`, `endTime`, `color`, `description`, and `rangeDefaulted: true`. Old POST/PATCH without `categoryId` must resolve the category by immutable code `regular`, map sorted/deduplicated `dates` to canonical definitions, and locate PATCH/DELETE targets first by `legacy_original_id` then by compatible original ID.
 
 - [ ] **Step 4: Implement compatibility handlers and remove old inline routes**
 
 Keep the old paths but delegate to the new service. Do not leave duplicate Express route declarations in `server.js`.
+
+All old write paths still call `requireAdmin`, write create/update/delete audit entries, and execute delete-plus-replacement PATCH operations transactionally. Tests must force insertion failure and prove the original definition/items remain unchanged after rollback.
 
 - [ ] **Step 5: Add admin permission/audit/error tests**
 
@@ -212,6 +231,8 @@ Keep theme/bootstrap/meta/footer conventions, but move calendar behavior/style t
 
 Export testable helpers from `calendar-gantt.js` under CommonJS when available: week clipping, first-fit Gantt lanes, classification grouping, composite stable sorting, daily-card column grouping, and continuation labels.
 
+Because the static browser asset cannot import root CommonJS directly, duplicate only the small UTC/ISO navigation primitives behind explicit browser exports and test them in this file: ISO week-year at New Year, exact current-month/previous-17-month boundary, natural weeks intersecting the allowed range, previous/next button disabling, out-of-range date/month clamping, and the visible clamp notice.
+
 - [ ] **Step 4: Implement weekly and monthly rendering**
 
 Weekly view is one Monday–Sunday grid. Monthly view renders each natural week as its own date header plus schedule rows. Render category cells independently, adjacent non-overlapping tasks in one lane, overlapping tasks in new lanes, and continuation chips.
@@ -223,6 +244,8 @@ Gantt composites use dedicated row groups and nested child lanes. Daily lists re
 - [ ] **Step 6: Implement navigation, caching, and cancellation**
 
 Use an `AbortController` per request, cache by `{view,from,to}`, limit selectors to current month plus previous 17 months, use ISO week values, and fetch only after `DOMContentLoaded` of the calendar page (which itself is lazy-created by the homepage).
+
+Use UTC component construction in the browser helpers rather than `new Date('YYYY-MM-DD')` local conversions. The displayed ISO week selector value must use ISO week-year, including dates whose calendar year differs from their week-year.
 
 - [ ] **Step 7: Add responsive and visual-state tests**
 
@@ -301,7 +324,7 @@ Run: `node --test tests/home-calendar-lazy-load.test.js tests/home-tools-mobile-
 
 Expected: PASS.
 
-Commit: `git commit -m "feat: lazy load calendar from homepage" -- index.html public/function/home-app.js tests/home-calendar-lazy-load.test.js tests/home-tools-mobile-ui.test.js`
+Commit new clean files normally. For baseline-dirty `index.html` and `tests/home-tools-mobile-ui.test.js`, stage only calendar hunks with `git add -p`, verify the cached diff, and do not use a whole-file pathspec commit.
 
 ### Task 8: Homepage menu settings UI and runtime application
 
@@ -334,7 +357,7 @@ Run: `node --test tests/home-navigation.test.js tests/admin-home-navigation-page
 
 Expected: PASS.
 
-Commit: `git commit -m "feat: manage homepage menu visibility" -- public/function/admin-home-navigation-page.js public/function/_ops/console-7a9/internal/admin.html public/function/home-app.js tests/admin-home-navigation-page.test.js tests/home-calendar-lazy-load.test.js`
+Commit new clean files normally. Stage only the feature hunks from any baseline-dirty admin/home file and inspect the cached diff before committing.
 
 ### Task 9: Compatibility, changelogs, and full verification
 
@@ -381,7 +404,4 @@ Check desktop and mobile widths for homepage tab ordering, hidden-menu fallback,
 
 Run: `git diff --check` and `git status --short`.
 
-Do not stage unrelated existing user changes. Commit only files touched by this feature:
-
-`git commit -m "feat: launch configurable activity calendar" -- <calendar and navigation files>`
-
+Do not stage unrelated existing user changes. New files can use a pathspec commit; baseline-dirty shared files must remain hunk-staged only. Inspect both `git diff --cached --stat` and full `git diff --cached` before `git commit -m "feat: launch configurable activity calendar"`.
