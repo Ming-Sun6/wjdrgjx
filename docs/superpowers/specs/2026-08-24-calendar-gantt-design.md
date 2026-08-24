@@ -31,7 +31,7 @@
 ### 可浏览范围
 
 - “最近1.5年”统一定义为当前自然月与此前17个自然月；月份边界按 UTC 纯日期计算，不受浏览器时区影响。
-- 月视图允许选择上述18个月中的任意月份；周视图允许选择与该范围内任意日期相交的自然周，因此边界周可包含少量范围外日期并使用弱化样式。
+- 月视图允许选择上述18个月中的任意月份；周视图采用 ISO 8601 周标准（周一开始，显示和选择值使用 ISO week-year 与周号，例如 `2026-W01`），允许选择与该范围内任意日期相交的自然周，因此跨年或边界周可包含少量范围外日期并使用弱化样式。
 - 到达最早或最晚可选范围时禁用继续越界的上一周/上一月或下一周/下一月按钮；直接输入越界日期时自动夹到最近合法日期并给出轻提示。
 - 前端只请求当前周或当前月自然周覆盖范围，不一次性请求18个月数据；切换后取消尚未完成的旧请求，并按视图范围缓存已成功结果。
 
@@ -88,7 +88,7 @@
 - `gantt`：沿用上述横向甘特规则，连续日期合并为横向任务条，不连续日期拆成多个片段，重叠任务自动换行。
 - `daily-list`：左侧固定分类单元格只显示分类名称，并纵向跨越主活动标题行和每日卡片内容区；主活动标题行在其右侧横跨七个日期列，使用固定标题高度并显示名称及说明/奖励。标题行下方仍是七个严格对齐日期列，每列按子任务 `sortOrder`、子任务 ID 纵向堆叠独立圆角卡片；七列内容区使用当周最大卡片数对应的统一高度，空位保留网格底色。子任务覆盖多天时按天拆成卡片，同名任务连续多天出现也不得横向合并。
 - `daily-list` 卡片显示子任务名称，可选显示重点标记；颜色按“子任务覆盖色 → 主日程覆盖色 → 分类色”动态继承，点击卡片打开主活动和对应子任务详情。
-- 月视图中 `daily-list` 与其他日程一样按自然周拆分；只有当周至少存在一张启用子任务卡片时才渲染该组合行组。主活动标题在每个被渲染的周区块重复显示；若同一主活动发生在当前周之前仍有可见卡片则标记“接上周”，在当前周之后仍有可见卡片则标记“续下周”，标记依据实际启用卡片日期而不是单独依据主活动起止范围。
+- 月视图中 `daily-list` 与其他日程一样按自然周拆分；只有当周至少存在一张启用子任务卡片时才渲染该组合行组。主活动标题在每个被渲染的周区块重复显示；若该父发生的 `firstCardDate` 早于当前周开始日则标记“接上周”，`lastCardDate` 晚于当前周结束日则标记“续下周”。标记依据服务端计算的全部启用卡片首末日期，而不是单独依据主活动起止范围，因此不需要前端额外请求相邻周。
 
 ## 数据模型与兼容
 
@@ -148,7 +148,7 @@
 
 - `GET /api/calendar/schedules?from=YYYY-MM-DD&to=YYYY-MM-DD` 使用包含首尾的日期范围，只返回已启用日程的完整发生实例；响应为 `{ from, to, schedules: Occurrence[] }`。
 - `Occurrence` 至少包含 `id`、`scheduleId`、`originalId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description` 和 `scheduleType`。发生 ID 固定为 `<scheduleId>:<occurrenceStartDate>`，服务端不进行按周裁切。
-- 公开发生实例同时返回 `category: { id, code, name, color, sortOrder }`；组合发生返回 `compositeLayout` 并只展开已启用子任务。`gantt` 模式返回 `items`，子任务发生字段为 `id`、`itemId`、`parentOccurrenceId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description`、`sortOrder`、`highlighted`，稳定 ID 为 `<parentOccurrenceId>:item:<itemId>:<childStartDate>`。`daily-list` 模式返回服务端已逐日拆分的 `cards`，每张卡字段为 `id`、`itemOccurrenceId`、`itemId`、`parentOccurrenceId`、`name`、`date`、`startDate=date`、`endDate=date`、`startTime`、`endTime`、`color`、`description`、`sortOrder`、`highlighted`，稳定 ID 为 `<itemOccurrenceId>:day:<YYYY-MM-DD>`；同名、同日但来源发生不同的卡片不得合并。
+- 公开发生实例同时返回 `category: { id, code, name, color, sortOrder }`；组合发生返回 `compositeLayout` 并只展开已启用子任务。`gantt` 模式返回 `items`，子任务发生字段为 `id`、`itemId`、`parentOccurrenceId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description`、`sortOrder`、`highlighted`，稳定 ID 为 `<parentOccurrenceId>:item:<itemId>:<childStartDate>`。`daily-list` 模式额外返回该父发生全部启用卡片的 `firstCardDate/lastCardDate`（可位于请求范围外），并返回服务端已按请求范围逐日拆分的 `cards`；每张卡字段为 `id`、`itemOccurrenceId`、`itemId`、`parentOccurrenceId`、`name`、`date`、`startDate=date`、`endDate=date`、`startTime`、`endTime`、`color`、`description`、`sortOrder`、`highlighted`，稳定 ID 为 `<itemOccurrenceId>:day:<YYYY-MM-DD>`。同名、同日但来源发生不同的卡片不得合并；若父发生在请求范围内没有卡片则不返回该父发生。
 - 前端将完整发生实例裁切为周内 `Fragment`；片段包含 `fragmentId=<occurrenceId>:<weekStartDate>`、原始发生 ID、裁切后的 `startDate/endDate`。周/月甘特排布只使用片段。
 - 旧调用未提供 `from/to` 时保留旧响应形状：使用“今天前31天至今天后334天”（包含首尾共366天）的兼容窗口，将每个发生实例展开成逐日记录，字段继续包含 `date` 与 `originalId`，并返回 `rangeDefaulted: true`。所有现有旧页面无需立即迁移。
 - `GET /api/admin/calendar/schedules` 返回完整规则定义并包含停用日程；组合定义嵌套返回全部子任务（包括停用项）及其完整日期、循环和显示字段，供重新启用和可靠编辑。
@@ -159,7 +159,7 @@
 - 旧的管理员写接口保持为 `POST /api/calendar/schedules`、`PATCH /api/calendar/schedules/:originalId`、`DELETE /api/calendar/schedules/:originalId`。旧 POST/PATCH 的 `dates` 数组先去重排序：一个日期映射为 `single`，连续日期映射为 `continuous`，不连续日期映射为 `date-list`；PATCH/DELETE 通过 `legacy_original_id` 或兼容 `originalId` 定位新定义，并在事务内执行。
 - 新增、编辑、复制、停用和删除必须通过管理员权限校验。
 - 对日期范围、循环间隔、循环次数、名称长度、颜色和时间格式进行服务端验证。
-- 单次公开请求最多366天，超过返回 `400 RANGE_TOO_LARGE`；单次最多展开2000个发生实例，超过返回 `422 EXPANSION_LIMIT`，不得静默截断。
+- 单次公开请求最多366天，超过返回 `400 RANGE_TOO_LARGE`；单次最多生成2000个渲染单元。服务端在构造响应期间按普通日程发生、主活动发生、`gantt` 子任务发生和 `daily-list` 逐日卡片逐项累计，超过即返回 `422 EXPANSION_LIMIT`，不得静默截断或把逐日拆卡推迟到前端。
 - 最近18个月是前端可导航范围，不改变单次公开请求的366天上限；服务端必须能按任意合法 `from/to` 历史范围展开规则，不能只返回当前或未来发生实例。
 - 管理操作继续写入后台审计日志。
 
