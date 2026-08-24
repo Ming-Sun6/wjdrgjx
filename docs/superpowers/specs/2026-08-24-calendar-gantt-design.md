@@ -16,8 +16,9 @@
 ### 菜单显示控制
 
 - 后台新增“首页菜单”配置，管理员可分别控制“全部、工具、交流论坛、活动日历、我的信息”是否显示；桌面顶部和手机版底部使用同一份配置。
-- 配置保存在 `site_settings` 的 `home_navigation` 键中，结构为固定菜单 ID 到布尔值的映射；首次运行和读取失败时五项默认全部显示。
-- 公开 `GET /api/home-navigation` 返回规范化菜单列表；管理端 `GET/PUT/POST /api/admin/home-navigation` 用于读取和保存，写操作要求管理员权限并写审计日志。
+- 五个固定菜单按不可调整的顺序定义为 `all=全部`、`tools=工具`、`forum=交流论坛`、`calendar=活动日历`、`my=我的信息`；本期后台只控制显示状态，不提供改名或排序。
+- 配置保存在 `site_settings` 的 `home_navigation` 键中，完整结构为 `{ "items": [{ "id": "all", "visible": true }, { "id": "tools", "visible": true }, { "id": "forum", "visible": true }, { "id": "calendar", "visible": true }, { "id": "my", "visible": true }], "updatedAt": "ISO时间", "updatedBy": "管理员显示名" }`；首次运行和读取失败时五项默认全部显示。
+- 公开 `GET /api/home-navigation` 返回 `{ items: [{ id, visible }] }`；管理端 `GET /api/admin/home-navigation` 返回 `{ items: [{ id, name, visible }], updatedAt, updatedBy }`。管理端 `PUT/POST /api/admin/home-navigation` 接受完整 `{ items: [{ id, visible }] }` 并返回与管理 GET 相同结构；写操作要求管理员权限并写审计日志。
 - 服务端拒绝未知菜单 ID、缺项配置和全部隐藏的配置。当前 URL 指向的分栏被隐藏时，首页回退到第一个可见分栏；隐藏菜单只移除首页入口，不限制已知独立页面 URL 的直接访问。
 
 ### 周视图
