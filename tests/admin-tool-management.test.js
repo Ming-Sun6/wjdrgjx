@@ -55,7 +55,8 @@ test('tool-management load handles login, permission, and API failures explicitl
   assert.match(html, /r\.status===401[\s\S]{0,180}请先登录管理员账号/);
   assert.match(html, /r\.status===403[\s\S]{0,180}仅管理员可管理工具/);
   assert.match(html, /加载失败/);
-  assert.match(html, /data\.tools\.length!==TOOL_MANAGEMENT_EXPECTED_COUNT/);
+  assert.doesNotMatch(html, /TOOL_MANAGEMENT_EXPECTED_COUNT/);
+  assert.match(html, /!data\.tools\.length\s*\|\|\s*toolIds\.size!==data\.tools\.length/);
   assert.match(html, /toolManagementLoaded=false/);
   assert.match(html, /toolManagementLoaded=true/);
   assert.match(html, /saveBtn\.disabled=!!busy\s*\|\|\s*!toolManagementLoaded/);

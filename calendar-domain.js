@@ -107,7 +107,7 @@ function normalizeRecurrence(source, prefix) {
   const unit = String(get('Unit') || '').trim();
   const interval = Number(get('Interval'));
   const endType = String(get('EndType') || '').trim();
-  if (!RECURRENCE_UNITS.has(unit) || !Number.isInteger(interval) || interval < 1 || !RECURRENCE_END_TYPES.has(endType)) {
+  if (!RECURRENCE_UNITS.has(unit) || !Number.isInteger(interval) || interval < 1 || interval > 365 || !RECURRENCE_END_TYPES.has(endType)) {
     return { error: 'BAD_RECURRENCE' };
   }
   const weekdays = uniqueSortedNumbers(get('Weekdays'));
@@ -122,7 +122,7 @@ function normalizeRecurrence(source, prefix) {
     try { parseDate(until); } catch (_error) { return { error: 'BAD_RECURRENCE' }; }
     if (count !== null) return { error: 'BAD_RECURRENCE' };
   } else if (endType === 'count') {
-    if (!Number.isInteger(count) || count < 1 || until) return { error: 'BAD_RECURRENCE' };
+    if (!Number.isInteger(count) || count < 1 || count > 500 || until) return { error: 'BAD_RECURRENCE' };
   } else if (until || count !== null) {
     return { error: 'BAD_RECURRENCE' };
   }
@@ -132,7 +132,8 @@ function normalizeRecurrence(source, prefix) {
 function normalizeItemPayload(item, parentDays) {
   const source = item || {};
   const name = String(source.name || '').trim();
-  if (!name) return { error: 'BAD_NAME' };
+  if (!name || name.length > 120) return { error: 'BAD_NAME' };
+  if (String(source.description || '').trim().length > 1000) return { error: 'BAD_DESCRIPTION' };
   const dateMode = String(source.dateMode || '').trim();
   if (!DATE_MODES.has(dateMode)) return { error: 'BAD_ITEM_MODE' };
   const color = normalizeColor(source.color);
@@ -164,7 +165,7 @@ function normalizeItemPayload(item, parentDays) {
     if (!value.selectedOffsets.length || value.selectedOffsets.some((offset) => offset < 0 || offset >= parentDays)) return { error: 'BAD_ITEM_OFFSET' };
   } else if (dateMode === 'recurring') {
     value.durationDays = Number(source.durationDays);
-    if (!Number.isInteger(value.durationDays) || value.durationDays < 1) return { error: 'BAD_RECURRENCE' };
+    if (!Number.isInteger(value.durationDays) || value.durationDays < 1 || value.durationDays > parentDays) return { error: 'BAD_RECURRENCE' };
     const recurrence = normalizeRecurrence(source, 'recurrence');
     if (recurrence.error) return recurrence;
     value.recurrence = recurrence.value;
@@ -175,7 +176,16 @@ function normalizeItemPayload(item, parentDays) {
       value.recurrence.until = null;
     }
   }
+  if (!validTimeRange(value.startTime, value.endTime)) return { error: 'BAD_TIME' };
   return { value };
+}
+
+function validTimeRange(startTime, endTime) {
+  const timePattern = /^([01]\d|2[0-3]):[0-5]\d$/;
+  if (startTime && !timePattern.test(startTime)) return false;
+  if (endTime && !timePattern.test(endTime)) return false;
+  if (startTime && endTime && endTime <= startTime) return false;
+  return true;
 }
 
 function normalizeSchedulePayload(payload) {
@@ -185,10 +195,14 @@ function normalizeSchedulePayload(payload) {
   const categoryId = Number(source.categoryId);
   if (!Number.isInteger(categoryId) || categoryId < 1) return { error: 'BAD_CATEGORY' };
   const scheduleType = String(source.scheduleType || '').trim();
-  if (!SCHEDULE_TYPES.has(scheduleType) || scheduleType === 'date-list') return { error: 'BAD_SCHEDULE_TYPE' };
+  if (!SCHEDULE_TYPES.has(scheduleType)) return { error: 'BAD_SCHEDULE_TYPE' };
   try { parseDate(source.startDate); } catch (_error) { return { error: 'BAD_DATE' }; }
   const endDate = source.endDate || source.startDate;
-  try { inclusiveDays(source.startDate, endDate); } catch (_error) { return { error: 'BAD_DATE_RANGE' }; }
+  let durationDays;
+  try { durationDays = inclusiveDays(source.startDate, endDate); } catch (_error) { return { error: 'BAD_DATE_RANGE' }; }
+  if (durationDays > 366) return { error: 'BAD_DURATION' };
+  const description = String(source.description || '').trim();
+  if (description.length > 2000) return { error: 'BAD_DESCRIPTION' };
   const color = normalizeColor(source.color);
   if (color === undefined) return { error: 'BAD_COLOR' };
   const value = {
@@ -201,12 +215,22 @@ function normalizeSchedulePayload(payload) {
     startTime: String(source.startTime || '').trim(),
     endTime: String(source.endTime || '').trim(),
     color,
-    description: String(source.description || '').trim(),
+    description,
     enabled: source.enabled !== false,
     items: []
   };
+  if (!validTimeRange(value.startTime, value.endTime)) return { error: 'BAD_TIME' };
   if (scheduleType === 'single') value.endDate = value.startDate;
-  if (scheduleType === 'recurring' || scheduleType === 'composite' && source.recurrenceUnit) {
+  if (scheduleType === 'date-list') {
+    const dates = Array.from(new Set((Array.isArray(source.legacyDates) ? source.legacyDates : []).map(String)));
+    if (!dates.length || dates.length > 366) return { error: 'BAD_DATES' };
+    try { dates.forEach(parseDate); } catch (_error) { return { error: 'BAD_DATE' }; }
+    dates.sort(compareDates);
+    value.legacyDates = dates;
+    value.startDate = dates[0];
+    value.endDate = dates[dates.length - 1];
+  }
+  if (source.recurrenceUnit || source.recurrence && source.recurrence.unit) {
     const recurrence = normalizeRecurrence(source, 'recurrence');
     if (recurrence.error) return recurrence;
     value.recurrence = recurrence.value;
@@ -217,12 +241,14 @@ function normalizeSchedulePayload(payload) {
     value.recurrenceEndType = recurrence.value.endType;
     value.recurrenceUntil = recurrence.value.until;
     value.recurrenceCount = recurrence.value.count;
+    if (recurrence.value.endType === 'until' && compareDates(recurrence.value.until, value.startDate) < 0) return { error: 'BAD_RECURRENCE' };
   }
   if (scheduleType === 'composite') {
     value.compositeLayout = String(source.compositeLayout || 'gantt');
     if (!COMPOSITE_LAYOUTS.has(value.compositeLayout)) return { error: 'BAD_COMPOSITE_LAYOUT' };
     const parentDays = inclusiveDays(value.startDate, value.endDate);
     const items = Array.isArray(source.items) ? source.items : [];
+    if (items.length > 100) return { error: 'TOO_MANY_ITEMS' };
     for (const item of items) {
       const normalized = normalizeItemPayload(item, parentDays);
       if (normalized.error) return normalized;
@@ -249,7 +275,7 @@ function recurrenceConfig(definition) {
 function occurrenceStarts(definition, hardEnd) {
   const startDate = definition.startDate;
   const type = definition.scheduleType;
-  if (type !== 'recurring' && !(type === 'composite' && (definition.recurrence || definition.recurrenceUnit))) return [startDate];
+  if (!(definition.recurrence || definition.recurrenceUnit) && type !== 'recurring') return [startDate];
   const config = recurrenceConfig(definition);
   const starts = [];
   const until = config.endType === 'until' && config.until && compareDates(config.until, hardEnd) < 0 ? config.until : hardEnd;
@@ -380,6 +406,17 @@ function expandDefinitions(definitions, options) {
   };
   for (const definition of Array.isArray(definitions) ? definitions : []) {
     if (definition.enabled === false) continue;
+    if (definition.scheduleType === 'date-list') {
+      const offsets = (definition.legacyDates || []).map((date) => diffDays(definition.startDate, date));
+      for (const [startOffset, endOffset] of groupOffsets(offsets)) {
+        const occurrenceStart = addDays(definition.startDate, startOffset);
+        const occurrenceEnd = addDays(definition.startDate, endOffset);
+        if (!intersects(occurrenceStart, occurrenceEnd, from, to)) continue;
+        addUnits(1);
+        schedules.push(baseOccurrence(definition, occurrenceStart, occurrenceEnd));
+      }
+      continue;
+    }
     const duration = inclusiveDays(definition.startDate, definition.endDate || definition.startDate);
     for (const occurrenceStart of occurrenceStarts(definition, to)) {
       const occurrenceEnd = addDays(occurrenceStart, duration - 1);

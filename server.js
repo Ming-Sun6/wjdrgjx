@@ -4746,6 +4746,8 @@ mountCalendarRoutes(app, {
   store: calendarStore,
   requireAdmin,
   auditAdminAction,
+  getSetting,
+  setSetting,
   logError: (label, error) => console.error(`${label}:`, error)
 });
 mountHomeNavigationRoutes(app, {

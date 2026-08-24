@@ -23,6 +23,8 @@ test('public and admin changelogs record the calendar release separately', () =>
 
   assert.match(admin, /admin-version[^>]*>V0\.9\.39</);
   assert.match(adminEntry, /活动分类/);
-  assert.match(adminEntry, /单日、连续、定期和组合日程/);
+  assert.match(adminEntry, /普通与组合两种结构/);
+  assert.match(adminEntry, /日期与颜色选择优化/);
+  assert.match(adminEntry, /日程预设/);
   assert.match(adminEntry, /首页菜单/);
 });

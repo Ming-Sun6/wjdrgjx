@@ -79,6 +79,29 @@ test('expansion limit returns 422 without a partial payload', async () => {
   assert.deepEqual(response.body, { error: 'EXPANSION_LIMIT' });
 });
 
+test('calendar preset handlers require admin and expose create/list/delete', async () => {
+  const calls = [];
+  const handlers = createCalendarHandlers({
+    store: { getCategoryById: async () => ({ id: 1, enabled: true }) },
+    requireAdmin: async () => ({ id: 7 }),
+    presetService: {
+      list: async () => [{ id: 'preset_a' }],
+      create: async (name, payload) => { calls.push([name, payload]); return { id: 'preset_b', name, payload }; },
+      remove: async (id) => calls.push(id)
+    }
+  });
+  const listed = createResponse();
+  await handlers.getPresets({}, listed);
+  assert.equal(listed.body.presets[0].id, 'preset_a');
+  const created = createResponse();
+  await handlers.createPreset({ body: { name: '模板', payload: { categoryId: 1, name: '活动', scheduleType: 'single', startDate: '2026-08-25' } } }, created);
+  assert.equal(created.statusCode, 201);
+  const removed = createResponse();
+  await handlers.deletePreset({ params: { id: 'preset_b' } }, removed);
+  assert.deepEqual(removed.body, { ok: true });
+  assert.equal(calls[1], 'preset_b');
+});
+
 function createResponse() {
   return {
     statusCode: 200,

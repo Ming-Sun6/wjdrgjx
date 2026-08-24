@@ -48,6 +48,58 @@ test('normalizes recurring and composite schedule payloads', () => {
   assert.equal(invalid.error, 'BAD_ITEM_OFFSET');
 });
 
+test('normalizes multi-day recurrence independently from schedule structure', () => {
+  const result = domain.normalizeSchedulePayload({
+    categoryId: 1,
+    name: '雪原贸易',
+    scheduleType: 'continuous',
+    startDate: '2026-08-24',
+    endDate: '2026-08-26',
+    recurrenceUnit: 'week',
+    recurrenceInterval: 1,
+    weekdays: [1],
+    recurrenceEndType: 'count',
+    recurrenceCount: 2
+  });
+  assert.equal(result.error, undefined);
+  assert.equal(result.value.recurrence.unit, 'week');
+  const expanded = domain.expandDefinitions([{ id: 41, enabled: true, ...result.value }], {
+    from: '2026-08-24', to: '2026-09-06'
+  });
+  assert.deepEqual(expanded.schedules.map(({ startDate, endDate }) => ({ startDate, endDate })), [
+    { startDate: '2026-08-24', endDate: '2026-08-26' },
+    { startDate: '2026-08-31', endDate: '2026-09-02' }
+  ]);
+});
+
+test('date-list schedules retain non-contiguous legacy dates', () => {
+  const result = domain.normalizeSchedulePayload({
+    categoryId: 1,
+    name: '分段活动',
+    scheduleType: 'date-list',
+    startDate: '2026-08-24',
+    endDate: '2026-08-29',
+    legacyDates: ['2026-08-29', '2026-08-24', '2026-08-25', '2026-08-29']
+  });
+  assert.equal(result.error, undefined);
+  assert.deepEqual(result.value.legacyDates, ['2026-08-24', '2026-08-25', '2026-08-29']);
+  const expanded = domain.expandDefinitions([{ id: 42, enabled: true, ...result.value }], {
+    from: '2026-08-24', to: '2026-08-30'
+  });
+  assert.deepEqual(expanded.schedules.map((item) => [item.startDate, item.endDate]), [
+    ['2026-08-24', '2026-08-25'],
+    ['2026-08-29', '2026-08-29']
+  ]);
+});
+
+test('rejects invalid duration, descriptions, time ranges, and recurrence limits', () => {
+  const base = { categoryId: 1, name: '活动', scheduleType: 'continuous', startDate: '2026-08-24', endDate: '2026-08-24' };
+  assert.equal(domain.normalizeSchedulePayload({ ...base, endDate: '2027-08-25' }).error, 'BAD_DURATION');
+  assert.equal(domain.normalizeSchedulePayload({ ...base, description: 'x'.repeat(2001) }).error, 'BAD_DESCRIPTION');
+  assert.equal(domain.normalizeSchedulePayload({ ...base, startTime: '22:00', endTime: '08:00' }).error, 'BAD_TIME');
+  assert.equal(domain.normalizeSchedulePayload({ ...base, recurrenceUnit: 'day', recurrenceInterval: 366, recurrenceEndType: 'never' }).error, 'BAD_RECURRENCE');
+});
+
 test('expands weekly recurrence with stable occurrence ids', () => {
   const result = domain.expandDefinitions([{
     id: 12,

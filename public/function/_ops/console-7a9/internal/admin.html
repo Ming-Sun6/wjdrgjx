@@ -22,6 +22,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>后台管理-冬日工具箱</title>
   <link rel="stylesheet" href="./admin-dashboard.css" />
+  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260825-1" />
   <style>
     :root{
       --bg-night-1:#0b1220;
@@ -1305,84 +1306,73 @@
 
         <section class="card page" id="page-calendar" data-page="calendar">
           <div class="page-title">活动日历管理</div>
-          <div class="calendar-admin">
-            <div class="form-section">
-              <div class="form-title">活动分类</div>
-              <div class="admin-status">分类显示在日历最左侧；可新增、改名、调色、排序和停用。</div>
-              <div class="form-grid" style="margin-top:10px;">
+          <div class="calendar-admin calendar-admin-v2">
+            <div class="calendar-admin-toolbar">
+              <div><strong>日程工作台</strong><div class="admin-status">先选择日程结构，再设置日期；需要周期出现时开启“重复日程”。</div></div>
+              <button class="btn secondary" id="calendarAdminReloadBtn" type="button">刷新全部</button>
+            </div>
+            <div class="admin-status" id="calendarAdminStatus">进入本页后自动加载日程配置。</div>
+
+            <details class="form-section calendar-fold" open>
+              <summary>① 活动分类</summary>
+              <div class="admin-status">分类显示在日历最左侧，可新增、改名、调色、排序和停用。</div>
+              <div class="form-grid calendar-compact-grid">
                 <div class="form-group"><label for="calendarCategoryName">新分类名称</label><input id="calendarCategoryName" maxlength="40" placeholder="例如：赛季活动" /></div>
                 <div class="form-group"><label for="calendarCategoryColor">分类颜色</label><input id="calendarCategoryColor" type="color" value="#e8a87c" /></div>
               </div>
-              <div class="calendar-actions">
-                <button class="btn" id="calendarCategoryAddBtn" type="button">新增分类</button>
-                <button class="btn secondary" id="calendarAdminReloadBtn" type="button">刷新全部</button>
-              </div>
+              <div class="calendar-actions"><button class="btn" id="calendarCategoryAddBtn" type="button">新增分类</button></div>
               <div id="calendarCategoryList" class="calendar-admin-list"></div>
-            </div>
+            </details>
 
-            <div class="form-section">
-              <div class="form-title" id="calendarScheduleFormTitle">添加新日程</div>
-              <div class="admin-status" id="calendarAdminStatus">进入本页后自动加载日程配置。</div>
-              <form id="calendarScheduleForm">
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label for="calendarScheduleName">活动名称</label>
-                    <input type="text" id="calendarScheduleName" maxlength="120" required />
-                  </div>
-                  <div class="form-group">
-                    <label for="calendarScheduleCategory">活动分类</label>
-                    <select id="calendarScheduleCategory" required></select>
-                  </div>
-                  <div class="form-group">
-                    <label for="calendarScheduleType">日程类型</label>
-                    <select id="calendarScheduleType">
-                      <option value="single">单日日程</option>
-                      <option value="continuous">连续日程</option>
-                      <option value="recurring">定期日程</option>
-                      <option value="composite">组合日程</option>
-                    </select>
-                  </div>
-                  <div class="form-group"><label for="calendarStartDate">开始日期</label><input type="date" id="calendarStartDate" required /></div>
-                  <div class="form-group" id="calendarEndDateGroup"><label for="calendarEndDate">结束日期</label><input type="date" id="calendarEndDate" required /></div>
-                  <div class="form-group"><label for="calendarStartTime">开始时间（可选）</label><input type="time" id="calendarStartTime" /></div>
-                  <div class="form-group"><label for="calendarEndTime">结束时间（可选）</label><input type="time" id="calendarEndTime" /></div>
-                  <div class="form-group"><label for="calendarScheduleColor">活动颜色（可选）</label><input type="color" id="calendarScheduleColor" value="#e8a87c" /><label class="time-checkbox-group"><input id="calendarUseCategoryColor" type="checkbox" checked />跟随分类颜色</label></div>
+            <div class="form-section calendar-editor-card">
+              <div class="form-title" id="calendarScheduleFormTitle">② 添加新日程</div>
+              <form id="calendarScheduleForm" novalidate>
+                <div class="calendar-step"><div class="calendar-step-title">基本信息</div><div class="form-grid">
+                  <div class="form-group"><label for="calendarScheduleName">活动名称</label><input type="text" id="calendarScheduleName" maxlength="120" /></div>
+                  <div class="form-group"><label for="calendarScheduleCategory">活动分类</label><select id="calendarScheduleCategory"></select></div>
+                  <div class="form-group"><label for="calendarScheduleType">日程结构</label><select id="calendarScheduleType"><option value="normal">普通日程</option><option value="composite">组合日程</option></select></div>
                   <div class="form-group"><label class="time-checkbox-group"><input id="calendarScheduleEnabled" type="checkbox" checked />启用该日程</label></div>
-                  <div class="form-group" style="grid-column:1/-1;"><label for="calendarScheduleDescription">描述</label><textarea id="calendarScheduleDescription" rows="3"></textarea></div>
+                </div></div>
+
+                <div class="calendar-step"><div class="calendar-step-title">日期与时间</div>
+                  <div class="form-grid">
+                    <div class="form-group" id="calendarDateModeGroup"><label for="calendarDateMode">日期方式</label><select id="calendarDateMode"><option value="range">连续时段</option><option value="list">多个不连续日期</option></select></div>
+                    <div class="form-group calendar-date-field"><label for="calendarStartDate">开始日期</label><input type="date" id="calendarStartDate" /></div>
+                    <div class="form-group" id="calendarDurationGroup"><label for="calendarDurationDays">单次持续天数</label><div class="calendar-number-suffix"><input id="calendarDurationDays" type="number" min="1" max="366" value="1" /><span>天</span></div></div>
+                    <div class="form-group" id="calendarEndDateGroup"><label for="calendarEndDate">自动结束日期</label><input type="date" id="calendarEndDate" readonly /></div>
+                    <div class="form-group" id="calendarDateListGroup" hidden><label for="calendarLegacyDates">指定日期</label><textarea id="calendarLegacyDates" rows="3" placeholder="每行或逗号输入一个日期，例如 2026-08-25"></textarea></div>
+                  </div>
+                  <div id="calendarDateQuickActions" class="calendar-quick-actions"><span>快速开始：</span><button type="button" data-date-offset="0">今天</button><button type="button" data-date-offset="1">明天</button><button type="button" data-date-offset="7">下周同一天</button></div>
+                  <div id="calendarDatePreview" class="calendar-date-preview">请选择开始日期</div>
+                  <div class="form-grid calendar-time-grid"><div class="form-group"><label for="calendarStartTime">开始时间（可选）</label><input type="time" id="calendarStartTime" /></div><div class="form-group"><label for="calendarEndTime">结束时间（可选）</label><input type="time" id="calendarEndTime" /></div></div>
                 </div>
 
-                <label class="time-checkbox-group" id="calendarCompositeRecurringGroup" style="display:none;margin-top:12px;"><input id="calendarCompositeRecurring" type="checkbox" />让整个组合日程定期重复</label>
-                <div class="form-section" id="calendarRecurrenceFields" style="display:none;margin-top:12px;">
-                  <div class="form-title">循环规则</div>
-                  <div class="form-grid">
+                <div class="calendar-step"><div class="calendar-step-title">颜色与说明</div><div class="form-grid">
+                  <div class="form-group calendar-color-field"><label>活动颜色</label><label class="time-checkbox-group"><input id="calendarUseCategoryColor" type="checkbox" checked />跟随分类颜色</label><div class="calendar-color-controls"><input type="color" id="calendarScheduleColor" value="#e8a87c" /><input id="calendarScheduleColorHex" maxlength="7" value="#e8a87c" inputmode="text" /></div><div id="calendarColorPalette" class="calendar-color-palette"><button type="button" data-color="#e8a87c" style="--swatch:#e8a87c" aria-label="暖橙"></button><button type="button" data-color="#f3c98b" style="--swatch:#f3c98b" aria-label="浅金"></button><button type="button" data-color="#e8a6a6" style="--swatch:#e8a6a6" aria-label="暖红"></button><button type="button" data-color="#c9b1e8" style="--swatch:#c9b1e8" aria-label="柔紫"></button><button type="button" data-color="#9fc9b8" style="--swatch:#9fc9b8" aria-label="柔绿"></button><button type="button" data-color="#9ebbd7" style="--swatch:#9ebbd7" aria-label="雾蓝"></button></div></div>
+                  <div class="form-group"><label for="calendarScheduleDescription">描述</label><textarea id="calendarScheduleDescription" rows="4" maxlength="2000"></textarea></div>
+                </div></div>
+
+                <div class="calendar-step" id="calendarRepeatSection"><label class="calendar-switch"><input id="calendarRepeatEnabled" type="checkbox" /><span>重复日程</span><small>普通日程和组合日程都可开启，单次可持续多天</small></label>
+                  <div id="calendarRecurrenceFields" hidden><div class="form-grid">
                     <div class="form-group"><label for="calendarRecurrenceUnit">循环单位</label><select id="calendarRecurrenceUnit"><option value="day">天</option><option value="week">周</option><option value="month">月</option></select></div>
-                    <div class="form-group"><label for="calendarRecurrenceInterval">每隔</label><input id="calendarRecurrenceInterval" type="number" min="1" value="1" /></div>
+                    <div class="form-group"><label for="calendarRecurrenceInterval">每隔</label><input id="calendarRecurrenceInterval" type="number" min="1" max="365" value="1" /></div>
                     <div class="form-group" id="calendarWeekdaysGroup"><label for="calendarWeekdays">星期（1-7，逗号分隔）</label><input id="calendarWeekdays" value="1" placeholder="1,3,5" /></div>
                     <div class="form-group" id="calendarMonthDayGroup"><label for="calendarMonthDay">每月第几日</label><input id="calendarMonthDay" type="number" min="1" max="31" value="1" /></div>
                     <div class="form-group"><label for="calendarRecurrenceEndType">结束方式</label><select id="calendarRecurrenceEndType"><option value="never">长期循环</option><option value="until">截止日期</option><option value="count">循环次数</option></select></div>
                     <div class="form-group" id="calendarRecurrenceUntilGroup"><label for="calendarRecurrenceUntil">截止日期</label><input id="calendarRecurrenceUntil" type="date" /></div>
-                    <div class="form-group" id="calendarRecurrenceCountGroup"><label for="calendarRecurrenceCount">循环次数</label><input id="calendarRecurrenceCount" type="number" min="1" value="1" /></div>
-                  </div>
+                    <div class="form-group" id="calendarRecurrenceCountGroup"><label for="calendarRecurrenceCount">循环次数</label><input id="calendarRecurrenceCount" type="number" min="1" max="500" value="1" /></div>
+                  </div></div>
                 </div>
 
-                <div class="form-section" id="calendarCompositeFields" style="display:none;margin-top:12px;">
-                  <div class="form-title">组合日程内容</div>
-                  <div class="form-group"><label for="calendarCompositeLayout">展示方式</label><select id="calendarCompositeLayout"><option value="gantt">跨日甘特任务块</option><option value="daily-list">每日清单</option></select></div>
-                  <div id="calendarCompositeItems"></div>
-                  <button class="btn secondary" id="calendarAddCompositeItemBtn" type="button">新增子任务</button>
-                </div>
+                <div class="calendar-step" id="calendarCompositeFields" hidden><div class="calendar-step-title">组合日程内容</div><div class="form-group"><label for="calendarCompositeLayout">展示方式</label><select id="calendarCompositeLayout"><option value="gantt">跨日甘特任务块</option><option value="daily-list">每日清单</option></select></div><div id="calendarCompositeItems"></div><button class="btn secondary" id="calendarAddCompositeItemBtn" type="button">新增子任务</button></div>
 
-                <div class="calendar-actions">
-                  <button type="submit" class="btn" id="calendarScheduleSaveBtn">保存日程</button>
-                  <button type="button" class="btn secondary" id="calendarScheduleCancelBtn">取消编辑</button>
-                </div>
+                <div class="calendar-actions calendar-sticky-actions"><button type="submit" class="btn" id="calendarScheduleSaveBtn">保存日程</button><button type="button" class="btn secondary" id="calendarPresetSaveBtn">保存为预设</button><button type="button" class="btn secondary" id="calendarScheduleCancelBtn">清空 / 取消编辑</button></div>
               </form>
             </div>
 
-            <div class="form-section">
-              <div class="form-title">已配置日程</div>
-              <div class="form-grid"><div class="form-group"><label for="calendarScheduleFilter">筛选名称</label><input id="calendarScheduleFilter" type="search" placeholder="输入活动名称" /></div><div class="form-group"><label for="calendarScheduleStatusFilter">状态</label><select id="calendarScheduleStatusFilter"><option value="all">全部</option><option value="enabled">已启用</option><option value="disabled">已停用</option></select></div></div>
-              <div id="calendarScheduleList" class="calendar-admin-list"></div>
+            <div class="calendar-two-columns">
+              <div class="form-section"><div class="form-title">③ 日程预设</div><div class="admin-status">套用后日期会自动平移到今天，可继续修改后保存。</div><div id="calendarPresetList" class="calendar-admin-list"></div></div>
+              <div class="form-section"><div class="form-title">④ 已配置日程</div><div class="form-grid calendar-compact-grid"><div class="form-group"><label for="calendarScheduleFilter">筛选名称</label><input id="calendarScheduleFilter" type="search" placeholder="输入活动名称" /></div><div class="form-group"><label for="calendarScheduleStatusFilter">状态</label><select id="calendarScheduleStatusFilter"><option value="all">全部</option><option value="enabled">已启用</option><option value="disabled">已停用</option></select></div></div><div id="calendarScheduleList" class="calendar-admin-list"></div></div>
             </div>
           </div>
         </section>
@@ -2029,7 +2019,9 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.39（2026-08-25）</div>
-            <div style="color:var(--muted);line-height:1.6;"><strong>活动日历管理</strong>：新增活动分类配置及单日、连续、定期和组合日程编辑，支持甘特任务块、每日清单、循环规则、复制、停用与删除。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>活动日历管理重做</strong>：将日程整理为普通与组合两种结构，“重复日程”改为通用选项，并支持单次持续多天、指定不连续日期、甘特任务块和每日清单。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>日期与颜色选择优化</strong>：新增今天、明天、下周快捷日期，持续天数与结束日期自动联动；颜色支持分类联动、常用暖色色板、取色器和十六进制色值同步。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>日程预设</strong>：支持将任意普通或组合日程保存为服务器预设，之后一键套用并自动平移到当天，支持删除和并发写入保护。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>首页菜单控制</strong>：新增首页菜单显示配置，可统一控制桌面顶部与手机版底部的“全部、工具、交流论坛、活动日历、我的信息”入口。</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>日历数据升级</strong>：启用新的活动分类、日程定义和组合子任务数据结构，并兼容迁移原有日程数据。</div>
           </div>
@@ -2358,7 +2350,6 @@
     let homeLeadSlidesMemory=[];
     let homeLeadUiBound=false;
     let toolManagementLoaded=false;
-    const TOOL_MANAGEMENT_EXPECTED_COUNT=29;
     const TOOL_MANAGEMENT_GROUPS=['featured','core','extended','miniGames'];
     const TOOL_MANAGEMENT_GROUP_LABELS={featured:'精选工具',core:'基础工具',extended:'更多工具',miniGames:'小游戏'};
     function syncAdminRuntimeState(){
@@ -3775,7 +3766,7 @@
         var toolIds=data && Array.isArray(data.tools)
           ? new Set(data.tools.map(function(tool){ return tool && tool.id; }).filter(Boolean))
           : new Set();
-        if(!data || !Array.isArray(data.tools) || data.tools.length!==TOOL_MANAGEMENT_EXPECTED_COUNT || toolIds.size!==TOOL_MANAGEMENT_EXPECTED_COUNT){
+        if(!data || !Array.isArray(data.tools) || !data.tools.length || toolIds.size!==data.tools.length){
           throw new Error('接口返回的工具目录不完整');
         }
         renderToolManagement(data);
@@ -5170,7 +5161,7 @@
   <script src="/function/admin-aeroplane-chess-page.js?v=1"></script>
   <script src="/function/admin-neighbor-progress-page.js?v=3"></script>
   <script src="/function/admin-history-immigration-page.js?v=2"></script>
-  <script src="/function/admin-calendar-page.js?v=20260825-2"></script>
+  <script src="/function/admin-calendar-page.js?v=20260825-4"></script>
   <script src="/function/admin-home-navigation-page.js?v=1"></script>
   <script>
   (function(){

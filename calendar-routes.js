@@ -11,6 +11,7 @@ const {
   expandDefinitions
 } = require('./calendar-domain');
 const { mapLegacyGroup } = require('./calendar-store');
+const { createCalendarPresetService } = require('./calendar-presets');
 
 function sendError(res, status, error) {
   return res.status(status).json({ error });
@@ -65,6 +66,9 @@ function createCalendarHandlers(dependencies) {
   const now = deps.now || (() => new Date());
   const maxRenderUnits = Number(deps.maxRenderUnits || MAX_RENDER_UNITS);
   const logError = deps.logError || (() => {});
+  const presetService = deps.presetService || (deps.getSetting && deps.setSetting
+    ? createCalendarPresetService({ getSetting: deps.getSetting, setSetting: deps.setSetting, now })
+    : null);
 
   async function getPublic(req, res) {
     try {
@@ -227,6 +231,50 @@ function createCalendarHandlers(dependencies) {
     return res.json({ ok: true });
   }
 
+  async function getPresets(req, res) {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    if (!presetService) return sendError(res, 500, 'INTERNAL_ERROR');
+    try { return res.json({ presets: await presetService.list() }); }
+    catch (error) { logError('calendar preset list failed', error); return sendError(res, 500, 'INTERNAL_ERROR'); }
+  }
+
+  async function createPreset(req, res) {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    if (!presetService) return sendError(res, 500, 'INTERNAL_ERROR');
+    const body = req.body || {};
+    const valid = normalizeSchedulePayload(body.payload || {});
+    if (valid.error) return sendError(res, 400, valid.error);
+    const category = await store.getCategoryById(valid.value.categoryId);
+    if (!category) return sendError(res, 400, 'BAD_CATEGORY');
+    if (!category.enabled) return sendError(res, 409, 'CATEGORY_DISABLED');
+    try {
+      const preset = await presetService.create(body.name, valid.value);
+      await auditAdminAction(req, { actor: admin, action: 'calendar.preset.create', targetType: 'calendar_preset', targetId: preset.id, summary: `保存日程预设：${preset.name}` });
+      return res.status(201).json({ preset });
+    } catch (error) {
+      if (['BAD_NAME', 'PRESET_NAME_EXISTS', 'PRESET_LIMIT'].includes(error && error.code)) return sendError(res, error.code === 'PRESET_NAME_EXISTS' ? 409 : 400, error.code);
+      logError('calendar preset create failed', error);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }
+
+  async function deletePreset(req, res) {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    if (!presetService) return sendError(res, 500, 'INTERNAL_ERROR');
+    try {
+      await presetService.remove(String(req.params.id || ''));
+      await auditAdminAction(req, { actor: admin, action: 'calendar.preset.delete', targetType: 'calendar_preset', targetId: String(req.params.id), summary: '删除日程预设' });
+      return res.json({ ok: true });
+    } catch (error) {
+      if (error && error.code === 'NOT_FOUND') return sendError(res, 404, error.code);
+      logError('calendar preset delete failed', error);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }
+
   async function legacyCreate(req, res) {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
@@ -276,6 +324,9 @@ function createCalendarHandlers(dependencies) {
     copySchedule,
     setScheduleStatus,
     deleteSchedule,
+    getPresets,
+    createPreset,
+    deletePreset,
     legacyCreate,
     legacyUpdate,
     legacyDelete
@@ -296,6 +347,9 @@ function mountCalendarRoutes(app, dependencies) {
   app.post('/api/admin/calendar/schedules/:id/copy', handlers.copySchedule);
   app.post('/api/admin/calendar/schedules/:id/status', handlers.setScheduleStatus);
   app.delete('/api/admin/calendar/schedules/:id', handlers.deleteSchedule);
+  app.get('/api/admin/calendar/presets', handlers.getPresets);
+  app.post('/api/admin/calendar/presets', handlers.createPreset);
+  app.post('/api/admin/calendar/presets/:id/delete', handlers.deletePreset);
   app.get('/api/admin/calendar/categories', (req, res) => handlers.getCategories(req, res, true));
   app.post('/api/admin/calendar/categories', handlers.createCategory);
   app.patch('/api/admin/calendar/categories/:id', handlers.updateCategory);
