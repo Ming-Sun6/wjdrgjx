@@ -130,6 +130,9 @@
   }
 
   function ensurePlayerMadeNotice() {
+    try {
+      if (new URLSearchParams(window.location.search).get('embed') === '1') return;
+    } catch (_e) {}
     if (document.getElementById('__wjdrPlayerNotice')) return;
 
     if (!document.getElementById('__wjdrPlayerNoticeStyle')) {

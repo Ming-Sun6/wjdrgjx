@@ -21,6 +21,14 @@ test('shared analytics script injects player-made unofficial notice at page top'
   assert.match(source, /insertBefore\(notice,\s*document\.body\.firstChild/);
 });
 
+test('embedded tools do not inject a second player-made notice', () => {
+  const source = read('public/function/analytics-tracker.js');
+  const calendar = read('public/function/calendar.html');
+
+  assert.match(source, /URLSearchParams\(window\.location\.search\)[\s\S]*?get\('embed'\)\s*===\s*'1'[\s\S]*?return/);
+  assert.match(calendar, /analytics-tracker\.js\?v=20260825-2/);
+});
+
 test('main public pages use the shortened site brand', () => {
   const pages = [
     'index.html',
