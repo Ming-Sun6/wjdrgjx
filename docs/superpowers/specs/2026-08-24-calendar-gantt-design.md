@@ -58,7 +58,7 @@
    - 每隔 N 天；
    - 每隔 N 周，并选择星期几；
    - 每隔 N 月，并选择每月几号。
-4. 组合日程：一个主活动包含多条子任务。主活动设置分类、名称、说明/奖励、起止日期和循环规则；子任务设置名称、说明、颜色、排序、时间以及适用日期规则。
+4. 组合日程：一个主活动包含多条子任务。主活动设置分类、名称、说明/奖励、起止日期、循环规则和展示模式；子任务设置名称、说明、颜色、排序、重点标记、时间以及适用日期规则。展示模式支持横向甘特和每日清单。
 
 定期日程结束条件：
 
@@ -76,11 +76,18 @@
 - 组合日程跨周时按周裁切；片段标记“接上周”或“续下周”，点击任一片段均打开同一主活动详情。
 - 普通日程继续使用紧凑甘特条，不增加左侧日程名称列。
 
+组合日程展示模式：
+
+- `gantt`：沿用上述横向甘特规则，连续日期合并为横向任务条，不连续日期拆成多个片段，重叠任务自动换行。
+- `daily-list`：主活动名称在该组合行组顶部横跨当周日期区域显示；每个日期单元格内按子任务 `sortOrder`、子任务 ID 纵向堆叠独立圆角卡片。子任务覆盖多天时按天拆成卡片，同名任务连续多天出现也不得横向合并。
+- `daily-list` 卡片显示子任务名称，可选显示重点标记；颜色按“子任务覆盖色 → 主日程覆盖色 → 分类色”动态继承，点击卡片打开主活动和对应子任务详情。
+- 月视图中 `daily-list` 与其他日程一样按自然周拆分；主活动标题在每个有内容的周区块重复显示，并标记“接上周”或“续下周”。
+
 ## 数据模型与兼容
 
-- 新建 `calendar_schedule_definitions` 作为唯一规范数据源，MySQL 与 PostgreSQL 均创建相同语义的字段：`id`、`legacy_original_id`、`category_id`、`name`、`schedule_type`、`start_date`、`end_date`、`legacy_dates_json`、`start_time`、`end_time`、`color`、`description`、`enabled`、`recurrence_unit`、`recurrence_interval`、`weekdays_json`、`month_day`、`recurrence_end_type`、`recurrence_until`、`recurrence_count`、`created_by`、`created_at`、`updated_at`。
+- 新建 `calendar_schedule_definitions` 作为唯一规范数据源，MySQL 与 PostgreSQL 均创建相同语义的字段：`id`、`legacy_original_id`、`category_id`、`name`、`schedule_type`、`composite_layout`、`start_date`、`end_date`、`legacy_dates_json`、`start_time`、`end_time`、`color`、`description`、`enabled`、`recurrence_unit`、`recurrence_interval`、`weekdays_json`、`month_day`、`recurrence_end_type`、`recurrence_until`、`recurrence_count`、`created_by`、`created_at`、`updated_at`。
 - `schedule_type` 支持 `single`、`continuous`、`recurring`、`composite` 和仅供旧数据兼容的 `date-list`。后台新建时提供前四种。
-- 新建 `calendar_schedule_items` 保存组合日程子任务：`id`、`schedule_id`、`name`、`description`、`color`、`sort_order`、`enabled`、`date_mode`、`start_offset_days`、`end_offset_days`、`selected_offsets_json`、`duration_days`、`start_time`、`end_time`、`recurrence_unit`、`recurrence_interval`、`weekdays_json`、`month_day`、`recurrence_end_type`、`recurrence_until_offset`、`recurrence_count`、`created_at`、`updated_at`。子任务随主活动事务性新增、更新、复制和删除。
+- 新建 `calendar_schedule_items` 保存组合日程子任务：`id`、`schedule_id`、`name`、`description`、`color`、`sort_order`、`highlighted`、`enabled`、`date_mode`、`start_offset_days`、`end_offset_days`、`selected_offsets_json`、`duration_days`、`start_time`、`end_time`、`recurrence_unit`、`recurrence_interval`、`weekdays_json`、`month_day`、`recurrence_end_type`、`recurrence_until_offset`、`recurrence_count`、`created_at`、`updated_at`。子任务随主活动事务性新增、更新、复制和删除。
 - 启动迁移按现有 `calendar_schedules.original_id` 分组，事务内幂等写入新表：单个日期转为 `single`；连续日期转为 `continuous`；不连续日期转为 `date-list` 并保存在 `legacy_dates_json`。迁移记录默认 `enabled=true`；`date-list.start_date/end_date` 分别保存日期列表最小值和最大值。保留旧表，不再作为新写入目标。
 - `legacy_original_id` 建唯一索引，迁移重复执行不得重复生成定义；日期范围、启用状态和更新时间建立查询索引。
 - 新增日程规则字段用于记录类型、起止日期、循环单位、循环间隔、星期选择、每月日期、结束方式、结束日期和循环次数。
@@ -95,7 +102,7 @@
 - `continuous`：要求 `start_date/end_date` 且 `end_date>=start_date`；所有循环字段和 `legacy_dates_json` 必须为空。
 - `date-list`：要求非空、去重、升序的 `legacy_dates_json`，`start_date/end_date` 为列表最小/最大日期；所有循环字段必须为空。
 - `recurring`：要求 `start_date/end_date`、循环单位、正整数间隔和结束方式；`legacy_dates_json` 必须为空。周循环要求至少一个星期，月循环要求 `month_day=1..31`；结束日期模式要求 `recurrence_until`，次数模式要求正整数 `recurrence_count`，永不结束模式两者均为空。
-- `composite`：主定义要求 `category_id`、`start_date/end_date` 和至少一个启用子任务；主活动可使用与 `recurring` 相同的循环字段。子任务日期不得超出单次主活动持续范围，独立循环也只在主活动发生窗口内展开。
+- `composite`：主定义要求 `category_id`、`start_date/end_date`、`composite_layout` 为 `gantt` 或 `daily-list`，并至少包含一个启用子任务；主活动可使用与 `recurring` 相同的循环字段。子任务日期不得超出单次主活动持续范围，独立循环也只在主活动发生窗口内展开。非组合日程的 `composite_layout` 必须为空。
 
 组合子任务 `date_mode` 规则：
 
@@ -128,12 +135,13 @@
 5. 组合日程的主标题不新增第二个固定列，而是在最左侧“活动分类”单元格内与分类标签共同显示，并纵向跨越该组合全部子任务行。
 6. 同分类相邻普通行可纵向合并分类单元格；组合行组会打断合并，并显示“分类名称 + 主活动名称 + 说明/奖励”。
 7. 月视图每个自然周区块都独立执行分类排序、片段裁切和行排布；跨周组合在每周重复分类/标题结构并显示接续标识。
+8. `daily-list` 不执行横向片段合并和泳道复用；先把每个子任务发生拆成逐日卡片，再按日期、`sortOrder`、子任务 ID、稳定发生 ID 排序。每天的卡片数量决定该组合行组高度，七个日期单元格使用同一最大高度保持网格对齐。
 
 ## 接口与权限
 
 - `GET /api/calendar/schedules?from=YYYY-MM-DD&to=YYYY-MM-DD` 使用包含首尾的日期范围，只返回已启用日程的完整发生实例；响应为 `{ from, to, schedules: Occurrence[] }`。
 - `Occurrence` 至少包含 `id`、`scheduleId`、`originalId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description` 和 `scheduleType`。发生 ID 固定为 `<scheduleId>:<occurrenceStartDate>`，服务端不进行按周裁切。
-- 公开发生实例同时返回 `category: { id, code, name, color, sortOrder }`；组合日程只展开已启用子任务并返回请求范围内的 `items`。子任务发生字段为 `id`、`itemId`、`parentOccurrenceId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description`、`sortOrder`；稳定 ID 为 `<parentOccurrenceId>:item:<itemId>:<childStartDate>`。
+- 公开发生实例同时返回 `category: { id, code, name, color, sortOrder }`；组合发生返回 `compositeLayout`，只展开已启用子任务并返回请求范围内的 `items`。子任务发生字段为 `id`、`itemId`、`parentOccurrenceId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description`、`sortOrder`、`highlighted`；稳定 ID 为 `<parentOccurrenceId>:item:<itemId>:<childStartDate>`。
 - 前端将完整发生实例裁切为周内 `Fragment`；片段包含 `fragmentId=<occurrenceId>:<weekStartDate>`、原始发生 ID、裁切后的 `startDate/endDate`。周/月甘特排布只使用片段。
 - 旧调用未提供 `from/to` 时保留旧响应形状：使用“今天前31天至今天后334天”（包含首尾共366天）的兼容窗口，将每个发生实例展开成逐日记录，字段继续包含 `date` 与 `originalId`，并返回 `rangeDefaulted: true`。所有现有旧页面无需立即迁移。
 - `GET /api/admin/calendar/schedules` 返回完整规则定义并包含停用日程；组合定义嵌套返回全部子任务（包括停用项）及其完整日期、循环和显示字段，供重新启用和可靠编辑。
@@ -167,6 +175,7 @@
 - 左侧分类列固定、同分类多行合并、分类排序/停用和默认颜色继承。
 - 单日、连续、每日/每周/每月循环规则。
 - 组合日程主标题纵向合并、子任务排序/颜色/日期规则及跨周标识。
+- 组合日程 `gantt` 与 `daily-list` 两种展示模式、每日卡片独立拆分、重点标记和同名连续日期不合并。
 - 三种结束条件与永不结束范围限制。
 - 旧日程兼容、管理员权限、接口验证和审计。
 - 桌面与手机布局、圆角和淡暖色主题。
