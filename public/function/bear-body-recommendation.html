@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="night">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="查询打熊车身英雄评级、远征一技能和搭配说明。" />
+  <title>打熊车身推荐-冬日工具箱</title>
+  <link rel="stylesheet" href="/function/theme.css" />
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <script src="/function/theme.js" defer></script>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <style>
+    :root {
+      --page: #071318;
+      --page-deep: #0c2025;
+      --panel: #10282e;
+      --panel-2: #16343b;
+      --control: #071b20;
+      --line: #2b5058;
+      --text: #f0f8f7;
+      --muted: #a8c0c0;
+      --accent: #57d4c5;
+      --accent-strong: #9ff1e5;
+      --accent-2: #ffc857;
+      --shadow: 0 16px 42px rgba(0, 0, 0, .32);
+      --s: #f5c451;
+      --a: #5dd4b3;
+      --b: #65aef0;
+      --c: #b59be8;
+      --d: #ec8378;
+    }
+    html[data-theme="day"], body.theme-day {
+      --page: #e8f1f3;
+      --page-deep: #d6e5e8;
+      --panel: #ffffff;
+      --panel-2: #e5f2f2;
+      --control: #f7fbfb;
+      --line: #9db7bc;
+      --text: #132d33;
+      --muted: #526d72;
+      --accent: #087f75;
+      --accent-strong: #075f59;
+      --accent-2: #9a5b00;
+      --shadow: 0 12px 30px rgba(39, 72, 78, .14);
+      --s: #9b6500;
+      --a: #08745e;
+      --b: #1769a7;
+      --c: #6d4fa3;
+      --d: #a33c34;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      background-color: var(--page);
+    }
+    html[data-theme="night"] body, body.theme-night {
+      background-image:
+        linear-gradient(rgba(87, 212, 197, .045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(87, 212, 197, .045) 1px, transparent 1px),
+        linear-gradient(155deg, #061014 0%, #0c2227 58%, #09171c 100%);
+      background-size: 32px 32px, 32px 32px, auto;
+    }
+    html[data-theme="day"] body, body.theme-day {
+      background-color: #e8f1f3;
+      background-image:
+        linear-gradient(rgba(19, 69, 77, .055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(19, 69, 77, .055) 1px, transparent 1px),
+        linear-gradient(155deg, #f7fbfc 0%, #e2edef 56%, #d5e4e7 100%);
+      background-size: 32px 32px, 32px 32px, auto;
+    }
+    .shell { max-width: 1180px; margin: 0 auto; padding: 20px; }
+    .back-link {
+      display: inline-flex; align-items: center; min-height: 42px; margin-bottom: 14px; padding: 8px 13px;
+      border: 1px solid var(--line); border-radius: 6px; color: var(--text); background: var(--panel);
+      text-decoration: none; font-weight: 800;
+    }
+    .hero {
+      padding: 24px 26px; border: 1px solid var(--line); border-left: 6px solid var(--accent-2);
+      border-radius: 6px; background: linear-gradient(110deg, var(--panel-2), var(--panel)); box-shadow: var(--shadow);
+    }
+    .eyebrow { margin: 0 0 7px; color: var(--accent-2); font-size: 12px; font-weight: 800; }
+    h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 44px); letter-spacing: 0; }
+    .hero p { max-width: 760px; margin: 0; color: var(--muted); line-height: 1.75; }
+    .toolbar {
+      display: grid; grid-template-columns: minmax(220px, 1fr) auto; gap: 14px; margin: 16px 0;
+      padding: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); box-shadow: var(--shadow);
+    }
+    .search-field { display: grid; gap: 6px; color: var(--muted); font-size: 12px; font-weight: 800; }
+    #heroSearch {
+      width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 5px;
+      background: var(--control); color: var(--text); font: inherit; outline: none;
+    }
+    #heroSearch:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+    .grade-filters { display: flex; align-items: end; gap: 7px; flex-wrap: wrap; }
+    .grade-button {
+      min-width: 42px; min-height: 42px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 5px;
+      background: var(--panel-2); color: var(--text); font: 900 13px/1 inherit; cursor: pointer;
+    }
+    .grade-button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent); color: #08231e; }
+    html[data-theme="day"] .grade-button[aria-pressed="true"], body.theme-day .grade-button[aria-pressed="true"] { color: #fff; }
+    .results { display: grid; gap: 14px; }
+    .grade-section { border: 1px solid var(--line); border-left-width: 5px; border-radius: 6px; background: var(--panel); box-shadow: var(--shadow); overflow: hidden; }
+    .grade-border-S { border-left-color: var(--s); } .grade-border-A { border-left-color: var(--a); }
+    .grade-border-B { border-left-color: var(--b); } .grade-border-C { border-left-color: var(--c); }
+    .grade-border-D { border-left-color: var(--d); }
+    .grade-head { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+    .grade-mark {
+      display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid currentColor; border-radius: 4px;
+      background: var(--panel); font: 900 18px/1 "Microsoft YaHei", sans-serif;
+    }
+    .grade-title { margin: 0; font-size: 18px; }
+    .grade-count { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .grade-S { color: var(--s); } .grade-A { color: var(--a); } .grade-B { color: var(--b); }
+    .grade-C { color: var(--c); } .grade-D { color: var(--d); }
+    .skill-list { display: grid; }
+    .skill-row { display: grid; grid-template-columns: minmax(210px, .8fr) minmax(220px, .72fr) minmax(300px, 1.45fr); gap: 16px; padding: 17px; border-bottom: 1px solid var(--line); }
+    .skill-row:last-child { border-bottom: 0; }
+    .cell-label { margin-bottom: 7px; color: var(--muted); font-size: 11px; font-weight: 900; }
+    .skill-text { font-size: 15px; font-weight: 900; line-height: 1.6; }
+    .hero-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+    .hero-chip { min-width: 0; padding: 8px 9px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2); }
+    .hero-generation { display: block; color: var(--muted); font-size: 11px; line-height: 1.35; }
+    .hero-name { display: block; margin-top: 2px; color: var(--text); font-size: 14px; font-weight: 900; overflow-wrap: anywhere; }
+    .remark { color: var(--muted); font-size: 13px; line-height: 1.72; }
+    .empty { padding: 34px 16px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); background: var(--panel); text-align: center; }
+    .footnote { margin: 16px 2px 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    @media (max-width: 780px) {
+      .shell { padding: 12px; }
+      .hero { padding: 20px 18px; }
+      .toolbar { grid-template-columns: 1fr; padding: 11px; }
+      .grade-filters { align-items: center; }
+      .skill-row { grid-template-columns: 1fr; gap: 14px; padding: 14px; }
+      .hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 340px) { .hero-grid { grid-template-columns: 1fr; } }
+  </style>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="打熊车身推荐-冬日工具箱" />
+  <meta property="og:description" content="查询打熊车身英雄评级、远征一技能和搭配说明。" />
+  <meta property="og:url" content="https://wjgl.store/function/bear-body-recommendation.html" />
+  <meta property="og:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="675" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="打熊车身推荐-冬日工具箱" />
+  <meta name="twitter:description" content="查询打熊车身英雄评级、远征一技能和搭配说明。" />
+  <meta name="twitter:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
+</head>
+<body>
+  <main class="shell">
+    <a class="back-link" href="/">返回首页</a>
+    <section class="hero">
+      <p class="eyebrow">BEAR RALLY · 车身评级</p>
+      <h1>打熊车身推荐</h1>
+      <p>按远征一技能查看车身评级、适用英雄和搭配特性。评级会受到车头英雄、技能乘区与触发概率影响。</p>
+    </section>
+
+    <section class="toolbar" aria-label="筛选">
+      <label class="search-field" for="heroSearch">搜索英雄或技能
+        <input id="heroSearch" type="search" placeholder="输入英雄、代次或技能关键词" autocomplete="off" />
+      </label>
+      <div class="grade-filters" id="gradeFilters" aria-label="评级筛选">
+        <button class="grade-button" type="button" data-grade="all" aria-pressed="true">全部</button>
+        <button class="grade-button grade-S" type="button" data-grade="S" aria-pressed="false">S</button>
+        <button class="grade-button grade-A" type="button" data-grade="A" aria-pressed="false">A</button>
+        <button class="grade-button grade-B" type="button" data-grade="B" aria-pressed="false">B</button>
+        <button class="grade-button grade-C" type="button" data-grade="C" aria-pressed="false">C</button>
+        <button class="grade-button grade-D" type="button" data-grade="D" aria-pressed="false">D</button>
+      </div>
+    </section>
+
+    <div class="results" id="results"></div>
+    <p class="footnote">车身评级为搭配参考；概率技能、易伤覆盖和车头英雄技能均可能改变实际表现，请以战报为准。</p>
+  </main>
+
+  <script>
+    const RECOMMENDATIONS = [
+      {
+        grade: "S",
+        skill: "使敌军全体部队防御力降低25%",
+        heroes: [["8代弓", "亨德里克"], ["12代弓", "丽姬娅"], ["15代矛", "艾丝黛拉"], ["17代弓", "埃莉诺"]],
+        remark: "较少见的独立乘区技能，等效于25%的稳定伤害提升，与攻击力提升、穿透力提升乘区技能混搭使用时效果最佳。"
+      },
+      {
+        grade: "A",
+        skill: "使我军全体部队穿透力提升25%",
+        heroes: [["史诗弓", "杰赛尔"], ["史诗矛", "杰西"], ["1代盾", "尼莫"], ["10代弓", "布兰奇"], ["12代盾", "赫尔薇尔"], ["15代盾", "汉克"], ["17代矛", "贝尔莎"]],
+        remark: "最常用伤害提升技能，稳定提升25%伤害，与攻击力提升、降低敌方防御、提升伤害等其他乘区技能混搭使用时效果最佳。"
+      },
+      {
+        grade: "A",
+        skill: "使我军全体部队攻击力提升25%",
+        heroes: [["史诗弓", "书允"], ["7代弓", "布拉德利"], ["9代盾", "马格努斯"], ["11代弓", "鲁弗斯"], ["15代弓", "维薇卡"]],
+        remark: "最常用伤害提升技能，稳定提升25%伤害，与穿透力提升、降低敌方防御、提升伤害等其他乘区技能混搭使用时效果最佳。"
+      },
+      {
+        grade: "A",
+        skill: "使我军全体部队普通攻击伤害提升30%",
+        heroes: [["4代矛", "玲奈"]],
+        remark: "罕见独立乘区技能。增强普攻伤害，因此评级受代次、火晶技能和车头英雄远征技能影响较大。火晶级别低、无火晶技能伤害且车头无技能伤害时可评为A级；存在技能伤害时降为B级。技能伤害指战报中英雄远征技能产生击败数，例如赫克托、格温、韦恩及火晶弓额外伤害技能。"
+      },
+      {
+        grade: "B",
+        skill: "每4回合发动一次额外打击，造成100%伤害",
+        heroes: [["6代弓", "韦恩"]],
+        remark: "额外伤害属于独立乘区，与以索尼娅为代表的伤害提升乘区不同，打熊理论提升约20%伤害。"
+      },
+      {
+        grade: "B",
+        skill: "使我军全体部队造成的伤害提升20%",
+        heroes: [["8代矛", "索尼娅"], ["14代矛", "多米尼克"], ["16代弓", "艾诗琳"]],
+        remark: "伤害提升独立乘区，与穿透力、攻击力提升不在同一乘区，打熊稳定提升20%伤害；采用1攻击、1穿透、1降防、1伤害提升搭配时可作为A级车身。"
+      },
+      {
+        grade: "B",
+        skill: "我军全体部队攻击时使目标受到的伤害提升25%",
+        heroes: [["5代弓", "格温"]],
+        remark: "易伤独立乘区，攻击后次回合生效，打熊只能生效9次，理论提升22.5%伤害。多数玩家使用米娅发车时会与米娅易伤乘区重叠而折损；米娅与格温同时使用时，格温车身可降至C级或D级。"
+      },
+      {
+        grade: "C",
+        skill: "使我军全体部队攻击力提升15%",
+        heroes: [["2代矛", "菲兰德"], ["10代盾", "格里高利"]],
+        remark: "稳定提升攻击力，但数值只有15%。优点是稳定，缺点是没有爆发上限。"
+      },
+      {
+        grade: "C",
+        skill: "使射手造成的伤害提升15%",
+        heroes: [["5代矛", "诺拉"]],
+        remark: "仅提升射手伤害，适合作为缺少更高评级车身时的补位选择。"
+      },
+      {
+        grade: "C",
+        skill: "20%几率使我军全体部队的伤害提升40%，持续3回合",
+        heroes: [["3代弓", "格雷格"]],
+        remark: "与索尼娅的一技能在同一乘区计算，打熊理论提升4%至40%伤害。测试中两车分别触发2次和3次，理论提升约24%和32%，发挥极度依赖触发次数。"
+      },
+      {
+        grade: "C",
+        skill: "40%几率使我军全体部队穿透力提升50%",
+        heroes: [["2代弓", "阿隆索"], ["4代弓", "琳恩"]],
+        remark: "理论期望提升约20%，但属于概率技能。多名英雄效果可叠加，单车可能触发1至10次，对应约5%至50%的提升，发挥完全取决于触发。"
+      },
+      {
+        grade: "D",
+        skill: "使我军全体部队攻击时有50%概率使敌方受到的伤害提升50%",
+        heroes: [["3代矛", "米娅"], ["13代矛", "弗洛拉"]],
+        remark: "易伤与概率技能。多个相同技能只叠加触发概率，不叠加伤害，易伤减益容易达到上限。若车头不用米娅，改用12代矛或14代矛，可考虑C级；米娅发车时直接按D级处理。"
+      }
+    ];
+
+    const gradeLabels = { S: "顶级车身", A: "强力车身", B: "稳定可用", C: "条件可用", D: "不推荐" };
+    let activeGrade = "all";
+    const resultsEl = document.getElementById("results");
+    const searchEl = document.getElementById("heroSearch");
+
+    function escapeHtml(value) {
+      return String(value == null ? "" : value).replace(/[&<>"']/g, function (char) {
+        return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char];
+      });
+    }
+
+    function matchesQuery(item, query) {
+      if (!query) return true;
+      const heroText = item.heroes.map(function (hero) { return hero.join(" "); }).join(" ");
+      return (item.grade + " " + item.skill + " " + item.remark + " " + heroText).toLowerCase().includes(query);
+    }
+
+    function renderRecommendations() {
+      const query = searchEl.value.trim().toLowerCase();
+      const filtered = RECOMMENDATIONS.filter(function (item) {
+        return (activeGrade === "all" || item.grade === activeGrade) && matchesQuery(item, query);
+      });
+      if (!filtered.length) {
+        resultsEl.innerHTML = '<div class="empty">没有找到符合条件的英雄或技能</div>';
+        return;
+      }
+      const grades = ["S", "A", "B", "C", "D"];
+      resultsEl.innerHTML = grades.map(function (grade) {
+        const rows = filtered.filter(function (item) { return item.grade === grade; });
+        if (!rows.length) return "";
+        const heroCount = rows.reduce(function (sum, item) { return sum + item.heroes.length; }, 0);
+        return '<section class="grade-section grade-border-' + grade + '">' +
+          '<div class="grade-head grade-' + grade + '"><span class="grade-mark">' + grade + '</span><div><h2 class="grade-title">' + gradeLabels[grade] + '</h2><div class="grade-count">' + rows.length + ' 组技能 · ' + heroCount + ' 名英雄</div></div></div>' +
+          '<div class="skill-list">' + rows.map(function (item) {
+            return '<article class="skill-row">' +
+              '<div><div class="cell-label">远征一技能</div><div class="skill-text">' + escapeHtml(item.skill) + '</div></div>' +
+              '<div><div class="cell-label">推荐英雄</div><div class="hero-grid">' + item.heroes.map(function (hero) {
+                return '<div class="hero-chip"><span class="hero-generation">' + escapeHtml(hero[0]) + '</span><strong class="hero-name">' + escapeHtml(hero[1]) + '</strong></div>';
+              }).join("") + '</div></div>' +
+              '<div><div class="cell-label">特性备注</div><div class="remark">' + escapeHtml(item.remark) + '</div></div>' +
+            '</article>';
+          }).join("") + '</div></section>';
+      }).join("");
+    }
+
+    document.getElementById("gradeFilters").addEventListener("click", function (event) {
+      const button = event.target.closest("[data-grade]");
+      if (!button) return;
+      activeGrade = button.dataset.grade;
+      document.querySelectorAll("[data-grade]").forEach(function (node) {
+        node.setAttribute("aria-pressed", String(node === button));
+      });
+      renderRecommendations();
+    });
+    searchEl.addEventListener("input", renderRecommendations);
+    renderRecommendations();
+  </script>
+</body>
+</html>

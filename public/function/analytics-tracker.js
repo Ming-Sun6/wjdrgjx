@@ -194,10 +194,20 @@
     document.head.appendChild(sc);
   }
 
+  function ensureSmartBackScript() {
+    if (window.__wjdrSmartBackScriptQueued || window.__wjdrSmartBackBound) return;
+    window.__wjdrSmartBackScriptQueued = true;
+    var sc = document.createElement('script');
+    sc.src = '/function/smart-back.js';
+    sc.async = true;
+    document.head.appendChild(sc);
+  }
+
   function boot() {
     ensurePlayerMadeNotice();
     ensureSiteBeianScript();
     ensureSiteFooterScript();
+    ensureSmartBackScript();
     if (!pageLoadsUnifiedTheme()) {
       applyTheme(getStoredTheme() || 'night');
       ensureThemeToggleButton();

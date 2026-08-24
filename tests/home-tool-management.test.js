@@ -14,7 +14,7 @@ test('every home tool has a unique management id and no static badge', () => {
   const toolCards = [...html.matchAll(/<section class="card [^"]*(?:featured-tool-card|tool-tile-card)[^"]*"[^>]*data-tool-id="([^"]+)"/g)];
   const ids = toolCards.map((match) => match[1]);
 
-  assert.equal(ids.length, 30);
+  assert.equal(ids.length, 31);
   assert.equal(new Set(ids).size, ids.length);
   assert.doesNotMatch(html, /<span class="new-badge">(?:新|热)<\/span>/);
 });

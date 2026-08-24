@@ -2,8 +2,23 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const config = require('../neighbor-progress-config');
+
+function loadNeighborProgressAdminContext() {
+  const script = fs.readFileSync(path.join(__dirname, '..', 'public/function/admin-neighbor-progress-page.js'), 'utf8');
+  const context = {
+    window: {},
+    document: {
+      getElementById() { return null; },
+      addEventListener() {}
+    }
+  };
+  vm.createContext(context);
+  vm.runInContext(script, context, { filename: 'admin-neighbor-progress-page.js' });
+  return context;
+}
 
 test('neighbor progress config generates stage dates every 14 days', () => {
   const result = config.generateStageDates('2026-08-17', 4, 14);
@@ -61,6 +76,22 @@ test('admin serializes neighbor progress config as JSON when saving', () => {
   const script = fs.readFileSync(path.join(__dirname, '..', 'public/function/admin-neighbor-progress-page.js'), 'utf8');
   assert.match(script, /body:\s*JSON\.stringify\(state\)/);
   assert.doesNotMatch(script, /body:\s*state\s*}/);
+});
+
+test('admin generates the next hero stage from the current highest generation', () => {
+  const context = loadNeighborProgressAdminContext();
+  const next = context.window.nextNeighborHeroGeneration;
+  assert.equal(typeof next, 'function');
+  const stages = [
+    { key: 'FC10', name: '火晶十' },
+    { key: 'Hero14', name: '14代英雄' },
+    { key: 'CustomHero', name: '15代英雄' }
+  ];
+  assert.equal(next(stages), 16);
+  stages.push({ key: 'Hero16', name: '16代英雄' });
+  assert.equal(next(stages), 17);
+  stages.pop();
+  assert.equal(next(stages), 16);
 });
 
 test('neighbor progress default config includes Hero12 for downstream calculators', () => {

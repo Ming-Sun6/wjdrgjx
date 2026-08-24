@@ -36,12 +36,24 @@
     try { var r = await apiFetch('/api/admin/neighbor-progress', { method: 'POST', body: JSON.stringify(state) }); if (!r.ok) { var d = await r.json().catch(function () { return {}; }); throw new Error(d.error || '保存失败'); } state = await r.json(); render(); status('保存成功。'); }
     catch (e) { status('保存失败：' + (e.message || '网络错误'), true); }
   }
+  function nextHeroGeneration(stages) {
+    var highest = 12;
+    (Array.isArray(stages) ? stages : []).forEach(function (stage) {
+      if (!stage) return;
+      var keyMatch = /^Hero(\d+)$/i.exec(String(stage.key || '').trim());
+      var nameMatch = /(\d+)\s*代(?:英雄)?/.exec(String(stage.name || '').trim());
+      var generation = keyMatch ? Number(keyMatch[1]) : (nameMatch ? Number(nameMatch[1]) : 0);
+      if (Number.isFinite(generation)) highest = Math.max(highest, generation);
+    });
+    return highest + 1;
+  }
   function bind() {
-    var addStage = el('neighborProgressAddBtn'); if (addStage) addStage.onclick = function () { var i = state.stages.length + 1; state.stages.push({ key: 'Hero' + (12 + i), name: (12 + i) + '代英雄', anchorDate: '', enabled: true, dates: state.ranges.map(function () { return ''; }) }); render(); };
+    var addStage = el('neighborProgressAddBtn'); if (addStage) addStage.onclick = function () { var generation = nextHeroGeneration(state.stages); state.stages.push({ key: 'Hero' + generation, name: generation + '代英雄', anchorDate: '', enabled: true, dates: state.ranges.map(function () { return ''; }) }); render(); };
     var addRange = el('neighborProgressAddRangeBtn'); if (addRange) addRange.onclick = function () { var interval = Math.max(1, Math.min(60, Number(el('neighborProgressInterval').value) || 14)); var previousIndex = state.ranges.length - 1; state.intervalDays = interval; state.ranges.push('新区间'); state.stages.forEach(function (s) { s.dates = s.dates || []; var previousDate = s.dates[previousIndex] || ''; s.dates.push(previousDate ? addDays(previousDate, interval) : ''); }); render(); status('已新增区间，并按 ' + interval + ' 天间隔自动续算各阶段日期。'); };
     var reload = el('neighborProgressReloadBtn'); if (reload) reload.onclick = load;
     var saveBtn = el('neighborProgressSaveBtn'); if (saveBtn) saveBtn.onclick = save;
   }
+  window.nextNeighborHeroGeneration = nextHeroGeneration;
   window.loadNeighborProgressAdmin = function () { if (!loaded) load(); };
   document.addEventListener('DOMContentLoaded', bind);
 })();
