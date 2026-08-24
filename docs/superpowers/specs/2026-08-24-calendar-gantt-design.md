@@ -56,12 +56,26 @@
 
 ## 数据模型与兼容
 
-- 保留现有 `calendar_schedules` 数据和旧接口数据的读取兼容。
-- 新增日程规则字段，用于记录类型、起止日期、循环单位、循环间隔、星期选择、每月日期、结束方式、结束日期和循环次数。
+- 新建 `calendar_schedule_definitions` 作为唯一规范数据源，MySQL 与 PostgreSQL 均创建相同语义的字段：`id`、`legacy_original_id`、`name`、`schedule_type`、`start_date`、`end_date`、`legacy_dates_json`、`start_time`、`end_time`、`color`、`description`、`enabled`、`recurrence_unit`、`recurrence_interval`、`weekdays_json`、`month_day`、`recurrence_end_type`、`recurrence_until`、`recurrence_count`、`created_by`、`created_at`、`updated_at`。
+- `schedule_type` 支持 `single`、`continuous`、`recurring` 和仅供旧数据兼容的 `date-list`。后台新建时只提供前三种。
+- 启动迁移按现有 `calendar_schedules.original_id` 分组，事务内幂等写入新表：单个日期转为 `single`；连续日期转为 `continuous`；不连续日期转为 `date-list` 并保存在 `legacy_dates_json`。保留旧表，不再作为新写入目标。
+- `legacy_original_id` 建唯一索引，迁移重复执行不得重复生成定义；日期范围、启用状态和更新时间建立查询索引。
+- 新增日程规则字段用于记录类型、起止日期、循环单位、循环间隔、星期选择、每月日期、结束方式、结束日期和循环次数。
 - 定期日程只保存规则，不提前向数据库无限写入实例。
 - 前台按当前周或月份的可见日期范围请求日程，由服务端在限定范围内展开循环实例。
 - 永不结束规则也只展开请求范围内的数据，防止无限计算。
-- 连续日期合并为一段；不连续日期拆成多个任务片段。
+- 连续日程合并为一段；`date-list` 中连续日期合并，不连续日期拆成多段。定期日程的每次发生均保持独立，即使两次发生日期相邻也不合并。
+
+## 循环规则语义
+
+- 所有日期均按 `YYYY-MM-DD` 的 UTC 纯日期计算，不使用浏览器本地时区参与加减日。
+- 每隔 N 天：以 `start_date` 为第一次发生日，每 N 天产生一次。
+- 每隔 N 周：以 `start_date` 所在周的星期一为周锚点，每 N 周激活一次所选星期；只产生不早于 `start_date` 的发生日。
+- 每隔 N 月：以 `start_date` 所在月份为月锚点，每 N 月在 `month_day` 发生；若某月不存在该日（例如2月30日），该月跳过，不顺延也不提前。
+- 循环次数表示“发生次数”，不是周期数。每周选择多个星期时，每个发生日分别计一次。
+- 指定结束日期按发生开始日判断并包含结束日；允许最后一次日程的结束日期超过循环结束日。
+- 定期日程可设置发生持续天数：由模板 `start_date` 至 `end_date`（含首尾）决定，每次发生保持相同持续天数。
+- 单日或持续一天的日程同时填写开始/结束时间时，结束时间必须晚于开始时间；跨多日持续日程允许末日结束时间早于首日开始时间。
 
 ## 甘特排布算法
 
@@ -73,11 +87,22 @@
 
 ## 接口与权限
 
-- 公开接口只返回已启用日程在请求日期范围内的展开结果。
+- `GET /api/calendar/schedules?from=YYYY-MM-DD&to=YYYY-MM-DD` 使用包含首尾的日期范围，只返回已启用日程展开结果；响应为 `{ from, to, schedules: Occurrence[] }`。
+- `Occurrence` 至少包含 `id`、`scheduleId`、`fragmentId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description` 和 `scheduleType`。发生 ID 固定为 `<scheduleId>:<occurrenceStartDate>`；周/月裁切片段 ID 为 `<occurrenceId>:<weekStartDate>`。
+- 旧调用未提供 `from/to` 时使用“今天前31天至今天后365天”的兼容窗口，并在响应加入 `rangeDefaulted: true`；旧 `originalId` 保留为兼容字段。
+- `GET /api/admin/calendar/schedules` 返回完整规则定义并包含停用项目，供重新启用和编辑。
+- 管理接口：`POST /api/admin/calendar/schedules` 新增；`PATCH /api/admin/calendar/schedules/:id` 编辑；`POST /api/admin/calendar/schedules/:id/copy` 复制为新 ID 并在名称后加“副本”；`POST /api/admin/calendar/schedules/:id/status` 设置启用状态；`DELETE /api/admin/calendar/schedules/:id` 删除。
+- 旧的管理员写接口继续接受 `originalId`，内部解析到新定义 ID 后执行相同事务操作，作为过渡兼容。
 - 新增、编辑、复制、停用和删除必须通过管理员权限校验。
 - 对日期范围、循环间隔、循环次数、名称长度、颜色和时间格式进行服务端验证。
-- 限制单次请求范围与最大展开数量，防止异常循环规则造成资源消耗。
+- 单次公开请求最多366天，超过返回 `400 RANGE_TOO_LARGE`；单次最多展开2000个发生实例，超过返回 `422 EXPANSION_LIMIT`，不得静默截断。
 - 管理操作继续写入后台审计日志。
+
+## 月视图边界
+
+- 自然周固定为星期一至星期日。
+- 月视图请求范围从包含当月1日的周一开始，到包含当月末日的周日结束，因此会包含相邻月份日期。
+- 相邻月份日期仍参与日程查询和跨周片段裁切，但日期格使用弱化样式。
 
 ## 错误处理
 
