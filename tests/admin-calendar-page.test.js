@@ -41,3 +41,24 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   assert.match(js, /method:'DELETE'/);
   assert.match(js, /window\.loadAdminCalendar/);
 });
+
+test('calendar admin updates use POST and routes retain PATCH compatibility behind CDN', () => {
+  const js = read('public/function/admin-calendar-page.js');
+  const legacyAdmin = read('public/function/_ops/console-7a9/internal/admin.html');
+  const routes = read('calendar-routes.js');
+
+  assert.match(
+    js,
+    /request\('\/api\/admin\/calendar\/categories\/'\+category\.id,\{method:'POST',body:JSON\.stringify\(\{name:name,color:String\(color\)\.trim\(\)\}\)\}\)/
+  );
+  assert.match(js, /request\(url,\{method:'POST',body:JSON\.stringify\(payload\)\}\)/);
+  assert.doesNotMatch(js, /method:editingId\?'PATCH':'POST'/);
+  assert.match(legacyAdmin, /var method = 'POST';/);
+
+  assert.match(routes, /app\.patch\('\/api\/calendar\/schedules\/:originalId', handlers\.legacyUpdate\);/);
+  assert.match(routes, /app\.post\('\/api\/calendar\/schedules\/:originalId', handlers\.legacyUpdate\);/);
+  assert.match(routes, /app\.patch\('\/api\/admin\/calendar\/schedules\/:id', handlers\.updateSchedule\);/);
+  assert.match(routes, /app\.post\('\/api\/admin\/calendar\/schedules\/:id', handlers\.updateSchedule\);/);
+  assert.match(routes, /app\.patch\('\/api\/admin\/calendar\/categories\/:id', handlers\.updateCategory\);/);
+  assert.match(routes, /app\.post\('\/api\/admin\/calendar\/categories\/:id', handlers\.updateCategory\);/);
+});

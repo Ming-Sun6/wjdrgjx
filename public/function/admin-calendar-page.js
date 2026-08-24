@@ -99,7 +99,7 @@
     var color=prompt('分类颜色（#RRGGBB）',category.color);
     if(color===null) return;
     try{
-      await readJson(await request('/api/admin/calendar/categories/'+category.id,{method:'PATCH',body:JSON.stringify({name:name,color:String(color).trim()})}));
+      await readJson(await request('/api/admin/calendar/categories/'+category.id,{method:'POST',body:JSON.stringify({name:name,color:String(color).trim()})}));
       await loadCategories(); status('分类已更新。');
     }catch(error){ status(error.message,true); }
   }
@@ -222,7 +222,7 @@
     var payload=schedulePayload();
     var url='/api/admin/calendar/schedules'+(editingId?'/'+editingId:'');
     try{
-      await readJson(await request(url,{method:editingId?'PATCH':'POST',body:JSON.stringify(payload)}));
+      await readJson(await request(url,{method:'POST',body:JSON.stringify(payload)}));
       await loadSchedules(); resetScheduleForm(); status('日程已保存。');
     }catch(error){ status(error.message,true); }
   }

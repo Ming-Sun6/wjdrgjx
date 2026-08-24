@@ -3234,7 +3234,7 @@
           var url = calendarEditId
             ? '/api/calendar/schedules/' + encodeURIComponent(calendarEditId)
             : '/api/calendar/schedules';
-          var method = calendarEditId ? 'PATCH' : 'POST';
+          var method = 'POST';
           var r=await apiFetch(url,{method:method,body:JSON.stringify(payload)});
           var d=await r.json().catch(function(){ return {}; });
           if(!r.ok){
