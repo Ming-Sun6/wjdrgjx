@@ -39,12 +39,13 @@
 
 ## 活动分类
 
-- 分类由后台配置，首次初始化按顺序预置：常规、王国活动、小榜、跨服活动、限定活动。
+- 分类由后台配置。系统先于旧日程迁移幂等预置五个具有不可变内部编码的分类：`regular=常规`、`kingdom=王国活动`、`leaderboard=小榜`、`cross-server=跨服活动`、`limited=限定活动`。重复启动按编码补齐缺失项，不重复插入。
 - 后台支持新增分类、改名、设置淡暖色、拖动排序、停用和重新启用。
-- 每个日程必须选择一个启用分类；分类停用后已有日程保留关系和历史显示，新增/编辑时不可再选择该分类，重新启用后恢复。
-- 日程默认继承分类颜色，也允许日程或组合子任务单独覆盖颜色。
-- 新建 `calendar_categories` 表：`id`、`name`、`color`、`sort_order`、`enabled`、`created_at`、`updated_at`；分类名称在有效记录中唯一。
-- 旧日程迁移时统一归入预置“常规”分类。
+- 每个日程必须选择分类。旧数据迁移和旧 POST/PATCH 未提供 `categoryId` 时，按不可变编码 `regular` 定位默认分类，即使显示名称已被管理员修改。
+- 分类停用只禁止新建日程选择和把其他日程改入该分类，不隐藏已有启用日程；管理员仍可编辑其非分类字段，也可保留原停用分类。
+- 日程颜色为空时动态继承分类当前颜色；子任务颜色为空时依次继承主日程颜色、分类颜色。修改分类颜色会立即影响所有未单独覆盖颜色的现有日程。
+- 新建 `calendar_categories` 表：`id`、`code`、`name`、`color`、`sort_order`、`enabled`、`created_at`、`updated_at`；`code` 和 `name` 均跨启用/停用全部记录唯一，停用后不得创建同名分类。
+- 旧日程迁移时统一归入编码为 `regular` 的分类。
 
 ## 日程类型
 
@@ -78,7 +79,7 @@
 
 - 新建 `calendar_schedule_definitions` 作为唯一规范数据源，MySQL 与 PostgreSQL 均创建相同语义的字段：`id`、`legacy_original_id`、`category_id`、`name`、`schedule_type`、`start_date`、`end_date`、`legacy_dates_json`、`start_time`、`end_time`、`color`、`description`、`enabled`、`recurrence_unit`、`recurrence_interval`、`weekdays_json`、`month_day`、`recurrence_end_type`、`recurrence_until`、`recurrence_count`、`created_by`、`created_at`、`updated_at`。
 - `schedule_type` 支持 `single`、`continuous`、`recurring`、`composite` 和仅供旧数据兼容的 `date-list`。后台新建时提供前四种。
-- 新建 `calendar_schedule_items` 保存组合日程子任务：`id`、`schedule_id`、`name`、`description`、`color`、`sort_order`、`date_mode`、`dates_json`、`start_time`、`end_time`、循环规则字段与启用状态；子任务随主活动事务性新增、更新、复制和删除。
+- 新建 `calendar_schedule_items` 保存组合日程子任务：`id`、`schedule_id`、`name`、`description`、`color`、`sort_order`、`enabled`、`date_mode`、`start_offset_days`、`end_offset_days`、`selected_offsets_json`、`duration_days`、`start_time`、`end_time`、`recurrence_unit`、`recurrence_interval`、`weekdays_json`、`month_day`、`recurrence_end_type`、`recurrence_until_offset`、`recurrence_count`、`created_at`、`updated_at`。子任务随主活动事务性新增、更新、复制和删除。
 - 启动迁移按现有 `calendar_schedules.original_id` 分组，事务内幂等写入新表：单个日期转为 `single`；连续日期转为 `continuous`；不连续日期转为 `date-list` 并保存在 `legacy_dates_json`。迁移记录默认 `enabled=true`；`date-list.start_date/end_date` 分别保存日期列表最小值和最大值。保留旧表，不再作为新写入目标。
 - `legacy_original_id` 建唯一索引，迁移重复执行不得重复生成定义；日期范围、启用状态和更新时间建立查询索引。
 - 新增日程规则字段用于记录类型、起止日期、循环单位、循环间隔、星期选择、每月日期、结束方式、结束日期和循环次数。
@@ -95,6 +96,17 @@
 - `recurring`：要求 `start_date/end_date`、循环单位、正整数间隔和结束方式；`legacy_dates_json` 必须为空。周循环要求至少一个星期，月循环要求 `month_day=1..31`；结束日期模式要求 `recurrence_until`，次数模式要求正整数 `recurrence_count`，永不结束模式两者均为空。
 - `composite`：主定义要求 `category_id`、`start_date/end_date` 和至少一个启用子任务；主活动可使用与 `recurring` 相同的循环字段。子任务日期不得超出单次主活动持续范围，独立循环也只在主活动发生窗口内展开。
 
+组合子任务 `date_mode` 规则：
+
+- `all-span`：子任务覆盖每次主活动发生的完整日期范围；偏移、选择日期和子循环字段必须为空。
+- `relative-range`：使用从0开始的 `start_offset_days/end_offset_days`，要求 `0 <= start <= end < 主活动持续天数`，形成一个连续片段。
+- `selected-days`：`selected_offsets_json` 保存去重升序的从0开始日偏移；连续偏移合并成片段，不连续偏移拆分成多个片段。
+- `recurring`：以每次主活动发生开始日为边界和下限，按子任务循环字段展开，且 `duration_days>=1`。仅产生开始日落在主活动窗口内且完整结束日不超过主活动结束日的子任务，超界发生跳过而不裁切。
+- 子任务日期全部相对每一次主活动发生计算，不保存绝对日期。主活动循环后，每次发生均复用同一套偏移/循环模板。
+- 主活动发生允许因持续时长大于循环间隔而互相重叠，每次仍使用独立发生 ID 并独立排布。
+- 子任务次数表示每个主活动发生窗口内的发生次数；主活动结束边界始终优先，达到任一条件即停止。
+- 单次公开请求的2000实例限制按“主活动发生 + 普通日程发生 + 组合子任务发生”总数计算。
+
 ## 循环规则语义
 
 - 所有日期均按 `YYYY-MM-DD` 的 UTC 纯日期计算，不使用浏览器本地时区参与加减日。
@@ -108,22 +120,26 @@
 
 ## 甘特排布算法
 
-1. 将当前视图范围内的日程转换为 `[开始日, 结束日]` 片段。
-2. 按开始日期、结束日期和稳定 ID 排序。
-3. 逐个放入第一条不发生日期重叠的行。
-4. 日期相邻但不重叠的片段允许放在同一行。
-5. 月视图对每个自然周分别裁切片段并重新排布。
+1. 每个周区块先按分类 `sortOrder`、分类名称排序；不同分类独立排布，不跨分类共用行。
+2. 普通日程转换为周内 `[开始日, 结束日]` 片段，并按开始日期、结束日期和稳定 ID 排序。
+3. 普通日程逐个放入该分类第一条不发生日期重叠的行；日期相邻但不重叠可共用一行。
+4. 组合日程在分类内预留独立行组，不与普通日程或其他组合日程共享子任务行。子任务按 `sortOrder` 分行。
+5. 组合日程的主标题不新增第二个固定列，而是在最左侧“活动分类”单元格内与分类标签共同显示，并纵向跨越该组合全部子任务行。
+6. 同分类相邻普通行可纵向合并分类单元格；组合行组会打断合并，并显示“分类名称 + 主活动名称 + 说明/奖励”。
+7. 月视图每个自然周区块都独立执行分类排序、片段裁切和行排布；跨周组合在每周重复分类/标题结构并显示接续标识。
 
 ## 接口与权限
 
 - `GET /api/calendar/schedules?from=YYYY-MM-DD&to=YYYY-MM-DD` 使用包含首尾的日期范围，只返回已启用日程的完整发生实例；响应为 `{ from, to, schedules: Occurrence[] }`。
 - `Occurrence` 至少包含 `id`、`scheduleId`、`originalId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description` 和 `scheduleType`。发生 ID 固定为 `<scheduleId>:<occurrenceStartDate>`，服务端不进行按周裁切。
-- 公开发生实例同时返回 `category: { id, name, color, sortOrder }`；组合日程返回已在请求范围内展开的 `items`，每个子任务具有稳定发生 ID。
+- 公开发生实例同时返回 `category: { id, code, name, color, sortOrder }`；组合日程返回已在请求范围内展开的 `items`。子任务发生字段为 `id`、`itemId`、`parentOccurrenceId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description`、`sortOrder`；稳定 ID 为 `<parentOccurrenceId>:item:<itemId>:<childStartDate>`。
 - 前端将完整发生实例裁切为周内 `Fragment`；片段包含 `fragmentId=<occurrenceId>:<weekStartDate>`、原始发生 ID、裁切后的 `startDate/endDate`。周/月甘特排布只使用片段。
 - 旧调用未提供 `from/to` 时保留旧响应形状：使用“今天前31天至今天后334天”（包含首尾共366天）的兼容窗口，将每个发生实例展开成逐日记录，字段继续包含 `date` 与 `originalId`，并返回 `rangeDefaulted: true`。所有现有旧页面无需立即迁移。
 - `GET /api/admin/calendar/schedules` 返回完整规则定义并包含停用项目，供重新启用和编辑。
-- 分类管理接口：`GET /api/admin/calendar/categories`、`POST /api/admin/calendar/categories`、`PATCH /api/admin/calendar/categories/:id`、`POST /api/admin/calendar/categories/reorder`、`POST /api/admin/calendar/categories/:id/status`。
+- 分类管理接口：`GET /api/admin/calendar/categories`；`POST /api/admin/calendar/categories` 接受 `{ name, color }`；`PATCH /api/admin/calendar/categories/:id` 接受 `{ name?, color? }`；`POST /api/admin/calendar/categories/reorder` 接受 `{ ids: number[] }`；`POST /api/admin/calendar/categories/:id/status` 接受 `{ enabled: boolean }`。响应返回规范分类对象；重复名称返回 `409 CATEGORY_NAME_EXISTS`，无效颜色返回 `400 BAD_COLOR`。
 - 管理接口：`POST /api/admin/calendar/schedules` 新增；`PATCH /api/admin/calendar/schedules/:id` 编辑；`POST /api/admin/calendar/schedules/:id/copy` 复制为新 ID 并在名称后加“副本”；`POST /api/admin/calendar/schedules/:id/status` 设置启用状态；`DELETE /api/admin/calendar/schedules/:id` 删除。
+- 组合日程新增/更新请求在普通字段和主循环字段外包含 `items` 数组，每项使用上述完整子任务字段；非法偏移返回 `400 BAD_ITEM_OFFSET`，无子任务返回 `400 ITEMS_REQUIRED`，无效循环返回 `400 BAD_RECURRENCE`，停用分类被新选择时返回 `409 CATEGORY_DISABLED`。
+- 复制组合日程时在同一事务中复制全部子任务和分类关系，生成新日程/子任务 ID，名称追加“副本”，复制结果默认停用，防止与原日程同时展示。
 - 旧的管理员写接口保持为 `POST /api/calendar/schedules`、`PATCH /api/calendar/schedules/:originalId`、`DELETE /api/calendar/schedules/:originalId`。旧 POST/PATCH 的 `dates` 数组先去重排序：一个日期映射为 `single`，连续日期映射为 `continuous`，不连续日期映射为 `date-list`；PATCH/DELETE 通过 `legacy_original_id` 或兼容 `originalId` 定位新定义，并在事务内执行。
 - 新增、编辑、复制、停用和删除必须通过管理员权限校验。
 - 对日期范围、循环间隔、循环次数、名称长度、颜色和时间格式进行服务端验证。
