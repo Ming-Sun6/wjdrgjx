@@ -58,13 +58,20 @@
 
 - 新建 `calendar_schedule_definitions` 作为唯一规范数据源，MySQL 与 PostgreSQL 均创建相同语义的字段：`id`、`legacy_original_id`、`name`、`schedule_type`、`start_date`、`end_date`、`legacy_dates_json`、`start_time`、`end_time`、`color`、`description`、`enabled`、`recurrence_unit`、`recurrence_interval`、`weekdays_json`、`month_day`、`recurrence_end_type`、`recurrence_until`、`recurrence_count`、`created_by`、`created_at`、`updated_at`。
 - `schedule_type` 支持 `single`、`continuous`、`recurring` 和仅供旧数据兼容的 `date-list`。后台新建时只提供前三种。
-- 启动迁移按现有 `calendar_schedules.original_id` 分组，事务内幂等写入新表：单个日期转为 `single`；连续日期转为 `continuous`；不连续日期转为 `date-list` 并保存在 `legacy_dates_json`。保留旧表，不再作为新写入目标。
+- 启动迁移按现有 `calendar_schedules.original_id` 分组，事务内幂等写入新表：单个日期转为 `single`；连续日期转为 `continuous`；不连续日期转为 `date-list` 并保存在 `legacy_dates_json`。迁移记录默认 `enabled=true`；`date-list.start_date/end_date` 分别保存日期列表最小值和最大值。保留旧表，不再作为新写入目标。
 - `legacy_original_id` 建唯一索引，迁移重复执行不得重复生成定义；日期范围、启用状态和更新时间建立查询索引。
 - 新增日程规则字段用于记录类型、起止日期、循环单位、循环间隔、星期选择、每月日期、结束方式、结束日期和循环次数。
 - 定期日程只保存规则，不提前向数据库无限写入实例。
 - 前台按当前周或月份的可见日期范围请求日程，由服务端在限定范围内展开循环实例。
 - 永不结束规则也只展开请求范围内的数据，防止无限计算。
 - 连续日程合并为一段；`date-list` 中连续日期合并，不连续日期拆成多段。定期日程的每次发生均保持独立，即使两次发生日期相邻也不合并。
+
+各类型字段约束：
+
+- `single`：要求 `start_date`，`end_date=start_date`；所有循环字段和 `legacy_dates_json` 必须为空。
+- `continuous`：要求 `start_date/end_date` 且 `end_date>=start_date`；所有循环字段和 `legacy_dates_json` 必须为空。
+- `date-list`：要求非空、去重、升序的 `legacy_dates_json`，`start_date/end_date` 为列表最小/最大日期；所有循环字段必须为空。
+- `recurring`：要求 `start_date/end_date`、循环单位、正整数间隔和结束方式；`legacy_dates_json` 必须为空。周循环要求至少一个星期，月循环要求 `month_day=1..31`；结束日期模式要求 `recurrence_until`，次数模式要求正整数 `recurrence_count`，永不结束模式两者均为空。
 
 ## 循环规则语义
 
@@ -87,12 +94,13 @@
 
 ## 接口与权限
 
-- `GET /api/calendar/schedules?from=YYYY-MM-DD&to=YYYY-MM-DD` 使用包含首尾的日期范围，只返回已启用日程展开结果；响应为 `{ from, to, schedules: Occurrence[] }`。
-- `Occurrence` 至少包含 `id`、`scheduleId`、`fragmentId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description` 和 `scheduleType`。发生 ID 固定为 `<scheduleId>:<occurrenceStartDate>`；周/月裁切片段 ID 为 `<occurrenceId>:<weekStartDate>`。
-- 旧调用未提供 `from/to` 时使用“今天前31天至今天后365天”的兼容窗口，并在响应加入 `rangeDefaulted: true`；旧 `originalId` 保留为兼容字段。
+- `GET /api/calendar/schedules?from=YYYY-MM-DD&to=YYYY-MM-DD` 使用包含首尾的日期范围，只返回已启用日程的完整发生实例；响应为 `{ from, to, schedules: Occurrence[] }`。
+- `Occurrence` 至少包含 `id`、`scheduleId`、`originalId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description` 和 `scheduleType`。发生 ID 固定为 `<scheduleId>:<occurrenceStartDate>`，服务端不进行按周裁切。
+- 前端将完整发生实例裁切为周内 `Fragment`；片段包含 `fragmentId=<occurrenceId>:<weekStartDate>`、原始发生 ID、裁切后的 `startDate/endDate`。周/月甘特排布只使用片段。
+- 旧调用未提供 `from/to` 时保留旧响应形状：使用“今天前31天至今天后334天”（包含首尾共366天）的兼容窗口，将每个发生实例展开成逐日记录，字段继续包含 `date` 与 `originalId`，并返回 `rangeDefaulted: true`。所有现有旧页面无需立即迁移。
 - `GET /api/admin/calendar/schedules` 返回完整规则定义并包含停用项目，供重新启用和编辑。
 - 管理接口：`POST /api/admin/calendar/schedules` 新增；`PATCH /api/admin/calendar/schedules/:id` 编辑；`POST /api/admin/calendar/schedules/:id/copy` 复制为新 ID 并在名称后加“副本”；`POST /api/admin/calendar/schedules/:id/status` 设置启用状态；`DELETE /api/admin/calendar/schedules/:id` 删除。
-- 旧的管理员写接口继续接受 `originalId`，内部解析到新定义 ID 后执行相同事务操作，作为过渡兼容。
+- 旧的管理员写接口保持为 `POST /api/calendar/schedules`、`PATCH /api/calendar/schedules/:originalId`、`DELETE /api/calendar/schedules/:originalId`。旧 POST/PATCH 的 `dates` 数组先去重排序：一个日期映射为 `single`，连续日期映射为 `continuous`，不连续日期映射为 `date-list`；PATCH/DELETE 通过 `legacy_original_id` 或兼容 `originalId` 定位新定义，并在事务内执行。
 - 新增、编辑、复制、停用和删除必须通过管理员权限校验。
 - 对日期范围、循环间隔、循环次数、名称长度、颜色和时间格式进行服务端验证。
 - 单次公开请求最多366天，超过返回 `400 RANGE_TOO_LARGE`；单次最多展开2000个发生实例，超过返回 `422 EXPANSION_LIMIT`，不得静默截断。
