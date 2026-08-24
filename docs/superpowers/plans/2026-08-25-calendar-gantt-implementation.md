@@ -292,7 +292,7 @@ Run: `node --test tests/admin-calendar-page.test.js tests/calendar-routes.test.j
 
 Expected: PASS.
 
-Commit: `git commit -m "feat: add calendar administration UI" -- public/function/admin-calendar-page.js public/function/_ops/console-7a9/internal/admin.html tests/admin-calendar-page.test.js`
+Stage the new script/test normally. Stage only the calendar-admin hunks from baseline-dirty `public/function/_ops/console-7a9/internal/admin.html` with `git add -p`, inspect `git diff --cached`, then commit with `git commit -m "feat: add calendar administration UI"`.
 
 ### Task 7: Homepage calendar tab and true lazy loading
 
