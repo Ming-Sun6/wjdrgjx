@@ -45,6 +45,7 @@
 - 分类停用只禁止新建日程选择和把其他日程改入该分类，不隐藏已有启用日程；管理员仍可编辑其非分类字段，也可保留原停用分类。
 - 日程颜色为空时动态继承分类当前颜色；子任务颜色为空时依次继承主日程颜色、分类颜色。修改分类颜色会立即影响所有未单独覆盖颜色的现有日程。
 - 新建 `calendar_categories` 表：`id`、`code`、`name`、`color`、`sort_order`、`enabled`、`created_at`、`updated_at`；`code` 和 `name` 均跨启用/停用全部记录唯一，停用后不得创建同名分类。
+- 五个预置分类使用固定编码；后台新增自定义分类时不要求管理员填写编码，服务端生成 `custom-<26位小写ULID>`，依赖数据库唯一索引兜底，冲突时重新生成，连续5次冲突返回 `500 CATEGORY_CODE_GENERATION_FAILED`。分类改名、改色、排序、停用和重新启用均不得改变 `code`。
 - 旧日程迁移时统一归入编码为 `regular` 的分类。
 
 ## 日程类型
@@ -98,10 +99,10 @@
 
 组合子任务 `date_mode` 规则：
 
-- `all-span`：子任务覆盖每次主活动发生的完整日期范围；偏移、选择日期和子循环字段必须为空。
-- `relative-range`：使用从0开始的 `start_offset_days/end_offset_days`，要求 `0 <= start <= end < 主活动持续天数`，形成一个连续片段。
-- `selected-days`：`selected_offsets_json` 保存去重升序的从0开始日偏移；连续偏移合并成片段，不连续偏移拆分成多个片段。
-- `recurring`：以每次主活动发生开始日为边界和下限，按子任务循环字段展开，且 `duration_days>=1`。仅产生开始日落在主活动窗口内且完整结束日不超过主活动结束日的子任务，超界发生跳过而不裁切。
+- `all-span`：子任务覆盖每次主活动发生的完整日期范围；`start_offset_days`、`end_offset_days`、`selected_offsets_json`、`duration_days` 和全部子循环字段必须为空。
+- `relative-range`：必须填写从0开始的 `start_offset_days/end_offset_days`，要求 `0 <= start <= end < 主活动持续天数`，形成一个连续片段；`selected_offsets_json`、`duration_days` 和全部子循环字段必须为空。
+- `selected-days`：必须填写非空的 `selected_offsets_json`，保存去重升序的从0开始日偏移，每个偏移都必须满足 `0 <= offset < 主活动持续天数`；连续偏移合并成片段，不连续偏移拆分成多个片段；范围偏移、`duration_days` 和全部子循环字段必须为空。
+- `recurring`：范围偏移和 `selected_offsets_json` 必须为空；必须填写 `duration_days>=1`、循环单位、正整数间隔和结束方式，周/月字段约束与主日程相同。`never` 要求 `recurrence_until_offset` 与 `recurrence_count` 均为空；`until` 要求 `recurrence_until_offset` 为包含边界的开始日偏移且满足 `0 <= offset < 主活动持续天数`，`recurrence_count` 为空；`count` 要求正整数 `recurrence_count`，`recurrence_until_offset` 为空。无论主组合本身是否循环，这套子规则都针对每一次主活动发生窗口从偏移0重新计算；仅产生开始日落在窗口和可选 `until` 边界内，且完整结束日不超过主活动结束日的子任务，超界发生跳过而不裁切。
 - 子任务日期全部相对每一次主活动发生计算，不保存绝对日期。主活动循环后，每次发生均复用同一套偏移/循环模板。
 - 主活动发生允许因持续时长大于循环间隔而互相重叠，每次仍使用独立发生 ID 并独立排布。
 - 子任务次数表示每个主活动发生窗口内的发生次数；主活动结束边界始终优先，达到任一条件即停止。
@@ -123,7 +124,7 @@
 1. 每个周区块先按分类 `sortOrder`、分类名称排序；不同分类独立排布，不跨分类共用行。
 2. 普通日程转换为周内 `[开始日, 结束日]` 片段，并按开始日期、结束日期和稳定 ID 排序。
 3. 普通日程逐个放入该分类第一条不发生日期重叠的行；日期相邻但不重叠可共用一行。
-4. 组合日程在分类内预留独立行组，不与普通日程或其他组合日程共享子任务行。子任务按 `sortOrder` 分行。
+4. 组合日程在分类内预留独立行组，不与普通日程或其他组合日程共享子任务行。组合行组按主发生开始日、结束日、稳定发生 ID 排序；子任务按 `sortOrder`、子任务 ID 排序。单个循环子任务若在同一周产生日期重叠的多个实例，则在该子任务内部按开始日、结束日、稳定发生 ID 使用“第一条无重叠泳道”算法继续分行；不重叠实例仍共用一条泳道。
 5. 组合日程的主标题不新增第二个固定列，而是在最左侧“活动分类”单元格内与分类标签共同显示，并纵向跨越该组合全部子任务行。
 6. 同分类相邻普通行可纵向合并分类单元格；组合行组会打断合并，并显示“分类名称 + 主活动名称 + 说明/奖励”。
 7. 月视图每个自然周区块都独立执行分类排序、片段裁切和行排布；跨周组合在每周重复分类/标题结构并显示接续标识。
@@ -132,13 +133,13 @@
 
 - `GET /api/calendar/schedules?from=YYYY-MM-DD&to=YYYY-MM-DD` 使用包含首尾的日期范围，只返回已启用日程的完整发生实例；响应为 `{ from, to, schedules: Occurrence[] }`。
 - `Occurrence` 至少包含 `id`、`scheduleId`、`originalId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description` 和 `scheduleType`。发生 ID 固定为 `<scheduleId>:<occurrenceStartDate>`，服务端不进行按周裁切。
-- 公开发生实例同时返回 `category: { id, code, name, color, sortOrder }`；组合日程返回已在请求范围内展开的 `items`。子任务发生字段为 `id`、`itemId`、`parentOccurrenceId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description`、`sortOrder`；稳定 ID 为 `<parentOccurrenceId>:item:<itemId>:<childStartDate>`。
+- 公开发生实例同时返回 `category: { id, code, name, color, sortOrder }`；组合日程只展开已启用子任务并返回请求范围内的 `items`。子任务发生字段为 `id`、`itemId`、`parentOccurrenceId`、`name`、`startDate`、`endDate`、`startTime`、`endTime`、`color`、`description`、`sortOrder`；稳定 ID 为 `<parentOccurrenceId>:item:<itemId>:<childStartDate>`。
 - 前端将完整发生实例裁切为周内 `Fragment`；片段包含 `fragmentId=<occurrenceId>:<weekStartDate>`、原始发生 ID、裁切后的 `startDate/endDate`。周/月甘特排布只使用片段。
 - 旧调用未提供 `from/to` 时保留旧响应形状：使用“今天前31天至今天后334天”（包含首尾共366天）的兼容窗口，将每个发生实例展开成逐日记录，字段继续包含 `date` 与 `originalId`，并返回 `rangeDefaulted: true`。所有现有旧页面无需立即迁移。
-- `GET /api/admin/calendar/schedules` 返回完整规则定义并包含停用项目，供重新启用和编辑。
+- `GET /api/admin/calendar/schedules` 返回完整规则定义并包含停用日程；组合定义嵌套返回全部子任务（包括停用项）及其完整日期、循环和显示字段，供重新启用和可靠编辑。
 - 分类管理接口：`GET /api/admin/calendar/categories`；`POST /api/admin/calendar/categories` 接受 `{ name, color }`；`PATCH /api/admin/calendar/categories/:id` 接受 `{ name?, color? }`；`POST /api/admin/calendar/categories/reorder` 接受 `{ ids: number[] }`；`POST /api/admin/calendar/categories/:id/status` 接受 `{ enabled: boolean }`。响应返回规范分类对象；重复名称返回 `409 CATEGORY_NAME_EXISTS`，无效颜色返回 `400 BAD_COLOR`。
 - 管理接口：`POST /api/admin/calendar/schedules` 新增；`PATCH /api/admin/calendar/schedules/:id` 编辑；`POST /api/admin/calendar/schedules/:id/copy` 复制为新 ID 并在名称后加“副本”；`POST /api/admin/calendar/schedules/:id/status` 设置启用状态；`DELETE /api/admin/calendar/schedules/:id` 删除。
-- 组合日程新增/更新请求在普通字段和主循环字段外包含 `items` 数组，每项使用上述完整子任务字段；非法偏移返回 `400 BAD_ITEM_OFFSET`，无子任务返回 `400 ITEMS_REQUIRED`，无效循环返回 `400 BAD_RECURRENCE`，停用分类被新选择时返回 `409 CATEGORY_DISABLED`。
+- 组合日程新增/更新请求在普通字段和主循环字段外包含完整 `items` 数组，每项使用上述完整子任务字段。POST 中每项省略 `id`，服务端创建新子任务；PATCH 采用全量替换语义：带有属于当前主活动的既有 `id` 的项目就地更新，不带 `id` 的项目新增，数据库中原有但未出现在数组内的项目删除；需要保留但暂不展示的项目必须显式提交并设置 `enabled=false`。未知 `id` 或属于其他主活动的 `id` 返回 `400 BAD_ITEM_ID`，整个主定义与子任务变更在同一事务内回滚。提交后仍要求至少一个启用子任务；非法偏移返回 `400 BAD_ITEM_OFFSET`，无启用子任务返回 `400 ITEMS_REQUIRED`，无效循环返回 `400 BAD_RECURRENCE`，停用分类被新选择时返回 `409 CATEGORY_DISABLED`。
 - 复制组合日程时在同一事务中复制全部子任务和分类关系，生成新日程/子任务 ID，名称追加“副本”，复制结果默认停用，防止与原日程同时展示。
 - 旧的管理员写接口保持为 `POST /api/calendar/schedules`、`PATCH /api/calendar/schedules/:originalId`、`DELETE /api/calendar/schedules/:originalId`。旧 POST/PATCH 的 `dates` 数组先去重排序：一个日期映射为 `single`，连续日期映射为 `continuous`，不连续日期映射为 `date-list`；PATCH/DELETE 通过 `legacy_original_id` 或兼容 `originalId` 定位新定义，并在事务内执行。
 - 新增、编辑、复制、停用和删除必须通过管理员权限校验。
