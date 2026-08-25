@@ -50,6 +50,24 @@ test('home page exposes separate building query and calculator entries', () => {
   assert.match(moreTools, /data-category="calcTools"[\s\S]*?function\/building-upgrade-calculator\.html[\s\S]*?1-30建筑升级(?:<wbr>)?计算器/);
 });
 
+test('home page exposes the ice workshop placement assistant in basic tools', () => {
+  const home = read('index.html');
+  assert.match(home, /function\/ice-workshop-placement\.html/);
+  assert.match(home, /data-tool-priority="core"[^>]*data-tool-id="ice-workshop-placement"/);
+  assert.match(home, /创冰工坊[·｜丨]?最优摆放助手|最优摆放助手/);
+});
+
+test('ice workshop placement assistant includes public attribution, home return, and share metadata', () => {
+  const html = read('public/function/ice-workshop-placement.html');
+  assert.match(html, /创冰工坊·最优摆放助手由“无尽冬日-铁拳”制作/);
+  assert.doesNotMatch(html, /合作微信：wjdrtiequan/);
+  assert.match(html, /class="back-home"[^>]*href="\/"/);
+  assert.match(html, /meta[^>]+name="description"[^>]+content=/);
+  assert.match(html, /property="og:description"/);
+  assert.match(html, /property="og:image"/);
+  assert.match(html, /name="twitter:image"/);
+});
+
 test('home and admin changelogs separate the Gareth launch from the data completion release', () => {
   const home = read('index.html');
   const admin = read('public/function/_ops/console-7a9/internal/admin.html');

@@ -24,8 +24,8 @@ test('calendar admin production page uses the approved five-step workspace', () 
 
 test('calendar admin loads versioned production assets in dependency order', () => {
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
-  const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260826-1');
-  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260826-5');
+  const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260826-2');
+  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260826-6');
 
   assert.ok(modelAt > 0 && pageAt > modelAt);
   assert.match(html, /admin-calendar-page\.css\?v=20260826-2/);
@@ -93,7 +93,7 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const js = read('public/function/admin-calendar-page.js');
 
-  assert.match(html, /admin-calendar-page\.js\?v=20260826-5/);
+  assert.match(html, /admin-calendar-page\.js\?v=20260826-6/);
   assert.match(js, /\/api\/admin\/calendar\/categories/);
   assert.match(js, /\/api\/admin\/calendar\/schedules/);
   assert.match(js, /recurrenceUnit/);
@@ -144,4 +144,13 @@ test('hidden composite child names do not block normal schedule submission', () 
 
   assert.doesNotMatch(js, /data-field="name"[^>]*\srequired/);
   assert.match(js, /payload\.scheduleType==='composite'[\s\S]*?item\.name[\s\S]*?请填写所有子任务名称/);
+});
+
+test('composite editor retains existing child sort orders', () => {
+  const js = read('public/function/admin-calendar-page.js');
+
+  assert.match(js, /data-field="sortOrder"/);
+  assert.match(js, /sortOrder:Number\(value\('sortOrder'\)\)/);
+  assert.match(js, /nextCompositeSortOrder\(\)/);
+  assert.match(js, /formModel\(\)\.nextSortOrder\(values\)/);
 });

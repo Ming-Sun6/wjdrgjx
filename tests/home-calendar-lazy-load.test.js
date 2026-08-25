@@ -15,14 +15,15 @@ test('home navigation exposes the five configurable entries in the required orde
   assert.doesNotMatch(nav, /data-tab="calendar"[^>]*\shidden(?:\s|>)/);
 });
 
-test('calendar panel is an empty lazy host rather than an eager iframe or legacy link card', () => {
+test('all page has no static calendar panel and the calendar tab creates it on demand', () => {
   const html = read('index.html');
-  const panel = html.match(/<section[^>]+id="homeCalendarPanel"[\s\S]*?<\/section>/)?.[0] || '';
+  const js = read('public/function/home-app.js');
 
-  assert.match(panel, /data-category="calendar"/);
-  assert.match(panel, /id="homeCalendarEmbedHost"/);
-  assert.doesNotMatch(panel, /<iframe\b/i);
-  assert.doesNotMatch(panel, /href="function\/calendar\.html"/);
+  assert.doesNotMatch(html, /id="homeCalendarPanel"/);
+  assert.doesNotMatch(html, /id="homeCalendarEmbedHost"/);
+  assert.match(js, /function createCalendarPanel\s*\(/);
+  assert.match(js, /panel\.id='homeCalendarPanel'/);
+  assert.match(js, /host\.id='homeCalendarEmbedHost'/);
 });
 
 test('home app creates the calendar iframe only on calendar activation and supports retry', () => {

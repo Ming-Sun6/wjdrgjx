@@ -4621,6 +4621,7 @@ refreshMe();
   if(!tabBar)return;
   var tabButtons=tabBar.querySelectorAll('[data-tab]');
   var cards=document.querySelectorAll('.card[data-category]');
+  var calendarGrid=document.querySelector('.grid');
   var toolSubTabs=document.getElementById('toolSubTabs');
   var toolSubButtons=toolSubTabs ? toolSubTabs.querySelectorAll('[data-tool-tab]') : [];
   var toolGroups=document.querySelectorAll('[data-tool-group]');
@@ -4889,15 +4890,34 @@ refreshMe();
     var retry=document.getElementById('calendarEmbedRetry');
     if(retry) retry.addEventListener('click',function(){ ensureCalendarEmbed(true); });
   }
+  function createCalendarPanel(){
+    var panel=document.getElementById('homeCalendarPanel');
+    if(panel)return panel;
+    if(!calendarGrid)return null;
+    panel=document.createElement('section');
+    panel.className='card wide home-calendar-panel';
+    panel.id='homeCalendarPanel';
+    panel.setAttribute('data-category','calendar');
+    var host=document.createElement('div');
+    host.className='home-calendar-embed-host';
+    host.id='homeCalendarEmbedHost';
+    host.setAttribute('aria-live','polite');
+    panel.appendChild(host);
+    calendarGrid.appendChild(panel);
+    return panel;
+  }
   function destroyCalendarEmbed(){
     var host=document.getElementById('homeCalendarEmbedHost');
     if(host) host.replaceChildren();
+    var panel=document.getElementById('homeCalendarPanel');
+    if(panel) panel.remove();
     calendarEmbedLoading=false;
     calendarEmbedLoaded=false;
   }
   function ensureCalendarEmbed(forceRetry){
     if(!homeNavigationReady) return;
     if(!isValidTab('calendar')) return;
+    createCalendarPanel();
     var host=document.getElementById('homeCalendarEmbedHost');
     if(!host || calendarEmbedLoading || (calendarEmbedLoaded && !forceRetry)) return;
     var oldFrame=host.querySelector('iframe');

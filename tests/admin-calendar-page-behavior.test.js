@@ -99,9 +99,9 @@ test('real page schedulePayload maps recurring form controls through the shared 
     recurrenceUnit: 'week',
     recurrenceInterval: 2,
     weekdays: [1, 3, 5],
-    monthDay: 24,
+    monthDay: null,
     recurrenceEndType: 'until',
     recurrenceUntil: '2027-01-31',
-    recurrenceCount: 12
+    recurrenceCount: null
   });
 });
