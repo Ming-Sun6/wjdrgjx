@@ -66,6 +66,13 @@ test('ice workshop placement assistant includes public attribution, home return,
   assert.match(html, /property="og:description"/);
   assert.match(html, /property="og:image"/);
   assert.match(html, /name="twitter:image"/);
+  assert.match(html, /analytics-tracker\.js/);
+});
+
+test('ice workshop placement renders the six color jars on initial load', () => {
+  const html = read('public/function/ice-workshop-placement.html');
+  assert.match(html, /function\s+initWatermarks\s*\(/);
+  assert.match(html, /initWatermarks\(\);[\s\S]*renderColorGrid\(\);[\s\S]*updateSetup\(\);/);
 });
 
 test('home and admin changelogs separate the Gareth launch from the data completion release', () => {
