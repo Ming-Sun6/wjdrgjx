@@ -3,18 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>创冰工坊·最优摆放助手｜无尽冬日-铁拳</title>
+<title>创冰工坊·最优摆放助手</title>
 <meta name="description" content="创冰工坊·最优摆放助手，帮助无尽冬日玩家快速完成冰块摆放与最优布局。" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="冬日工具箱" />
-<meta property="og:title" content="创冰工坊·最优摆放助手｜无尽冬日-铁拳" />
+<meta property="og:title" content="创冰工坊·最优摆放助手" />
 <meta property="og:description" content="创冰工坊·最优摆放助手，帮助无尽冬日玩家快速完成冰块摆放与最优布局。" />
 <meta property="og:url" content="https://wjgl.store/function/ice-workshop-placement.html" />
 <meta property="og:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="675" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="创冰工坊·最优摆放助手｜无尽冬日-铁拳" />
+<meta name="twitter:title" content="创冰工坊·最优摆放助手" />
 <meta name="twitter:description" content="创冰工坊·最优摆放助手，帮助无尽冬日玩家快速完成冰块摆放与最优布局。" />
 <meta name="twitter:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
 <style>
@@ -177,7 +177,6 @@
         <div class="title-line">
           <h1>创冰工坊·最优摆放助手</h1>
           <div class="title-contact">
-            <b>无尽冬日-铁拳</b>
             <div>创冰工坊·最优摆放助手由“无尽冬日-铁拳”制作</div>
             <div>抖音号：627032759</div>
           </div>
@@ -290,18 +289,7 @@ const $ = s => document.querySelector(s);
 const popcount = x => { let c=0; while(x){c+=x&1;x>>=1} return c; };
 const totalSelected = () => COLORS.reduce((s,c)=>s+(colorCounts[c.id]||0),0);
 
-function initWatermarks() {
-  const box = $('#watermarks');
-  for (let r=0;r<7;r++) {
-    for (let c=0;c<4;c++) {
-      const s=document.createElement('span');
-      s.textContent='无尽冬日-铁拳';
-      s.style.left=`${c*360-130}px`;
-      s.style.top=`${r*210-60}px`;
-      box.appendChild(s);
-    }
-  }
-}
+
 
 function jarHTML(color, cls='') {
   return `<div class="jar ${cls}" style="--jam:${color.hex}"></div>`;

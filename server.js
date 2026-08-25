@@ -122,6 +122,7 @@ const TOOL_CATALOG = [
   { id: 'building-upgrade-query', name: '1-30建筑升级数据查询', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'pet-data-query', name: '宠物数据查询', group: 'extended', defaultVisible: true, badge: 'none' },
 { id: 'bear-body-recommendation', name: '打熊车身推荐', group: 'core', defaultVisible: true, badge: 'none' },
+  { id: 'ice-workshop-placement', name: '创冰工坊·最优摆放助手', group: 'core', defaultVisible: true, badge: 'none' },
   { id: 'wjti-personality-test', name: '无尽冬日人格测试', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'regular-gift-data', name: '常规礼包', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'special-gift-data', name: '特惠礼包', group: 'extended', defaultVisible: true, badge: 'none' },
