@@ -6,9 +6,10 @@ const path = require('node:path');
 const root = path.join(__dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
 
-test('bear body recommendation is linked under data query', () => {
+test('bear body recommendation is linked under data query in basic tools', () => {
   const home = read('index.html');
   assert.match(home, /data-category="dataQuery"[\s\S]*data-tool-id="bear-body-recommendation"/);
+  assert.match(home, /data-tool-priority="core"[^>]*data-tool-id="bear-body-recommendation"/);
   assert.match(home, /function\/bear-body-recommendation\.html/);
   assert.match(home, /打熊车身推荐/);
 });
@@ -46,4 +47,10 @@ test('bear body recommendation follows the shared data-query theme language', ()
   assert.match(html, /body\.theme-day/);
   assert.match(html, /class="hero"/);
   assert.doesNotMatch(html, /content:\s*"S  A  B  C  D"/);
+});
+
+test('bear body recommendation prominently credits the data source', () => {
+  const html = read('public/function/bear-body-recommendation.html');
+  assert.match(html, /class="source-credit"/);
+  assert.match(html, /数据来源：1096今麦雾，欢迎移民1096/);
 });

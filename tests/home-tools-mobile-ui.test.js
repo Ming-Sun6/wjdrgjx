@@ -85,6 +85,8 @@ test('latest changelogs keep public and admin release notes separated', () => {
   assert.match(homeLog, /V0\.9\.38（2026-08-25）/);
   assert.match(homeLog, /最近两年/);
   assert.match(homeLog, /未开放/);
+  assert.match(homeLog, /1096今麦雾/);
+  assert.match(homeLog, /基础工具/);
   assert.match(homeLog, /V0\.9\.37（2026-08-24）/);
   assert.match(homeLog, /打熊车身推荐/);
   assert.match(homeLog, /返回体验优化/);
@@ -98,6 +100,8 @@ test('latest changelogs keep public and admin release notes separated', () => {
   assert.match(adminLog, /首页菜单控制/);
   assert.match(adminLog, /V0\.9\.38（2026-08-25）/);
   assert.match(adminLog, /逐日期设置“未开放”/);
+  assert.match(adminLog, /打熊车身推荐/);
+  assert.match(adminLog, /基础工具/);
   assert.match(adminLog, /V0\.9\.37（2026-08-24）/);
   assert.match(adminLog, /打熊车身推荐/);
   assert.match(adminLog, /新增阶段默认代次/);

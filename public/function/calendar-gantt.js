@@ -39,10 +39,55 @@
   function init(){
     if(typeof document==='undefined')return;
     const rootEl=document.getElementById('calendarGanttRoot');if(!rootEl)return;
-    const params=new URLSearchParams(location.search);if(params.get('embed')==='1')document.documentElement.classList.add('is-embedded');
+    const params=new URLSearchParams(location.search);const embedded=params.get('embed')==='1';if(embedded)document.documentElement.classList.add('is-embedded');
+    function removeFloatingThemeButton(){
+      ['themeToggleBtn','themeToggle'].forEach(id=>{const node=document.getElementById(id);if(node&&(node.classList.contains('wjdr-theme-fab')||node.classList.contains('theme-toggle-btn')))node.remove()});
+    }
+    removeFloatingThemeButton();
+    const themeObserver=new MutationObserver(removeFloatingThemeButton);
+    themeObserver.observe(document.body,{childList:true,subtree:true});
     const today=formatDate(new Date());const bounds=getNavigationBounds(today);
-    const state={view:'week',date:today,month:today.slice(0,7),cache:new Map(),controller:null,schedules:[]};
-    const els={root:rootEl,status:document.getElementById('calendarStatus'),label:document.getElementById('calendarRangeLabel'),week:document.getElementById('calendarWeekPicker'),month:document.getElementById('calendarMonthPicker'),prev:document.getElementById('calendarPrev'),next:document.getElementById('calendarNext'),today:document.getElementById('calendarToday'),weekBtn:document.getElementById('calendarViewWeek'),monthBtn:document.getElementById('calendarViewMonth'),notice:document.getElementById('calendarClampNotice'),dialog:document.getElementById('calendarDetailDialog'),dialogBody:document.getElementById('calendarDialogContent')};
+    const VIEW_MODE_KEY='wjdr.calendar.viewMode';
+    let memoryViewMode='';
+    function readViewMode(){try{const value=sessionStorage.getItem(VIEW_MODE_KEY);if(value==='portrait'||value==='landscape')return value}catch(_error){}return memoryViewMode||((window.innerWidth||0)>=(window.innerHeight||0)?'landscape':'portrait')}
+    function saveViewMode(mode){memoryViewMode=mode;try{sessionStorage.setItem(VIEW_MODE_KEY,mode)}catch(_error){}}
+    const state={view:'week',viewMode:readViewMode(),date:today,month:today.slice(0,7),cache:new Map(),controller:null,schedules:[],fullscreenRequested:false,ownsFullscreen:false};
+    const els={root:rootEl,status:document.getElementById('calendarStatus'),label:document.getElementById('calendarRangeLabel'),week:document.getElementById('calendarWeekPicker'),month:document.getElementById('calendarMonthPicker'),prev:document.getElementById('calendarPrev'),next:document.getElementById('calendarNext'),today:document.getElementById('calendarToday'),weekBtn:document.getElementById('calendarViewWeek'),monthBtn:document.getElementById('calendarViewMonth'),portraitBtn:document.getElementById('calendarViewPortrait'),landscapeBtn:document.getElementById('calendarViewLandscape'),openFull:document.getElementById('calendarOpenFull'),notice:document.getElementById('calendarClampNotice'),rotateNotice:document.getElementById('calendarRotateNotice'),dialog:document.getElementById('calendarDetailDialog'),dialogBody:document.getElementById('calendarDialogContent')};
+    function isMobileDevice(){return window.matchMedia&&window.matchMedia('(pointer: coarse) and (max-width: 1024px)').matches}
+    function setRotateNotice(message){if(els.rotateNotice)els.rotateNotice.textContent=message||''}
+    function updateRotateHelp(){if(state.viewMode==='landscape'&&window.innerHeight>window.innerWidth)setRotateNotice('横屏布局已开启，如显示较窄请旋转手机。');else setRotateNotice('')}
+    function applyViewMode(mode,persist){
+      state.viewMode=mode==='landscape'?'landscape':'portrait';
+      document.documentElement.classList.toggle('calendar-view-portrait',state.viewMode==='portrait');
+      document.documentElement.classList.toggle('calendar-view-landscape',state.viewMode==='landscape');
+      els.portraitBtn.classList.toggle('active',state.viewMode==='portrait');
+      els.landscapeBtn.classList.toggle('active',state.viewMode==='landscape');
+      if(persist!==false)saveViewMode(state.viewMode);
+      updateRotateHelp();
+    }
+    async function unlockOrientation(){try{if(screen.orientation&&typeof screen.orientation.unlock==='function')screen.orientation.unlock()}catch(_error){}}
+    async function enterLandscape(){
+      applyViewMode('landscape',true);
+      if(!isMobileDevice())return;
+      const target=document.documentElement;
+      if(!target.requestFullscreen){setRotateNotice('浏览器无法自动横屏，请旋转手机查看。');return}
+      state.fullscreenRequested=true;
+      try{await target.requestFullscreen()}catch(_error){state.fullscreenRequested=false;setRotateNotice('浏览器未允许自动横屏，请旋转手机查看。')}
+    }
+    async function enterPortrait(){
+      applyViewMode('portrait',true);
+      await unlockOrientation();
+      if(state.ownsFullscreen&&document.fullscreenElement&&document.exitFullscreen){try{await document.exitFullscreen()}catch(_error){}}
+      state.ownsFullscreen=false;state.fullscreenRequested=false;
+    }
+    async function handleFullscreenChange(){
+      if(document.fullscreenElement&&state.fullscreenRequested){
+        state.ownsFullscreen=true;state.fullscreenRequested=false;
+        try{if(screen.orientation&&typeof screen.orientation.lock==='function')await screen.orientation.lock('landscape');else throw new Error('UNSUPPORTED')}catch(_error){setRotateNotice('已进入横屏布局，请旋转手机查看。')}
+      }else if(!document.fullscreenElement){state.ownsFullscreen=false;state.fullscreenRequested=false;await unlockOrientation();updateRotateHelp()}
+    }
+    function openFullCalendar(){try{window.top.location.href='/function/calendar.html'}catch(_error){window.location.href='/function/calendar.html'}}
+    applyViewMode(state.viewMode,false);
     els.month.min=bounds.earliestMonth;els.month.max=bounds.latestMonth;els.week.min=isoWeekValue(bounds.earliestDate);els.week.max=isoWeekValue(bounds.latestDate);
     function currentRange(){if(state.view==='week'){const from=startOfIsoWeek(state.date);return{from,to:addDays(from,6)}}return monthRange(state.month)}
     function clampDate(value){if(compareDates(value,bounds.earliestDate)<0)return bounds.earliestDate;if(compareDates(value,bounds.latestDate)>0)return bounds.latestDate;return value}
@@ -74,7 +119,7 @@
     function renderWeek(week,monthInfo){const block=document.createElement('section');block.className='calendar-week-block';block.appendChild(header(week,monthInfo));const visible=state.schedules.filter(schedule=>schedule.compositeLayout==='daily-list'?(schedule.cards||[]).some(card=>compareDates(card.date,week.from)>=0&&compareDates(card.date,week.to)<=0):compareDates(schedule.endDate,week.from)>=0&&compareDates(schedule.startDate,week.to)<=0);const groups=new Map();visible.forEach(item=>{const key=item.category&&item.category.code||'regular';if(!groups.has(key))groups.set(key,{category:item.category||{name:'常规',sortOrder:0},items:[]});groups.get(key).items.push(item)});const ordered=[...groups.values()].sort((a,b)=>(a.category.sortOrder||0)-(b.category.sortOrder||0)||String(a.category.name).localeCompare(String(b.category.name)));ordered.forEach(group=>{const section=document.createElement('div');section.className='calendar-category-section';const ordinary=group.items.filter(item=>item.scheduleType!=='composite').map(item=>clipSegment(item,week.from,week.to)).filter(Boolean).map(item=>Object.assign({},item,{startDate:item.clipStart,endDate:item.clipEnd}));packLanes(ordinary).forEach((lane,index)=>section.appendChild(row(index===0?group.category.name:'',lane,week)));group.items.filter(item=>item.scheduleType==='composite'&&item.compositeLayout!=='daily-list').forEach(schedule=>{const children=(schedule.items||[]).map(item=>clipSegment(item,week.from,week.to)).filter(Boolean);if(!children.length)return;packLanes(children).forEach((lane,index)=>section.appendChild(row(index===0?group.category.name+'\n'+schedule.name:'',lane,week,'calendar-composite-row')))});group.items.filter(item=>item.compositeLayout==='daily-list').forEach(schedule=>section.appendChild(renderDaily(schedule,week,group.category.name)));if(section.childNodes.length)block.appendChild(section)});return block}
     function render(){els.root.innerHTML='';const range=currentRange();const weeks=state.view==='week'?[range]:weeksInRange(range.from,range.to);if(!state.schedules.length){els.root.innerHTML='<div class="calendar-empty">当前范围暂无日程</div>';return}weeks.forEach(week=>els.root.appendChild(renderWeek(week,state.view==='month'?state.month:null)))}
     function shift(direction){if(state.view==='week'){const next=addDays(state.date,direction*7);const clamped=clampDate(next);if(clamped!==next)notifyClamp();state.date=clamped;state.month=clamped.slice(0,7)}else{const d=parseDate(state.month+'-01');const shifted=monthShift(d.getUTCFullYear(),d.getUTCMonth(),direction);const value=shifted.year+'-'+String(shifted.monthIndex+1).padStart(2,'0');const clamped=value<bounds.earliestMonth?bounds.earliestMonth:value>bounds.latestMonth?bounds.latestMonth:value;if(clamped!==value)notifyClamp();state.month=clamped;state.date=clamped+'-01'}load()}
-    els.prev.onclick=()=>shift(-1);els.next.onclick=()=>shift(1);els.today.onclick=()=>{state.date=today;state.month=today.slice(0,7);load()};els.weekBtn.onclick=()=>{state.view='week';state.date=clampDate(state.date);load()};els.monthBtn.onclick=()=>{state.view='month';state.month=clampDate(state.month+'-01').slice(0,7);load()};els.month.onchange=()=>{const raw=els.month.value;if(!raw)return;const clamped=raw<bounds.earliestMonth?bounds.earliestMonth:raw>bounds.latestMonth?bounds.latestMonth:raw;if(clamped!==raw)notifyClamp();state.month=clamped;state.date=clamped+'-01';load()};els.week.onchange=()=>{const match=/^(\d{4})-W(\d{2})$/.exec(els.week.value);if(!match)return;const jan4=String(match[1])+'-01-04';const monday=addDays(startOfIsoWeek(jan4),(Number(match[2])-1)*7);const clamped=clampDate(monday);if(clamped!==monday)notifyClamp();state.date=clamped;state.month=clamped.slice(0,7);load()};document.querySelector('[data-calendar-dialog-close]')?.addEventListener('click',()=>els.dialog.close());load();
+    els.prev.onclick=()=>shift(-1);els.next.onclick=()=>shift(1);els.today.onclick=()=>{state.date=today;state.month=today.slice(0,7);load()};els.weekBtn.onclick=()=>{state.view='week';state.date=clampDate(state.date);load()};els.monthBtn.onclick=()=>{state.view='month';state.month=clampDate(state.month+'-01').slice(0,7);load()};els.portraitBtn.onclick=enterPortrait;els.landscapeBtn.onclick=enterLandscape;if(els.openFull)els.openFull.onclick=openFullCalendar;els.month.onchange=()=>{const raw=els.month.value;if(!raw)return;const clamped=raw<bounds.earliestMonth?bounds.earliestMonth:raw>bounds.latestMonth?bounds.latestMonth:raw;if(clamped!==raw)notifyClamp();state.month=clamped;state.date=clamped+'-01';load()};els.week.onchange=()=>{const match=/^(\d{4})-W(\d{2})$/.exec(els.week.value);if(!match)return;const jan4=String(match[1])+'-01-04';const monday=addDays(startOfIsoWeek(jan4),(Number(match[2])-1)*7);const clamped=clampDate(monday);if(clamped!==monday)notifyClamp();state.date=clamped;state.month=clamped.slice(0,7);load()};document.addEventListener('fullscreenchange',handleFullscreenChange);window.addEventListener('orientationchange',updateRotateHelp);if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',updateRotateHelp);document.querySelector('[data-calendar-dialog-close]')?.addEventListener('click',()=>els.dialog.close());load();
   }
   if(typeof document!=='undefined'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()}
   return{parseDate,formatDate,addDays,compareDates,diffDays,startOfIsoWeek,getIsoWeek,getNavigationBounds,clipSegment,packLanes,monthRange,weeksInRange,init};

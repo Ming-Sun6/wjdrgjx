@@ -4889,6 +4889,12 @@ refreshMe();
     var retry=document.getElementById('calendarEmbedRetry');
     if(retry) retry.addEventListener('click',function(){ ensureCalendarEmbed(true); });
   }
+  function destroyCalendarEmbed(){
+    var host=document.getElementById('homeCalendarEmbedHost');
+    if(host) host.replaceChildren();
+    calendarEmbedLoading=false;
+    calendarEmbedLoaded=false;
+  }
   function ensureCalendarEmbed(forceRetry){
     if(!homeNavigationReady) return;
     if(!isValidTab('calendar')) return;
@@ -4985,6 +4991,7 @@ refreshMe();
     var normalized=normalizeTab(tab);
     if(!isValidTab(normalized)) normalized=firstVisibleTab();
     activeTab=normalized;
+    if(activeTab!=='calendar') destroyCalendarEmbed();
     setToolSubTabsVisible(activeTab);
     setSearchVisible(activeTab);
     applyTab(activeTab);

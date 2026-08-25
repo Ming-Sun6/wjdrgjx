@@ -37,6 +37,16 @@ test('home app creates the calendar iframe only on calendar activation and suppo
   assert.match(js, /if\(!homeNavigationReady\) return/);
 });
 
+test('leaving calendar destroys its iframe and a later visit creates a fresh preview', () => {
+  const js = read('public/function/home-app.js');
+
+  assert.match(js, /function destroyCalendarEmbed\s*\(/);
+  assert.match(js, /host\.replaceChildren\(\)/);
+  assert.match(js, /calendarEmbedLoading=false;[\s\S]{0,80}calendarEmbedLoaded=false;/);
+  assert.match(js, /if\(activeTab!=='calendar'\) destroyCalendarEmbed\(\);/);
+  assert.match(js, /if\(activeTab==='calendar'\) ensureCalendarEmbed\(\);/);
+});
+
 test('home app applies public navigation settings and never loads a hidden calendar tab', () => {
   const js = read('public/function/home-app.js');
 

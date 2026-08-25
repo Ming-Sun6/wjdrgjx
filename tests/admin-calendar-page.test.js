@@ -5,6 +5,61 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
+const calendarPageHtml = () => {
+  const html = read('public/function/_ops/console-7a9/internal/admin.html');
+  return html.match(/<section[^>]+id="page-calendar"[\s\S]*?<\/section>/)?.[0] || '';
+};
+
+test('calendar admin production page uses the approved five-step workspace', () => {
+  const page = calendarPageHtml();
+
+  for (const step of ['basic', 'date', 'tasks', 'style', 'presets']) {
+    assert.match(page, new RegExp(`data-calendar-step="${step}"`));
+    assert.match(page, new RegExp(`data-calendar-panel="${step}"`));
+  }
+  assert.match(page, /id="calendarScheduleNewBtn"/);
+  assert.match(page, /data-calendar-structure="normal"/);
+  assert.match(page, /data-calendar-structure="composite"/);
+});
+
+test('calendar admin loads versioned production assets in dependency order', () => {
+  const html = read('public/function/_ops/console-7a9/internal/admin.html');
+  const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260826-1');
+  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260826-5');
+
+  assert.ok(modelAt > 0 && pageAt > modelAt);
+  assert.match(html, /admin-calendar-page\.css\?v=20260826-2/);
+});
+
+test('calendar admin script exposes the editor API and step controller', () => {
+  const js = read('public/function/admin-calendar-page.js');
+
+  assert.match(js, /function setEditorStep\s*\(/);
+  assert.match(js, /data-calendar-step/);
+  assert.match(js, /data-calendar-panel/);
+  assert.match(js, /window\.AdminCalendarPage/);
+  assert.match(js, /scheduleToEditor/);
+  assert.match(js, /editorToPayload/);
+});
+
+test('calendar admin styles provide the approved desktop and mobile workspace', () => {
+  const css = read('public/function/admin-calendar-page.css');
+
+  assert.match(css, /\.calendar-workspace\s*\{[^}]*grid-template-columns:\s*220px\s+minmax\(0,1fr\)/s);
+  assert.match(css, /\.calendar-step-button[^}]*min-height:\s*40px/s);
+  assert.match(css, /@media\s*\(max-width:\s*900px\)/);
+  assert.match(css, /@media\s*\(max-width:\s*560px\)[\s\S]*?\.calendar-step-nav\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/s);
+  assert.match(css, /\.calendar-sticky-actions\s+\.btn[^}]*min-height:\s*40px/s);
+  assert.match(css, /@media\s*\(max-width:\s*560px\)[\s\S]*?\.calendar-sticky-actions\s+#[^}]*grid-column:\s*1\/-1/s);
+});
+
+test('admin-only changelog records the production calendar workspace release', () => {
+  const html = read('public/function/_ops/console-7a9/internal/admin.html');
+
+  assert.match(html, /V0\.9\.40（2026-08-26）/);
+  assert.match(html, /活动日历五步工作台/);
+  assert.match(html, /旧日程无损编辑/);
+});
 
 test('calendar admin exposes a clearer structure, optional recurrence, presets, and improved pickers', () => {
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
@@ -38,7 +93,7 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const js = read('public/function/admin-calendar-page.js');
 
-  assert.match(html, /admin-calendar-page\.js\?v=20260825-4/);
+  assert.match(html, /admin-calendar-page\.js\?v=20260826-5/);
   assert.match(js, /\/api\/admin\/calendar\/categories/);
   assert.match(js, /\/api\/admin\/calendar\/schedules/);
   assert.match(js, /recurrenceUnit/);

@@ -36,7 +36,7 @@ const expectedCatalog = [
   ['migration-prediction', '移民预测', 'extended', true],
   ['building-upgrade-query', '1-30建筑升级数据查询', 'extended', true],
   ['pet-data-query', '宠物数据查询', 'extended', true],
-  ['bear-body-recommendation', '打熊车身推荐', 'extended', true],
+  ['bear-body-recommendation', '打熊车身推荐', 'core', true],
   ['wjti-personality-test', '无尽冬日人格测试', 'extended', true],
   ['regular-gift-data', '常规礼包', 'extended', true],
   ['special-gift-data', '特惠礼包', 'extended', true],
