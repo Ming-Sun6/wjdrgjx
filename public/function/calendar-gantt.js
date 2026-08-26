@@ -708,6 +708,69 @@
       section.append(label, rows);
       return section;
     }
+    function renderTimelineDailySection(categoryName, schedule, range) {
+      const items = timelineItems(schedule, range);
+      const title = items.find((item) => item.timelineDailyTitle);
+      const cards = items.filter((item) => !item.timelineDailyTitle);
+      if (!title && !cards.length) return null;
+      const section = document.createElement("div");
+      section.className =
+        "calendar-timeline-category calendar-timeline-daily-section";
+      const label = document.createElement("div");
+      label.className = "calendar-timeline-category-label";
+      label.textContent = categoryName || "常规";
+      const rows = document.createElement("div");
+      rows.className = "calendar-timeline-rows";
+      if (title) {
+        const titleLane = document.createElement("div");
+        titleLane.className = "calendar-timeline-lane";
+        const titleBar = timelineBar(title, range);
+        if (titleBar) titleLane.appendChild(titleBar);
+        rows.appendChild(titleLane);
+      }
+      const childLane = document.createElement("div");
+      childLane.className =
+        "calendar-timeline-lane calendar-timeline-daily-children";
+      for (
+        let date = range.from;
+        compareDates(date, range.to) <= 0;
+        date = addDays(date, 1)
+      ) {
+        const dayCards = cards
+          .filter((card) => card.date === date)
+          .sort(
+            (a, b) =>
+              (a.sortOrder || 0) - (b.sortOrder || 0) ||
+              String(a.id).localeCompare(String(b.id)),
+          );
+        if (!dayCards.length) continue;
+        const stack = document.createElement("div");
+        stack.className = "calendar-timeline-day-stack";
+        stack.style.gridColumn = String(diffDays(range.from, date) + 1);
+        dayCards.forEach((card) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className =
+            "calendar-day-card calendar-timeline-child-card";
+          button.style.background = card.color || "#f7d6b5";
+          button.style.color = contrast(card.color);
+          button.style.fontWeight = card.fontBold ? "900" : "";
+          button.textContent = card.name || "任务";
+          if (card.highlighted) {
+            const mark = document.createElement("span");
+            mark.className = "highlight";
+            mark.textContent = "👍";
+            button.appendChild(mark);
+          }
+          button.onclick = () => detail(card);
+          stack.appendChild(button);
+        });
+        childLane.appendChild(stack);
+      }
+      rows.appendChild(childLane);
+      section.append(label, rows);
+      return section;
+    }
     function timelineHeader(range, days) {
       const row = document.createElement("div");
       row.className = "calendar-timeline-header";
@@ -773,12 +836,19 @@
           );
           if (ordinary) root.appendChild(ordinary);
           group.composites.forEach((schedule) => {
-            const section = timelineSection(
-              group.category.name,
-              timelineItems(schedule, range),
-              schedule.name,
-              range,
-            );
+            const section =
+              schedule.compositeLayout === "daily-list"
+                ? renderTimelineDailySection(
+                    group.category.name,
+                    schedule,
+                    range,
+                  )
+                : timelineSection(
+                    group.category.name,
+                    timelineItems(schedule, range),
+                    schedule.name,
+                    range,
+                  );
             if (section) root.appendChild(section);
           });
         });

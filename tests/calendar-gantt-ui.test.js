@@ -44,10 +44,16 @@ test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(css, /touch-action:pan-y/);
 });
 
-test('timeline preserves the daily checklist title before its daily cards', () => {
+test('timeline merges daily checklist children into one row below the parent', () => {
   assert.match(js, /timelineDailyTitle:\s*true/);
   assert.match(js, /return[ \t]*\[title\]\.concat\(cards\)/);
   assert.match(js, /calendar-timeline-daily-title/);
+  assert.match(js, /function renderTimelineDailySection/);
+  assert.match(js, /calendar-timeline-daily-children/);
+  assert.match(js, /calendar-timeline-day-stack/);
+  assert.match(js, /card\.date\s*===\s*date/);
+  assert.match(css, /\.calendar-timeline-daily-children/);
+  assert.match(css, /\.calendar-timeline-day-stack/);
 });
 
 test('timeline preserves composite parent labels above their child tasks', () => {
