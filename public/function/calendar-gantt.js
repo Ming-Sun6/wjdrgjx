@@ -763,7 +763,8 @@
         return;
       }
       if (state.view === "timeline") {
-        els.root.appendChild(renderTimeline(range));
+        const week = { from: range.from, to: addDays(range.from, 6) };
+        els.root.appendChild(renderWeek(week));
         return;
       }
       const weeks =
