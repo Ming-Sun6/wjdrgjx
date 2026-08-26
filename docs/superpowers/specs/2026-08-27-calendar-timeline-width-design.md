@@ -6,10 +6,10 @@
 
 ## 范围
 
-- 修改 `public/function/calendar-gantt.css` 中桌面基础规则 `.calendar-continuous-timeline` 的 `--timeline-day-width`。
+- 修改 `public/function/calendar-gantt.css` 文件末尾、手机媒体查询之前的有效桌面覆盖规则，将 `.calendar-continuous-timeline{--timeline-day-width:112px}` 改为 `134.4px`；较早的 `88px` 回退声明不作为本次目标。
 - 保留手机触摸设备媒体查询中的容器宽度计算公式，继续保证一屏显示完整 7 天。
-- 更新 `public/function/calendar.html` 的 CSS 缓存版本。
-- 更新 UI 回归测试，明确验证桌面列宽为 `134.4px`，手机端仍使用七等分公式。
+- 将 `public/function/calendar.html` 的 CSS 缓存版本从 `20260827-3` 更新为 `20260827-4`。
+- 更新 UI 回归测试，用接近媒体查询之前文件尾部的规则断言有效桌面列宽为 `134.4px`，并保留手机端七等分公式断言。
 
 ## 验收
 

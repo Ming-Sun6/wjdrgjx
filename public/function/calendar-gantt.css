@@ -92,7 +92,7 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-daily-title,
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-day-stack{grid-column:auto}
 /* Keep every calendar view readable at narrow widths and consistent on desktop. */
-.calendar-continuous-timeline{--timeline-day-width:112px}
+.calendar-continuous-timeline{--timeline-day-width:134.4px}
 
 @media (max-width:760px) and (hover:none) and (pointer:coarse){
   :root{--category-width:64px}
