@@ -45,7 +45,7 @@ test('calendar defaults to a horizontally scrollable timeline', () => {
 
 test('timeline preserves the daily checklist title before its daily cards', () => {
   assert.match(js, /timelineDailyTitle:\s*true/);
-  assert.match(js, /return\s*\[title\]\.concat\(cards\)/);
+  assert.match(js, /return[ \t]*\[title\]\.concat\(cards\)/);
   assert.match(js, /calendar-timeline-daily-title/);
 });
 
