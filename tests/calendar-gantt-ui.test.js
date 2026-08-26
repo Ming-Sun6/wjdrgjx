@@ -52,13 +52,17 @@ test('timeline merges daily checklist children into one row below the parent', (
   assert.match(js, /calendar-timeline-daily-children/);
   assert.match(js, /calendar-timeline-day-stack/);
   assert.match(js, /card\.date\s*===\s*date/);
+  assert.match(js, /const compositeKey\s*=\s*schedule\.scheduleId/);
+  assert.match(js, /group\.composites\.get\(compositeKey\)\.push\(schedule\)/);
+  assert.match(js, /schedules\.flatMap\(\(schedule\)\s*=>\s*timelineItems\(schedule, range\),?\s*\)/);
+  assert.match(js, /titles\.forEach\(\(title\)\s*=>/);
   assert.match(css, /\.calendar-timeline-daily-children/);
   assert.match(css, /\.calendar-timeline-day-stack/);
 });
 
 test('timeline preserves composite parent labels above their child tasks', () => {
-  assert.match(js, /group\.composites\.push\(schedule\)/);
-  assert.match(js, /timelineSection\(\s*group\.category\.name,\s*timelineItems\(schedule, range\),\s*schedule\.name/);
+  assert.match(js, /group\.composites\.get\(compositeKey\)\.push\(schedule\)/);
+  assert.match(js, /timelineSection\(\s*group\.category\.name,\s*schedules\.flatMap\([\s\S]*?schedule\.name/);
   assert.match(js, /timelineName:\s*item\.name/);
   assert.match(js, /calendar-timeline-parent-name/);
   assert.match(css, /\.calendar-timeline-parent-name/);

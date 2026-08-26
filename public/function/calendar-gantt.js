@@ -708,11 +708,13 @@
       section.append(label, rows);
       return section;
     }
-    function renderTimelineDailySection(categoryName, schedule, range) {
-      const items = timelineItems(schedule, range);
-      const title = items.find((item) => item.timelineDailyTitle);
+    function renderTimelineDailySection(categoryName, schedules, range) {
+      const items = schedules.flatMap((schedule) =>
+        timelineItems(schedule, range),
+      );
+      const titles = items.filter((item) => item.timelineDailyTitle);
       const cards = items.filter((item) => !item.timelineDailyTitle);
-      if (!title && !cards.length) return null;
+      if (!titles.length && !cards.length) return null;
       const section = document.createElement("div");
       section.className =
         "calendar-timeline-category calendar-timeline-daily-section";
@@ -721,11 +723,13 @@
       label.textContent = categoryName || "常规";
       const rows = document.createElement("div");
       rows.className = "calendar-timeline-rows";
-      if (title) {
+      if (titles.length) {
         const titleLane = document.createElement("div");
         titleLane.className = "calendar-timeline-lane";
-        const titleBar = timelineBar(title, range);
-        if (titleBar) titleLane.appendChild(titleBar);
+        titles.forEach((title) => {
+          const titleBar = timelineBar(title, range);
+          if (titleBar) titleLane.appendChild(titleBar);
+        });
         rows.appendChild(titleLane);
       }
       const childLane = document.createElement("div");
@@ -814,12 +818,16 @@
           groups.set(key, {
             category: schedule.category || { name: "常规", sortOrder: 0 },
             items: [],
-            composites: [],
+            composites: new Map(),
           });
         const group = groups.get(key);
-        if (schedule.scheduleType === "composite")
-          group.composites.push(schedule);
-        else group.items.push(...timelineItems(schedule, range));
+        if (schedule.scheduleType === "composite") {
+          const compositeKey =
+            schedule.scheduleId || schedule.originalId || schedule.name;
+          if (!group.composites.has(compositeKey))
+            group.composites.set(compositeKey, []);
+          group.composites.get(compositeKey).push(schedule);
+        } else group.items.push(...timelineItems(schedule, range));
       });
       [...groups.values()]
         .sort(
@@ -835,17 +843,18 @@
             range,
           );
           if (ordinary) root.appendChild(ordinary);
-          group.composites.forEach((schedule) => {
+          group.composites.forEach((schedules) => {
+            const schedule = schedules[0];
             const section =
               schedule.compositeLayout === "daily-list"
                 ? renderTimelineDailySection(
                     group.category.name,
-                    schedule,
+                    schedules,
                     range,
                   )
                 : timelineSection(
                     group.category.name,
-                    timelineItems(schedule, range),
+                    schedules.flatMap((item) => timelineItems(item, range)),
                     schedule.name,
                     range,
                   );
