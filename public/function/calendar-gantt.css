@@ -44,12 +44,6 @@ body{padding:72px 18px 30px}
 .calendar-merged-group{display:grid;grid-template-columns:minmax(132px,var(--category-width)) minmax(0,1fr)}.calendar-merged-group>.calendar-category-cell{height:100%;min-height:48px}.calendar-merged-rows{min-width:0}.calendar-merged-rows .calendar-row{display:block}.calendar-merged-rows .calendar-row>.calendar-category-cell{display:none}.calendar-merged-rows .calendar-lane{grid-column:auto;min-height:48px}
 .calendar-dialog{width:min(520px,calc(100% - 28px));border:1px solid var(--calendar-line);border-radius:18px;padding:0;box-shadow:var(--calendar-shadow);color:var(--calendar-ink)}.calendar-dialog::backdrop{background:rgba(54,42,33,.34);backdrop-filter:blur(3px)}.calendar-dialog-body{padding:20px}.calendar-dialog-close{float:right;border:0;background:#f6e7d7;border-radius:999px;width:34px;height:34px;cursor:pointer}.calendar-dialog h2{margin:0 44px 10px 0}.calendar-dialog-meta{color:var(--calendar-muted);line-height:1.75}
 html.is-embedded body{padding:0;background:transparent}html.is-embedded .calendar-page-header,html.is-embedded .wjdr-footer{display:none!important}html.is-embedded .calendar-shell{width:100%;border-radius:16px;box-shadow:none;margin:0}html.is-embedded .calendar-preview-banner{display:flex}
-@media (max-width:760px){
-  body{padding:64px 4px 88px;overflow-x:hidden}.calendar-shell{width:100%;padding:6px;border-radius:14px;overflow:hidden}.calendar-toolbar{align-items:stretch;gap:7px}.calendar-toolbar-group{width:100%;justify-content:center;gap:5px}.calendar-btn,.calendar-picker{min-height:38px;padding:6px 8px;font-size:.76rem}.calendar-range-label{order:-1;width:100%;min-width:0;font-size:.78rem}.calendar-scroll{width:100%;overflow-x:hidden;overflow-y:auto}.calendar-scroll:has(.calendar-continuous-timeline){overflow-x:auto}.calendar-week-block{width:100%;min-width:0}.calendar-continuous-timeline{--category-width:132px;--timeline-day-width:84px}.calendar-page-header{padding:0 10px}.calendar-page-header h1{font-size:1rem}.calendar-preview-banner{width:100%;flex-wrap:wrap;padding:10px}.calendar-preview-open{width:100%;min-height:40px}
-  .calendar-date-header,.calendar-row,.calendar-daily-title-row,.calendar-daily-content{width:100%;grid-template-columns:var(--category-width) repeat(7,minmax(0,1fr))}.calendar-lane{grid-template-columns:repeat(7,minmax(0,1fr))}.calendar-date-cell,.calendar-category-head{min-width:0;padding:6px 1px;font-size:.58rem;overflow:hidden}.calendar-date-cell strong{font-size:.66rem}.calendar-category-cell{position:relative;min-width:0;min-height:40px;padding:3px 2px;font-size:.58rem;white-space:pre-line;overflow-wrap:anywhere}.calendar-lane{min-width:0;min-height:40px}.calendar-bar{min-width:0;min-height:30px;margin:4px 2px;padding:4px 3px;border-radius:8px;font-size:.62rem;white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.18}.calendar-daily-title{padding:7px 5px;font-size:.7rem}.calendar-day-stack{min-width:0;min-height:54px;padding:3px;gap:3px}.calendar-day-card{min-width:0;padding:5px 2px;font-size:.58rem;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
-  .calendar-merged-group{grid-template-columns:var(--category-width) minmax(0,1fr)}
-}
-
 /* Timeline cards use the same visual treatment as week-view cards. */
 .calendar-timeline-bar{
   align-self:center;
@@ -84,25 +78,6 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
 .calendar-daily-title-row>.calendar-category-cell::after{content:"";position:absolute;left:-1px;right:-1px;top:100%;height:1200px;background:#fff8ed;border-right:1px solid var(--calendar-line);border-left:1px solid var(--calendar-line);pointer-events:none}
 .calendar-daily-title-row>.calendar-category-cell{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;z-index:3;isolation:isolate}
 .calendar-daily-title-row>.calendar-category-cell::after{z-index:-1}
-/* Mobile uses the same desktop layout; the calendar scrolls horizontally instead of compressing. */
-@media (max-width:760px){
-  body{padding:72px 18px 30px;overflow-x:hidden}
-  .calendar-shell{width:min(1500px,100%);padding:18px;border-radius:22px;overflow:visible}
-  .calendar-scroll{overflow-x:auto}
-  .calendar-toolbar{align-items:center;gap:12px}
-  .calendar-toolbar-group{width:auto;justify-content:flex-start;gap:8px}
-  .calendar-btn,.calendar-picker{min-height:40px;padding:8px 13px;font-size:inherit}
-  .calendar-range-label{order:initial;width:auto;min-width:150px;font-size:inherit}
-  .calendar-week-block{width:980px;min-width:980px}
-  .calendar-date-header,.calendar-row,.calendar-daily-title-row,.calendar-daily-content{width:980px;grid-template-columns:minmax(132px,var(--category-width)) repeat(7,minmax(112px,1fr))}
-  .calendar-lane{grid-template-columns:repeat(7,minmax(112px,1fr));min-height:48px}
-  .calendar-date-cell,.calendar-category-head{padding:10px 8px;font-size:.82rem}
-  .calendar-date-cell strong{font-size:.96rem}
-  .calendar-category-cell{min-height:48px;padding:10px;font-size:inherit}
-  .calendar-bar{min-height:36px;margin:5px 4px;padding:8px 10px;border-radius:12px;font-size:.82rem;white-space:nowrap;display:block;line-height:1.25}
-  .calendar-day-stack{min-height:70px;padding:7px;gap:6px}
-  .calendar-day-card{padding:8px 7px;font-size:.78rem;display:block}
-}
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-cell,
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-head{color:transparent}
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-cell,
@@ -114,28 +89,5 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-lane{grid-column:1/8;grid-template-columns:repeat(7,112px)}
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-daily-title,
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-day-stack{grid-column:auto}
-@media (max-width:760px){
-  .calendar-timeline-bar{
-    min-height:30px;
-    margin:4px 2px;
-    padding:4px 3px;
-    border-radius:8px;
-    font-size:.62rem;
-    white-space:normal;
-    display:-webkit-box;
-    -webkit-box-orient:vertical;
-    -webkit-line-clamp:2;
-    line-height:1.18
-  }
-}
-
 /* Keep every calendar view readable at narrow widths and consistent on desktop. */
 .calendar-continuous-timeline{--timeline-day-width:112px}
-@media (max-width:760px){
-  .calendar-scroll{overflow-x:auto}
-  .calendar-week-block{width:max-content;min-width:932px}
-  .calendar-date-header,.calendar-row,.calendar-daily-title-row,.calendar-daily-content{width:932px;grid-template-columns:var(--category-width) repeat(7,112px)}
-  .calendar-lane{grid-template-columns:repeat(7,112px)}
-  .calendar-merged-group{grid-template-columns:var(--category-width) 784px}
-  .calendar-continuous-timeline{--category-width:132px;--timeline-day-width:112px}
-}

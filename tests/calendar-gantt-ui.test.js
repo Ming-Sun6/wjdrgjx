@@ -63,12 +63,11 @@ test('first-fit lane packing shares adjacent tasks and separates overlaps', () =
   assert.deepEqual(lanes.map((lane) => lane.map((item) => item.id)), [['a', 'b'], ['c']]);
 });
 
-test('calendar styles provide warm rounded gantt grids and mobile scrolling', () => {
+test('calendar styles provide warm rounded gantt grids and horizontal scrolling', () => {
   assert.match(css, /--calendar-cream/);
   assert.match(css, /border-radius/);
   assert.match(css, /\.calendar-category-cell[^}]*position:\s*sticky/s);
   assert.match(css, /grid-template-columns:\s*minmax\([^;]+repeat\(7/s);
-  assert.match(css, /@media\s*\(max-width:\s*760px\)/);
   assert.match(css, /overflow-x:\s*auto/);
 });
 
@@ -94,11 +93,6 @@ test('calendar removes the late-injected floating theme button', () => {
   assert.match(js, /\.remove\(\)/);
 });
 
-test('mobile layouts keep all seven days in view and preserve the timeline category width', () => {
-  assert.match(css, /repeat\(7,minmax\(0,1fr\)\)/);
-  assert.match(css, /\.calendar-continuous-timeline\{--category-width:132px;--timeline-day-width:84px/);
-  assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?overflow-x:\s*hidden/);
-  assert.doesNotMatch(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.calendar-week-block\{min-width:\s*860px/);
-  assert.match(css, /-webkit-line-clamp:\s*2/);
-  assert.match(css, /calendar-preview-open[^}]*min-height:\s*40px/s);
+test('calendar stylesheet has no viewport-specific mobile rules', () => {
+  assert.doesNotMatch(css, /@media[^{]*\(\s*max-width\s*:\s*760px\s*\)/);
 });
