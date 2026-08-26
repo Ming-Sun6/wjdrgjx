@@ -70,16 +70,12 @@ test('embedded calendar is labelled as a preview and can escape to the complete 
   assert.match(js, /window\.location\.href/);
 });
 
-test('calendar exposes persisted portrait and landscape view controls', () => {
-  assert.match(html, /id="calendarViewPortrait"/);
-  assert.match(html, /id="calendarViewLandscape"/);
-  assert.match(js, /wjdr\.calendar\.viewMode/);
-  assert.match(js, /sessionStorage/);
-  assert.match(js, /requestFullscreen/);
-  assert.match(js, /fullscreenchange/);
-  assert.match(js, /orientation\.lock\(['"]landscape['"]\)/);
-  assert.match(js, /orientation\.unlock/);
-  assert.match(js, /orientationchange/);
+test('calendar uses a simple device rotation hint without view-mode buttons', () => {
+  assert.doesNotMatch(html, /id="calendarViewPortrait"/);
+  assert.doesNotMatch(html, /id="calendarViewLandscape"/);
+  assert.match(html, /关闭手机竖屏锁定，可横屏观看日历（非微信环境）/);
+  assert.doesNotMatch(js, /wjdr\.calendar\.viewMode/);
+  assert.doesNotMatch(js, /requestFullscreen/);
 });
 
 test('calendar removes the late-injected floating theme button', () => {
@@ -88,10 +84,9 @@ test('calendar removes the late-injected floating theme button', () => {
   assert.match(js, /\.remove\(\)/);
 });
 
-test('mobile portrait and landscape layouts keep all seven days in view', () => {
-  assert.match(css, /calendar-view-portrait/);
-  assert.match(css, /calendar-view-landscape/);
+test('mobile layouts keep all seven days in view and preserve the timeline category width', () => {
   assert.match(css, /repeat\(7,minmax\(0,1fr\)\)/);
+  assert.match(css, /\.calendar-continuous-timeline\{--category-width:132px/);
   assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?overflow-x:\s*hidden/);
   assert.doesNotMatch(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.calendar-week-block\{min-width:\s*860px/);
   assert.match(css, /-webkit-line-clamp:\s*2/);

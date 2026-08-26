@@ -49,47 +49,9 @@
     const themeObserver=new MutationObserver(removeFloatingThemeButton);
     themeObserver.observe(document.body,{childList:true,subtree:true});
     const today=formatDate(new Date());const bounds=getNavigationBounds(today);
-    const VIEW_MODE_KEY='wjdr.calendar.viewMode';
-    let memoryViewMode='';
-    function readViewMode(){try{const value=sessionStorage.getItem(VIEW_MODE_KEY);if(value==='portrait'||value==='landscape')return value}catch(_error){}return memoryViewMode||((window.innerWidth||0)>=(window.innerHeight||0)?'landscape':'portrait')}
-    function saveViewMode(mode){memoryViewMode=mode;try{sessionStorage.setItem(VIEW_MODE_KEY,mode)}catch(_error){}}
-    const state={view:'timeline',viewMode:readViewMode(),date:startOfIsoWeek(today),month:today.slice(0,7),cache:new Map(),controller:null,schedules:[],fullscreenRequested:false,ownsFullscreen:false};
-    const els={root:rootEl,status:document.getElementById('calendarStatus'),label:document.getElementById('calendarRangeLabel'),week:document.getElementById('calendarWeekPicker'),month:document.getElementById('calendarMonthPicker'),prev:document.getElementById('calendarPrev'),next:document.getElementById('calendarNext'),today:document.getElementById('calendarToday'),timelineBtn:document.getElementById('calendarViewTimeline'),weekBtn:document.getElementById('calendarViewWeek'),monthBtn:document.getElementById('calendarViewMonth'),portraitBtn:document.getElementById('calendarViewPortrait'),landscapeBtn:document.getElementById('calendarViewLandscape'),openFull:document.getElementById('calendarOpenFull'),notice:document.getElementById('calendarClampNotice'),rotateNotice:document.getElementById('calendarRotateNotice'),dialog:document.getElementById('calendarDetailDialog'),dialogBody:document.getElementById('calendarDialogContent')};
-    function isMobileDevice(){return window.matchMedia&&window.matchMedia('(pointer: coarse) and (max-width: 1024px)').matches}
-    function setRotateNotice(message){if(els.rotateNotice)els.rotateNotice.textContent=message||''}
-    function updateRotateHelp(){if(state.viewMode==='landscape'&&window.innerHeight>window.innerWidth)setRotateNotice('横屏布局已开启，如显示较窄请旋转手机。');else setRotateNotice('')}
-    function applyViewMode(mode,persist){
-      state.viewMode=mode==='landscape'?'landscape':'portrait';
-      document.documentElement.classList.toggle('calendar-view-portrait',state.viewMode==='portrait');
-      document.documentElement.classList.toggle('calendar-view-landscape',state.viewMode==='landscape');
-      els.portraitBtn.classList.toggle('active',state.viewMode==='portrait');
-      els.landscapeBtn.classList.toggle('active',state.viewMode==='landscape');
-      if(persist!==false)saveViewMode(state.viewMode);
-      updateRotateHelp();
-    }
-    async function unlockOrientation(){try{if(screen.orientation&&typeof screen.orientation.unlock==='function')screen.orientation.unlock()}catch(_error){}}
-    async function enterLandscape(){
-      applyViewMode('landscape',true);
-      if(!isMobileDevice())return;
-      const target=document.documentElement;
-      if(!target.requestFullscreen){setRotateNotice('浏览器无法自动横屏，请旋转手机查看。');return}
-      state.fullscreenRequested=true;
-      try{await target.requestFullscreen()}catch(_error){state.fullscreenRequested=false;setRotateNotice('浏览器未允许自动横屏，请旋转手机查看。')}
-    }
-    async function enterPortrait(){
-      applyViewMode('portrait',true);
-      await unlockOrientation();
-      if(state.ownsFullscreen&&document.fullscreenElement&&document.exitFullscreen){try{await document.exitFullscreen()}catch(_error){}}
-      state.ownsFullscreen=false;state.fullscreenRequested=false;
-    }
-    async function handleFullscreenChange(){
-      if(document.fullscreenElement&&state.fullscreenRequested){
-        state.ownsFullscreen=true;state.fullscreenRequested=false;
-        try{if(screen.orientation&&typeof screen.orientation.lock==='function')await screen.orientation.lock('landscape');else throw new Error('UNSUPPORTED')}catch(_error){setRotateNotice('已进入横屏布局，请旋转手机查看。')}
-      }else if(!document.fullscreenElement){state.ownsFullscreen=false;state.fullscreenRequested=false;await unlockOrientation();updateRotateHelp()}
-    }
+    const state={view:'timeline',date:startOfIsoWeek(today),month:today.slice(0,7),cache:new Map(),controller:null,schedules:[]};
+    const els={root:rootEl,status:document.getElementById('calendarStatus'),label:document.getElementById('calendarRangeLabel'),week:document.getElementById('calendarWeekPicker'),month:document.getElementById('calendarMonthPicker'),prev:document.getElementById('calendarPrev'),next:document.getElementById('calendarNext'),today:document.getElementById('calendarToday'),timelineBtn:document.getElementById('calendarViewTimeline'),weekBtn:document.getElementById('calendarViewWeek'),monthBtn:document.getElementById('calendarViewMonth'),openFull:document.getElementById('calendarOpenFull'),notice:document.getElementById('calendarClampNotice'),dialog:document.getElementById('calendarDetailDialog'),dialogBody:document.getElementById('calendarDialogContent')};
     function openFullCalendar(){try{window.top.location.href='/function/calendar.html'}catch(_error){window.location.href='/function/calendar.html'}}
-    applyViewMode(state.viewMode,false);
     els.month.min=bounds.earliestMonth;els.month.max=bounds.latestMonth;els.week.min=isoWeekValue(bounds.earliestDate);els.week.max=isoWeekValue(bounds.latestDate);
     function currentRange(){if(state.view==='week'){const from=startOfIsoWeek(state.date);return{from,to:addDays(from,6)}}if(state.view==='timeline'){const from=startOfIsoWeek(state.date);return{from,to:addDays(from,55)}}return monthRange(state.month)}
     function clampDate(value){if(compareDates(value,bounds.earliestDate)<0)return bounds.earliestDate;if(compareDates(value,bounds.latestDate)>0)return bounds.latestDate;return value}
@@ -126,7 +88,7 @@
     function renderTimeline(range){const days=diffDays(range.from,range.to)+1,root=document.createElement('section');root.className='calendar-continuous-timeline';root.style.setProperty('--timeline-days',String(days));root.appendChild(timelineHeader(range,days));const groups=new Map();state.schedules.forEach(schedule=>{const key=schedule.category&&schedule.category.code||'regular';if(!groups.has(key))groups.set(key,{category:schedule.category||{name:'常规',sortOrder:0},items:[]});groups.get(key).items.push(...timelineItems(schedule,range))});[...groups.values()].sort((a,b)=>(a.category.sortOrder||0)-(b.category.sortOrder||0)||String(a.category.name).localeCompare(String(b.category.name))).forEach(group=>{const lanes=packLanes(group.items);if(!lanes.length)return;const section=document.createElement('div');section.className='calendar-timeline-category';const label=document.createElement('div');label.className='calendar-timeline-category-label';label.textContent=group.category.name||'常规';const rows=document.createElement('div');rows.className='calendar-timeline-rows';lanes.forEach(lane=>{const laneEl=document.createElement('div');laneEl.className='calendar-timeline-lane';lane.forEach(item=>{const node=timelineBar(item,range);if(node)laneEl.appendChild(node)});rows.appendChild(laneEl)});section.append(label,rows);root.appendChild(section)});return root}
     function render(){els.root.innerHTML='';const range=currentRange();if(!state.schedules.length){els.root.innerHTML='<div class="calendar-empty">当前范围暂无日程</div>';return}if(state.view==='timeline'){els.root.appendChild(renderTimeline(range));return}const weeks=state.view==='week'?[range]:weeksInRange(range.from,range.to);weeks.forEach(week=>els.root.appendChild(renderWeek(week,state.view==='month'?state.month:null)))}
     function shift(direction){if(state.view==='week'||state.view==='timeline'){const next=addDays(state.date,direction*(state.view==='timeline'?56:7));const clamped=clampDate(next);if(clamped!==next)notifyClamp();state.date=clamped;state.month=clamped.slice(0,7)}else{const d=parseDate(state.month+'-01');const shifted=monthShift(d.getUTCFullYear(),d.getUTCMonth(),direction);const value=shifted.year+'-'+String(shifted.monthIndex+1).padStart(2,'0');const clamped=value<bounds.earliestMonth?bounds.earliestMonth:value>bounds.latestMonth?bounds.latestMonth:value;if(clamped!==value)notifyClamp();state.month=clamped;state.date=clamped+'-01'}load()}
-    els.prev.onclick=()=>shift(-1);els.next.onclick=()=>shift(1);els.today.onclick=()=>{state.date=startOfIsoWeek(today);state.month=today.slice(0,7);load()};els.timelineBtn.onclick=()=>{state.view='timeline';state.date=startOfIsoWeek(clampDate(state.date));load()};els.weekBtn.onclick=()=>{state.view='week';state.date=clampDate(state.date);load()};els.monthBtn.onclick=()=>{state.view='month';state.month=clampDate(state.month+'-01').slice(0,7);load()};els.portraitBtn.onclick=enterPortrait;els.landscapeBtn.onclick=enterLandscape;if(els.openFull)els.openFull.onclick=openFullCalendar;els.month.onchange=()=>{const raw=els.month.value;if(!raw)return;const clamped=raw<bounds.earliestMonth?bounds.earliestMonth:raw>bounds.latestMonth?bounds.latestMonth:raw;if(clamped!==raw)notifyClamp();state.month=clamped;state.date=clamped+'-01';load()};els.week.onchange=()=>{const match=/^(\d{4})-W(\d{2})$/.exec(els.week.value);if(!match)return;const jan4=String(match[1])+'-01-04';const monday=addDays(startOfIsoWeek(jan4),(Number(match[2])-1)*7);const clamped=clampDate(monday);if(clamped!==monday)notifyClamp();state.date=clamped;state.month=clamped.slice(0,7);load()};document.addEventListener('fullscreenchange',handleFullscreenChange);window.addEventListener('orientationchange',updateRotateHelp);if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',updateRotateHelp);document.querySelector('[data-calendar-dialog-close]')?.addEventListener('click',()=>els.dialog.close());load();
+    els.prev.onclick=()=>shift(-1);els.next.onclick=()=>shift(1);els.today.onclick=()=>{state.date=startOfIsoWeek(today);state.month=today.slice(0,7);load()};els.timelineBtn.onclick=()=>{state.view='timeline';state.date=startOfIsoWeek(clampDate(state.date));load()};els.weekBtn.onclick=()=>{state.view='week';state.date=clampDate(state.date);load()};els.monthBtn.onclick=()=>{state.view='month';state.month=clampDate(state.month+'-01').slice(0,7);load()};if(els.openFull)els.openFull.onclick=openFullCalendar;els.month.onchange=()=>{const raw=els.month.value;if(!raw)return;const clamped=raw<bounds.earliestMonth?bounds.earliestMonth:raw>bounds.latestMonth?bounds.latestMonth:raw;if(clamped!==raw)notifyClamp();state.month=clamped;state.date=clamped+'-01';load()};els.week.onchange=()=>{const match=/^(\d{4})-W(\d{2})$/.exec(els.week.value);if(!match)return;const jan4=String(match[1])+'-01-04';const monday=addDays(startOfIsoWeek(jan4),(Number(match[2])-1)*7);const clamped=clampDate(monday);if(clamped!==monday)notifyClamp();state.date=clamped;state.month=clamped.slice(0,7);load()};document.querySelector('[data-calendar-dialog-close]')?.addEventListener('click',()=>els.dialog.close());load();
   }
   if(typeof document!=='undefined'){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init()}
   return{parseDate,formatDate,addDays,compareDates,diffDays,startOfIsoWeek,getIsoWeek,getNavigationBounds,clipSegment,packLanes,monthRange,weeksInRange,init};

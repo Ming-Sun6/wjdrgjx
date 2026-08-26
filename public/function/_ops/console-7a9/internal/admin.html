@@ -22,7 +22,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>后台管理-冬日工具箱</title>
   <link rel="stylesheet" href="./admin-dashboard.css" />
-  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260826-4" />
+  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260826-5" />
   <style>
     :root{
       --bg-night-1:#0b1220;
@@ -1419,7 +1419,7 @@
             </div>
             <section class="form-section calendar-admin-preview-section">
               <div class="calendar-admin-row-head"><div><div class="form-title">日历排期预览</div><div class="admin-status">拖动活动块可调整日期和顺序；点击活动块可快速修改名称、颜色、加粗与启用状态。</div></div></div>
-              <div class="calendar-preview-toolbar"><button class="btn secondary" id="calendarPreviewPrevBtn" type="button">上一段</button><button class="btn secondary" id="calendarPreviewTodayBtn" type="button">回到今天</button><button class="btn secondary" id="calendarPreviewNextBtn" type="button">下一段</button><label>起始日期 <input id="calendarPreviewAnchorDate" type="date" /></label><label>预览范围 <select id="calendarPreviewRange"><option value="28">28 天</option><option value="90" selected>90 天</option><option value="180">180 天</option><option value="365">365 天</option></select></label></div>
+              <div class="calendar-preview-toolbar"><button class="btn secondary" id="calendarPreviewPrevBtn" type="button">上一段</button><button class="btn secondary" id="calendarPreviewTodayBtn" type="button">回到今天</button><button class="btn secondary" id="calendarPreviewNextBtn" type="button">下一段</button><label>起始日期 <input id="calendarPreviewAnchorDate" type="date" /></label><label>预览范围 <select id="calendarPreviewRange"><option value="28">28 天</option><option value="90" selected>90 天</option><option value="180">180 天</option><option value="365">365 天</option><option value="custom">自定义</option></select></label><label id="calendarPreviewCustomRangeGroup" hidden>自定义天数 <input id="calendarPreviewCustomRange" type="number" min="7" max="366" value="120" /><span>天</span></label></div>
               <div class="calendar-admin-preview-scroll" id="calendarAdminPreview"></div>
             </section>
             <dialog class="calendar-help-dialog" id="calendarHelpDialog"><button type="button" class="calendar-help-close" data-calendar-help-close aria-label="关闭">×</button><h3 id="calendarHelpTitle">字段说明</h3><div id="calendarHelpContent"></div></dialog>
@@ -5231,7 +5231,7 @@
   <script src="/function/admin-neighbor-progress-page.js?v=3"></script>
   <script src="/function/admin-history-immigration-page.js?v=2"></script>
   <script src="/function/admin-calendar-model.js?v=20260826-4"></script>
-  <script src="/function/admin-calendar-page.js?v=20260826-10"></script>
+  <script src="/function/admin-calendar-page.js?v=20260826-11"></script>
   <script src="/function/admin-home-navigation-page.js?v=1"></script>
   <script>
   (function(){

@@ -22,6 +22,8 @@ test('calendar admin production page uses the approved five-step workspace', () 
   assert.match(page, /id="calendarAdminPreview"/);
   assert.match(page, /id="calendarPreviewRange"/);
   assert.match(page, /value="365"/);
+  assert.match(page, /value="custom"/);
+  assert.match(page, /id="calendarPreviewCustomRange"/);
   assert.match(html, /id="calendarPreviewEditDialog"/);
   assert.match(html, /id="calendarPreviewEditBold"/);
   assert.match(html, /id="calendarPreviewEditScope"/);
@@ -35,10 +37,10 @@ test('calendar admin production page uses the approved five-step workspace', () 
 test('calendar admin loads versioned production assets in dependency order', () => {
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260826-4');
-  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260826-10');
+  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260826-11');
 
   assert.ok(modelAt > 0 && pageAt > modelAt);
-  assert.match(html, /admin-calendar-page\.css\?v=20260826-4/);
+  assert.match(html, /admin-calendar-page\.css\?v=20260826-5/);
 });
 
 test('calendar admin script exposes the editor API and step controller', () => {
@@ -51,6 +53,8 @@ test('calendar admin script exposes the editor API and step controller', () => {
   assert.match(js, /renderAdminPreview/);
   assert.match(js, /savePreviewEdit/);
   assert.match(js, /previewDays=90/);
+  assert.match(js, /calendarPreviewCustomRange/);
+  assert.match(js, /clampPreviewDays/);
   assert.match(js, /calendar-help-trigger/);
   assert.match(js, /scheduleToEditor/);
   assert.match(js, /editorToPayload/);
@@ -64,6 +68,8 @@ test('calendar admin styles provide the approved desktop and mobile workspace', 
   assert.match(css, /@media\s*\(max-width:\s*900px\)/);
   assert.match(css, /@media\s*\(max-width:\s*560px\)[\s\S]*?\.calendar-step-nav\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/s);
   assert.match(css, /\.calendar-sticky-actions\s+\.btn[^}]*min-height:\s*40px/s);
+  assert.match(css, /\.calendar-help-dialog,\.calendar-preview-edit-dialog\{[^}]*position:fixed[^}]*inset:50% auto auto 50%[^}]*transform:translate\(-50%,-50%\)/s);
+  assert.match(css, /\.calendar-preview-drop\.is-drop-target/);
   assert.match(css, /@media\s*\(max-width:\s*560px\)[\s\S]*?\.calendar-sticky-actions\s+#[^}]*grid-column:\s*1\/-1/s);
 });
 
@@ -107,7 +113,7 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const js = read('public/function/admin-calendar-page.js');
 
-  assert.match(html, /admin-calendar-page\.js\?v=20260826-10/);
+  assert.match(html, /admin-calendar-page\.js\?v=20260826-11/);
   assert.match(js, /\/api\/admin\/calendar\/categories/);
   assert.match(js, /\/api\/admin\/calendar\/schedules/);
   assert.match(js, /recurrenceUnit/);
@@ -143,6 +149,7 @@ test('calendar admin updates use POST and routes retain PATCH compatibility behi
   );
   assert.match(js, /request\(url,\{method:'POST',body:JSON\.stringify\(payload\)\}\)/);
   assert.doesNotMatch(js, /method:editingId\?'PATCH':'POST'/);
+  assert.match(js, /moveScheduleToDate[\s\S]*?method:'POST'/);
   assert.match(legacyAdmin, /var method = 'POST';/);
 
   assert.match(routes, /app\.patch\('\/api\/calendar\/schedules\/:originalId', handlers\.legacyUpdate\);/);
