@@ -195,7 +195,7 @@
     const today = formatDate(new Date());
     const bounds = getNavigationBounds(today);
     const state = {
-      view: "week",
+      view: "timeline",
       date: startOfIsoWeek(today),
       month: today.slice(0, 7),
       cache: new Map(),
