@@ -647,6 +647,7 @@
           timelineName: schedule.name,
           timelineDailyTitle: true,
           timelinePriority: -1,
+          color: "#f4c8ad",
         });
         const cards = (schedule.cards || [])
           .filter(
