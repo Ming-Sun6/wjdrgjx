@@ -96,7 +96,7 @@ test('calendar removes the late-injected floating theme button', () => {
 
 test('mobile calendar fits seven days and keeps the timeline scrollable', () => {
   const mobile =
-    css.match(/@media\s*\(max-width:\s*760px\)\s*\{([\s\S]*)\}\s*$/)?.[1] || '';
+    css.match(/@media\s*\(max-width:\s*760px\)\s*and\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)\s*\{([\s\S]*)\}\s*$/)?.[1] || '';
 
   assert.ok(mobile);
   assert.match(mobile, /--category-width:\s*64px/);
