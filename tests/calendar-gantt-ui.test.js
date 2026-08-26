@@ -33,6 +33,7 @@ test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(html, /id="calendarViewTimeline"/);
   assert.match(js, /view:\s*["']timeline["']/);
   assert.match(js, /function renderTimeline/);
+  assert.match(js, /if\s*\(state\.view\s*===\s*["']timeline["']\)\s*\{\s*els\.root\.appendChild\(renderTimeline\(range\)\);\s*return;\s*\}/);
   assert.match(js, /calendar-continuous-timeline/);
   assert.match(css, /calendar-continuous-timeline/);
   assert.match(css, /repeat\(var\(--timeline-days\),var\(--timeline-day-width\)\)/);
