@@ -195,7 +195,7 @@
     const today = formatDate(new Date());
     const bounds = getNavigationBounds(today);
     const state = {
-      view: "timeline",
+      view: "week",
       date: startOfIsoWeek(today),
       month: today.slice(0, 7),
       cache: new Map(),
@@ -762,12 +762,7 @@
         return;
       }
       if (state.view === "timeline") {
-        const timelineRoot = document.createElement("div");
-        timelineRoot.className = "calendar-timeline-week-layout";
-        weeksInRange(range.from, range.to).forEach((week) => {
-          timelineRoot.appendChild(renderWeek(week));
-        });
-        els.root.appendChild(timelineRoot);
+        els.root.appendChild(renderTimeline(range));
         return;
       }
       const weeks =
