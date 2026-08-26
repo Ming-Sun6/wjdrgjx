@@ -68,7 +68,14 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
 }
 .calendar-timeline-week-layout{display:flex;align-items:flex-start;gap:0;min-width:max-content}
 .calendar-timeline-week-layout .calendar-week-block{flex:0 0 auto;width:max-content;min-width:980px}
-.calendar-timeline-week-layout .calendar-week-block:not(:first-child){min-width:784px}
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child){min-width:932px}
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-cell,
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-head{display:flex;color:var(--calendar-ink)}
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-date-header,
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-row,
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-daily-title-row,
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-daily-content{grid-template-columns:var(--category-width) repeat(7,112px);width:932px}
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-lane{grid-column:2/9;grid-template-columns:repeat(7,112px)}
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-cell,
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-head{color:transparent}
 .calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-cell,
