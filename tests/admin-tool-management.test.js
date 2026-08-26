@@ -39,6 +39,9 @@ test('tool-management renders API tools by supported group with escaped values',
   assert.match(html, /escapeAttr\(tool\.id/);
   assert.match(html, /function escapeAttr\(text\)\{[\s\S]{0,180}\.replace\(\/"\/g,'&quot;'\)/);
   assert.match(html, /class="tool-management-visible"[^>]+type="checkbox"/);
+  assert.match(html, /class="tool-management-enabled"[^>]+type="checkbox"/);
+  assert.match(html, /tool-management-group-select/);
+  assert.match(html, /tool-management-category-select/);
   assert.match(html, /class="tool-management-badge"/);
   assert.match(html, /<option value="none"/);
   assert.match(html, /<option value="new"/);

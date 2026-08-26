@@ -11,13 +11,56 @@ test('UTC date helpers and ISO week remain stable across year boundaries', () =>
   assert.throws(() => domain.parseDate('2026-02-30'), /BAD_DATE/);
 });
 
-test('calendar navigation covers current month plus previous seventeen months', () => {
+test('calendar navigation covers one year before and after today', () => {
   assert.deepEqual(domain.getNavigationBounds('2026-08-25'), {
-    earliestMonth: '2025-03',
-    latestMonth: '2026-08',
-    earliestDate: '2025-03-01',
-    latestDate: '2026-08-31'
+    earliestMonth: '2025-08',
+    latestMonth: '2027-08',
+    earliestDate: '2025-08-25',
+    latestDate: '2027-08-25'
   });
+});
+
+test('automatic activity colors are stable by name and custom colors still win', () => {
+  const first = domain.activityColor('雪原贸易');
+  assert.match(first, /^#[0-9a-f]{6}$/);
+  assert.equal(domain.activityColor(' 雪原贸易 '), first);
+  assert.notEqual(domain.activityColor('联盟总动员'), first);
+
+  const expanded = domain.expandDefinitions([
+    { id: 1, category: { color: '#ffffff' }, name: '雪原贸易', fontBold: true, scheduleType: 'single', startDate: '2026-08-24', endDate: '2026-08-24', enabled: true },
+    { id: 2, category: { color: '#ffffff' }, name: '雪原贸易', scheduleType: 'single', startDate: '2026-08-25', endDate: '2026-08-25', enabled: true },
+    { id: 3, category: { color: '#ffffff' }, name: '联盟总动员', scheduleType: 'single', startDate: '2026-08-26', endDate: '2026-08-26', enabled: true },
+    { id: 4, category: { color: '#ffffff' }, name: '手动颜色', color: '#123456', scheduleType: 'single', startDate: '2026-08-27', endDate: '2026-08-27', enabled: true }
+  ], { from: '2026-08-24', to: '2026-08-30' });
+  assert.equal(expanded.schedules[0].color, expanded.schedules[1].color);
+  assert.equal(expanded.schedules[0].fontBold, true);
+  assert.notEqual(expanded.schedules[1].color, expanded.schedules[2].color);
+  assert.equal(expanded.schedules[3].color, '#123456');
+});
+
+test('recurrence exceptions support one occurrence and current-and-future overrides', () => {
+  const definition = {
+    id: 88, categoryId: 1, name: '循环活动', scheduleType: 'recurring', startDate: '2026-08-24', endDate: '2026-08-24', enabled: true,
+    recurrenceUnit: 'week', recurrenceInterval: 1, weekdays: [1], recurrenceEndType: 'never',
+    exceptions: [
+      { occurrenceDate: '2026-08-31', scope: 'single', name: '仅本次', color: '#123456', fontBold: true, enabled: true },
+      { occurrenceDate: '2026-09-07', scope: 'future', name: '以后改名', color: null, fontBold: false, enabled: true }
+    ]
+  };
+  const schedules = domain.expandDefinitions([definition], { from: '2026-08-24', to: '2026-09-14' }).schedules;
+  assert.deepEqual(schedules.map((item) => item.name), ['循环活动', '仅本次', '以后改名', '以后改名']);
+  assert.equal(schedules[1].color, '#123456');
+  assert.equal(schedules[1].fontBold, true);
+  assert.equal(schedules[2].color, domain.activityColor('以后改名'));
+});
+
+test('never-ending recurrence expands backward and forward around its anchor', () => {
+  const result = domain.expandDefinitions([{
+    id: 99, categoryId: 1, name: '双向循环', scheduleType: 'recurring',
+    startDate: '2026-08-26', endDate: '2026-08-26', enabled: true,
+    recurrenceUnit: 'week', recurrenceInterval: 1, weekdays: [3], recurrenceEndType: 'never'
+  }], { from: '2026-08-12', to: '2026-09-09' });
+  assert.deepEqual(result.schedules.map((item) => item.startDate), ['2026-08-12', '2026-08-19', '2026-08-26', '2026-09-02', '2026-09-09']);
 });
 
 test('normalizes recurring and composite schedule payloads', () => {

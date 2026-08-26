@@ -97,8 +97,10 @@
       endTime:source.endTime||'',
       color:source.color||null,
       description:String(source.description||'').trim(),
+      sortOrder:Number.isInteger(Number(source.sortOrder))?Number(source.sortOrder):0,
       enabled:source.enabled!==false
     };
+    if(source.fontBold===true)payload.fontBold=true;
     if(isList)payload.legacyDates=dates;
     if(repeat){
       payload.recurrenceUnit=source.recurrenceUnit||'day';

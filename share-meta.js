@@ -88,8 +88,10 @@ function injectShareMeta(html, meta, url) {
 }
 
 function resolvePublicHtmlPath(rootDir, pathname) {
-  const relative = pathname === '/' ? 'index.html' : pathname.replace(/^\//, '');
-  if (!relative.toLowerCase().endsWith('.html')) return null;
+  let relative = pathname === '/' ? 'index.html' : pathname.replace(/^\//, '');
+  if (relative.startsWith('public/')) relative = relative.slice(7);
+  if (relative.endsWith('/')) relative += 'index.html';
+  else if (!relative.toLowerCase().endsWith('.html')) relative += '.html';
   const filePath = path.resolve(rootDir, relative);
   const root = path.resolve(rootDir);
   return filePath.startsWith(root + path.sep) ? filePath : null;

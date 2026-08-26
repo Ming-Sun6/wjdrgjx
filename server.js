@@ -96,6 +96,8 @@ const TOOL_MANAGEMENT_SETTING_KEY = 'tool_management';
 const NEIGHBOR_PROGRESS_SETTING_KEY = 'neighbor_progress_schedule';
 const HISTORY_IMMIGRATION_SETTING_KEY = 'history_immigration_config';
 const TOOL_BADGES = new Set(['none', 'new', 'hot']);
+const TOOL_DISPLAY_GROUPS = new Set(['featured', 'core', 'extended', 'miniGames']);
+const TOOL_CATEGORIES = new Set(['calcTools', 'dataQuery', 'miniGames']);
 const TOOL_CATALOG = [
   { id: 'training-calculator', name: '练兵计算站', group: 'featured', defaultVisible: true, badge: 'none' },
   { id: 'fire-crystal-building', name: '火晶建筑计算器', group: 'featured', defaultVisible: true, badge: 'none' },
@@ -130,6 +132,80 @@ const TOOL_CATALOG = [
   { id: 'gift-rotation-schedule', name: '礼包轮换表', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'aeroplane-chess', name: '极简飞行棋', group: 'miniGames', defaultVisible: true, badge: 'none' }
 ];
+const TOOL_DATA_QUERY_IDS = new Set([
+  'hero-data', 'tiantian-strategy', 'bear-body-recommendation', 'ice-workshop-placement',
+  't12-data-overview', 'neighbor-progress', 'history-immigration-group', 'migration-prediction',
+  'building-upgrade-query', 'pet-data-query', 'regular-gift-data', 'special-gift-data',
+  'reference-hub', 'gift-rotation-schedule'
+]);
+const TOOL_ENTRY_PATHS = {
+  'training-calculator': ['/function/equipment-training-calculator.html'],
+  'fire-crystal-building': ['/function/Architecture10.html'],
+  'lord-equipment-gem': ['/function/lord-equipment-gem-calculator.html'],
+  'hero-data': ['/function/Zero/hero-data.html', '/function/Zero/generation-heroes.html'],
+  'bear-pit': ['/function/BeaPit.html'],
+  'bear-pit-simple': ['/function/BearPitSimple.html'],
+  'tiantian-strategy': ['/function/tiantian-strategy-hub.html'],
+  'refine-crystal-calculator': ['/function/refine-crystal-calculator.html'],
+  'refine-crystal-simulator': ['/function/refine-crystal-simulator.html'],
+  'engineering-station-time': ['/function/engineering-station-time.html'],
+  'gift-value-calculator': ['/function/gift-value-calculator.html'],
+  'hero-equipment-calculator': ['/function/hero-equipment-calculator.html'],
+  'expert-calculator': ['/function/expert-calculator.html'],
+  't11-calculator': ['/function/T11Calculator.html'],
+  't12-calculator': ['/function/T12Calculator.html'],
+  'giftcode-center': ['/giftcode/'],
+  'immigration-coupon-calculator': ['/function/jisuan.html'],
+  'building-upgrade-calculator': ['/function/building-upgrade-calculator.html'],
+  't12-data-overview': ['/function/T12DataOverview.html'],
+  'neighbor-progress': ['/function/neighbor-progress.html'],
+  'history-immigration-group': ['/function/history-immigration-group.html'],
+  'migration-prediction': ['/function/migration-prediction.html'],
+  'building-upgrade-query': ['/function/building-upgrade-1-30.html'],
+  'pet-data-query': ['/function/pet-data-query.html'],
+  'bear-body-recommendation': ['/function/bear-body-recommendation.html'],
+  'ice-workshop-placement': ['/function/ice-workshop-placement.html'],
+  'wjti-personality-test': ['/function/wjti-personality-test.html'],
+  'regular-gift-data': ['/function/Zero/regular-gift-data.html'],
+  'special-gift-data': ['/function/Zero/special-gift-data.html'],
+  'reference-hub': ['/function/reference-hub/index.html'],
+  'gift-rotation-schedule': ['/function/Zero/gift-rotation-schedule.html'],
+  'aeroplane-chess': ['/function/aeroplane-chess/index.html', '/function/aeroplane-chess/game.html', '/function/aeroplane-chess/spectate.html']
+};
+
+function defaultToolCategory(tool) {
+  if (tool.group === 'miniGames') return 'miniGames';
+  return TOOL_DATA_QUERY_IDS.has(tool.id) ? 'dataQuery' : 'calcTools';
+}
+
+function normalizeManagedToolPath(value) {
+  let pathname = String(value || '').split('?')[0];
+  try { pathname = decodeURIComponent(pathname); } catch (_error) {}
+  pathname = ('/' + pathname.replace(/^\/+/, '')).replace(/^\/public\//i, '/');
+  if (pathname.length > 1) pathname = pathname.replace(/\/$/, '/index.html');
+  if (!/\.[a-z0-9]+$/i.test(pathname)) pathname += '.html';
+  return pathname.toLowerCase();
+}
+
+function findManagedToolByPath(pathname) {
+  const normalized = normalizeManagedToolPath(pathname);
+  for (const tool of TOOL_CATALOG) {
+    const paths = TOOL_ENTRY_PATHS[tool.id] || [];
+    if (paths.some((entry) => normalizeManagedToolPath(entry) === normalized)) return tool;
+    if (tool.id === 'reference-hub' && normalized.startsWith('/function/reference-hub/')) return tool;
+    if (tool.id === 'aeroplane-chess' && normalized.startsWith('/function/aeroplane-chess/')) return tool;
+    if (tool.id === 'hero-data' && /^\/function\/zero\/(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth)-generation-heroes\.html$/.test(normalized)) return tool;
+  }
+  return null;
+}
+
+function sendToolDisabledPage(res, tool, message) {
+  const safeName = escapeHtml(tool && tool.name || '该工具');
+  const safeMessage = escapeHtml(message || '该工具当前已关闭，请稍后再试。');
+  res.status(503);
+  res.setHeader('Cache-Control', 'no-store');
+  return res.type('html').send(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeName}已关闭</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:linear-gradient(145deg,#fff7e9,#e9f1e8);color:#483b31;font-family:"Microsoft YaHei",sans-serif}.box{width:min(520px,100%);padding:34px;border:1px solid #ead7c2;border-radius:24px;background:rgba(255,255,255,.9);box-shadow:0 20px 60px rgba(76,55,38,.13);text-align:center}h1{margin:0 0 12px;font-size:1.55rem}p{color:#756456;line-height:1.8}a{display:inline-flex;margin-top:14px;padding:11px 18px;border-radius:999px;background:#bd6d49;color:#fff;text-decoration:none;font-weight:700}</style></head><body><main class="box"><h1>${safeName}当前已关闭</h1><p>${safeMessage}</p><a href="/">返回工具箱首页</a></main></body></html>`);
+}
 const DEFAULT_SITE_FOOTER_CREDITS = [
   '制作：2041茗子、飞菇',
   '数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子',
@@ -198,6 +274,23 @@ app.use((req, res, next) => {
 });
 
 const giftcodeStaticDir = path.join(__dirname, 'public', 'giftcode');
+app.use(async (req, res, next) => {
+  try {
+    if (req.method !== 'GET') return next();
+    const managedTool = findManagedToolByPath(req.path);
+    if (!managedTool) return next();
+    const stored = await getSetting(TOOL_MANAGEMENT_SETTING_KEY, { tools: [] });
+    const normalized = normalizeToolManagement(stored);
+    const tools = normalized.error ? normalizeToolManagement([]).tools : normalized.tools;
+    const setting = tools.find((tool) => tool.id === managedTool.id);
+    if (setting && setting.enabled === false) return sendToolDisabledPage(res, managedTool, setting.disabledMessage);
+    return next();
+  } catch (err) {
+    console.warn('tool availability check skipped:', err.message);
+    return next();
+  }
+});
+
 if (GIFTCODE_UI_MODE !== 'live') {
   app.get(['/giftcode', '/giftcode/'], (_req, res) => {
     res.redirect(302, '/');
@@ -208,7 +301,7 @@ mountGiftcodeProxy(app);
 app.use(express.json({ limit: '8mb' }));
 app.use(async (req, res, next) => {
   try {
-    if (req.method !== 'GET' || (req.path !== '/' && !req.path.toLowerCase().endsWith('.html'))) return next();
+    if (req.method !== 'GET') return next();
     const filePath = resolvePublicHtmlPath(path.join(__dirname, 'public'), req.path);
     if (!filePath || !fs.existsSync(filePath)) return next();
     let post = null;
@@ -1424,6 +1517,8 @@ function normalizeToolManagement(payload) {
   for (const item of inputTools) {
     if (!item || typeof item !== 'object' || !knownIds.has(item.id)) continue;
     if (item.badge != null && !TOOL_BADGES.has(item.badge)) return { error: 'BAD_BADGE' };
+    if (item.displayGroup != null && !TOOL_DISPLAY_GROUPS.has(item.displayGroup)) return { error: 'BAD_TOOL_GROUP' };
+    if (item.toolCategory != null && !TOOL_CATEGORIES.has(item.toolCategory)) return { error: 'BAD_TOOL_CATEGORY' };
     inputById.set(item.id, item);
   }
 
@@ -1433,21 +1528,26 @@ function normalizeToolManagement(payload) {
       return {
         id: tool.id,
         visible: typeof input?.visible === 'boolean' ? input.visible : tool.defaultVisible,
-        badge: input?.badge || tool.badge
+        enabled: typeof input?.enabled === 'boolean' ? input.enabled : true,
+        badge: input?.badge || tool.badge,
+        displayGroup: input?.displayGroup || tool.group,
+        toolCategory: input?.toolCategory || defaultToolCategory(tool),
+        sortOrder: Number.isInteger(Number(input?.sortOrder)) ? Number(input.sortOrder) : TOOL_CATALOG.indexOf(tool) * 10,
+        disabledMessage: String(input?.disabledMessage || '').trim().slice(0, 240)
       };
     })
   };
 }
 
 function toPublicToolManagement(tools) {
-  return tools.map(({ id, visible, badge }) => ({ id, visible, badge }));
+  return tools.map(({ id, visible, enabled, badge, displayGroup, toolCategory, sortOrder }) => ({ id, visible, enabled, badge, displayGroup, toolCategory, sortOrder }));
 }
 
 function toAdminToolManagement(tools) {
   const settingsById = new Map(tools.map((tool) => [tool.id, tool]));
   return TOOL_CATALOG.map(({ id, name, group, defaultVisible }) => {
-    const setting = settingsById.get(id) || { visible: defaultVisible, badge: 'none' };
-    return { id, name, group, defaultVisible, visible: setting.visible, badge: setting.badge };
+    const setting = settingsById.get(id) || { visible: defaultVisible, enabled: true, badge: 'none', displayGroup: group };
+    return { id, name, group: setting.displayGroup || group, defaultVisible, visible: setting.visible, enabled: setting.enabled !== false, badge: setting.badge, displayGroup: setting.displayGroup || group, toolCategory: setting.toolCategory || defaultToolCategory({ id, group }), sortOrder: Number(setting.sortOrder || 0), disabledMessage: setting.disabledMessage || '' };
   });
 }
 
@@ -1516,6 +1616,7 @@ function createToolManagementHandlers(dependencies = {}) {
       summary: '更新工具展示配置',
       metadata: {
         visibleCount: normalized.tools.filter((tool) => tool.visible).length,
+        enabledCount: normalized.tools.filter((tool) => tool.enabled).length,
         badgeCount: normalized.tools.filter((tool) => tool.badge !== 'none').length
       }
     });
@@ -5017,6 +5118,7 @@ module.exports = {
   toPublicToolManagement,
   toAdminToolManagement,
   createToolManagementHandlers,
+  findManagedToolByPath,
   HOME_NAVIGATION_CATALOG,
   normalizeHomeNavigation,
   createHomeNavigationHandlers

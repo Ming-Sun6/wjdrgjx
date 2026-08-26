@@ -18,7 +18,7 @@ test('public calendar range returns canonical occurrences and dynamic colors', a
   await handlers.getPublic({ query: { from: '2026-08-24', to: '2026-08-30' } }, response);
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.schedules[0].id, '1:2026-08-24');
-  assert.equal(response.body.schedules[0].color, '#f1c995');
+  assert.equal(response.body.schedules[0].color, require('../calendar-domain').activityColor('雪原贸易'));
 });
 
 test('legacy no-range response uses exact 366-day compatibility window', async () => {
@@ -100,6 +100,60 @@ test('calendar preset handlers require admin and expose create/list/delete', asy
   await handlers.deletePreset({ params: { id: 'preset_b' } }, removed);
   assert.deepEqual(removed.body, { ok: true });
   assert.equal(calls[1], 'preset_b');
+});
+
+test('schedule reorder endpoint requires admin, saves the complete order, and audits it', async () => {
+  const calls = [];
+  const items = [{ id: 3, sortOrder: 10 }, { id: 2, sortOrder: 20 }];
+  const handlers = createCalendarHandlers({
+    store: { reorderDefinitions: async (value) => { calls.push(value); return [{ id: 3 }, { id: 2 }]; } },
+    requireAdmin: async () => ({ id: 7 }),
+    auditAdminAction: async (_req, details) => calls.push(details)
+  });
+  const response = createResponse();
+  await handlers.reorderSchedules({ body: { items } }, response);
+  assert.deepEqual(calls[0], items);
+  assert.equal(calls[1].action, 'calendar.reorder');
+  assert.deepEqual(response.body.schedules.map((item) => item.id), [3, 2]);
+});
+
+test('admin preview expands recurring instances and quick edit saves the selected scope', async () => {
+  const calls = [];
+  const definition = { id: 5, categoryId: 1, name: '循环活动', scheduleType: 'recurring', startDate: '2026-08-24', endDate: '2026-08-24', enabled: true, recurrenceUnit: 'week', recurrenceInterval: 1, weekdays: [1], recurrenceEndType: 'never', items: [] };
+  const handlers = createCalendarHandlers({
+    store: {
+      listDefinitions: async () => [definition],
+      getDefinition: async () => definition,
+      upsertOccurrenceException: async (...args) => { calls.push(args); return definition; }
+    },
+    requireAdmin: async () => ({ id: 7 }),
+    auditAdminAction: async () => {}
+  });
+  const preview = createResponse();
+  await handlers.getAdminPreview({ query: { from: '2026-08-24', to: '2026-09-07' } }, preview);
+  assert.deepEqual(preview.body.schedules.map((item) => item.occurrenceDate), ['2026-08-24', '2026-08-31', '2026-09-07']);
+
+  const edited = createResponse();
+  await handlers.quickEditOccurrence({ params: { id: '5' }, body: { scope: 'single', occurrenceDate: '2026-08-31', name: '仅本次', color: '#123456', fontBold: true, enabled: true } }, edited);
+  assert.deepEqual(calls[0], [5, '2026-08-31', 'single', { name: '仅本次', color: '#123456', fontBold: true, enabled: true }]);
+  assert.equal(edited.body.scope, 'single');
+});
+
+test('editing the entire recurrence clears saved occurrence exceptions atomically', async () => {
+  const calls = [];
+  const definition = { id: 6, categoryId: 1, name: '循环活动', scheduleType: 'recurring', startDate: '2026-08-24', endDate: '2026-08-24', enabled: true, recurrenceUnit: 'week', recurrenceInterval: 1, weekdays: [1], recurrenceEndType: 'never', items: [], exceptions: [{ scope: 'single', occurrenceDate: '2026-08-31' }] };
+  const handlers = createCalendarHandlers({
+    store: {
+      getDefinition: async () => definition,
+      replaceDefinition: async (_id, value, meta) => { calls.push({ value, meta }); return { ...definition, ...value }; }
+    },
+    requireAdmin: async () => ({ id: 7 }),
+    auditAdminAction: async () => {}
+  });
+  const response = createResponse();
+  await handlers.quickEditOccurrence({ params: { id: '6' }, body: { scope: 'all', occurrenceDate: '2026-08-31', name: '全部改名', color: null, fontBold: true, enabled: true } }, response);
+  assert.equal(calls[0].meta.clearExceptions, true);
+  assert.equal(calls[0].value.name, '全部改名');
 });
 
 function createResponse() {

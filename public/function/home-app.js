@@ -4597,18 +4597,33 @@ refreshMe();
     document.querySelectorAll('[data-tool-id]').forEach(function(card){
       var config=byId[card.getAttribute('data-tool-id')];
       if(!config)return;
+      var group=String(config.displayGroup||card.getAttribute('data-tool-priority')||'extended');
+      var groupSelector=group==='featured'?'#featuredTools .featured-tools-grid':group==='core'?'#coreToolWarehouse .tool-warehouse-grid':group==='miniGames'?'#miniGameWarehouse .tool-warehouse-grid':'#extendedToolWarehouse .tool-warehouse-grid';
+      var destination=document.querySelector(groupSelector);
+      if(destination&&card.parentElement!==destination)destination.appendChild(card);
+      card.setAttribute('data-tool-priority',group);
+      if(config.toolCategory)card.setAttribute('data-category',config.toolCategory);
+      card.dataset.toolSortOrder=String(Number(config.sortOrder)||0);
       var managedHidden=config.visible === false;
       card.dataset.toolManagedHidden=managedHidden?'1':'0';
       card.toggleAttribute('hidden',managedHidden);
       if(managedHidden)card.setAttribute('aria-hidden','true');
       else card.removeAttribute('aria-hidden');
+      var disabled=config.enabled===false;
+      card.classList.toggle('tool-is-disabled',disabled);
+      var link=card.querySelector('a');
+      if(link){link.setAttribute('aria-disabled',disabled?'true':'false');link.tabIndex=disabled?-1:0;}
       var badge=String(config.badge||'none').toLowerCase();
       if(badge === 'new' || badge === 'hot')updateToolBadge(card,badge);
       else updateToolBadge(card,'none');
     });
+    document.querySelectorAll('#featuredTools .featured-tools-grid,#coreToolWarehouse .tool-warehouse-grid,#extendedToolWarehouse .tool-warehouse-grid,#miniGameWarehouse .tool-warehouse-grid').forEach(function(grid){
+      Array.from(grid.children).sort(function(a,b){return Number(a.dataset.toolSortOrder||0)-Number(b.dataset.toolSortOrder||0);}).forEach(function(card){grid.appendChild(card);});
+    });
     document.dispatchEvent(new CustomEvent('toolmanagementchange'));
   }
   window.__wjdrApplyToolManagement=applyToolManagement;
+  document.addEventListener('click',function(event){var card=event.target.closest&&event.target.closest('[data-tool-id].tool-is-disabled');if(card){event.preventDefault();event.stopPropagation();}},{capture:true});
   fetch('/api/tool-management',{credentials:'same-origin',headers:{'Accept':'application/json'}})
     .then(function(response){return response.ok?response.json():null;})
     .then(function(data){if(data)applyToolManagement(data);})

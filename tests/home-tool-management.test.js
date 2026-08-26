@@ -25,6 +25,9 @@ test('home page applies public tool visibility and badge settings', () => {
   assert.match(html, /fetch\('\/api\/tool-management'/);
   assert.match(html, /querySelectorAll\('\[data-tool-id\]'/);
   assert.match(html, /config\.visible\s*===\s*false/);
+  assert.match(html, /config\.enabled\s*===\s*false/);
+  assert.match(html, /config\.displayGroup/);
+  assert.match(html, /config\.toolCategory/);
   assert.match(html, /tool-status-badge/);
   assert.match(html, /badge\s*===\s*'new'/);
   assert.match(html, /badge\s*===\s*'hot'/);

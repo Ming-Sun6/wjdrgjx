@@ -22,7 +22,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>后台管理-冬日工具箱</title>
   <link rel="stylesheet" href="./admin-dashboard.css" />
-  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260826-2" />
+  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260826-4" />
   <style>
     :root{
       --bg-night-1:#0b1220;
@@ -773,7 +773,7 @@
     .tool-management-empty{padding:16px 12px;color:var(--muted);font-size:.85rem;}
     .tool-management-row{
       display:grid;
-      grid-template-columns:minmax(0,1fr) auto minmax(112px,140px);
+      grid-template-columns:minmax(180px,1fr) repeat(2,auto) repeat(3,minmax(118px,150px));
       gap:12px;
       align-items:center;
       min-height:58px;
@@ -794,6 +794,8 @@
       background:var(--surface-strong);
       color:var(--text);
     }
+    .tool-management-select,.tool-management-message{width:100%;min-height:38px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface-strong);color:var(--text);}
+    .tool-management-message{grid-column:1/-1;min-height:40px;resize:vertical;}
 
     @media (max-width: 600px){
       .container{padding:48px 12px 24px;}
@@ -802,7 +804,8 @@
       .layout{flex-direction:column;}
       .sidebar{width:100%;position:relative;top:auto;}
       .tool-management-groups{grid-template-columns:minmax(0,1fr);}
-      .tool-management-row{grid-template-columns:minmax(0,1fr) auto;}
+      .tool-management-row{grid-template-columns:minmax(0,1fr) auto auto;}
+      .tool-management-select,.tool-management-badge,.tool-management-message{grid-column:1/-1;}
       .tool-management-badge{grid-column:1 / -1;}
     }
   </style>
@@ -1383,8 +1386,9 @@
                   <div class="calendar-step-panel" data-calendar-panel="style" role="tabpanel" hidden>
                     <div class="calendar-step-title">颜色与说明</div>
                     <div class="form-grid calendar-panel-grid">
-                      <div class="form-group calendar-color-field"><label>活动颜色</label><label class="time-checkbox-group"><input id="calendarUseCategoryColor" type="checkbox" checked />跟随分类颜色</label><div class="calendar-color-controls"><input type="color" id="calendarScheduleColor" value="#e8a87c" /><input id="calendarScheduleColorHex" maxlength="7" value="#E8A87C" inputmode="text" /></div><div id="calendarColorPalette" class="calendar-color-palette"><button type="button" data-color="#e8a87c" style="--swatch:#e8a87c" aria-label="暖橙"></button><button type="button" data-color="#f3c98b" style="--swatch:#f3c98b" aria-label="浅金"></button><button type="button" data-color="#e8a6a6" style="--swatch:#e8a6a6" aria-label="暖红"></button><button type="button" data-color="#c9b1e8" style="--swatch:#c9b1e8" aria-label="柔紫"></button><button type="button" data-color="#9fc9b8" style="--swatch:#9fc9b8" aria-label="柔绿"></button><button type="button" data-color="#9ebbd7" style="--swatch:#9ebbd7" aria-label="雾蓝"></button></div></div>
+                      <div class="form-group calendar-color-field"><label>活动颜色</label><label class="time-checkbox-group"><input id="calendarUseCategoryColor" type="checkbox" checked />按活动名称自动配色</label><div class="calendar-color-controls"><input type="color" id="calendarScheduleColor" value="#e8a87c" /><input id="calendarScheduleColorHex" maxlength="7" value="#E8A87C" inputmode="text" /></div><div id="calendarColorPalette" class="calendar-color-palette"><button type="button" data-color="#e8a87c" style="--swatch:#e8a87c" aria-label="暖橙"></button><button type="button" data-color="#f3c98b" style="--swatch:#f3c98b" aria-label="浅金"></button><button type="button" data-color="#e8a6a6" style="--swatch:#e8a6a6" aria-label="暖红"></button><button type="button" data-color="#c9b1e8" style="--swatch:#c9b1e8" aria-label="柔紫"></button><button type="button" data-color="#9fc9b8" style="--swatch:#9fc9b8" aria-label="柔绿"></button><button type="button" data-color="#9ebbd7" style="--swatch:#9ebbd7" aria-label="雾蓝"></button></div></div>
                       <div class="form-group"><label for="calendarScheduleDescription">活动说明</label><textarea id="calendarScheduleDescription" rows="6" maxlength="2000" placeholder="用户点击活动块时会看到这段说明"></textarea></div>
+                      <div class="form-group calendar-full-field"><label class="calendar-switch"><input id="calendarScheduleFontBold" type="checkbox" /><span>活动名称加粗显示</span><small>公开日历、组合任务与后台排期预览同步生效</small></label></div>
                     </div>
                   </div>
 
@@ -1413,6 +1417,13 @@
               </details>
               <div class="form-section"><div class="form-title">已配置日程</div><div class="form-grid calendar-compact-grid"><div class="form-group"><label for="calendarScheduleFilter">筛选名称</label><input id="calendarScheduleFilter" type="search" placeholder="输入活动名称" /></div><div class="form-group"><label for="calendarScheduleStatusFilter">状态</label><select id="calendarScheduleStatusFilter"><option value="all">全部</option><option value="enabled">已启用</option><option value="disabled">已停用</option></select></div></div><div id="calendarScheduleList" class="calendar-admin-list"></div></div>
             </div>
+            <section class="form-section calendar-admin-preview-section">
+              <div class="calendar-admin-row-head"><div><div class="form-title">日历排期预览</div><div class="admin-status">拖动活动块可调整日期和顺序；点击活动块可快速修改名称、颜色、加粗与启用状态。</div></div></div>
+              <div class="calendar-preview-toolbar"><button class="btn secondary" id="calendarPreviewPrevBtn" type="button">上一段</button><button class="btn secondary" id="calendarPreviewTodayBtn" type="button">回到今天</button><button class="btn secondary" id="calendarPreviewNextBtn" type="button">下一段</button><label>起始日期 <input id="calendarPreviewAnchorDate" type="date" /></label><label>预览范围 <select id="calendarPreviewRange"><option value="28">28 天</option><option value="90" selected>90 天</option><option value="180">180 天</option><option value="365">365 天</option></select></label></div>
+              <div class="calendar-admin-preview-scroll" id="calendarAdminPreview"></div>
+            </section>
+            <dialog class="calendar-help-dialog" id="calendarHelpDialog"><button type="button" class="calendar-help-close" data-calendar-help-close aria-label="关闭">×</button><h3 id="calendarHelpTitle">字段说明</h3><div id="calendarHelpContent"></div></dialog>
+            <dialog class="calendar-preview-edit-dialog" id="calendarPreviewEditDialog"><form id="calendarPreviewEditForm"><button type="button" class="calendar-help-close" data-preview-edit-close aria-label="关闭">×</button><h3>快速调整日程</h3><input id="calendarPreviewEditId" type="hidden" /><input id="calendarPreviewEditOccurrenceDate" type="hidden" /><div class="form-grid"><div class="form-group calendar-full-field" id="calendarPreviewEditScopeGroup"><label for="calendarPreviewEditScope">修改范围</label><select id="calendarPreviewEditScope"><option value="all">整个循环日程</option><option value="single">仅当前这一次</option><option value="future">当前及以后</option></select><small id="calendarPreviewEditScopeHint">仅本次和当前及以后会保存为循环例外，不改变之前的实例。</small></div><div class="form-group calendar-full-field"><label for="calendarPreviewEditName">活动名称</label><input id="calendarPreviewEditName" maxlength="120" required /></div><div class="form-group"><label class="calendar-switch"><input id="calendarPreviewEditAutoColor" type="checkbox" /><span>按名称自动配色</span></label></div><div class="form-group"><label for="calendarPreviewEditColor">活动颜色</label><input id="calendarPreviewEditColor" type="color" /></div><div class="form-group"><label class="calendar-switch"><input id="calendarPreviewEditBold" type="checkbox" /><span>名称加粗</span></label></div><div class="form-group"><label class="calendar-switch"><input id="calendarPreviewEditEnabled" type="checkbox" /><span>启用日程</span></label></div></div><div class="calendar-actions"><button class="btn secondary" id="calendarPreviewFullEditBtn" type="button">进入完整编辑</button><button class="btn secondary" data-preview-edit-close type="button">取消</button><button class="btn" type="submit">保存调整</button></div></form></dialog>
           </div>
         </section>
 
@@ -2002,6 +2013,7 @@
 
         <section class="card page" id="page-tool-management" data-page="tool-management">
           <div class="page-title">工具管理</div>
+          <p class="admin-status" style="margin:8px 0 12px;">“入口显示”只控制首页入口；“工具启用”关闭后，复制的直链也会显示工具已关闭。展示位置和功能分类可分别调整。</p>
           <div class="tool-management-toolbar">
             <div class="admin-status" id="toolManagementStatus">请先登录管理员账号。</div>
             <div class="tool-management-actions">
@@ -2397,6 +2409,8 @@
     let toolManagementLoaded=false;
     const TOOL_MANAGEMENT_GROUPS=['featured','core','extended','miniGames'];
     const TOOL_MANAGEMENT_GROUP_LABELS={featured:'精选工具',core:'基础工具',extended:'更多工具',miniGames:'小游戏'};
+    const TOOL_MANAGEMENT_CATEGORIES=['calcTools','dataQuery','miniGames'];
+    const TOOL_MANAGEMENT_CATEGORY_LABELS={calcTools:'计算器/工具',dataQuery:'数据查询',miniGames:'小游戏'};
     function syncAdminRuntimeState(){
       window.authUser=authUser;
       window.currentPage=currentPage;
@@ -3757,14 +3771,20 @@
           var escapedName=escapeHtml(tool.name || tool.title || tool.id || '未命名工具');
           var labelAttr=escapeAttr(tool.name || tool.title || tool.id || '未命名工具');
           var badge=tool.badge==='new' || tool.badge==='hot' ? tool.badge : 'none';
+          var displayGroup=normalizeToolManagementGroup(tool);
+          var toolCategory=TOOL_MANAGEMENT_CATEGORIES.indexOf(tool.toolCategory)>=0?tool.toolCategory:(displayGroup==='miniGames'?'miniGames':'calcTools');
           return '<div class="tool-management-row" data-tool-id="'+escapedId+'">'+
             '<div class="tool-management-name">'+escapedName+'<span class="tool-management-id">'+escapedId+'</span></div>'+
-            '<label class="tool-management-visible-label"><input class="tool-management-visible" type="checkbox" aria-label="显示 '+labelAttr+'"'+(tool.visible===false?'':' checked')+' />显示</label>'+
+            '<label class="tool-management-visible-label"><input class="tool-management-visible" type="checkbox" aria-label="显示 '+labelAttr+' 入口"'+(tool.visible===false?'':' checked')+' />入口显示</label>'+
+            '<label class="tool-management-visible-label"><input class="tool-management-enabled" type="checkbox" aria-label="启用 '+labelAttr+'"'+(tool.enabled===false?'':' checked')+' />工具启用</label>'+
+            '<select class="tool-management-select tool-management-group-select" aria-label="'+labelAttr+' 展示位置">'+TOOL_MANAGEMENT_GROUPS.map(function(value){return '<option value="'+value+'"'+(value===displayGroup?' selected':'')+'>'+TOOL_MANAGEMENT_GROUP_LABELS[value]+'</option>';}).join('')+'</select>'+
+            '<select class="tool-management-select tool-management-category-select" aria-label="'+labelAttr+' 功能分类">'+TOOL_MANAGEMENT_CATEGORIES.map(function(value){return '<option value="'+value+'"'+(value===toolCategory?' selected':'')+'>'+TOOL_MANAGEMENT_CATEGORY_LABELS[value]+'</option>';}).join('')+'</select>'+
             '<select class="tool-management-badge" aria-label="'+labelAttr+' 角标">'+
               '<option value="none"'+(badge==='none'?' selected':'')+'>无</option>'+
               '<option value="new"'+(badge==='new'?' selected':'')+'>新</option>'+
               '<option value="hot"'+(badge==='hot'?' selected':'')+'>热</option>'+
             '</select>'+
+            '<textarea class="tool-management-message" maxlength="240" rows="1" placeholder="关闭说明（可选）">'+escapeHtml(tool.disabledMessage||'')+'</textarea>'+
           '</div>';
         }).join('');
         return '<section class="tool-management-group" data-tool-group="'+group+'">'+
@@ -3841,10 +3861,14 @@
       if(!container) return;
       var tools=Array.from(container.querySelectorAll('.tool-management-row')).map(function(row){
         var visibleInput=row.querySelector('.tool-management-visible');
+        var enabledInput=row.querySelector('.tool-management-enabled');
         var badgeSelect=row.querySelector('.tool-management-badge');
+        var groupSelect=row.querySelector('.tool-management-group-select');
+        var categorySelect=row.querySelector('.tool-management-category-select');
+        var messageInput=row.querySelector('.tool-management-message');
         var badge=badgeSelect ? badgeSelect.value : 'none';
         if(badge!=='new' && badge!=='hot') badge='none';
-        return {id:row.getAttribute('data-tool-id')||'',visible:!!(visibleInput && visibleInput.checked),badge:badge};
+        return {id:row.getAttribute('data-tool-id')||'',visible:!!(visibleInput && visibleInput.checked),enabled:!!(enabledInput && enabledInput.checked),badge:badge,displayGroup:groupSelect?groupSelect.value:'extended',toolCategory:categorySelect?categorySelect.value:'calcTools',sortOrder:Array.from(container.querySelectorAll('.tool-management-row')).indexOf(row)*10,disabledMessage:messageInput?messageInput.value.trim():''};
       }).filter(function(tool){ return !!tool.id; });
       var body=JSON.stringify({tools:tools});
       setToolManagementBusy(true);
@@ -5206,8 +5230,8 @@
   <script src="/function/admin-aeroplane-chess-page.js?v=1"></script>
   <script src="/function/admin-neighbor-progress-page.js?v=3"></script>
   <script src="/function/admin-history-immigration-page.js?v=2"></script>
-  <script src="/function/admin-calendar-model.js?v=20260826-2"></script>
-  <script src="/function/admin-calendar-page.js?v=20260826-6"></script>
+  <script src="/function/admin-calendar-model.js?v=20260826-4"></script>
+  <script src="/function/admin-calendar-page.js?v=20260826-10"></script>
   <script src="/function/admin-home-navigation-page.js?v=1"></script>
   <script>
   (function(){

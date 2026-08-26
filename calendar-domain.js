@@ -75,14 +75,15 @@ function daysInMonth(year, monthIndex) {
 
 function getNavigationBounds(todayValue) {
   const today = parseDate(todayValue);
-  const latestYear = today.getUTCFullYear();
-  const latestMonthIndex = today.getUTCMonth();
-  const earliest = addMonthsToMonth(latestYear, latestMonthIndex, -17);
+  const year = today.getUTCFullYear();
+  const monthIndex = today.getUTCMonth();
+  const day = today.getUTCDate();
+  const boundedDate = (targetYear) => `${targetYear}-${String(monthIndex + 1).padStart(2, '0')}-${String(Math.min(day, daysInMonth(targetYear, monthIndex))).padStart(2, '0')}`;
   return {
-    earliestMonth: `${earliest.year}-${String(earliest.monthIndex + 1).padStart(2, '0')}`,
-    latestMonth: `${latestYear}-${String(latestMonthIndex + 1).padStart(2, '0')}`,
-    earliestDate: `${earliest.year}-${String(earliest.monthIndex + 1).padStart(2, '0')}-01`,
-    latestDate: `${latestYear}-${String(latestMonthIndex + 1).padStart(2, '0')}-${String(daysInMonth(latestYear, latestMonthIndex)).padStart(2, '0')}`
+    earliestMonth: `${year - 1}-${String(monthIndex + 1).padStart(2, '0')}`,
+    latestMonth: `${year + 1}-${String(monthIndex + 1).padStart(2, '0')}`,
+    earliestDate: boundedDate(year - 1),
+    latestDate: boundedDate(year + 1)
   };
 }
 
@@ -95,6 +96,35 @@ function normalizeColor(value) {
   if (!color) return null;
   if (!/^#[0-9a-f]{6}$/i.test(color)) return undefined;
   return color.toLowerCase();
+}
+
+function activityColor(name) {
+  const text = String(name || '').trim().toLowerCase();
+  if (!text) return '#e8c9a0';
+  let hash = 2166136261;
+  for (const character of text) {
+    hash ^= character.codePointAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  hash >>>= 0;
+  const hue = hash % 360;
+  const saturation = 58 + ((hash >>> 8) % 13);
+  const lightness = 72 + ((hash >>> 16) % 7);
+  const s = saturation / 100;
+  const l = lightness / 100;
+  const chroma = (1 - Math.abs(2 * l - 1)) * s;
+  const x = chroma * (1 - Math.abs((hue / 60) % 2 - 1));
+  const match = l - chroma / 2;
+  let red = 0;
+  let green = 0;
+  let blue = 0;
+  if (hue < 60) [red, green, blue] = [chroma, x, 0];
+  else if (hue < 120) [red, green, blue] = [x, chroma, 0];
+  else if (hue < 180) [red, green, blue] = [0, chroma, x];
+  else if (hue < 240) [red, green, blue] = [0, x, chroma];
+  else if (hue < 300) [red, green, blue] = [x, 0, chroma];
+  else [red, green, blue] = [chroma, 0, x];
+  return `#${[red, green, blue].map((value) => Math.round((value + match) * 255).toString(16).padStart(2, '0')).join('')}`;
 }
 
 function normalizeRecurrence(source, prefix) {
@@ -216,6 +246,8 @@ function normalizeSchedulePayload(payload) {
     endTime: String(source.endTime || '').trim(),
     color,
     description,
+    sortOrder: Number.isInteger(Number(source.sortOrder)) ? Number(source.sortOrder) : 0,
+    fontBold: source.fontBold === true,
     enabled: source.enabled !== false,
     items: []
   };
@@ -272,7 +304,7 @@ function recurrenceConfig(definition) {
   };
 }
 
-function occurrenceStarts(definition, hardEnd) {
+function occurrenceStarts(definition, hardEnd, hardStart) {
   const startDate = definition.startDate;
   const type = definition.scheduleType;
   if (!(definition.recurrence || definition.recurrenceUnit) && type !== 'recurring') return [startDate];
@@ -286,6 +318,29 @@ function occurrenceStarts(definition, hardEnd) {
     produced += 1;
     return config.endType === 'count' && produced >= config.count;
   };
+  if (config.endType === 'never' && hardStart && compareDates(hardStart, startDate) < 0) {
+    if (config.unit === 'day') {
+      for (let date = addDays(startDate, -config.interval); compareDates(date, hardStart) >= 0; date = addDays(date, -config.interval)) starts.push(date);
+    } else if (config.unit === 'week') {
+      const anchorWeek = startOfIsoWeek(startDate);
+      for (let date = hardStart; compareDates(date, startDate) < 0; date = addDays(date, 1)) {
+        const weekIndex = Math.floor(diffDays(anchorWeek, startOfIsoWeek(date)) / 7);
+        const weekday = parseDate(date).getUTCDay() || 7;
+        if (weekIndex % config.interval === 0 && config.weekdays.includes(weekday)) starts.push(date);
+      }
+    } else if (config.unit === 'month') {
+      const anchor = parseDate(startDate);
+      const first = parseDate(hardStart);
+      const firstIndex = (first.getUTCFullYear() - anchor.getUTCFullYear()) * 12 + first.getUTCMonth() - anchor.getUTCMonth();
+      for (let index = firstIndex; index < 0; index += 1) {
+        if (index % config.interval !== 0) continue;
+        const month = addMonthsToMonth(anchor.getUTCFullYear(), anchor.getUTCMonth(), index);
+        if (config.monthDay > daysInMonth(month.year, month.monthIndex)) continue;
+        const date = `${month.year}-${String(month.monthIndex + 1).padStart(2, '0')}-${String(config.monthDay).padStart(2, '0')}`;
+        if (compareDates(date, hardStart) >= 0 && compareDates(date, startDate) < 0) starts.push(date);
+      }
+    }
+  }
   if (config.unit === 'day') {
     for (let date = startDate; compareDates(date, until) <= 0; date = addDays(date, config.interval)) {
       if (accept(date)) break;
@@ -316,7 +371,7 @@ function intersects(start, end, from, to) {
 }
 
 function effectiveColor(item, definition) {
-  return item && item.color || definition.color || definition.category && definition.category.color || '#e8c9a0';
+  return item && item.color || definition.color || activityColor(item && item.name || definition.name);
 }
 
 function baseOccurrence(definition, startDate, endDate) {
@@ -332,9 +387,27 @@ function baseOccurrence(definition, startDate, endDate) {
     endTime: definition.endTime || '',
     color: effectiveColor(null, definition),
     description: definition.description || '',
+    sortOrder: Number(definition.sortOrder || 0),
+    fontBold: definition.fontBold === true,
     scheduleType: definition.scheduleType,
-    category: definition.category || null
+    category: definition.category || null,
+    occurrenceDate: startDate,
+    recurring: definition.scheduleType === 'recurring' || !!definition.recurrenceUnit || !!definition.recurrence
   };
+}
+
+function applyOccurrenceException(occurrence, definition) {
+  const exceptions = Array.isArray(definition.exceptions) ? definition.exceptions : [];
+  const future = exceptions.filter((item) => item.scope === 'future' && compareDates(item.occurrenceDate, occurrence.occurrenceDate) <= 0).sort((a, b) => compareDates(a.occurrenceDate, b.occurrenceDate)).pop();
+  const single = exceptions.find((item) => item.scope === 'single' && item.occurrenceDate === occurrence.occurrenceDate);
+  const override = single || future;
+  if (!override) return occurrence;
+  occurrence.name = override.name;
+  occurrence.color = override.color || activityColor(override.name);
+  occurrence.fontBold = override.fontBold === true;
+  occurrence.enabled = override.enabled !== false;
+  occurrence.exceptionScope = override.scope;
+  return occurrence;
 }
 
 function groupOffsets(offsets) {
@@ -404,8 +477,9 @@ function expandDefinitions(definitions, options) {
       throw error;
     }
   };
+  const includeDisabled = options && options.includeDisabled === true;
   for (const definition of Array.isArray(definitions) ? definitions : []) {
-    if (definition.enabled === false) continue;
+    if (definition.enabled === false && !includeDisabled) continue;
     if (definition.scheduleType === 'date-list') {
       const offsets = (definition.legacyDates || []).map((date) => diffDays(definition.startDate, date));
       for (const [startOffset, endOffset] of groupOffsets(offsets)) {
@@ -413,15 +487,20 @@ function expandDefinitions(definitions, options) {
         const occurrenceEnd = addDays(definition.startDate, endOffset);
         if (!intersects(occurrenceStart, occurrenceEnd, from, to)) continue;
         addUnits(1);
-        schedules.push(baseOccurrence(definition, occurrenceStart, occurrenceEnd));
+        const occurrence = applyOccurrenceException(baseOccurrence(definition, occurrenceStart, occurrenceEnd), definition);
+        occurrence.enabled = occurrence.enabled === undefined ? definition.enabled !== false : occurrence.enabled;
+        if (occurrence.enabled === false && !includeDisabled) continue;
+        schedules.push(occurrence);
       }
       continue;
     }
     const duration = inclusiveDays(definition.startDate, definition.endDate || definition.startDate);
-    for (const occurrenceStart of occurrenceStarts(definition, to)) {
+    for (const occurrenceStart of occurrenceStarts(definition, to, from)) {
       const occurrenceEnd = addDays(occurrenceStart, duration - 1);
       if (!intersects(occurrenceStart, occurrenceEnd, from, to)) continue;
-      const occurrence = baseOccurrence(definition, occurrenceStart, occurrenceEnd);
+      const occurrence = applyOccurrenceException(baseOccurrence(definition, occurrenceStart, occurrenceEnd), definition);
+      occurrence.enabled = occurrence.enabled === undefined ? definition.enabled !== false : occurrence.enabled;
+      if (occurrence.enabled === false && !includeDisabled) continue;
       if (definition.scheduleType !== 'composite') {
         addUnits(1);
         schedules.push(occurrence);
@@ -431,9 +510,10 @@ function expandDefinitions(definitions, options) {
       const enabledItems = (definition.items || []).filter((item) => item.enabled !== false);
       const childOccurrences = [];
       for (const item of enabledItems) {
-        const inherited = effectiveColor(item, definition);
+        const inherited = item.color || occurrence.color;
         for (const child of expandChildOccurrences(item, occurrenceStart, occurrenceEnd, occurrence.id)) {
           child.color = inherited;
+          child.fontBold = occurrence.fontBold;
           childOccurrences.push(child);
         }
       }
@@ -455,7 +535,8 @@ function expandDefinitions(definitions, options) {
               color: child.color,
               description: child.description,
               sortOrder: child.sortOrder,
-              highlighted: child.highlighted
+              highlighted: child.highlighted,
+              fontBold: child.fontBold
             });
           }
         }
@@ -477,7 +558,7 @@ function expandDefinitions(definitions, options) {
   }
   schedules.sort((a, b) => {
     const categoryOrder = Number(a.category && a.category.sortOrder || 0) - Number(b.category && b.category.sortOrder || 0);
-    return categoryOrder || compareDates(a.startDate, b.startDate) || compareDates(a.endDate, b.endDate) || a.id.localeCompare(b.id);
+    return categoryOrder || Number(a.sortOrder || 0) - Number(b.sortOrder || 0) || compareDates(a.startDate, b.startDate) || compareDates(a.endDate, b.endDate) || a.id.localeCompare(b.id);
   });
   return { from, to, schedules, renderUnits: units };
 }
@@ -493,6 +574,7 @@ module.exports = {
   startOfIsoWeek,
   getIsoWeek,
   getNavigationBounds,
+  activityColor,
   normalizeSchedulePayload,
   normalizeItemPayload,
   expandDefinitions,

@@ -130,6 +130,22 @@ function createCalendarHandlers(dependencies) {
     catch (error) { logError('calendar admin list failed', error); return sendError(res, 500, 'INTERNAL_ERROR'); }
   }
 
+  async function getAdminPreview(req, res) {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const from = String(req.query && req.query.from || '');
+    const to = String(req.query && req.query.to || '');
+    try {
+      if (inclusiveDays(from, to) > 366) return sendError(res, 400, 'RANGE_TOO_LARGE');
+      const definitions = await store.listDefinitions(true);
+      return res.json(expandDefinitions(definitions, { from, to, maxUnits: Math.max(maxRenderUnits, 50000), includeDisabled: true }));
+    } catch (error) {
+      if (/BAD_DATE|BAD_DATE_RANGE/.test(String(error && error.message || error))) return sendError(res, 400, 'BAD_RANGE');
+      logError('calendar admin preview failed', error);
+      return sendError(res, 500, 'INTERNAL_ERROR');
+    }
+  }
+
   async function getCategories(req, res, adminOnly) {
     if (adminOnly) {
       const admin = await requireAdmin(req, res);
@@ -220,6 +236,44 @@ function createCalendarHandlers(dependencies) {
     if (!result) return sendError(res, 404, 'NOT_FOUND');
     await auditAdminAction(req, { actor: admin, action: 'calendar.status', targetType: 'calendar_schedule', targetId: String(result.id), summary: `${result.enabled ? '启用' : '停用'}日历：${result.name}` });
     return res.json({ schedule: result });
+  }
+
+  async function reorderSchedules(req, res) {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const result = await store.reorderDefinitions(req.body && req.body.items);
+    if (result && result.error) return sendError(res, 400, result.error);
+    await auditAdminAction(req, { actor: admin, action: 'calendar.reorder', targetType: 'calendar_schedule', summary: '调整日历日程排序' });
+    return res.json({ schedules: result });
+  }
+
+  async function quickEditOccurrence(req, res) {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const scheduleId = Number(req.params.id);
+    const current = await store.getDefinition(scheduleId);
+    if (!current) return sendError(res, 404, 'NOT_FOUND');
+    const body = req.body || {};
+    const scope = String(body.scope || 'all');
+    const occurrenceDate = String(body.occurrenceDate || '');
+    const name = String(body.name || '').trim();
+    const color = body.color == null || body.color === '' ? null : String(body.color).trim().toLowerCase();
+    if (!['all', 'single', 'future'].includes(scope)) return sendError(res, 400, 'BAD_SCOPE');
+    if (!name || name.length > 120) return sendError(res, 400, 'BAD_NAME');
+    if (color && !/^#[0-9a-f]{6}$/.test(color)) return sendError(res, 400, 'BAD_COLOR');
+    if (scope === 'all') {
+      const valid = normalizeSchedulePayload({ ...current, name, color, fontBold: body.fontBold === true, enabled: body.enabled !== false });
+      if (valid.error) return sendError(res, 400, valid.error);
+      const result = await store.replaceDefinition(scheduleId, valid.value, { actorId: Number(admin.id), clearExceptions: true });
+      await auditAdminAction(req, { actor: admin, action: 'calendar.quick_edit.all', targetType: 'calendar_schedule', targetId: String(scheduleId), summary: `调整整个循环日程：${name}` });
+      return res.json({ schedule: result, scope });
+    }
+    try { inclusiveDays(occurrenceDate, occurrenceDate); } catch (_error) { return sendError(res, 400, 'BAD_DATE'); }
+    const occurrence = expandDefinitions([current], { from: occurrenceDate, to: occurrenceDate, maxUnits: 1000, includeDisabled: true }).schedules.find((item) => item.scheduleId === scheduleId && item.occurrenceDate === occurrenceDate);
+    if (!occurrence) return sendError(res, 400, 'BAD_OCCURRENCE');
+    const result = await store.upsertOccurrenceException(scheduleId, occurrenceDate, scope, { name, color, fontBold: body.fontBold === true, enabled: body.enabled !== false });
+    await auditAdminAction(req, { actor: admin, action: `calendar.quick_edit.${scope}`, targetType: 'calendar_schedule', targetId: String(scheduleId), summary: `${scope === 'single' ? '仅调整本次' : '调整本次及以后'}：${name}`, metadata: { occurrenceDate } });
+    return res.json({ schedule: result, scope, occurrenceDate });
   }
 
   async function deleteSchedule(req, res) {
@@ -314,6 +368,7 @@ function createCalendarHandlers(dependencies) {
   return {
     getPublic,
     getAdminSchedules,
+    getAdminPreview,
     getCategories,
     createCategory,
     updateCategory,
@@ -323,6 +378,8 @@ function createCalendarHandlers(dependencies) {
     updateSchedule: (req, res) => saveSchedule(req, res, req.params.id),
     copySchedule,
     setScheduleStatus,
+    reorderSchedules,
+    quickEditOccurrence,
     deleteSchedule,
     getPresets,
     createPreset,
@@ -341,7 +398,10 @@ function mountCalendarRoutes(app, dependencies) {
   app.post('/api/calendar/schedules/:originalId', handlers.legacyUpdate);
   app.delete('/api/calendar/schedules/:originalId', handlers.legacyDelete);
   app.get('/api/admin/calendar/schedules', handlers.getAdminSchedules);
+  app.get('/api/admin/calendar/preview', handlers.getAdminPreview);
   app.post('/api/admin/calendar/schedules', handlers.createSchedule);
+  app.post('/api/admin/calendar/schedules/reorder', handlers.reorderSchedules);
+  app.post('/api/admin/calendar/schedules/:id/quick-edit', handlers.quickEditOccurrence);
   app.patch('/api/admin/calendar/schedules/:id', handlers.updateSchedule);
   app.post('/api/admin/calendar/schedules/:id', handlers.updateSchedule);
   app.post('/api/admin/calendar/schedules/:id/copy', handlers.copySchedule);

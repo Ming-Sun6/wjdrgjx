@@ -8,6 +8,7 @@ process.env.DOTENV_CONFIG_QUIET = 'true';
 const root = path.join(__dirname, '..');
 const serverPath = path.join(root, 'server.js');
 const serverSource = fs.readFileSync(serverPath, 'utf8');
+const webConfigSource = fs.readFileSync(path.join(root, 'web.config'), 'utf8');
 const isImportable = /if\s*\(require\.main\s*===\s*module\)/.test(serverSource);
 const server = isImportable ? require(serverPath) : {};
 
@@ -67,9 +68,9 @@ test('normalization fills missing tools and fields from defaults and discards un
 
   assert.equal(result.error, undefined);
   assert.equal(result.tools.length, expectedCatalog.length);
-  assert.deepEqual(result.tools[0], { id: 'training-calculator', visible: false, badge: 'hot' });
-  assert.deepEqual(result.tools[4], { id: 'bear-pit', visible: true, badge: 'new' });
-  assert.deepEqual(result.tools[15], { id: 'giftcode-center', visible: false, badge: 'none' });
+  assert.deepEqual(result.tools[0], { id: 'training-calculator', visible: false, enabled: true, badge: 'hot', displayGroup: 'featured', toolCategory: 'calcTools', sortOrder: 0, disabledMessage: '' });
+  assert.deepEqual(result.tools[4], { id: 'bear-pit', visible: true, enabled: true, badge: 'new', displayGroup: 'core', toolCategory: 'calcTools', sortOrder: 40, disabledMessage: '' });
+  assert.deepEqual(result.tools[15], { id: 'giftcode-center', visible: false, enabled: true, badge: 'none', displayGroup: 'extended', toolCategory: 'calcTools', sortOrder: 150, disabledMessage: '' });
   assert.equal(result.tools.some((tool) => tool.id === 'unknown-tool'), false);
 });
 
@@ -89,8 +90,8 @@ test('public and admin projections expose only their intended fields', () => {
   const publicTools = server.toPublicToolManagement(normalized.tools);
   const adminTools = server.toAdminToolManagement(normalized.tools);
 
-  assert.deepEqual(Object.keys(publicTools[0]), ['id', 'visible', 'badge']);
-  assert.deepEqual(Object.keys(adminTools[0]), ['id', 'name', 'group', 'defaultVisible', 'visible', 'badge']);
+  assert.deepEqual(Object.keys(publicTools[0]), ['id', 'visible', 'enabled', 'badge', 'displayGroup', 'toolCategory', 'sortOrder']);
+  assert.deepEqual(Object.keys(adminTools[0]), ['id', 'name', 'group', 'defaultVisible', 'visible', 'enabled', 'badge', 'displayGroup', 'toolCategory', 'sortOrder', 'disabledMessage']);
   assert.equal(adminTools[15].defaultVisible, false);
 });
 
@@ -102,6 +103,17 @@ test('server mounts public and authenticated admin tool management routes', () =
   assert.match(serverSource, /requireAdmin\(req, res\)/);
   assert.match(serverSource, /setSetting\(TOOL_MANAGEMENT_SETTING_KEY/);
   assert.match(serverSource, /action:\s*'tool_management\.update'/);
+});
+
+test('managed tool paths resolve for direct-link availability checks', () => {
+  assert.equal(server.findManagedToolByPath('/function/BeaPit').id, 'bear-pit');
+  assert.equal(server.findManagedToolByPath('/public/function/reference-hub/pages/weekly-cards.html').id, 'reference-hub');
+  assert.equal(server.findManagedToolByPath('/giftcode/').id, 'giftcode-center');
+  assert.equal(server.findManagedToolByPath('/function/forum.html'), null);
+  assert.match(serverSource, /sendToolDisabledPage/);
+  assert.ok(serverSource.indexOf("tool availability check skipped") < serverSource.indexOf('mountGiftcodeProxy(app)'));
+  assert.match(webConfigSource, /ReverseProxyFunctionDirectoryIndexToNode3000/);
+  assert.match(webConfigSource, /\^\(\?:public\/\)\?giftcode/);
 });
 
 test('public handler falls back to the default visible catalog when settings reads fail', async () => {
@@ -154,7 +166,7 @@ test('admin save persists a complete normalized catalog and writes an audit log'
   assert.equal(writes.length, 1);
   assert.equal(writes[0].key, 'tool_management');
   assert.equal(writes[0].value.tools.length, expectedCatalog.length);
-  assert.deepEqual(writes[0].value.tools[3], { id: 'hero-data', visible: false, badge: 'new' });
+  assert.deepEqual(writes[0].value.tools[3], { id: 'hero-data', visible: false, enabled: true, badge: 'new', displayGroup: 'featured', toolCategory: 'dataQuery', sortOrder: 30, disabledMessage: '' });
   assert.equal(writes[0].value.updatedAt, '2026-07-12T08:00:00.000Z');
   assert.equal(writes[0].value.updatedBy, '管理员');
   assert.equal(audits.length, 1);

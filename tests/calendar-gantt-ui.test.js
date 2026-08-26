@@ -24,9 +24,21 @@ test('calendar page is a week/month gantt shell with embedded mode hooks', () =>
 test('browser UTC and ISO week helpers match navigation boundaries', () => {
   assert.deepEqual(gantt.getIsoWeek('2027-01-01'), { weekYear: 2026, week: 53 });
   assert.equal(gantt.startOfIsoWeek('2027-01-01'), '2026-12-28');
-  assert.deepEqual(gantt.getNavigationBounds('2026-08-25'), {
-    earliestMonth: '2025-03', latestMonth: '2026-08', earliestDate: '2025-03-01', latestDate: '2026-08-31'
+    assert.deepEqual(gantt.getNavigationBounds('2026-08-25'), {
+    earliestMonth: '2025-08', latestMonth: '2027-08', earliestDate: '2025-08-25', latestDate: '2027-08-25'
   });
+});
+
+test('calendar defaults to a horizontally scrollable timeline', () => {
+  assert.match(html, /id="calendarViewTimeline"/);
+  assert.match(js, /view:'timeline'/);
+  assert.match(js, /calendar-timeline-track/);
+  assert.match(css, /calendar-timeline-track/);
+});
+
+test('calendar renders the persisted bold schedule style', () => {
+  assert.match(js, /item\.fontBold\?'900'/);
+  assert.match(js, /card\.fontBold\?'900'/);
 });
 
 test('first-fit lane packing shares adjacent tasks and separates overlaps', () => {
