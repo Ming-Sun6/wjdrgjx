@@ -50,6 +50,37 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
   .calendar-merged-group{grid-template-columns:var(--category-width) minmax(0,1fr)}
 }
 
+/* Timeline cards use the same visual treatment as week-view cards. */
+.calendar-timeline-bar{
+  align-self:center;
+  margin:5px 4px;
+  min-height:36px;
+  padding:8px 10px;
+  border-radius:12px;
+  box-shadow:0 4px 12px rgba(82,57,39,.13);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:.82rem;
+  font-weight:800;
+  cursor:pointer;
+  border:1px solid rgba(90,60,40,.1)
+}
+@media (max-width:760px){
+  .calendar-timeline-bar{
+    min-height:30px;
+    margin:4px 2px;
+    padding:4px 3px;
+    border-radius:8px;
+    font-size:.62rem;
+    white-space:normal;
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:2;
+    line-height:1.18
+  }
+}
+
 /* Keep every calendar view readable at narrow widths and consistent on desktop. */
 .calendar-continuous-timeline{--timeline-day-width:112px}
 @media (max-width:760px){
