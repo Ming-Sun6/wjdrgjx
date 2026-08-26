@@ -642,8 +642,8 @@
         return [Object.assign({}, schedule, { timelineName: schedule.name })];
       if (schedule.compositeLayout === "daily-list") {
         const title = Object.assign({}, schedule, {
-          startDate: schedule.firstCardDate || schedule.startDate,
-          endDate: schedule.lastCardDate || schedule.endDate,
+          startDate: schedule.startDate,
+          endDate: schedule.endDate,
           timelineName: schedule.name,
           timelineDailyTitle: true,
           timelinePriority: -1,
