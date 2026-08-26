@@ -66,5 +66,18 @@
   </footer>
   <!-- 首页使用 calendar.html?embed=1 按需加载，默认不会请求本页资源。 -->
   <script src="/function/calendar-gantt.js?v=20260826-5"></script>
+  <script>
+    (() => {
+      const dedupeTimeline = () => document.querySelectorAll('.calendar-timeline-lane').forEach(lane => {
+        const seen = new Set();
+        [...lane.querySelectorAll('.calendar-timeline-bar')].forEach(bar => {
+          const key = `${bar.textContent}|${bar.style.gridColumn}`;
+          if (seen.has(key)) bar.remove(); else seen.add(key);
+        });
+      });
+      new MutationObserver(dedupeTimeline).observe(document.getElementById('calendarGanttRoot'), { childList: true, subtree: true });
+      dedupeTimeline();
+    })();
+  </script>
 </body>
 </html>
