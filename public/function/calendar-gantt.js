@@ -673,10 +673,40 @@
         .map((item) =>
           Object.assign({}, item, {
             scheduleId: schedule.scheduleId,
-            timelineName: schedule.name + " · " + item.name,
+            timelineName: item.name,
             fontBold: schedule.fontBold || item.fontBold,
           }),
         );
+    }
+    function timelineSection(categoryName, items, parentName, range) {
+      const lanes = packLanes(items);
+      if (!lanes.length) return null;
+      const section = document.createElement("div");
+      section.className =
+        "calendar-timeline-category" +
+        (parentName ? " calendar-timeline-composite" : "");
+      const label = document.createElement("div");
+      label.className = "calendar-timeline-category-label";
+      label.textContent = categoryName || "常规";
+      if (parentName) {
+        const parent = document.createElement("strong");
+        parent.className = "calendar-timeline-parent-name";
+        parent.textContent = parentName;
+        label.appendChild(parent);
+      }
+      const rows = document.createElement("div");
+      rows.className = "calendar-timeline-rows";
+      lanes.forEach((lane) => {
+        const laneEl = document.createElement("div");
+        laneEl.className = "calendar-timeline-lane";
+        lane.forEach((item) => {
+          const node = timelineBar(item, range);
+          if (node) laneEl.appendChild(node);
+        });
+        rows.appendChild(laneEl);
+      });
+      section.append(label, rows);
+      return section;
     }
     function timelineHeader(range, days) {
       const row = document.createElement("div");
@@ -721,8 +751,12 @@
           groups.set(key, {
             category: schedule.category || { name: "常规", sortOrder: 0 },
             items: [],
+            composites: [],
           });
-        groups.get(key).items.push(...timelineItems(schedule, range));
+        const group = groups.get(key);
+        if (schedule.scheduleType === "composite")
+          group.composites.push(schedule);
+        else group.items.push(...timelineItems(schedule, range));
       });
       [...groups.values()]
         .sort(
@@ -731,26 +765,22 @@
             String(a.category.name).localeCompare(String(b.category.name)),
         )
         .forEach((group) => {
-          const lanes = packLanes(group.items);
-          if (!lanes.length) return;
-          const section = document.createElement("div");
-          section.className = "calendar-timeline-category";
-          const label = document.createElement("div");
-          label.className = "calendar-timeline-category-label";
-          label.textContent = group.category.name || "常规";
-          const rows = document.createElement("div");
-          rows.className = "calendar-timeline-rows";
-          lanes.forEach((lane) => {
-            const laneEl = document.createElement("div");
-            laneEl.className = "calendar-timeline-lane";
-            lane.forEach((item) => {
-              const node = timelineBar(item, range);
-              if (node) laneEl.appendChild(node);
-            });
-            rows.appendChild(laneEl);
+          const ordinary = timelineSection(
+            group.category.name,
+            group.items,
+            "",
+            range,
+          );
+          if (ordinary) root.appendChild(ordinary);
+          group.composites.forEach((schedule) => {
+            const section = timelineSection(
+              group.category.name,
+              timelineItems(schedule, range),
+              schedule.name,
+              range,
+            );
+            if (section) root.appendChild(section);
           });
-          section.append(label, rows);
-          root.appendChild(section);
         });
       return root;
     }

@@ -50,6 +50,14 @@ test('timeline preserves the daily checklist title before its daily cards', () =
   assert.match(js, /calendar-timeline-daily-title/);
 });
 
+test('timeline preserves composite parent labels above their child tasks', () => {
+  assert.match(js, /group\.composites\.push\(schedule\)/);
+  assert.match(js, /timelineSection\(\s*group\.category\.name,\s*timelineItems\(schedule, range\),\s*schedule\.name/);
+  assert.match(js, /timelineName:\s*item\.name/);
+  assert.match(js, /calendar-timeline-parent-name/);
+  assert.match(css, /\.calendar-timeline-parent-name/);
+});
+
 test('calendar renders the persisted bold schedule style', () => {
   assert.match(js, /item\.fontBold\s*\?\s*["']900["']/);
   assert.match(js, /card\.fontBold\s*\?\s*["']900["']/);
