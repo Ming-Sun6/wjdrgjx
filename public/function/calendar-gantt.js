@@ -657,7 +657,7 @@
           .map((card) =>
             Object.assign({}, card, {
               scheduleId: schedule.scheduleId,
-              timelineName: schedule.name + " · " + card.name,
+              timelineName: card.name,
               fontBold: schedule.fontBold || card.fontBold,
             }),
           );
