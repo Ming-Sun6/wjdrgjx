@@ -107,3 +107,29 @@ test('real page schedulePayload maps recurring form controls through the shared 
     recurrenceCount: null
   });
 });
+
+test('preview layout keeps every custom-range day at a fixed width', () => {
+  const { page } = loadPage();
+
+  assert.deepEqual(JSON.parse(JSON.stringify(page.previewGridMetrics(120))), {
+    days: 120,
+    labelWidth: 170,
+    dayWidth: 48,
+    totalWidth: 5930
+  });
+  assert.equal(page.previewGridMetrics(365).dayWidth, 48);
+});
+
+test('preview drop resolution distinguishes date moves from row reordering', () => {
+  const { page } = loadPage();
+
+  assert.deepEqual(JSON.parse(JSON.stringify(page.previewDropAction({ date: '2026-09-01' }, 12))), {
+    type: 'date',
+    date: '2026-09-01'
+  });
+  assert.deepEqual(JSON.parse(JSON.stringify(page.previewDropAction({ scheduleId: 27 }, 12))), {
+    type: 'order',
+    scheduleId: 27
+  });
+  assert.equal(page.previewDropAction({ scheduleId: 12 }, 12), null);
+});
