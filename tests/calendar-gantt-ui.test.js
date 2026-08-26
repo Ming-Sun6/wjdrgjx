@@ -32,8 +32,11 @@ test('browser UTC and ISO week helpers match navigation boundaries', () => {
 test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(html, /id="calendarViewTimeline"/);
   assert.match(js, /view:'timeline'/);
-  assert.match(js, /calendar-timeline-track/);
-  assert.match(css, /calendar-timeline-track/);
+  assert.match(js, /function renderTimeline/);
+  assert.match(js, /calendar-continuous-timeline/);
+  assert.match(css, /calendar-continuous-timeline/);
+  assert.match(css, /repeat\(var\(--timeline-days\),var\(--timeline-day-width\)\)/);
+  assert.doesNotMatch(js, /calendar-timeline-track/);
 });
 
 test('calendar renders the persisted bold schedule style', () => {
