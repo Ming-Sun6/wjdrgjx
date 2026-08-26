@@ -37,6 +37,15 @@ test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(css, /calendar-continuous-timeline/);
   assert.match(css, /repeat\(var\(--timeline-days\),var\(--timeline-day-width\)\)/);
   assert.doesNotMatch(js, /calendar-timeline-track/);
+  assert.match(js, /pointerdown/);
+  assert.match(js, /scrollLeft=timelinePan\.scrollLeft-delta/);
+  assert.match(css, /touch-action:pan-y/);
+});
+
+test('timeline preserves the daily checklist title before its daily cards', () => {
+  assert.match(js, /timelineDailyTitle:true/);
+  assert.match(js, /return\[title\]\.concat\(cards\)/);
+  assert.match(js, /calendar-timeline-daily-title/);
 });
 
 test('calendar renders the persisted bold schedule style', () => {
