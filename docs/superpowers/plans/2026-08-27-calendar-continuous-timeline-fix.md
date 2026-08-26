@@ -20,7 +20,7 @@
 Inside `calendar defaults to a horizontally scrollable timeline`, add:
 
 ```js
-assert.match(js, /if\s*\(state\.view\s*===\s*["']timeline["']\)\s*\{[\s\S]*?appendChild\(renderTimeline\(range\)\)/);
+assert.match(js, /if\s*\(state\.view\s*===\s*["']timeline["']\)\s*\{\s*els\.root\.appendChild\(renderTimeline\(range\)\);\s*return;\s*\}/);
 ```
 
 - [ ] **Step 2: Verify RED**
