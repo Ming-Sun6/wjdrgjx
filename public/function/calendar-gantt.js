@@ -26,11 +26,10 @@
   function getNavigationBounds(today){const d=parseDate(today),y=d.getUTCFullYear(),mi=d.getUTCMonth(),day=d.getUTCDate();const date=year=>year+'-'+String(mi+1).padStart(2,'0')+'-'+String(Math.min(day,daysInMonth(year,mi))).padStart(2,'0');return{earliestMonth:(y-1)+'-'+String(mi+1).padStart(2,'0'),latestMonth:(y+1)+'-'+String(mi+1).padStart(2,'0'),earliestDate:date(y-1),latestDate:date(y+1)}}
   function clipSegment(item,weekStart,weekEnd){if(compareDates(item.endDate,weekStart)<0||compareDates(item.startDate,weekEnd)>0)return null;return Object.assign({},item,{clipStart:compareDates(item.startDate,weekStart)<0?weekStart:item.startDate,clipEnd:compareDates(item.endDate,weekEnd)>0?weekEnd:item.endDate,continuesBefore:compareDates(item.startDate,weekStart)<0,continuesAfter:compareDates(item.endDate,weekEnd)>0})}
   function packLanes(items){
-    const ordered=(items||[]).slice().sort((a,b)=>compareDates(a.startDate,b.startDate)||compareDates(a.endDate,b.endDate)||String(a.id).localeCompare(String(b.id)));
+    const ordered=(items||[]).slice().sort((a,b)=>compareDates(a.startDate,b.startDate)||Number(a.timelinePriority||0)-Number(b.timelinePriority||0)||compareDates(a.endDate,b.endDate)||String(a.id).localeCompare(String(b.id)));
     const lanes=[];
     const preferred=new Map();
     const available=(lane,item)=>lane.every(other=>compareDates(other.endDate,item.startDate)<0||compareDates(item.endDate,other.startDate)<0);
-    ordered.sort((a,b)=>Number(a.timelinePriority||0)-Number(b.timelinePriority||0));
     ordered.forEach(item=>{const key=item.scheduleId||item.itemId||item.originalId||null;let lane=key&&preferred.has(key)&&available(preferred.get(key),item)?preferred.get(key):lanes.find(row=>available(row,item));if(!lane){lane=[];lanes.push(lane)}lane.push(item);if(key&&!preferred.has(key))preferred.set(key,lane)});
     return lanes;
   }

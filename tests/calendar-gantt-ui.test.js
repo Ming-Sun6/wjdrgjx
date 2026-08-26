@@ -36,6 +36,7 @@ test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(js, /calendar-continuous-timeline/);
   assert.match(css, /calendar-continuous-timeline/);
   assert.match(css, /repeat\(var\(--timeline-days\),var\(--timeline-day-width\)\)/);
+  assert.match(css, /--timeline-day-width:88px/);
   assert.doesNotMatch(js, /calendar-timeline-track/);
   assert.match(js, /pointerdown/);
   assert.match(js, /scrollLeft=timelinePan\.scrollLeft-delta/);
@@ -95,7 +96,7 @@ test('calendar removes the late-injected floating theme button', () => {
 
 test('mobile layouts keep all seven days in view and preserve the timeline category width', () => {
   assert.match(css, /repeat\(7,minmax\(0,1fr\)\)/);
-  assert.match(css, /\.calendar-continuous-timeline\{--category-width:132px/);
+  assert.match(css, /\.calendar-continuous-timeline\{--category-width:132px;--timeline-day-width:84px/);
   assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?overflow-x:\s*hidden/);
   assert.doesNotMatch(css, /@media\s*\(max-width:\s*760px\)[\s\S]*?\.calendar-week-block\{min-width:\s*860px/);
   assert.match(css, /-webkit-line-clamp:\s*2/);
