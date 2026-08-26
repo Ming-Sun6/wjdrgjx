@@ -66,6 +66,10 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
   cursor:pointer;
   border:1px solid rgba(90,60,40,.1)
 }
+.calendar-timeline-week-layout{display:flex;align-items:flex-start;gap:0;min-width:max-content}
+.calendar-timeline-week-layout .calendar-week-block{flex:0 0 auto;width:max-content;min-width:980px}
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-cell,
+.calendar-timeline-week-layout .calendar-week-block:not(:first-child) .calendar-category-head{color:transparent}
 @media (max-width:760px){
   .calendar-timeline-bar{
     min-height:30px;
