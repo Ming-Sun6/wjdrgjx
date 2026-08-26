@@ -31,7 +31,7 @@ test('browser UTC and ISO week helpers match navigation boundaries', () => {
 
 test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(html, /id="calendarViewTimeline"/);
-  assert.match(js, /view:'timeline'/);
+  assert.match(js, /view:\s*["']timeline["']/);
   assert.match(js, /function renderTimeline/);
   assert.match(js, /calendar-continuous-timeline/);
   assert.match(css, /calendar-continuous-timeline/);
@@ -39,19 +39,19 @@ test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(css, /--timeline-day-width:88px/);
   assert.doesNotMatch(js, /calendar-timeline-track/);
   assert.match(js, /pointerdown/);
-  assert.match(js, /scrollLeft=timelinePan\.scrollLeft-delta/);
+  assert.match(js, /scrollLeft\s*=\s*timelinePan\.scrollLeft\s*-\s*delta/);
   assert.match(css, /touch-action:pan-y/);
 });
 
 test('timeline preserves the daily checklist title before its daily cards', () => {
-  assert.match(js, /timelineDailyTitle:true/);
-  assert.match(js, /return\[title\]\.concat\(cards\)/);
+  assert.match(js, /timelineDailyTitle:\s*true/);
+  assert.match(js, /return\s*\[title\]\.concat\(cards\)/);
   assert.match(js, /calendar-timeline-daily-title/);
 });
 
 test('calendar renders the persisted bold schedule style', () => {
-  assert.match(js, /item\.fontBold\?'900'/);
-  assert.match(js, /card\.fontBold\?'900'/);
+  assert.match(js, /item\.fontBold\s*\?\s*["']900["']/);
+  assert.match(js, /card\.fontBold\s*\?\s*["']900["']/);
 });
 
 test('first-fit lane packing shares adjacent tasks and separates overlaps', () => {
