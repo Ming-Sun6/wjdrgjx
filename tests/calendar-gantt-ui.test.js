@@ -94,6 +94,16 @@ test('calendar removes the late-injected floating theme button', () => {
   assert.match(js, /\.remove\(\)/);
 });
 
-test('calendar stylesheet has no viewport-specific mobile rules', () => {
-  assert.doesNotMatch(css, /@media[^{]*\(\s*max-width\s*:\s*760px\s*\)/);
+test('mobile calendar fits seven days and keeps the timeline scrollable', () => {
+  const mobile =
+    css.match(/@media\s*\(max-width:\s*760px\)\s*\{([\s\S]*)\}\s*$/)?.[1] || '';
+
+  assert.ok(mobile);
+  assert.match(mobile, /--category-width:\s*64px/);
+  assert.match(mobile, /\.calendar-scroll\{[^}]*container-type:\s*inline-size[^}]*overflow-x:\s*hidden/);
+  assert.match(mobile, /\.calendar-week-block\{[^}]*width:\s*100%[^}]*min-width:\s*0/);
+  assert.match(mobile, /grid-template-columns:\s*var\(--category-width\)\s+repeat\(7,minmax\(0,1fr\)\)/);
+  assert.match(mobile, /\.calendar-lane\{[^}]*grid-template-columns:\s*repeat\(7,minmax\(0,1fr\)\)/);
+  assert.match(mobile, /--timeline-day-width:\s*calc\(\(100cqw\s*-\s*var\(--category-width\)\)\s*\/\s*7\)/);
+  assert.match(mobile, /\.calendar-scroll:has\(\.calendar-continuous-timeline\)\{overflow-x:\s*auto\}/);
 });
