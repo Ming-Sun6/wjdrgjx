@@ -109,6 +109,7 @@ test('calendar admin exposes a clearer structure, optional recurrence, presets, 
   assert.match(page, /id="calendarCompositeItems"/);
   assert.match(page, /id="calendarDailyChecklistBoard"/);
   assert.match(html, /id="calendarDailyItemColor"/);
+  assert.match(read('public/function/admin-calendar-page.js'), /rawIndex=String\(byId\('calendarDailyItemIndex'\)\.value\|\|''\)\.trim\(\)/);
 });
 
 test('calendar admin script supports recurrence, composite children, and CRUD actions', () => {

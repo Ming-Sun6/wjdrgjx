@@ -620,7 +620,8 @@
       node.type = "button";
       node.className =
         "calendar-bar calendar-timeline-bar" +
-        (item.timelineDailyTitle ? " calendar-timeline-daily-title" : "");
+        (item.timelineDailyTitle ? " calendar-timeline-daily-title" : "") +
+        (item.timelineParentTitle ? " calendar-timeline-parent-title" : "");
       node.style.gridColumn =
         diffDays(range.from, clipped.clipStart) +
         1 +
@@ -664,7 +665,15 @@
           );
         return [title].concat(cards);
       }
-      return (schedule.items || [])
+      const parentTitle = Object.assign({}, schedule, {
+        startDate: addDays(schedule.startDate, -1),
+        endDate: addDays(schedule.startDate, -1),
+        timelineName: schedule.name,
+        timelineParentTitle: true,
+        timelinePriority: -1,
+        color: schedule.color || '#f4c8ad',
+      });
+      return [parentTitle].concat((schedule.items || [])
         .filter(
           (item) =>
             compareDates(item.endDate, range.from) >= 0 &&
@@ -676,7 +685,7 @@
             timelineName: item.name,
             fontBold: schedule.fontBold || item.fontBold,
           }),
-        );
+        ));
     }
     function timelineSection(categoryName, items, parentName, range) {
       const lanes = packLanes(items);
