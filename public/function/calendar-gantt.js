@@ -501,9 +501,9 @@
         const start = Math.max(0, diffDays(week.from, clipped.clipStart));
         parentBar.classList.add("calendar-composite-parent-title");
         parentBar.style.position = "absolute";
-          parentBar.style.left = `calc(${start} * 112px)`;
+        parentBar.style.left = `calc(${start} * (100% / 7))`;
         parentBar.style.top = "0";
-        parentBar.style.width = "112px";
+        parentBar.style.width = "calc(100% / 7)";
         parentBar.style.height = `calc(${lanes.length} * 48px)`;
         parentBar.style.margin = "0";
         parentBar.style.zIndex = "3";
@@ -764,8 +764,9 @@
       }
       const parentDate = schedule.startDate;
       const parentTitle = Object.assign({}, schedule, {
-        startDate: addDays(parentDate, -1),
-        endDate: addDays(parentDate, -1),
+        startDate: parentDate,
+        endDate: parentDate,
+        timelineParentDate: addDays(parentDate, -1),
         timelineName: schedule.name,
         timelineParentTitle: true,
         timelinePriority: -1,
