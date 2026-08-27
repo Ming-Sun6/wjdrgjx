@@ -74,8 +74,8 @@ test('calendar renders the persisted bold schedule style', () => {
 });
 
 test('important child tasks render a thumbs-up marker in every calendar view', () => {
-  assert.match(html, /calendar-gantt\.js\?v=20260827-19/);
-  assert.match(html, /calendar-gantt\.css\?v=20260827-19/);
+  assert.match(html, /calendar-gantt\.js\?v=20260827-20/);
+  assert.match(html, /calendar-gantt\.css\?v=20260827-20/);
   assert.match(js, /function appendHighlight/);
   assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
   assert.ok((js.match(/appendHighlight\(/g) || []).length >= 6);
@@ -147,4 +147,11 @@ test('mobile calendar uses a virtual desktop viewport instead of element zoom', 
   assert.match(css, /html\.is-mobile-desktop-viewport\{--category-width:59px\}/);
   assert.doesNotMatch(css, /#calendarGanttRoot\{[^}]*zoom:/);
   assert.doesNotMatch(mobile, /grid-template-columns:\s*var\(--category-width\)\s+repeat\(7,minmax\(0,1fr\)\)/);
+});
+
+test('mobile timeline uses native inertial horizontal scrolling', () => {
+  assert.match(js, /event\.pointerType\s*===\s*["']touch["']/);
+  assert.match(js, /classList\.contains\(["']is-mobile-desktop-viewport["']\)/);
+  assert.match(css, /html\.is-mobile-desktop-viewport \.calendar-scroll:has\(\.calendar-continuous-timeline\)\{[^}]*overflow-x:scroll[^}]*touch-action:pan-x pan-y[^}]*-webkit-overflow-scrolling:touch/s);
+  assert.match(css, /overscroll-behavior-x:contain/);
 });

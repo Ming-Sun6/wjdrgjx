@@ -13,6 +13,7 @@
   --category-width:148px;
 }
 html.is-mobile-desktop-viewport{--category-width:59px}
+html.is-mobile-desktop-viewport .calendar-scroll:has(.calendar-continuous-timeline){overflow-x:scroll;overflow-y:hidden;cursor:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;scroll-behavior:auto}
 .calendar-timeline-parent-title{outline:2px solid color-mix(in srgb,currentColor 32%,transparent);outline-offset:-2px;font-weight:900}
 .calendar-timeline-parent-title{outline:2px solid color-mix(in srgb,currentColor 32%,transparent);outline-offset:-2px;font-weight:900}
 *{box-sizing:border-box}

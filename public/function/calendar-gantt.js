@@ -248,7 +248,12 @@
       els.status.classList.remove("is-panning");
     }
     els.status.addEventListener("pointerdown", (event) => {
-      if (state.view !== "timeline" || event.button !== 0) return;
+      if (
+        state.view !== "timeline" ||
+        event.button !== 0 ||
+        event.pointerType === "touch" ||
+        document.documentElement.classList.contains("is-mobile-desktop-viewport")
+      ) return;
       timelinePan = {
         pointerId: event.pointerId,
         startX: event.clientX,
