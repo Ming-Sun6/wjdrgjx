@@ -688,8 +688,8 @@
         ));
     }
     function timelineSection(categoryName, items, parentName, range) {
-      const displayItems = items.filter((item) => !item.timelineParentTitle);
-      const lanes = packLanes(displayItems);
+      const parentItem = items.find((item) => item.timelineParentTitle);
+      const lanes = packLanes(items.filter((item) => !item.timelineParentTitle));
       if (!lanes.length) return null;
       const section = document.createElement("div");
       section.className =
@@ -698,10 +698,6 @@
       const label = document.createElement("div");
       label.className = "calendar-timeline-category-label";
       label.textContent = categoryName || "常规";
-      const parent = document.createElement("div");
-      parent.className = "calendar-timeline-parent-column calendar-timeline-parent-name";
-      parent.textContent = parentName || "";
-      parent.style.gridRow = `span ${lanes.length}`;
       const rows = document.createElement("div");
       rows.className = "calendar-timeline-rows";
       lanes.forEach((lane) => {
@@ -713,7 +709,21 @@
         });
         rows.appendChild(laneEl);
       });
-      section.append(label, parent, rows);
+      if (parentItem && parentName) {
+        const parentBar = timelineBar(parentItem, range);
+        if (parentBar) {
+          parentBar.classList.add("calendar-timeline-parent-name");
+          parentBar.style.position = "absolute";
+          parentBar.style.top = "0";
+          parentBar.style.left = `calc(${Math.max(0, diffDays(range.from, parentItem.startDate))} * var(--timeline-day-width))`;
+          parentBar.style.width = "var(--timeline-day-width)";
+          parentBar.style.height = `calc(${lanes.length} * 54px)`;
+          parentBar.style.margin = "0";
+          parentBar.style.zIndex = "3";
+          rows.appendChild(parentBar);
+        }
+      }
+      section.append(label, rows);
       return section;
     }
     function renderTimelineDailySection(categoryName, schedules, range) {
@@ -790,10 +800,6 @@
       head.className = "calendar-timeline-category-head";
       head.textContent = "活动分类";
       row.appendChild(head);
-      const parentHead = document.createElement("div");
-      parentHead.className = "calendar-timeline-parent-head";
-      parentHead.textContent = "活动名称";
-      row.appendChild(parentHead);
       for (let index = 0; index < days; index++) {
         const date = addDays(range.from, index),
           parsed = parseDate(date),
