@@ -75,7 +75,7 @@ test('calendar renders the persisted bold schedule style', () => {
 
 test('important child tasks render a thumbs-up marker in every calendar view', () => {
   assert.match(html, /calendar-gantt\.js\?v=20260827-19/);
-  assert.match(html, /calendar-gantt\.css\?v=20260827-18/);
+  assert.match(html, /calendar-gantt\.css\?v=20260827-19/);
   assert.match(js, /function appendHighlight/);
   assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
   assert.ok((js.match(/appendHighlight\(/g) || []).length >= 6);
@@ -142,7 +142,7 @@ test('mobile calendar uses a virtual desktop viewport instead of element zoom', 
   assert.ok(mobile);
   assert.match(mobile, /\.calendar-scroll\{[^}]*overflow:\s*auto/);
   assert.match(html, /is-mobile-desktop-viewport/);
-  assert.match(html, /width=1920,viewport-fit=cover/);
+  assert.match(html, /width=1680,viewport-fit=cover/);
   assert.match(html, /matchMedia\('\(hover:none\) and \(pointer:coarse\)'\)/);
   assert.match(css, /html\.is-mobile-desktop-viewport\{--category-width:59px\}/);
   assert.doesNotMatch(css, /#calendarGanttRoot\{[^}]*zoom:/);
