@@ -546,6 +546,62 @@
       frag.appendChild(content);
       return frag;
     }
+    function renderDailyGroup(schedules, week, categoryName) {
+      const frag = document.createDocumentFragment();
+      const titleRow = document.createElement("div");
+      titleRow.className = "calendar-daily-title-row";
+      const cat = document.createElement("div");
+      cat.className = "calendar-category-cell";
+      cat.textContent = categoryName;
+      titleRow.appendChild(cat);
+      schedules.forEach((schedule) => {
+        const activeDates = (schedule.cards || [])
+          .map((card) => card.date)
+          .filter((date) => compareDates(date, week.from) >= 0 && compareDates(date, week.to) <= 0)
+          .sort(compareDates);
+        if (!activeDates.length) return;
+        const title = document.createElement("div");
+        title.className = "calendar-daily-title";
+        title.style.gridColumn = `${diffDays(week.from, activeDates[0]) + 2} / ${diffDays(week.from, activeDates[activeDates.length - 1]) + 3}`;
+        title.style.fontWeight = schedule.fontBold ? "900" : "";
+        title.textContent = schedule.name;
+        if (schedule.description) {
+          const small = document.createElement("small");
+          small.textContent = schedule.description;
+          title.appendChild(small);
+        }
+        titleRow.appendChild(title);
+      });
+      frag.appendChild(titleRow);
+      const content = document.createElement("div");
+      content.className = "calendar-daily-content";
+      const spacer = document.createElement("div");
+      spacer.className = "calendar-daily-spacer";
+      content.appendChild(spacer);
+      for (let i = 0; i < 7; i++) {
+        const date = addDays(week.from, i);
+        const stack = document.createElement("div");
+        stack.className = "calendar-day-stack";
+        schedules
+          .flatMap((schedule) => schedule.cards || [])
+          .filter((card) => card.date === date)
+          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0) || String(a.id).localeCompare(String(b.id)))
+          .forEach((card) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "calendar-day-card calendar-timeline-child-card";
+            button.style.background = card.color || "#f7d6b5";
+            button.style.color = contrast(card.color);
+            button.style.fontWeight = card.fontBold ? "900" : "";
+            button.textContent = card.name || "任务";
+            button.onclick = () => detail(card);
+            stack.appendChild(button);
+          });
+        content.appendChild(stack);
+      }
+      frag.appendChild(content);
+      return frag;
+    }
     function renderWeek(week, monthInfo) {
       const block = document.createElement("section");
       block.className = "calendar-week-block";
@@ -615,13 +671,9 @@
               ),
             );
           });
-        group.items
-          .filter((item) => item.compositeLayout === "daily-list")
-          .forEach((schedule) =>
-            section.appendChild(
-              renderDaily(schedule, week, group.category.name),
-            ),
-          );
+        const dailySchedules = group.items.filter((item) => item.compositeLayout === "daily-list");
+        if (dailySchedules.length)
+          section.appendChild(renderDailyGroup(dailySchedules, week, group.category.name));
         if (section.childNodes.length) block.appendChild(section);
       });
       return block;
