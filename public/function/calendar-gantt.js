@@ -468,6 +468,42 @@
       group.append(cat, rows);
       return group;
     }
+    function renderCompositeWeek(schedule, week, categoryName) {
+      const children = (schedule.items || [])
+        .map((item) => clipSegment(item, week.from, week.to))
+        .filter(Boolean);
+      const lanes = packLanes(children);
+      if (!lanes.length) return null;
+      const group = document.createElement("div");
+      group.className = "calendar-merged-group calendar-composite-week-group";
+      const cat = document.createElement("div");
+      cat.className = "calendar-category-cell";
+      cat.textContent = categoryName || "常规";
+      const rows = document.createElement("div");
+      rows.className = "calendar-merged-rows";
+      lanes.forEach((lane) => rows.appendChild(row("", lane, week)));
+      const parent = Object.assign({}, schedule, {
+        startDate: addDays(schedule.startDate, -1),
+        endDate: addDays(schedule.startDate, -1),
+        name: schedule.name,
+      });
+      const parentBar = bar(parent, week);
+      if (parentBar) {
+        const clipped = clipSegment(parent, week.from, week.to);
+        const start = Math.max(0, diffDays(week.from, clipped.clipStart));
+        parentBar.classList.add("calendar-composite-parent-title");
+        parentBar.style.position = "absolute";
+        parentBar.style.left = `calc(${start} * 112px)`;
+        parentBar.style.top = "0";
+        parentBar.style.width = "112px";
+        parentBar.style.height = `calc(${lanes.length} * 48px)`;
+        parentBar.style.margin = "0";
+        parentBar.style.zIndex = "3";
+        rows.appendChild(parentBar);
+      }
+      group.append(cat, rows);
+      return group;
+    }
     function renderDaily(schedule, week, categoryName) {
       const frag = document.createDocumentFragment();
       const titleRow = document.createElement("div");
@@ -656,20 +692,8 @@
               item.compositeLayout !== "daily-list",
           )
           .forEach((schedule) => {
-            const children = (schedule.items || [])
-              .map((item) => clipSegment(item, week.from, week.to))
-              .filter(Boolean);
-            if (!children.length) return;
-            packLanes(children).forEach((lane, index) =>
-              section.appendChild(
-                row(
-                  index === 0 ? group.category.name + "\n" + schedule.name : "",
-                  lane,
-                  week,
-                  "calendar-composite-row",
-                ),
-              ),
-            );
+            const composite = renderCompositeWeek(schedule, week, group.category.name);
+            if (composite) section.appendChild(composite);
           });
         const dailySchedules = group.items.filter((item) => item.compositeLayout === "daily-list");
         if (dailySchedules.length)
@@ -809,9 +833,22 @@
       if (titles.length) {
         const titleLane = document.createElement("div");
         titleLane.className = "calendar-timeline-lane";
+        titleLane.classList.add("calendar-timeline-daily-title-lane");
         titles.forEach((title) => {
           const titleBar = timelineBar(title, range);
-          if (titleBar) titleLane.appendChild(titleBar);
+          if (titleBar) {
+            const clipped = clipSegment(title, range.from, range.to);
+            const start = Math.max(0, diffDays(range.from, clipped.clipStart));
+            const end = Math.min(diffDays(range.from, clipped.clipEnd), diffDays(range.from, range.to));
+            titleBar.style.position = "absolute";
+            titleBar.style.left = `calc(${start} * var(--timeline-day-width))`;
+            titleBar.style.width = `calc(${Math.max(1, end - start + 1)} * var(--timeline-day-width))`;
+            titleBar.style.top = "6px";
+            titleBar.style.height = "42px";
+            titleBar.style.margin = "0 3px";
+            titleBar.style.zIndex = "3";
+            titleLane.appendChild(titleBar);
+          }
         });
         rows.appendChild(titleLane);
       }
