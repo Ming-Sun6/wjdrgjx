@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { createCalendarHandlers } = require('../calendar-routes');
+const { createCalendarHandlers, mountCalendarRoutes } = require('../calendar-routes');
 
 test('public calendar range returns canonical occurrences and dynamic colors', async () => {
   const handlers = createCalendarHandlers({
@@ -154,6 +154,41 @@ test('editing the entire recurrence clears saved occurrence exceptions atomicall
   await handlers.quickEditOccurrence({ params: { id: '6' }, body: { scope: 'all', occurrenceDate: '2026-08-31', name: '全部改名', color: null, fontBold: true, enabled: true } }, response);
   assert.equal(calls[0].meta.clearExceptions, true);
   assert.equal(calls[0].value.name, '全部改名');
+});
+
+test('category fixed POST routes are registered before the dynamic update route', () => {
+  const routes = [];
+  const app = {
+    get(path) { routes.push(['GET', path]); },
+    post(path) { routes.push(['POST', path]); },
+    patch(path) { routes.push(['PATCH', path]); },
+    delete(path) { routes.push(['DELETE', path]); }
+  };
+  mountCalendarRoutes(app, { store: {} });
+  const dynamicIndex = routes.findIndex(([method, path]) => method === 'POST' && path === '/api/admin/calendar/categories/:id');
+  const reorderIndex = routes.findIndex(([method, path]) => method === 'POST' && path === '/api/admin/calendar/categories/reorder');
+  const statusIndex = routes.findIndex(([method, path]) => method === 'POST' && path === '/api/admin/calendar/categories/:id/status');
+  assert.ok(reorderIndex >= 0 && reorderIndex < dynamicIndex);
+  assert.ok(statusIndex >= 0 && statusIndex < dynamicIndex);
+});
+
+test('category status validates ids and persists the requested disabled state', async () => {
+  const calls = [];
+  const handlers = createCalendarHandlers({
+    store: { setCategoryStatus: async (...args) => { calls.push(args); return { id: args[0], name: '常规', enabled: args[1] }; } },
+    requireAdmin: async () => ({ id: 7 }),
+    auditAdminAction: async () => {}
+  });
+  const invalid = createResponse();
+  await handlers.setCategoryStatus({ params: { id: 'reorder' }, body: { enabled: false } }, invalid);
+  assert.equal(invalid.statusCode, 400);
+  assert.deepEqual(invalid.body, { error: 'BAD_CATEGORY' });
+  assert.deepEqual(calls, []);
+
+  const disabled = createResponse();
+  await handlers.setCategoryStatus({ params: { id: '3' }, body: { enabled: false } }, disabled);
+  assert.deepEqual(calls, [[3, false]]);
+  assert.equal(disabled.body.category.enabled, false);
 });
 
 function createResponse() {

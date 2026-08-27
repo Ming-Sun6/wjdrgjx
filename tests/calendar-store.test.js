@@ -91,6 +91,25 @@ test('schedule reordering validates every id before applying all updates in one 
   assert.equal(reordered[0].fontBold, true);
 });
 
+test('public definitions hide disabled categories while admin definitions retain them', async () => {
+  const definitionQueries = [];
+  const adapter = {
+    pgDatabase: false,
+    queryRows: async (sql) => {
+      if (/FROM calendar_schedule_definitions/i.test(sql)) definitionQueries.push(compact(sql));
+      return [];
+    }
+  };
+  const store = storeModule.createCalendarStore(adapter);
+
+  await store.listDefinitions(false);
+  await store.listDefinitions(true);
+
+  assert.match(definitionQueries[0], /WHERE d\.enabled = 1 AND c\.enabled = 1/);
+  assert.doesNotMatch(definitionQueries[1], /WHERE d\.enabled/);
+  assert.doesNotMatch(definitionQueries[1], /c\.enabled = 1/);
+});
+
 function compact(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
 }

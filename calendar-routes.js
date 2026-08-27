@@ -25,6 +25,11 @@ function normalizeCategoryInput(body) {
   return { value: { name, color, sortOrder: Number(body && body.sortOrder || 0) } };
 }
 
+function positiveIntegerId(value) {
+  const id = Number(value);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
 function legacyDefinitionFromBody(body, categoryId, legacyOriginalId) {
   const name = String(body && body.name || '').trim();
   const dates = Array.from(new Set((Array.isArray(body && body.dates) ? body.dates : []).map(String))).sort();
@@ -172,12 +177,14 @@ function createCalendarHandlers(dependencies) {
   async function updateCategory(req, res) {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
+    const id = positiveIntegerId(req.params && req.params.id);
+    if (!id) return sendError(res, 400, 'BAD_CATEGORY');
     const valid = normalizeCategoryInput(req.body || {});
     if (valid.error) return sendError(res, 400, valid.error);
-    const result = await store.updateCategory(Number(req.params.id), valid.value);
+    const result = await store.updateCategory(id, valid.value);
     if (!result) return sendError(res, 404, 'NOT_FOUND');
     if (result.error === 'CATEGORY_NAME_EXISTS') return sendError(res, 409, result.error);
-    await auditAdminAction(req, { actor: admin, action: 'calendar.category.update', targetType: 'calendar_category', targetId: String(req.params.id), summary: `更新日历分类：${result.name}` });
+    await auditAdminAction(req, { actor: admin, action: 'calendar.category.update', targetType: 'calendar_category', targetId: String(id), summary: `更新日历分类：${result.name}` });
     return res.json({ category: result });
   }
 
@@ -194,9 +201,11 @@ function createCalendarHandlers(dependencies) {
   async function setCategoryStatus(req, res) {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
-    const result = await store.setCategoryStatus(Number(req.params.id), req.body && req.body.enabled === true);
+    const id = positiveIntegerId(req.params && req.params.id);
+    if (!id) return sendError(res, 400, 'BAD_CATEGORY');
+    const result = await store.setCategoryStatus(id, req.body && req.body.enabled === true);
     if (!result) return sendError(res, 404, 'NOT_FOUND');
-    await auditAdminAction(req, { actor: admin, action: 'calendar.category.status', targetType: 'calendar_category', targetId: String(req.params.id), summary: `${result.enabled ? '启用' : '停用'}日历分类：${result.name}` });
+    await auditAdminAction(req, { actor: admin, action: 'calendar.category.status', targetType: 'calendar_category', targetId: String(id), summary: `${result.enabled ? '启用' : '停用'}日历分类：${result.name}` });
     return res.json({ category: result });
   }
 
@@ -412,10 +421,10 @@ function mountCalendarRoutes(app, dependencies) {
   app.post('/api/admin/calendar/presets/:id/delete', handlers.deletePreset);
   app.get('/api/admin/calendar/categories', (req, res) => handlers.getCategories(req, res, true));
   app.post('/api/admin/calendar/categories', handlers.createCategory);
-  app.patch('/api/admin/calendar/categories/:id', handlers.updateCategory);
-  app.post('/api/admin/calendar/categories/:id', handlers.updateCategory);
   app.post('/api/admin/calendar/categories/reorder', handlers.reorderCategories);
   app.post('/api/admin/calendar/categories/:id/status', handlers.setCategoryStatus);
+  app.patch('/api/admin/calendar/categories/:id', handlers.updateCategory);
+  app.post('/api/admin/calendar/categories/:id', handlers.updateCategory);
   return handlers;
 }
 

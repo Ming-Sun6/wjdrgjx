@@ -37,7 +37,7 @@ test('calendar admin production page uses the approved five-step workspace', () 
 test('calendar admin loads versioned production assets in dependency order', () => {
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260826-4');
-  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260827-5');
+  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260827-7');
 
   assert.ok(modelAt > 0 && pageAt > modelAt);
   assert.match(html, /admin-calendar-page\.css\?v=20260827-5/);
@@ -121,7 +121,7 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const js = read('public/function/admin-calendar-page.js');
 
-  assert.match(html, /admin-calendar-page\.js\?v=20260827-5/);
+  assert.match(html, /admin-calendar-page\.js\?v=20260827-7/);
   assert.match(js, /\/api\/admin\/calendar\/categories/);
   assert.match(js, /\/api\/admin\/calendar\/schedules/);
   assert.match(js, /recurrenceUnit/);
@@ -166,6 +166,11 @@ test('calendar admin updates use POST and routes retain PATCH compatibility behi
   assert.match(routes, /app\.post\('\/api\/admin\/calendar\/schedules\/:id', handlers\.updateSchedule\);/);
   assert.match(routes, /app\.patch\('\/api\/admin\/calendar\/categories\/:id', handlers\.updateCategory\);/);
   assert.match(routes, /app\.post\('\/api\/admin\/calendar\/categories\/:id', handlers\.updateCategory\);/);
+  assert.match(routes, /app\.post\('\/api\/admin\/calendar\/categories\/reorder', handlers\.reorderCategories\);/);
+  assert.ok(routes.indexOf("app.post('/api/admin/calendar/categories/reorder'") < routes.indexOf("app.post('/api/admin/calendar/categories/:id', handlers.updateCategory)"));
+  assert.match(js, /disabled=!category\.enabled/);
+  assert.match(js, /所属日程已从公开日历隐藏；重新启用后会恢复显示/);
+  assert.match(js, /所属日程已恢复公开显示/);
 });
 
 test('hidden composite child names do not block normal schedule submission', () => {

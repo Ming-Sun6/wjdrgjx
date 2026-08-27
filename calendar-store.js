@@ -380,7 +380,8 @@ function createCalendarStore(adapter) {
   }
 
   async function listDefinitions(includeDisabled) {
-    const where = includeDisabled ? '' : `WHERE d.enabled = ${adapter.pgDatabase ? 'true' : '1'}`;
+    const enabledValue = adapter.pgDatabase ? 'true' : '1';
+    const where = includeDisabled ? '' : `WHERE d.enabled = ${enabledValue} AND c.enabled = ${enabledValue}`;
     const rows = await adapter.queryRows(
       `SELECT d.*,c.code AS category_code,c.name AS category_name,c.color AS category_color,c.sort_order AS category_sort_order,c.enabled AS category_enabled
        FROM calendar_schedule_definitions d JOIN calendar_categories c ON c.id=d.category_id ${where}
