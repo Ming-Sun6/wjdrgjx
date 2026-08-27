@@ -75,7 +75,7 @@ test('calendar renders the persisted bold schedule style', () => {
 
 test('important child tasks render a thumbs-up marker in every calendar view', () => {
   assert.match(html, /calendar-gantt\.js\?v=20260827-19/);
-  assert.match(html, /calendar-gantt\.css\?v=20260827-14/);
+  assert.match(html, /calendar-gantt\.css\?v=20260827-15/);
   assert.match(js, /function appendHighlight/);
   assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
   assert.ok((js.match(/appendHighlight\(/g) || []).length >= 6);
@@ -107,10 +107,10 @@ test('embedded calendar is labelled as a preview and can escape to the complete 
   assert.match(js, /window\.location\.href/);
 });
 
-test('calendar uses a simple device rotation hint without view-mode buttons', () => {
+test('calendar explains the scaled mobile view without view-mode buttons', () => {
   assert.doesNotMatch(html, /id="calendarViewPortrait"/);
   assert.doesNotMatch(html, /id="calendarViewLandscape"/);
-  assert.match(html, /关闭手机竖屏锁定，可横屏观看日历（非微信环境）/);
+  assert.match(html, /手机版已按电脑版 50% 等比显示，内容较宽时可左右滑动/);
   assert.doesNotMatch(js, /wjdr\.calendar\.viewMode/);
   assert.doesNotMatch(js, /requestFullscreen/);
 });
@@ -121,16 +121,13 @@ test('calendar removes the late-injected floating theme button', () => {
   assert.match(js, /\.remove\(\)/);
 });
 
-test('mobile calendar fits seven days and keeps the timeline scrollable', () => {
+test('mobile calendar keeps the desktop layout at fifty-percent scale', () => {
   const mobile =
     css.match(/@media\s*\(max-width:\s*760px\)\s*and\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)\s*\{([\s\S]*)\}\s*$/)?.[1] || '';
 
   assert.ok(mobile);
-  assert.match(mobile, /--category-width:\s*64px/);
-  assert.match(mobile, /\.calendar-scroll\{[^}]*container-type:\s*inline-size[^}]*overflow-x:\s*hidden/);
-  assert.match(mobile, /\.calendar-week-block\{[^}]*width:\s*100%[^}]*min-width:\s*0/);
-  assert.match(mobile, /grid-template-columns:\s*var\(--category-width\)\s+repeat\(7,minmax\(0,1fr\)\)/);
-  assert.match(mobile, /\.calendar-lane\{[^}]*grid-template-columns:\s*repeat\(7,minmax\(0,1fr\)\)/);
-  assert.match(mobile, /--timeline-day-width:\s*calc\(\(100cqw\s*-\s*var\(--category-width\)\)\s*\/\s*7\)/);
-  assert.match(mobile, /\.calendar-scroll:has\(\.calendar-continuous-timeline\)\{overflow-x:\s*auto\}/);
+  assert.match(mobile, /\.calendar-scroll\{[^}]*overflow:\s*auto/);
+  assert.match(mobile, /#calendarGanttRoot\{[^}]*width:\s*200%[^}]*zoom:\s*\.5/);
+  assert.doesNotMatch(mobile, /--category-width:\s*64px/);
+  assert.doesNotMatch(mobile, /grid-template-columns:\s*var\(--category-width\)\s+repeat\(7,minmax\(0,1fr\)\)/);
 });
