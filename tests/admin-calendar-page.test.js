@@ -36,8 +36,8 @@ test('calendar admin production page uses the approved five-step workspace', () 
 
 test('calendar admin loads versioned production assets in dependency order', () => {
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
-  const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260826-4');
-  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260827-7');
+  const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260827-5');
+  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260827-9');
 
   assert.ok(modelAt > 0 && pageAt > modelAt);
   assert.match(html, /admin-calendar-page\.css\?v=20260827-5/);
@@ -104,12 +104,15 @@ test('calendar admin exposes a clearer structure, optional recurrence, presets, 
   assert.match(page, /id="calendarPresetList"/);
   assert.match(page, /id="calendarPresetSaveBtn"/);
   assert.match(page, /id="calendarCompositeLayout"/);
+  assert.match(page, /id="calendarChildColorMode"/);
+  for (const mode of ['uniform', 'random', 'custom']) assert.match(page, new RegExp(`value="${mode}"`));
   assert.match(page, /value="gantt"/);
   assert.match(page, /value="daily-list"/);
   assert.match(page, /id="calendarCompositeItems"/);
   assert.match(page, /id="calendarDailyChecklistBoard"/);
   assert.match(page, /id="calendarGanttTaskBoard"/);
   assert.match(html, /id="calendarDailyItemColor"/);
+  assert.match(html, /id="calendarDailyItemHighlighted"/);
   const js = read('public/function/admin-calendar-page.js');
   assert.match(js, /rawIndex=String\(byId\('calendarDailyItemIndex'\)\.value\|\|''\)\.trim\(\)/);
   assert.match(js, /calendar-gantt-category-heading/);
@@ -121,7 +124,7 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const js = read('public/function/admin-calendar-page.js');
 
-  assert.match(html, /admin-calendar-page\.js\?v=20260827-7/);
+  assert.match(html, /admin-calendar-page\.js\?v=20260827-9/);
   assert.match(js, /\/api\/admin\/calendar\/categories/);
   assert.match(js, /\/api\/admin\/calendar\/schedules/);
   assert.match(js, /recurrenceUnit/);
@@ -129,6 +132,9 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   assert.match(js, /calendarRepeatEnabled/);
   assert.match(js, /selectedOffsets/);
   assert.match(js, /highlighted/);
+  assert.match(js, /calendarDailyItemHighlighted/);
+  assert.match(js, /childColorMode/);
+  assert.match(js, /childDisplayColor/);
   assert.match(js, /\/copy/);
   assert.match(js, /\/status/);
   assert.match(js, /method:'DELETE'/);

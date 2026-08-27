@@ -4,6 +4,7 @@ const DAY_MS = 86400000;
 const MAX_RENDER_UNITS = 2000;
 const SCHEDULE_TYPES = new Set(['single', 'continuous', 'recurring', 'composite', 'date-list']);
 const COMPOSITE_LAYOUTS = new Set(['gantt', 'daily-list']);
+const CHILD_COLOR_MODES = new Set(['uniform', 'random', 'custom']);
 const DATE_MODES = new Set(['all-span', 'relative-range', 'selected-days', 'recurring']);
 const RECURRENCE_UNITS = new Set(['day', 'week', 'month']);
 const RECURRENCE_END_TYPES = new Set(['never', 'until', 'count']);
@@ -240,6 +241,7 @@ function normalizeSchedulePayload(payload) {
     name,
     scheduleType,
     compositeLayout: null,
+    childColorMode: 'random',
     startDate: source.startDate,
     endDate,
     startTime: String(source.startTime || '').trim(),
@@ -278,6 +280,8 @@ function normalizeSchedulePayload(payload) {
   if (scheduleType === 'composite') {
     value.compositeLayout = String(source.compositeLayout || 'gantt');
     if (!COMPOSITE_LAYOUTS.has(value.compositeLayout)) return { error: 'BAD_COMPOSITE_LAYOUT' };
+    value.childColorMode = String(source.childColorMode || 'random');
+    if (!CHILD_COLOR_MODES.has(value.childColorMode)) return { error: 'BAD_CHILD_COLOR_MODE' };
     const parentDays = inclusiveDays(value.startDate, value.endDate);
     const items = Array.isArray(source.items) ? source.items : [];
     if (items.length > 100) return { error: 'TOO_MANY_ITEMS' };
@@ -507,10 +511,15 @@ function expandDefinitions(definitions, options) {
         continue;
       }
       occurrence.compositeLayout = definition.compositeLayout || 'gantt';
+      occurrence.childColorMode = definition.childColorMode || 'random';
       const enabledItems = (definition.items || []).filter((item) => item.enabled !== false);
       const childOccurrences = [];
       for (const item of enabledItems) {
-        const childColor = item.color || activityColor(item.name);
+        const childColor = occurrence.childColorMode === 'uniform'
+          ? occurrence.color
+          : occurrence.childColorMode === 'custom'
+            ? item.color || activityColor(item.name)
+            : activityColor(item.name);
         for (const child of expandChildOccurrences(item, occurrenceStart, occurrenceEnd, occurrence.id)) {
           child.color = childColor;
           child.fontBold = occurrence.fontBold;

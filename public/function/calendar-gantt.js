@@ -138,6 +138,13 @@
       b = n & 255;
     return (r * 299 + g * 587 + b * 114) / 1000 < 145 ? "#fff" : "#3e3028";
   }
+  function appendHighlight(node, item) {
+    if (!item || !item.highlighted) return;
+    const mark = document.createElement("span");
+    mark.className = "highlight";
+    mark.textContent = "👍";
+    node.appendChild(mark);
+  }
   function isoWeekValue(date) {
     const info = getIsoWeek(date);
     return info.weekYear + "-W" + String(info.week).padStart(2, "0");
@@ -438,6 +445,7 @@
         (clipped.continuesBefore ? "接上周 · " : "") +
         (item.name || "未命名") +
         (clipped.continuesAfter ? " · 续下周" : "");
+      appendHighlight(node, item);
       node.onclick = () => detail(item);
       return node;
     }
@@ -576,12 +584,7 @@
             button.style.color = contrast(card.color);
             button.style.fontWeight = card.fontBold ? "900" : "";
             button.textContent = card.name || "任务";
-            if (card.highlighted) {
-              const mark = document.createElement("span");
-              mark.className = "highlight";
-              mark.textContent = "👍";
-              button.appendChild(mark);
-            }
+            appendHighlight(button, card);
             button.onclick = () => detail(card);
             stack.appendChild(button);
           });
@@ -638,6 +641,7 @@
             button.style.color = contrast(card.color);
             button.style.fontWeight = card.fontBold ? "900" : "";
             button.textContent = card.name || "任务";
+            appendHighlight(button, card);
             button.onclick = () => detail(card);
             stack.appendChild(button);
           });
@@ -731,6 +735,7 @@
         (clipped.continuesBefore ? "← " : "") +
         (item.timelineName || item.name || "未命名") +
         (clipped.continuesAfter ? " →" : "");
+      appendHighlight(node, item);
       node.title = item.timelineName || item.name || "";
       node.onclick = () => detail(item);
       return node;
@@ -890,12 +895,7 @@
           button.style.color = contrast(card.color);
           button.style.fontWeight = card.fontBold ? "900" : "";
           button.textContent = card.name || "任务";
-          if (card.highlighted) {
-            const mark = document.createElement("span");
-            mark.className = "highlight";
-            mark.textContent = "👍";
-            button.appendChild(mark);
-          }
+          appendHighlight(button, card);
           button.onclick = () => detail(card);
           stack.appendChild(button);
         });

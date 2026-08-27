@@ -209,6 +209,7 @@ test('composite schedule preserves all four child date modes and recurrence fiel
     recurrenceUntil: null,
     recurrenceCount: 6,
     compositeLayout: 'gantt',
+    childColorMode: 'custom',
     items: [
       { id: 101, name: '全程', description: '', color: null, sortOrder: 0, highlighted: false, enabled: true, dateMode: 'all-span', startTime: '', endTime: '' },
       { id: 102, name: '阶段', description: '连续', color: '#d89974', sortOrder: 10, highlighted: true, enabled: true, dateMode: 'relative-range', startOffsetDays: 1, endOffsetDays: 3, startTime: '09:00', endTime: '18:00' },
@@ -227,6 +228,13 @@ test('composite schedule preserves all four child date modes and recurrence fiel
     withoutName(payload),
     withoutName({ ...schedule, id: undefined })
   );
+});
+
+test('composite child color mode defaults to random and round-trips explicit modes', () => {
+  const base = { categoryId: 1, name: '组合活动', structure: 'composite', startDate: '2026-09-01', durationDays: 2, items: [{ name: '阶段', enabled: true, dateMode: 'all-span' }] };
+  assert.equal(model.editorToPayload(base).childColorMode, 'random');
+  assert.equal(model.editorToPayload({ ...base, childColorMode: 'uniform' }).childColorMode, 'uniform');
+  assert.equal(model.scheduleToEditor({ ...base, scheduleType: 'composite', childColorMode: 'custom' }).childColorMode, 'custom');
 });
 
 test('preset shifting moves absolute dates but preserves recurrence and nested children', () => {

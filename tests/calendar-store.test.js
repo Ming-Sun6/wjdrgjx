@@ -13,6 +13,7 @@ test('calendar schema exposes canonical tables for both database dialects', () =
     assert.match(sql, /schedule_id/i);
     assert.match(sql, /sort_order/i);
     assert.match(sql, /font_bold/i);
+    assert.match(sql, /child_color_mode/i);
   }
   assert.deepEqual(storeModule.PRESET_CATEGORIES.map((item) => item.code), [
     'regular', 'kingdom', 'leaderboard', 'cross-server', 'limited'
@@ -48,6 +49,8 @@ test('schema initialization creates tables, seeds categories, then migrates lega
   };
 
   await storeModule.ensureCalendarSchema(adapter);
+
+  assert.ok(calls.some((call) => /ALTER TABLE calendar_schedule_definitions ADD COLUMN child_color_mode/i.test(call.sql)));
 
   const firstCanonical = calls.findIndex((call) => /calendar_categories/.test(call.sql));
   const firstSeed = calls.findIndex((call) => /INSERT(?: IGNORE)? INTO calendar_categories/.test(call.sql));

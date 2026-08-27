@@ -84,6 +84,7 @@ test('normalizes recurring and composite schedule payloads', () => {
     name: '组合活动',
     scheduleType: 'composite',
     compositeLayout: 'daily-list',
+    childColorMode: 'custom',
     startDate: '2026-08-24',
     endDate: '2026-08-26',
     items: [{ name: '任务', enabled: true, dateMode: 'selected-days', selectedOffsets: [0, 4] }]
@@ -175,6 +176,7 @@ test('daily checklist expands multi-day children into separate stable cards', ()
     name: '冻土之王',
     scheduleType: 'composite',
     compositeLayout: 'daily-list',
+    childColorMode: 'custom',
     startDate: '2026-08-24',
     endDate: '2026-08-30',
     enabled: true,
@@ -210,6 +212,31 @@ test('daily checklist expands multi-day children into separate stable cards', ()
   assert.equal(result.schedules[0].cards[0].color, domain.activityColor('领主宝石'));
   assert.equal(result.schedules[0].cards[1].color, '#123456');
   assert.notEqual(result.schedules[0].cards[0].color, result.schedules[0].color);
+  assert.equal(result.schedules[0].cards[0].highlighted, true);
+});
+
+test('composite child color modes support uniform, stable random, and custom colors', () => {
+  const definition = {
+    id: 21,
+    category: { id: 1, color: '#ffffff', sortOrder: 1 },
+    name: '主活动',
+    color: '#224466',
+    scheduleType: 'composite',
+    compositeLayout: 'gantt',
+    startDate: '2026-08-24',
+    endDate: '2026-08-24',
+    enabled: true,
+    items: [
+      { id: 211, name: '阶段甲', color: '#abcdef', enabled: true, sortOrder: 1, dateMode: 'all-span' },
+      { id: 212, name: '阶段乙', enabled: true, sortOrder: 2, dateMode: 'all-span' }
+    ]
+  };
+  const colors = (mode) => domain.expandDefinitions([{ ...definition, childColorMode: mode }], { from: '2026-08-24', to: '2026-08-24' }).schedules[0].items.map((item) => item.color);
+
+  assert.deepEqual(colors('uniform'), ['#224466', '#224466']);
+  assert.deepEqual(colors('random'), [domain.activityColor('阶段甲'), domain.activityColor('阶段乙')]);
+  assert.deepEqual(colors('custom'), ['#abcdef', domain.activityColor('阶段乙')]);
+  assert.equal(domain.normalizeSchedulePayload({ ...definition, categoryId: 1, childColorMode: 'invalid' }).error, 'BAD_CHILD_COLOR_MODE');
 });
 
 test('render unit limit fails atomically', () => {

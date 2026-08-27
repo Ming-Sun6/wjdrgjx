@@ -28,6 +28,7 @@ const CALENDAR_DDL_MYSQL = [
     name VARCHAR(120) NOT NULL,
     schedule_type VARCHAR(24) NOT NULL,
     composite_layout VARCHAR(24) NULL,
+    child_color_mode VARCHAR(16) NOT NULL DEFAULT 'random',
     start_date VARCHAR(10) NOT NULL,
     end_date VARCHAR(10) NOT NULL,
     legacy_dates_json MEDIUMTEXT NULL,
@@ -113,6 +114,7 @@ const CALENDAR_DDL_PG = [
     name varchar(120) NOT NULL,
     schedule_type varchar(24) NOT NULL,
     composite_layout varchar(24) NULL,
+    child_color_mode varchar(16) NOT NULL DEFAULT 'random',
     start_date varchar(10) NOT NULL,
     end_date varchar(10) NOT NULL,
     legacy_dates_json text NULL,
@@ -286,7 +288,8 @@ async function ensureCalendarSchema(adapter) {
   for (const sql of adapter.pgDatabase ? CALENDAR_DDL_PG : CALENDAR_DDL_MYSQL) await adapter.execute(sql);
   for (const column of [
     `sort_order ${adapter.pgDatabase ? 'integer' : 'INT'} NOT NULL DEFAULT 0`,
-    `font_bold ${adapter.pgDatabase ? 'boolean' : 'TINYINT(1)'} NOT NULL DEFAULT ${adapter.pgDatabase ? 'false' : '0'}`
+    `font_bold ${adapter.pgDatabase ? 'boolean' : 'TINYINT(1)'} NOT NULL DEFAULT ${adapter.pgDatabase ? 'false' : '0'}`,
+    `child_color_mode ${adapter.pgDatabase ? 'varchar(16)' : 'VARCHAR(16)'} NOT NULL DEFAULT 'random'`
   ]) {
     try {
       await adapter.execute(`ALTER TABLE calendar_schedule_definitions ADD COLUMN ${column}`);
@@ -346,6 +349,7 @@ function mapDefinitionRow(row, category, items) {
     name: row.name,
     scheduleType: row.schedule_type,
     compositeLayout: row.composite_layout || null,
+    childColorMode: row.child_color_mode || 'random',
     startDate: row.start_date,
     endDate: row.end_date,
     legacyDates: jsonParse(row.legacy_dates_json, []),
@@ -474,6 +478,7 @@ function createCalendarStore(adapter) {
       value.name,
       value.scheduleType,
       value.compositeLayout || null,
+      value.childColorMode || 'random',
       value.startDate,
       value.endDate,
       value.legacyDates && value.legacyDates.length ? JSON.stringify(value.legacyDates) : null,
@@ -543,8 +548,8 @@ function createCalendarStore(adapter) {
     const id = await adapter.runInTransaction(async (tx) => {
       const definitionId = await insertAndGetId(tx,
         `INSERT INTO calendar_schedule_definitions
-         (legacy_original_id,category_id,name,schedule_type,composite_layout,start_date,end_date,legacy_dates_json,start_time,end_time,color,description,sort_order,font_bold,enabled,recurrence_unit,recurrence_interval,weekdays_json,month_day,recurrence_end_type,recurrence_until,recurrence_count,created_by,updated_at)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP(3))`,
+         (legacy_original_id,category_id,name,schedule_type,composite_layout,child_color_mode,start_date,end_date,legacy_dates_json,start_time,end_time,color,description,sort_order,font_bold,enabled,recurrence_unit,recurrence_interval,weekdays_json,month_day,recurrence_end_type,recurrence_until,recurrence_count,created_by,updated_at)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP(3))`,
         definitionParams(value, meta && meta.actorId));
       for (const item of value.items || []) await insertItem(tx, definitionId, item);
       return definitionId;
@@ -575,7 +580,7 @@ function createCalendarStore(adapter) {
       const params = definitionParams({ ...value, legacyOriginalId: value.legacyOriginalId || current.legacyOriginalId }, meta && meta.actorId);
       await tx.execute(
         `UPDATE calendar_schedule_definitions SET
-         legacy_original_id=?,category_id=?,name=?,schedule_type=?,composite_layout=?,start_date=?,end_date=?,legacy_dates_json=?,start_time=?,end_time=?,color=?,description=?,sort_order=?,font_bold=?,enabled=?,recurrence_unit=?,recurrence_interval=?,weekdays_json=?,month_day=?,recurrence_end_type=?,recurrence_until=?,recurrence_count=?,created_by=?,updated_at=CURRENT_TIMESTAMP(3)
+         legacy_original_id=?,category_id=?,name=?,schedule_type=?,composite_layout=?,child_color_mode=?,start_date=?,end_date=?,legacy_dates_json=?,start_time=?,end_time=?,color=?,description=?,sort_order=?,font_bold=?,enabled=?,recurrence_unit=?,recurrence_interval=?,weekdays_json=?,month_day=?,recurrence_end_type=?,recurrence_until=?,recurrence_count=?,created_by=?,updated_at=CURRENT_TIMESTAMP(3)
          WHERE id=?`,
         [...params, id]);
       const submittedIds = new Set();

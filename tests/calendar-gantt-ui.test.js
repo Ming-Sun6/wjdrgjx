@@ -73,6 +73,15 @@ test('calendar renders the persisted bold schedule style', () => {
   assert.match(js, /card\.fontBold\s*\?\s*["']900["']/);
 });
 
+test('important child tasks render a thumbs-up marker in every calendar view', () => {
+  assert.match(html, /calendar-gantt\.js\?v=20260827-19/);
+  assert.match(html, /calendar-gantt\.css\?v=20260827-14/);
+  assert.match(js, /function appendHighlight/);
+  assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
+  assert.ok((js.match(/appendHighlight\(/g) || []).length >= 6);
+  assert.match(css, /\.calendar-bar \.highlight/);
+});
+
 test('first-fit lane packing shares adjacent tasks and separates overlaps', () => {
   const lanes = gantt.packLanes([
     { id: 'a', startDate: '2026-08-24', endDate: '2026-08-26' },

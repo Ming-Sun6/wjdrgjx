@@ -65,6 +65,7 @@
     editor.recurrenceUntil=recurrenceValue(editor,'recurrenceUntil',null);
     editor.recurrenceCount=Number(recurrenceValue(editor,'recurrenceCount',1));
     editor.items=(editor.items||[]).map(itemToEditor);
+    editor.childColorMode=editor.childColorMode||'random';
     if(settings.shiftToDate)return scheduleToEditor(shiftPresetToDate(editor,settings.shiftToDate));
     return editor;
   }
@@ -113,6 +114,7 @@
     }
     if(structure==='composite'){
       payload.compositeLayout=source.compositeLayout||'gantt';
+      payload.childColorMode=source.childColorMode||'random';
       payload.items=(source.items||[]).map(function(item){return cleanItem(item,start);});
     }
     return payload;
