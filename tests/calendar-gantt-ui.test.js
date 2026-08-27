@@ -37,7 +37,7 @@ test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(js, /calendar-continuous-timeline/);
   assert.match(css, /calendar-continuous-timeline/);
   assert.match(css, /repeat\(var\(--timeline-days\),var\(--timeline-day-width\)\)/);
-  assert.match(css, /\.calendar-continuous-timeline\{--timeline-day-width:134\.4px\}/);
+  assert.match(css, /\.calendar-continuous-timeline\{--timeline-day-width:134px\}/);
   assert.doesNotMatch(js, /calendar-timeline-track/);
   assert.match(js, /pointerdown/);
   assert.match(js, /scrollLeft\s*=\s*timelinePan\.scrollLeft\s*-\s*delta/);
@@ -75,7 +75,7 @@ test('calendar renders the persisted bold schedule style', () => {
 
 test('important child tasks render a thumbs-up marker in every calendar view', () => {
   assert.match(html, /calendar-gantt\.js\?v=20260827-19/);
-  assert.match(html, /calendar-gantt\.css\?v=20260827-15/);
+  assert.match(html, /calendar-gantt\.css\?v=20260827-16/);
   assert.match(js, /function appendHighlight/);
   assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
   assert.ok((js.match(/appendHighlight\(/g) || []).length >= 6);
@@ -97,6 +97,20 @@ test('calendar styles provide warm rounded gantt grids and horizontal scrolling'
   assert.match(css, /\.calendar-category-cell[^}]*position:\s*sticky/s);
   assert.match(css, /grid-template-columns:\s*minmax\([^;]+repeat\(7/s);
   assert.match(css, /overflow-x:\s*auto/);
+});
+
+test('every week and month category column stays fixed while scrolling', () => {
+  assert.match(css, /\.calendar-category-cell\{[^}]*position:sticky[^}]*left:0/s);
+  assert.match(css, /\.calendar-category-head\{[^}]*position:sticky[^}]*left:0/s);
+  assert.match(css, /\.calendar-daily-title-row>\.calendar-category-cell\{[^}]*position:sticky[^}]*left:0/s);
+  assert.doesNotMatch(css, /\.calendar-daily-title-row>\.calendar-category-cell\{[^}]*position:relative/s);
+});
+
+test('timeline grid uses one integer day width for headers rows and guide lines', () => {
+  assert.match(css, /--timeline-day-width:134px/);
+  assert.match(css, /grid-template-columns:repeat\(var\(--timeline-days\),var\(--timeline-day-width\)\)/);
+  assert.match(css, /background-image:repeating-linear-gradient\([^}]*var\(--timeline-day-width\)/s);
+  assert.doesNotMatch(css, /--timeline-day-width:\d+\.\d+px/);
 });
 
 test('embedded calendar is labelled as a preview and can escape to the complete page', () => {
