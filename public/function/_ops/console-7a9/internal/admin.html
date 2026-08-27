@@ -22,7 +22,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>后台管理-冬日工具箱</title>
   <link rel="stylesheet" href="./admin-dashboard.css" />
-  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260826-5" />
+  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260827-1" />
   <style>
     :root{
       --bg-night-1:#0b1220;
@@ -1380,7 +1380,7 @@
                   <div class="calendar-step-panel" data-calendar-panel="tasks" role="tabpanel" hidden>
                     <div class="calendar-step-title">组合任务</div>
                     <div class="admin-status calendar-normal-task-hint">普通日程不需要添加子任务。选择“组合日程”后，可在这里设置跨日甘特任务或每日清单。</div>
-                    <div id="calendarCompositeFields" hidden><div class="form-group"><label for="calendarCompositeLayout">展示方式</label><select id="calendarCompositeLayout"><option value="gantt">跨日甘特任务块</option><option value="daily-list">每日清单</option></select></div><div id="calendarCompositeItems"></div><button class="btn secondary" id="calendarAddCompositeItemBtn" type="button">＋ 新增子任务</button></div>
+                    <div id="calendarCompositeFields" hidden><div class="form-group"><label for="calendarCompositeLayout">展示方式</label><select id="calendarCompositeLayout"><option value="gantt">跨日甘特任务块</option><option value="daily-list">每日清单</option></select></div><div id="calendarCompositeItems"></div><button class="btn secondary" id="calendarAddCompositeItemBtn" type="button">＋ 新增子任务</button><div id="calendarDailyChecklistBoard" hidden></div></div>
                   </div>
 
                   <div class="calendar-step-panel" data-calendar-panel="style" role="tabpanel" hidden>
@@ -1423,6 +1423,7 @@
               <div class="calendar-admin-preview-scroll" id="calendarAdminPreview"></div>
             </section>
             <dialog class="calendar-help-dialog" id="calendarHelpDialog"><button type="button" class="calendar-help-close" data-calendar-help-close aria-label="关闭">×</button><h3 id="calendarHelpTitle">字段说明</h3><div id="calendarHelpContent"></div></dialog>
+            <dialog class="calendar-preview-edit-dialog calendar-daily-item-dialog" id="calendarDailyItemDialog"><form id="calendarDailyItemForm"><button type="button" class="calendar-help-close" data-daily-item-close aria-label="关闭">×</button><h3 id="calendarDailyItemDialogTitle">添加子任务</h3><input id="calendarDailyItemIndex" type="hidden" /><input id="calendarDailyItemStartOffset" type="hidden" /><div class="form-grid"><div class="form-group calendar-full-field"><label for="calendarDailyItemName">子任务名称</label><input id="calendarDailyItemName" maxlength="120" required /></div><div class="form-group calendar-full-field"><label for="calendarDailyItemDescription">子任务描述</label><textarea id="calendarDailyItemDescription" rows="4" maxlength="1000"></textarea></div><div class="form-group"><label for="calendarDailyItemDuration">持续天数</label><input id="calendarDailyItemDuration" type="number" min="1" value="1" /></div><div class="form-group"><label for="calendarDailyItemColor">子任务颜色</label><input id="calendarDailyItemColor" type="color" value="#e8a87c" /></div></div><div class="calendar-actions"><button class="btn secondary" id="calendarDailyItemDeleteBtn" type="button" hidden>删除</button><button class="btn secondary" data-daily-item-close type="button">取消</button><button class="btn" type="submit">保存子任务</button></div></form></dialog>
             <dialog class="calendar-preview-edit-dialog" id="calendarPreviewEditDialog"><form id="calendarPreviewEditForm"><button type="button" class="calendar-help-close" data-preview-edit-close aria-label="关闭">×</button><h3>快速调整日程</h3><input id="calendarPreviewEditId" type="hidden" /><input id="calendarPreviewEditOccurrenceDate" type="hidden" /><div class="form-grid"><div class="form-group calendar-full-field" id="calendarPreviewEditScopeGroup"><label for="calendarPreviewEditScope">修改范围</label><select id="calendarPreviewEditScope"><option value="all">整个循环日程</option><option value="single">仅当前这一次</option><option value="future">当前及以后</option></select><small id="calendarPreviewEditScopeHint">仅本次和当前及以后会保存为循环例外，不改变之前的实例。</small></div><div class="form-group calendar-full-field"><label for="calendarPreviewEditName">活动名称</label><input id="calendarPreviewEditName" maxlength="120" required /></div><div class="form-group"><label class="calendar-switch"><input id="calendarPreviewEditAutoColor" type="checkbox" /><span>按名称自动配色</span></label></div><div class="form-group"><label for="calendarPreviewEditColor">活动颜色</label><input id="calendarPreviewEditColor" type="color" /></div><div class="form-group"><label class="calendar-switch"><input id="calendarPreviewEditBold" type="checkbox" /><span>名称加粗</span></label></div><div class="form-group"><label class="calendar-switch"><input id="calendarPreviewEditEnabled" type="checkbox" /><span>启用日程</span></label></div></div><div class="calendar-actions"><button class="btn secondary" id="calendarPreviewFullEditBtn" type="button">进入完整编辑</button><button class="btn secondary" data-preview-edit-close type="button">取消</button><button class="btn" type="submit">保存调整</button></div></form></dialog>
           </div>
         </section>
@@ -5231,7 +5232,7 @@
   <script src="/function/admin-neighbor-progress-page.js?v=3"></script>
   <script src="/function/admin-history-immigration-page.js?v=2"></script>
   <script src="/function/admin-calendar-model.js?v=20260826-4"></script>
-  <script src="/function/admin-calendar-page.js?v=20260826-11"></script>
+  <script src="/function/admin-calendar-page.js?v=20260827-1"></script>
   <script src="/function/admin-home-navigation-page.js?v=1"></script>
   <script>
   (function(){
