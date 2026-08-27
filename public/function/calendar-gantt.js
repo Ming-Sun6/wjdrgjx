@@ -482,8 +482,7 @@
       const rows = document.createElement("div");
       rows.className = "calendar-merged-rows";
       lanes.forEach((lane) => rows.appendChild(row("", lane, week)));
-      const childStarts = (schedule.items || []).map((item) => item.startDate).filter(Boolean).sort(compareDates);
-      const parentDate = childStarts[0] || schedule.startDate;
+      const parentDate = schedule.startDate;
       const parent = Object.assign({}, schedule, {
         startDate: parentDate,
         endDate: parentDate,
@@ -763,8 +762,7 @@
           );
         return [title].concat(cards);
       }
-      const childStarts = (schedule.items || []).map((item) => item.startDate).filter(Boolean).sort(compareDates);
-      const parentDate = childStarts[0] || schedule.startDate;
+      const parentDate = schedule.startDate;
       const parentTitle = Object.assign({}, schedule, {
         startDate: addDays(parentDate, -1),
         endDate: addDays(parentDate, -1),
