@@ -486,7 +486,7 @@
       const parent = Object.assign({}, schedule, {
         startDate: parentDate,
         endDate: parentDate,
-        timelineParentDate: addDays(parentDate, -1),
+        timelineParentDate: parentDate,
         name: schedule.name,
       });
       const parentVisual = Object.assign({}, parent, {
