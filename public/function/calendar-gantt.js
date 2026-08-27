@@ -688,7 +688,8 @@
         ));
     }
     function timelineSection(categoryName, items, parentName, range) {
-      const lanes = packLanes(items);
+      const displayItems = items.filter((item) => !item.timelineParentTitle);
+      const lanes = packLanes(displayItems);
       if (!lanes.length) return null;
       const section = document.createElement("div");
       section.className =
@@ -697,12 +698,10 @@
       const label = document.createElement("div");
       label.className = "calendar-timeline-category-label";
       label.textContent = categoryName || "常规";
-      if (parentName) {
-        const parent = document.createElement("strong");
-        parent.className = "calendar-timeline-parent-name";
-        parent.textContent = parentName;
-        label.appendChild(parent);
-      }
+      const parent = document.createElement("div");
+      parent.className = "calendar-timeline-parent-column calendar-timeline-parent-name";
+      parent.textContent = parentName || "";
+      parent.style.gridRow = `span ${lanes.length}`;
       const rows = document.createElement("div");
       rows.className = "calendar-timeline-rows";
       lanes.forEach((lane) => {
@@ -714,7 +713,7 @@
         });
         rows.appendChild(laneEl);
       });
-      section.append(label, rows);
+      section.append(label, parent, rows);
       return section;
     }
     function renderTimelineDailySection(categoryName, schedules, range) {
@@ -791,6 +790,10 @@
       head.className = "calendar-timeline-category-head";
       head.textContent = "活动分类";
       row.appendChild(head);
+      const parentHead = document.createElement("div");
+      parentHead.className = "calendar-timeline-parent-head";
+      parentHead.textContent = "活动名称";
+      row.appendChild(parentHead);
       for (let index = 0; index < days; index++) {
         const date = addDays(range.from, index),
           parsed = parseDate(date),
