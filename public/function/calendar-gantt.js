@@ -477,6 +477,19 @@
       cat.textContent = categoryName;
       const title = document.createElement("div");
       title.className = "calendar-daily-title";
+      const activeDates = (schedule.cards || [])
+        .map((card) => card.date)
+        .filter(
+          (date) =>
+            compareDates(date, week.from) >= 0 &&
+            compareDates(date, week.to) <= 0,
+        )
+        .sort(compareDates);
+      if (activeDates.length) {
+        const firstDay = diffDays(week.from, activeDates[0]);
+        const lastDay = diffDays(week.from, activeDates[activeDates.length - 1]);
+        title.style.gridColumn = `${firstDay + 2} / ${lastDay + 3}`;
+      }
       title.style.fontWeight = schedule.fontBold ? "900" : "";
       title.textContent =
         (schedule.firstCardDate &&
