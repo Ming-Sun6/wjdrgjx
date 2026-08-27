@@ -187,6 +187,15 @@ test('daily checklist expands multi-day children into separate stable cards', ()
       dateMode: 'relative-range',
       startOffsetDays: 0,
       endOffsetDays: 2
+    }, {
+      id: 202,
+      name: '秘银',
+      color: '#123456',
+      enabled: true,
+      sortOrder: 2,
+      dateMode: 'relative-range',
+      startOffsetDays: 1,
+      endOffsetDays: 1
     }]
   }], { from: '2026-08-25', to: '2026-08-26' });
 
@@ -195,8 +204,12 @@ test('daily checklist expands multi-day children into separate stable cards', ()
   assert.equal(result.schedules[0].lastCardDate, '2026-08-26');
   assert.deepEqual(result.schedules[0].cards.map((card) => card.id), [
     '20:2026-08-24:item:201:2026-08-24:day:2026-08-25',
+    '20:2026-08-24:item:202:2026-08-25:day:2026-08-25',
     '20:2026-08-24:item:201:2026-08-24:day:2026-08-26'
   ]);
+  assert.equal(result.schedules[0].cards[0].color, domain.activityColor('领主宝石'));
+  assert.equal(result.schedules[0].cards[1].color, '#123456');
+  assert.notEqual(result.schedules[0].cards[0].color, result.schedules[0].color);
 });
 
 test('render unit limit fails atomically', () => {

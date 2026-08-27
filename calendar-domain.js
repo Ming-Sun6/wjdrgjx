@@ -510,9 +510,9 @@ function expandDefinitions(definitions, options) {
       const enabledItems = (definition.items || []).filter((item) => item.enabled !== false);
       const childOccurrences = [];
       for (const item of enabledItems) {
-        const inherited = item.color || occurrence.color;
+        const childColor = item.color || activityColor(item.name);
         for (const child of expandChildOccurrences(item, occurrenceStart, occurrenceEnd, occurrence.id)) {
-          child.color = inherited;
+          child.color = childColor;
           child.fontBold = occurrence.fontBold;
           childOccurrences.push(child);
         }
