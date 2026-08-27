@@ -37,7 +37,7 @@ test('calendar defaults to a horizontally scrollable timeline', () => {
   assert.match(js, /calendar-continuous-timeline/);
   assert.match(css, /calendar-continuous-timeline/);
   assert.match(css, /repeat\(var\(--timeline-days\),var\(--timeline-day-width\)\)/);
-  assert.match(css, /\.calendar-continuous-timeline\{--timeline-day-width:134px\}/);
+  assert.match(css, /\.calendar-continuous-timeline\{--timeline-day-width:134\.4px\}/);
   assert.doesNotMatch(js, /calendar-timeline-track/);
   assert.match(js, /pointerdown/);
   assert.match(js, /scrollLeft\s*=\s*timelinePan\.scrollLeft\s*-\s*delta/);
