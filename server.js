@@ -649,7 +649,7 @@ function normalizeHomeLeadCarousel(input) {
 }
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'rukou.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/api/image/thumb', async (req, res) => {

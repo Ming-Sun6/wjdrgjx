@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+
+
+  <meta charset="UTF-8" />
+  <meta name="description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="冬日工具箱" />
+  <meta property="og:title" content="冬日工具箱" />
+  <meta property="og:description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
+  <meta property="og:url" content="https://wjgl.store/" />
+  <meta property="og:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="675" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="冬日工具箱" />
+  <meta name="twitter:description" content="无尽冬日玩家攻略站：练兵计算、活动日历、英雄数据、礼包兑换与论坛交流，助你在雪国更快成长。" />
+  <meta name="twitter:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
+  <meta name="baidu-site-verification" content="codeva-F2OnOZUh8c" />
+  <meta name="baidu_union_verify" content="eaadf6429f67b66ae13f8c9fa5b45146">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>冬日工具箱</title>
+  <link rel="stylesheet" href="/function/home.css?v=20260826-1">
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <style id="wjdr-home-mobile-title-fix">
+    @media (max-width: 768px){
+      .tool-tile-card{position:relative;}
+      .tool-tile-name,
+      .tool-tile-name.card-title{
+        display:grid;
+        place-items:center;
+        width:100%;
+        min-height:3.84em;
+        line-height:1.28;
+        overflow:visible;
+        text-align:center;
+      }
+      .tool-tile-name-inner{
+        display:block;
+        width:100%;
+        max-width:100%;
+        text-align:center;
+        white-space:normal;
+        overflow-wrap:anywhere;
+        word-break:break-word;
+      }
+      .tool-status-badge{
+        top:7px;
+        right:7px;
+      }
+      .tool-tile-card.has-tool-status-badge .tool-tile-link{
+        padding-top:28px !important;
+        align-content:start !important;
+      }
+      .featured-tool-card.has-tool-status-badge .featured-tool-link{
+        padding-top:38px !important;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="/function/theme.css?v=20260501-0103" />
+  <!-- 窄屏下 mobile-responsive 为避开固定 auth-bar 会加大 .container 的 padding-top；
+       首页已包含活动横幅时不应再预留整块顶部空白，否则标题与横幅间距过大 -->
+  <style id="wjdr-home-lead-container-gap">
+    body:has(.wjdr-home-lead) > .auth-bar ~ .container{
+      padding-top:10px !important;
+    }
+    @media (max-width:600px){
+      body:has(.wjdr-home-lead) > .auth-bar ~ .container{
+        padding-top:8px !important;
+      }
+    }
+  </style>
+  <style id="wjdr-home-fab-offset">@media (max-width:768px){body:has(.tab-bar) #themeToggle{right:12px;bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}}</style>
+  <script src="/function/theme.js?v=20260501-0103" defer></script>
+</head>
+<body>
+
+  <div class="wjdr-home-lead" aria-label="活动说明入口">
+    <div class="wjdr-home-lead-inner">
+      <div class="wjdr-home-carousel" id="wjdrHomeLeadRoot">
+        <div class="wjdr-home-carousel-track" id="wjdrHomeLeadTrack">
+          <div class="wjdr-home-carousel-slide is-active">
+            <a class="wjdr-home-carousel-media" href="/public/wjdr-home/board" draggable="false">
+              <img src="/public/wjdr-home/2213301_47_5895.jpg" alt="活动说明图示" decoding="async" fetchpriority="high" draggable="false" />
+            </a>
+          </div>
+        </div>
+        <div class="wjdr-home-carousel-dots" id="wjdrHomeLeadDots" hidden></div>
+      </div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var track=document.getElementById('wjdrHomeLeadTrack');
+    var dotsRoot=document.getElementById('wjdrHomeLeadDots');
+    var root=document.getElementById('wjdrHomeLeadRoot');
+    if(!track) return;
+    var timer=null;
+    var idx=0;
+    var slides=[];
+    var intervalMs=6000;
+    var hoverBound=false;
+    var swipeBound=false;
+    var swipeSx=0;
+    var swipeSy=0;
+    var swipePanning=false;
+    var swipePtrId=null;
+    var suppressCarouselClick=false;
+    function clearTimer(){ if(timer){ clearInterval(timer); timer=null; } }
+    function applySlide(i){
+      if(!slides.length) return;
+      idx=(i+slides.length)%slides.length;
+      for(var s=0;s<slides.length;s++){
+        slides[s].classList.toggle('is-active',s===idx);
+      }
+      if(dotsRoot){
+        var dots=dotsRoot.querySelectorAll('.wjdr-home-carousel-dot');
+        for(var d=0;d<dots.length;d++){ dots[d].classList.toggle('is-active',d===idx); }
+      }
+    }
+    function armTimer(){
+      clearTimer();
+      if(slides.length<=1) return;
+      timer=setInterval(function(){ applySlide(idx+1); }, intervalMs);
+    }
+    function bindCarouselSwipe(){
+      if(!track||swipeBound) return;
+      swipeBound=true;
+      var threshold=48;
+      function trySwipeEnd(clientX, clientY){
+        if(!swipePanning) return;
+        swipePanning=false;
+        swipePtrId=null;
+        var dx=clientX-swipeSx;
+        var dy=clientY-swipeSy;
+        if(slides.length<=1) return;
+        if(Math.abs(dx)<threshold) return;
+        if(Math.abs(dx)<Math.abs(dy)*1.2) return;
+        if(dx<0) applySlide(idx+1);
+        else applySlide(idx-1);
+        armTimer();
+        suppressCarouselClick=true;
+      }
+      function onPointerDown(ev){
+        if(ev.pointerType==='mouse'&&ev.button!==0) return;
+        if(ev.target&&ev.target.closest&&ev.target.closest('.wjdr-home-carousel-dot')) return;
+        swipePanning=true;
+        swipePtrId=ev.pointerId;
+        swipeSx=ev.clientX;
+        swipeSy=ev.clientY;
+        /* 鼠标不要用 capture：会把 click 重定向到 track，导致内部 <a> 无法导航；触摸/笔仍 capture 以便滑出元素仍能结束滑动 */
+        if(ev.pointerType!=='mouse'){
+          try{ track.setPointerCapture(ev.pointerId); }catch(e){}
+        }
+      }
+      function onPointerUp(ev){
+        if(swipePtrId===null||ev.pointerId!==swipePtrId) return;
+        try{ track.releasePointerCapture(ev.pointerId); }catch(e){}
+        trySwipeEnd(ev.clientX, ev.clientY);
+      }
+      function onPointerCancel(){
+        swipePanning=false;
+        swipePtrId=null;
+      }
+      if(window.PointerEvent){
+        track.addEventListener('pointerdown', onPointerDown);
+        track.addEventListener('pointerup', onPointerUp);
+        track.addEventListener('pointercancel', onPointerCancel);
+        track.addEventListener('lostpointercapture', onPointerCancel);
+      }else{
+        track.addEventListener('touchstart', function(ev){
+          if(!ev.touches||ev.touches.length!==1) return;
+          if(ev.target&&ev.target.closest&&ev.target.closest('.wjdr-home-carousel-dot')) return;
+          swipePanning=true;
+          swipeSx=ev.touches[0].clientX;
+          swipeSy=ev.touches[0].clientY;
+        }, {passive:true});
+        track.addEventListener('touchend', function(ev){
+          var t=ev.changedTouches&&ev.changedTouches[0];
+          if(!t) return;
+          trySwipeEnd(t.clientX, t.clientY);
+        }, {passive:true});
+        track.addEventListener('touchcancel', onPointerCancel, {passive:true});
+      }
+      track.addEventListener('click', function(ev){
+        if(!suppressCarouselClick) return;
+        suppressCarouselClick=false;
+        ev.preventDefault();
+        ev.stopPropagation();
+      }, true);
+    }
+    bindCarouselSwipe();
+    function escAttr(v){
+      return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+    }
+    function renderCarouselMedia(imageUrl, href, alt, fetchPriority, canClick){
+      var image='<img src="'+escAttr(imageUrl)+'" alt="'+escAttr(alt)+'" decoding="async" draggable="false"'+fetchPriority+'/>';
+      if(canClick){
+        return '<a class="wjdr-home-carousel-media" href="'+escAttr(href)+'" draggable="false">'+image+'</a>';
+      }
+      return '<div class="wjdr-home-carousel-media is-static" aria-disabled="true">'+image+'</div>';
+    }
+    function build(slidesCfg, ms, clickEnabled){
+      clearTimer();
+      slides=[];
+      intervalMs=typeof ms==='number'&&isFinite(ms)?Math.max(3000,Math.min(30000,ms)):6000;
+      var canClick=clickEnabled!==false;
+      if(root) root.classList.toggle('is-static',!canClick);
+      if(!slidesCfg||!slidesCfg.length){
+        track.innerHTML='<div class="wjdr-home-carousel-slide is-active">'+renderCarouselMedia('/public/wjdr-home/2213301_47_5895.jpg','/public/wjdr-home/board','活动说明图示',' fetchpriority="high"',canClick)+'</div>';
+        slides=[track.querySelector('.wjdr-home-carousel-slide')];
+        if(dotsRoot){ dotsRoot.innerHTML=''; dotsRoot.hidden=true; }
+        return;
+      }
+      var html='';
+      for(var i=0;i<slidesCfg.length;i++){
+        var sl=slidesCfg[i];
+        var img=sl.imageUrl||'';
+        var href=sl.href||'#';
+        var alt=sl.alt||'活动图示';
+        var fp=i===0?' fetchpriority="high"':'';
+        html+='<div class="wjdr-home-carousel-slide'+(i===0?' is-active':'')+'">'+
+          renderCarouselMedia(img,href,alt,fp,canClick)+
+          '</div>';
+      }
+      track.innerHTML=html;
+      slides=[].slice.call(track.querySelectorAll('.wjdr-home-carousel-slide'));
+      if(dotsRoot){
+        if(slides.length<=1){ dotsRoot.innerHTML=''; dotsRoot.hidden=true; }
+        else{
+          dotsRoot.hidden=false;
+          dotsRoot.innerHTML='';
+          for(var j=0;j<slides.length;j++){
+            var b=document.createElement('button');
+            b.type='button';
+            b.className='wjdr-home-carousel-dot'+(j===0?' is-active':'');
+            b.setAttribute('aria-label','第 '+(j+1)+' 张');
+            (function(n){ b.addEventListener('click',function(){ applySlide(n); armTimer(); }); })(j);
+            dotsRoot.appendChild(b);
+          }
+        }
+      }
+      if(root && !hoverBound){
+        hoverBound=true;
+        root.addEventListener('mouseenter',clearTimer);
+        root.addEventListener('mouseleave',armTimer);
+      }
+      armTimer();
+    }
+    fetch('/api/home-lead',{credentials:'omit',cache:'no-store'})
+      .then(function(r){ return r.json().catch(function(){ return null; }); })
+      .then(function(cfg){
+        if(cfg&&cfg.slides&&cfg.slides.length) build(cfg.slides, cfg.intervalMs, cfg.clickEnabled);
+      })
+      .catch(function(){});
+  })();
+  </script>
+  <div class="auth-bar" id="authBar">
+    <span class="auth-pill" id="authPill">未登录</span>
+    <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
+    <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
+  </div>
+        <div class="version-tag">版本 V0.9.39</div>
+	  <button class="announcement-btn" id="openAnnouncement" type="button" aria-label="查看公告" style="display:none;">
+	    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10v4h3l4 4V6L6 10H3zm12-2v8h2V8h-2zm4-2v12h2V6h-2z"/></svg>
+	    <span class="announcement-dot" id="announcementDot"></span>
+	  </button>
+	  <button class="changelog-btn" id="openChangelog" type="button">更新日志</button>
+	  <button class="theme-toggle-btn" id="themeToggle" type="button" aria-label="切换主题" title="切换主题">
+	    <svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.48 14.32l1.79 1.8 1.41-1.42-1.8-1.79-1.4 1.41zM12 5a1 1 0 0 0 1-1V1h-2v3a1 1 0 0 0 1 1zm0 14a1 1 0 0 0-1 1v3h2v-3a1 1 0 0 0-1-1zM5 11H2v2h3a1 1 0 0 0 0-2zm17 0h-3a1 1 0 0 0 0 2h3v-2zM4.96 19.54l1.41 1.42 1.8-1.8-1.42-1.41-1.79 1.79zM19.04 4.46l-1.8 1.79 1.41 1.42 1.8-1.8-1.41-1.41zM12 7a5 5 0 1 0 .001 10.001A5 5 0 0 0 12 7z"/></svg>
+	  </button>
+  <div class="container">
+    <header>
+      <div>
+        <div class="title">冬日工具箱</div>
+      </div>
+    </header>
+
+    <nav class="tab-bar" id="mainTabs">
+      <button class="tab-item" type="button" data-tab="all" data-home-nav-id="all">全部</button>
+      <button class="tab-item" type="button" data-tab="tools" data-home-nav-id="tools">工具</button>
+      <button class="tab-item" type="button" data-tab="forum" data-home-nav-id="forum">交流论坛</button>
+      <button class="tab-item" type="button" data-tab="calendar" data-home-nav-id="calendar">活动日历</button>
+      <button class="tab-item" type="button" data-tab="my" data-home-nav-id="my">我的信息</button>
+    </nav>
+    <div class="tool-subtabs" id="toolSubTabs" style="display:none;">
+      <button class="tool-subitem" type="button" data-tool-tab="calcTools">计算器/工具</button>
+      <button class="tool-subitem" type="button" data-tool-tab="dataQuery">数据查询</button>
+      <button class="tool-subitem" type="button" data-tool-tab="miniGames">小游戏</button>
+    </div>
+    <div class="tab-search" id="allTabSearch" style="display:none;">
+      <input class="tab-search-input" id="allTabSearchInput" type="search" placeholder="搜索功能、帖子、礼包道具或用户名" autocomplete="off" />
+      <button class="tab-search-clear" id="allTabSearchClear" type="button">清空</button>
+    </div>
+    <div id="giftPackSearchHint" class="gift-pack-search-hint"></div>
+    <div id="forumSearchHint" class="gift-pack-search-hint"></div>
+    <div id="userSearchHint" class="gift-pack-search-hint"></div>
+
+    <div class="grid">
+      <section class="card wide featured-tools-shell" id="featuredTools" data-tool-group="featured">
+        <div class="warehouse-head">
+          <div>
+            <div class="warehouse-title">&#x5E38;&#x7528;&#x5DE5;&#x5177;</div>
+            <div class="warehouse-copy">&#x4F18;&#x5148;&#x5C55;&#x793A;&#x6700;&#x5E38;&#x7528;&#x3001;&#x6700;&#x503C;&#x5F97;&#x5148;&#x70B9;&#x5F00;&#x7684;&#x5DE5;&#x5177;&#x3002;</div>
+          </div>
+        </div>
+        <div class="featured-tools-grid">
+          <section class="card featured-tool-card feature-core" data-category="calcTools" data-tool-priority="featured" data-tool-id="training-calculator">
+            <a class="featured-tool-link" href="function/equipment-training-calculator.html">
+              <span class="featured-tool-badge">&#x7EC3;&#x5175;&#x6838;&#x5FC3;</span>
+              <div class="featured-tool-main">
+                <div>
+                  <div class="card-title tool-entry-title"><span class="tool-tile-name-inner">&#x7EC3;&#x5175;&#x8BA1;&#x7B97;&#x7AD9;</span></div>
+                  <div class="desc">&#x8BAD;&#x7EC3;&#x8017;&#x65F6;&#x3001;&#x5F97;&#x5206;&#x4E0E;&#x8D44;&#x6E90;&#x4E00;&#x4F53;&#x8BA1;&#x7B97;&#x3002;</div>
+                </div>
+                <div class="tool-tile-icon featured-tool-icon" aria-hidden="true">
+                  <img src="Scores/士兵头像/item_icon_11100.png" alt="" />
+                </div>
+              </div>
+            </a>
+            <div class="pill">equipment-training-calculator.html</div>
+          </section>
+
+          <section class="card featured-tool-card warm" data-category="calcTools" data-tool-priority="featured" data-tool-id="fire-crystal-building">
+            <a class="featured-tool-link" href="function/Architecture10.html">
+              <span class="featured-tool-badge">&#x8D44;&#x6E90;&#x89C4;&#x5212;</span>
+              <div class="featured-tool-main">
+                <div>
+                  <div class="card-title tool-entry-title"><span class="tool-tile-name-inner">&#x706B;&#x6676;&#x5EFA;&#x7B51;&#x8BA1;&#x7B97;&#x5668;</span></div>
+                  <div class="desc">&#x8986;&#x76D6; 30 &#x7EA7;&#x5230;&#x706B; 10 &#x9636;&#x6BB5;&#x7684;&#x5EFA;&#x7B51;&#x6D88;&#x8017;&#x4E0E;&#x89C4;&#x5212;&#x8BA1;&#x7B97;&#x3002;</div>
+                </div>
+                <div class="tool-tile-icon featured-tool-icon" aria-hidden="true">
+                  <img src="Scores/活动图标/jump_icon_40087.png" alt="" />
+                </div>
+              </div>
+            </a>
+            <div class="pill">Architecture10.html</div>
+          </section>
+
+          <section class="card featured-tool-card feature-progress" data-category="calcTools" data-tool-priority="featured" data-tool-id="lord-equipment-gem">
+            <a class="featured-tool-link" href="function/lord-equipment-gem-calculator.html">
+              <span class="featured-tool-badge">&#x88C5;&#x5907;&#x8FDB;&#x9636;</span>
+              <div class="featured-tool-main">
+                <div>
+                  <div class="card-title tool-entry-title"><span class="tool-tile-name-inner">&#x9886;&#x4E3B;&#x88C5;&#x5907;&#x4E0E;&#x5B9D;&#x77F3;&#x8BA1;&#x7B97;&#x5668;</span></div>
+                  <div class="desc">&#x9886;&#x4E3B;&#x88C5;&#x5907;&#x4E0E;&#x5B9D;&#x77F3;&#x5347;&#x7EA7;&#x8BA1;&#x7B97;&#x3002;</div>
+                </div>
+                <div class="tool-tile-icon featured-tool-icon" aria-hidden="true">
+                  <img src="Scores/领主宝石/图层 48.png" alt="" />
+                </div>
+              </div>
+            </a>
+            <div class="pill">lord-equipment-gem-calculator.html</div>
+          </section>
+
+          <section class="card featured-tool-card feature-data" data-category="dataQuery" data-tool-priority="featured" data-tool-id="hero-data">
+            <a class="featured-tool-link" href="function/Zero/hero-data.html">
+              <span class="featured-tool-badge">&#x6570;&#x636E;&#x603B;&#x89C8;</span>
+              <div class="featured-tool-main">
+                <div>
+                  <div class="card-title tool-entry-title"><span class="tool-tile-name-inner">&#x82F1;&#x96C4;&#x6570;&#x636E;</span></div>
+                  <div class="desc">&#x4F5C;&#x4E3A;&#x6570;&#x636E;&#x67E5;&#x8BE2;&#x603B;&#x5165;&#x53E3;&#xFF0C;&#x96C6;&#x4E2D;&#x67E5;&#x770B;&#x82F1;&#x96C4;&#x8D44;&#x6599;&#x4E0E;&#x540E;&#x7EED;&#x4EE3;&#x9645;&#x6269;&#x5C55;&#x3002;</div>
+                </div>
+                <div class="tool-tile-icon featured-tool-icon" aria-hidden="true">
+                  <img src="Scores/活动图标/jump_icon_40220.png" alt="" />
+                </div>
+              </div>
+            </a>
+            <div class="pill">Zero/hero-data.html</div>
+          </section>
+
+        </div>
+      </section>
+
+      <section class="card wide tool-warehouse-shell" id="coreToolWarehouse" data-tool-group="core">
+        <div class="warehouse-head">
+          <div>
+            <div class="warehouse-title">&#x57FA;&#x7840;&#x5DE5;&#x5177;</div>
+            <div class="warehouse-copy">&#x5E38;&#x7528;&#x5DE5;&#x5177;&#x4F18;&#x5148;&#x96C6;&#x4E2D;&#xFF0C;&#x4FDD;&#x6301;&#x9AD8;&#x9891;&#x5165;&#x53E3;&#x66F4;&#x5BB9;&#x6613;&#x626B;&#x5230;&#x3002;</div>
+          </div>
+        </div>
+        <div class="tool-warehouse-grid">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="bear-pit">
+            <a class="tool-tile-link" href="function/BeaPit.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F43B;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x718A;&#x5751;&#x6392;&#x5E03;</span></div>
+            </a>
+            <div class="pill">BeaPit.html</div>
+            <div class="desc">&#x7528;&#x4E8E;&#x718A;&#x5751;/&#x5EFA;&#x7B51;&#x6392;&#x5E03;&#x4E0E;&#x6807;&#x8BB0;&#xFF0C;&#x652F;&#x6301;&#x7F29;&#x653E;&#x3001;&#x4FDD;&#x5B58;&#x548C;&#x5BFC;&#x51FA;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="bear-pit-simple">
+            <a class="tool-tile-link" href="function/BearPitSimple.html">
+              <div class="tool-tile-icon" aria-hidden="true">🐻</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">熊坑排布简约版</span></div>
+            </a>
+            <div class="pill">BearPitSimple.html</div>
+            <div class="desc">成员名单与熊坑站位排布，支持存档恢复、分享秘钥和 PNG 导出。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="core" data-tool-id="tiantian-strategy">
+            <a class="tool-tile-link" href="function/tiantian-strategy-hub.html">
+              <div class="tool-tile-icon" aria-hidden="true">
+                <img src="Scores/tiantian.jpg" alt="" />
+              </div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">甜甜的<wbr>攻略站</span></div>
+            </a>
+            <div class="pill">tiantian-strategy-hub.html</div>
+            <div class="desc">攻略 1.0 / 2.0 / 3.0 目录预览，一键跳转金山文档查看完整攻略。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="refine-crystal-calculator">
+            <a class="tool-tile-link" href="function/refine-crystal-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F525;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">精炼提炼<wbr>计算器</span></div>
+            </a>
+            <div class="pill">refine-crystal-calculator.html</div>
+            <div class="desc">按概率表计算精炼火晶期望产出与火晶消耗，支持周策略。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="refine-crystal-simulator">
+            <a class="tool-tile-link" href="function/refine-crystal-simulator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">精炼提炼<wbr>模拟器</span></div>
+            </a>
+            <div class="pill">refine-crystal-simulator.html</div>
+            <div class="desc">真实随机模拟每次提炼爆率与奖励，支持蒙特卡洛批量模拟。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="engineering-station-time">
+            <a class="tool-tile-link" href="function/engineering-station-time.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x23F1;&#xFE0F;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x5DE5;&#x7A0B;&#x7AD9;&#x65F6;&#x95F4;</span></div>
+            </a>
+            <div class="pill">engineering-station-time.html</div>
+            <div class="desc">&#x7528;&#x4E8E;&#x5DE5;&#x7A0B;&#x7AD9;&#x5468;&#x671F;&#x5012;&#x8BA1;&#x65F6;&#x3001;&#x7B5B;&#x9009;&#x4E0E;&#x5BFC;&#x5165;&#x5BFC;&#x51FA;&#x914D;&#x7F6E;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="gift-value-calculator">
+            <a class="tool-tile-link" href="function/gift-value-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F381;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x793C;&#x5305;&#x6027;&#x4EF7;&#x6BD4;</span></div>
+            </a>
+            <div class="pill">gift-value-calculator.html</div>
+            <div class="desc">&#x652F;&#x6301;&#x6309;&#x9636;&#x6BB5;&#x4E0E;&#x6863;&#x4F4D;&#x8BA1;&#x7B97;&#x793C;&#x5305;&#x603B;&#x4EF7;&#x503C;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="hero-equipment-calculator">
+            <a class="tool-tile-link" href="function/hero-equipment-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F6E1;&#xFE0F;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x82F1;&#x96C4;&#x88C5;&#x5907;&#x8BA1;&#x7B97;&#x5668;</span></div>
+            </a>
+            <div class="pill">hero-equipment-calculator.html</div>
+            <div class="desc">&#x82F1;&#x96C4;&#x88C5;&#x5907;&#x517B;&#x6210;&#x4E0E;&#x5C5E;&#x6027;&#x8BA1;&#x7B97;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="expert-calculator">
+            <a class="tool-tile-link" href="function/expert-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9D1;&#x200D;&#x1F4BC;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">专家计算器</span></div>
+            </a>
+            <div class="pill">expert-calculator.html</div>
+            <div class="desc">专家关系、技能等级与资源消耗计算，技能资料预留后续补充。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="t11-calculator">
+            <a class="tool-tile-link" href="function/T11Calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9EA;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">T11 &#x5347;&#x7EA7;</span></div>
+            </a>
+            <div class="pill">T11Calculator.html</div>
+            <div class="desc">&#x7528;&#x4E8E; T11 &#x76F8;&#x5173;&#x8D44;&#x6E90;&#x4E0E;&#x5347;&#x7EA7;&#x8BA1;&#x7B97;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="core" data-tool-id="t12-calculator">
+            <a class="tool-tile-link" href="function/T12Calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9EE;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">T12<wbr>科技计算器</span></div>
+            </a>
+            <div class="pill">T12Calculator.html</div>
+            <div class="desc">&#x6309;&#x5F53;&#x524D;/&#x76EE;&#x6807;&#x7B49;&#x7EA7;&#x6C47;&#x603B;&#x6240;&#x9700;&#x8D44;&#x6E90;&#x4E0E;&#x65F6;&#x95F4;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="core" data-tool-id="bear-body-recommendation">
+            <a class="tool-tile-link" href="function/bear-body-recommendation.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3AF;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">打熊车身推荐</span></div>
+            </a>
+            <div class="pill">bear-body-recommendation.html</div>
+            <div class="desc">按 S-D 评级查询打熊车身英雄、远征一技能与搭配特性。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="core" data-tool-id="ice-workshop-placement">
+            <a class="tool-tile-link" href="function/ice-workshop-placement.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x2744;&#xFE0F;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">创冰工坊<wbr>最优摆放助手</span></div>
+            </a>
+            <div class="pill">ice-workshop-placement.html</div>
+            <div class="desc">创冰工坊最优摆放辅助工具。</div>
+          </section>
+        </div>
+      </section>
+
+      <section class="card wide tool-warehouse-shell" id="extendedToolWarehouse" data-tool-group="extended">
+        <div class="warehouse-head">
+          <div>
+            <div class="warehouse-title">&#x66F4;&#x591A;&#x5DE5;&#x5177;</div>
+            <div class="warehouse-copy">&#x66F4;&#x591A;&#x5DE5;&#x5177;&#x4E0E;&#x6570;&#x636E;&#x67E5;&#x8BE2;&#x96C6;&#x4E2D;&#x5728;&#x8FD9;&#x91CC;&#xFF0C;&#x4FDD;&#x6301;&#x9996;&#x9875;&#x4E3B;&#x6B21;&#x66F4;&#x6E05;&#x6670;&#x3002;</div>
+          </div>
+        </div>
+        <div class="tool-warehouse-grid">
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="giftcode-center" hidden aria-hidden="true">
+            <a class="tool-tile-link" href="/giftcode/" id="giftcode-dev-link">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F381;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">无尽冬日兑换中心</span></div>
+            </a>
+            <div class="pill">giftcode</div>
+            <div class="desc">自动兑换、码库管理、玩家提交新兑换码。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="immigration-coupon-calculator">
+            <a class="tool-tile-link" href="function/jisuan.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3AB;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">移民券<wbr>计算器</span></div>
+            </a>
+            <div class="pill">jisuan.html</div>
+            <div class="desc">旧版移民券数量估算，游戏规则已调整，当前结果仅供娱乐参考。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="building-upgrade-calculator">
+            <a class="tool-tile-link" href="function/building-upgrade-calculator.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9EE;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">1-30建筑升级<wbr>计算器</span></div>
+            </a>
+            <div class="pill">building-upgrade-calculator.html</div>
+            <div class="desc">选择建筑、当前等级和目标等级，汇总升级所需资源、时间与实力提升。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="t12-data-overview">
+            <a class="tool-tile-link" href="function/T12DataOverview.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F4CA;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">T12<wbr>数据总览</span></div>
+            </a>
+            <div class="pill">T12DataOverview.html</div>
+            <div class="desc">T12 &#x714C;&#x8000;&#x7CFB;&#x5217;&#x6570;&#x636E;&#x603B;&#x89C8;&#xFF0C;&#x652F;&#x6301;&#x5175;&#x79CD;&#x7B5B;&#x9009;&#x4E0E;&#x641C;&#x7D22;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="neighbor-progress">
+            <a class="tool-tile-link" href="function/neighbor-progress.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9ED;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x90BB;&#x90A6;&#x8FDB;&#x5EA6;</span></div>
+            </a>
+            <div class="pill">neighbor-progress.html</div>
+            <div class="desc">&#x652F;&#x6301;&#x5177;&#x4F53;&#x533A;&#x670D;&#x67E5;&#x8BE2;&#x3001;&#x6309;&#x65E5;&#x671F;&#x53CD;&#x67E5;&#x7B49;&#x8FDB;&#x5EA6;&#x4FE1;&#x606F;&#x67E5;&#x770B;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="history-immigration-group">
+            <a class="tool-tile-link" href="function/history-immigration-group.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F5FA;&#xFE0F;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x5386;&#x53F2;&#x79FB;&#x6C11;&#x5206;&#x7EC4;</span></div>
+            </a>
+            <div class="pill">history-immigration-group.html</div>
+            <div class="desc">&#x67E5;&#x770B;&#x5386;&#x53F2;&#x79FB;&#x6C11;&#x5206;&#x7EC4;&#x77E9;&#x9635;&#xFF0C;&#x652F;&#x6301;&#x6309;&#x90BB;&#x90A6;&#x7B5B;&#x9009;&#x9AD8;&#x4EAE;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="migration-prediction">
+            <a class="tool-tile-link" href="function/migration-prediction.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F52E;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">移民<wbr>预测</span></div>
+            </a>
+            <div class="pill">migration-prediction.html</div>
+            <div class="desc">&#x540C;&#x671F;&#x5206;&#x7EC4;&#x8868;&#xFF08;&#x5206;&#x7EC4;&#x521D;&#x672B;&#xFF09;+&#x9884;&#x6D4B;&#x5F00;&#x653E;&#x65E5;&#xFF0C;&#x5E76;&#x663E;&#x793A;&#x4ECA;&#x65E5;&#x8FDB;&#x5EA6;&#x4E0E;&#x4E0B;&#x671F;&#x6863;&#x4F4D;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="building-upgrade-query">
+            <a class="tool-tile-link" href="function/building-upgrade-1-30.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3D7;&#xFE0F;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">1-30建筑升级<wbr>数据查询</span></div>
+            </a>
+            <div class="pill">building-upgrade-1-30.html</div>
+            <div class="desc">查询熔炉、使馆、兵营、军医所与指挥部的 1-30 级升级原始数据。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="pet-data-query">
+            <a class="tool-tile-link" href="function/pet-data-query.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F43E;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">宠物数据查询</span></div>
+            </a>
+            <div class="pill">pet-data-query.html</div>
+            <div class="desc">查看宠物养成材料、满级实力与突破评分，支持同组宠物快速切换与等级筛选。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="calcTools" data-tool-priority="extended" data-tool-id="wjti-personality-test">
+            <a class="tool-tile-link" href="function/wjti-personality-test.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F9EA;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x65E0;&#x5C3D;&#x51AC;&#x65E5;&#x4EBA;&#x683C;&#x6D4B;&#x8BD5;</span></div>
+            </a>
+            <div class="pill">wjti-personality-test.html</div>
+            <div class="desc">WJTI &#x4EBA;&#x683C;&#x6D4B;&#x8BD5;&#xFF1A;&#x6781;&#x901F;/&#x6807;&#x51C6;/&#x6DF1;&#x5EA6;&#x4E09;&#x6863;&#xFF0C;&#x6D4B;&#x51FA;&#x4F60;&#x662F;&#x8BB0;&#x8005;&#x3001;&#x9ED1;&#x5974;&#x3001;&#x5403;&#x74DC;&#x7FA4;&#x4F17;&#x8FD8;&#x662F;&#x6C14;&#x6C1B;&#x7EC4;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="regular-gift-data" data-gift-search="regular">
+            <a class="tool-tile-link" href="function/Zero/regular-gift-data.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F4E6;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x5E38;&#x89C4;&#x793C;&#x5305;</span></div>
+            </a>
+            <div class="pill">Zero/regular-gift-data.html</div>
+            <div class="desc">&#x5E38;&#x89C4;&#x793C;&#x5305;&#x6570;&#x636E;&#x603B;&#x5165;&#x53E3;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="special-gift-data" data-gift-search="special">
+            <a class="tool-tile-link" href="function/Zero/special-gift-data.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F380;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x7279;&#x60E0;&#x793C;&#x5305;</span></div>
+            </a>
+            <div class="pill">Zero/special-gift-data.html</div>
+            <div class="desc">&#x7279;&#x60E0;&#x793C;&#x5305;&#x603B;&#x5165;&#x53E3;&#xFF0C;&#x652F;&#x6301;&#x641C;&#x7D22;&#x4E0E;&#x70B9;&#x51FB;&#x67E5;&#x770B;&#x3002;</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="reference-hub">
+            <a class="tool-tile-link" href="function/reference-hub/index.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F4DA;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">礼包参考总览</span></div>
+            </a>
+            <div class="pill">reference-hub/index.html</div>
+            <div class="desc">按工作表拆分的攻略参考总览页，目录切换后可直接内嵌查看每张独立页面。</div>
+          </section>
+
+          <section class="card tool-tile-card" data-category="dataQuery" data-tool-priority="extended" data-tool-id="gift-rotation-schedule">
+            <a class="tool-tile-link" href="function/Zero/gift-rotation-schedule.html">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F5D3;&#xFE0F;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">&#x793C;&#x5305;&#x8F6E;&#x6362;&#x8868;</span></div>
+            </a>
+            <div class="pill">Zero/gift-rotation-schedule.html</div>
+            <div class="desc">&#x67E5;&#x770B;&#x793C;&#x5305;&#x5F00;&#x542F;&#x5468;&#x671F;&#x4E0E;&#x5907;&#x6CE8;&#x8BF4;&#x660E;&#x3002;</div>
+          </section>
+        </div>
+      </section>
+
+      <section class="card wide tool-warehouse-shell" id="miniGameWarehouse" data-tool-group="mini-games">
+        <div class="warehouse-head">
+          <div>
+            <div class="warehouse-title">小游戏</div>
+            <div class="warehouse-copy">联盟活动 · 活跃升温小游戏，适合活动间隙联机开一局。</div>
+          </div>
+        </div>
+        <div class="tool-warehouse-grid">
+          <section class="card tool-tile-card" data-category="miniGames" data-tool-priority="miniGames" data-tool-id="aeroplane-chess">
+            <button class="tool-tile-link" type="button" data-maintenance-game="aeroplane-chess" data-maintenance-message="该小游戏正在维护中">
+              <div class="tool-tile-icon" aria-hidden="true">&#x1F3B2;</div>
+              <div class="card-title tool-tile-name"><span class="tool-tile-name-inner">极简飞行棋</span></div>
+            </button>
+            <div class="pill">aeroplane-chess</div>
+            <div class="desc">搬运版极简飞行棋，支持在线联机、人机对战、本地多人和观战。</div>
+          </section>
+        </div>
+      </section>
+
+      <section class="card wide" data-category="forum">
+        <div class="forum-hero">
+          <div class="forum-hero-row">
+            <div class="forum-hero-title" id="forumSectionTitle">交流论坛 · 全部</div>
+            <div class="forum-hero-actions">
+              <button class="btn secondary forum-hero-btn" id="forumPublishEntry" type="button">发布内容</button>
+            </div>
+          </div>
+          <div class="forum-hero-sub" id="forumSectionDesc">汇总展示全部分区内容。</div>
+        </div>
+        <div class="forum-tabs" id="forumTabs">
+          <button class="forum-tab active" type="button" data-section="all">全部</button>
+          <button class="forum-tab" type="button" data-section="guide">活动攻略</button>
+          <button class="forum-tab" type="button" data-section="forecast">活动预测</button>
+          <button class="forum-tab" type="button" data-section="talk">玩家讨论</button>
+          <button class="forum-tab" type="button" data-section="migration">移民</button>
+          <button class="forum-tab" type="button" data-section="melon">吃瓜</button>
+        </div>
+        <div class="forum-migration-tabs" id="forumMigrationTabs" style="display:none;">
+          <button class="forum-migration-tab active" type="button" data-group="all">全部</button>
+          <button class="forum-migration-tab" type="button" data-group="1">一组</button>
+          <button class="forum-migration-tab" type="button" data-group="2">二组</button>
+          <button class="forum-migration-tab" type="button" data-group="3">三组</button>
+          <button class="forum-migration-tab" type="button" data-group="4">四组</button>
+          <button class="forum-migration-tab" type="button" data-group="5">五组</button>
+          <button class="forum-migration-tab" type="button" data-group="6">六组</button>
+          <button class="forum-migration-tab" type="button" data-group="7">七组</button>
+          <button class="forum-migration-tab" type="button" data-group="8">八组</button>
+          <button class="forum-migration-tab" type="button" data-group="9">九组</button>
+          <button class="forum-migration-tab" type="button" data-group="10">十组</button>
+        </div>
+        <div class="forum-status" id="forumStatus" style="display:none;"></div>
+        <div id="forumList" class="forum-list">
+          <div class="forum-empty">
+            <div class="forum-empty-title">暂无内容</div>
+            <div class="forum-empty-sub">成为第一个发布的人吧</div>
+          </div>
+        </div>
+        <div class="forum-pagination" id="forumPagination" style="display:none;"></div>
+        <div class="actions forum-jump-actions" id="forumGoWrap">
+          <button class="btn" id="forumGoTabBtn" type="button">前往论坛</button>
+        </div>
+      </section>
+      <section class="card wide" data-category="my">
+        <div class="card-title">账号信息</div>
+        <div class="card-body">
+          <div id="meSummary">正在获取账号信息…</div>
+          <div class="actions" id="meActions" style="margin-top:12px;">
+            <button class="btn secondary" id="profileBtn" type="button">个人资料</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card wide" data-category="my">
+        <div class="card-title">积分中心</div>
+        <div class="card-body">
+          <div class="me-rewards-summary">
+            <div class="me-rewards-stat">
+              <div class="me-rewards-stat-label">我的积分</div>
+              <div class="me-rewards-stat-value" id="mePointsValue">—</div>
+            </div>
+            <div class="me-rewards-stat">
+              <div class="me-rewards-stat-label">连续签到</div>
+              <div class="me-rewards-stat-value" id="meStreakValue">—</div>
+            </div>
+            <div class="me-rewards-stat">
+              <div class="me-rewards-stat-label">今日可得</div>
+              <div class="me-rewards-stat-value" id="meNextRewardValue">—</div>
+            </div>
+          </div>
+          <p class="me-rewards-hint" id="meRewardsHint">每日签到 +2 积分；连续签到 7 天当日额外 +5 积分。</p>
+          <div class="actions me-points-actions">
+            <button class="btn" id="meCheckInBtn" type="button" disabled>签到领取积分</button>
+            <button class="btn secondary" id="openMePointsRankingBtn" type="button">积分排行榜</button>
+            <button class="btn secondary" id="openMeShopModalBtn" type="button">积分商城</button>
+            <button class="btn secondary" id="openMeRedeemModalBtn" type="button">激活码兑换</button>
+          </div>
+          <div class="admin-status" id="meRewardsStatus" style="margin-top:10px;display:none;"></div>
+        </div>
+      </section>
+
+      <section class="card wide" data-category="my">
+        <div class="card-title">我的互动</div>
+        <div class="card-body">
+          <div class="me-hub-grid">
+            <div class="chat-entry-wrap" id="chatEntryWrap">
+              <button class="chat-entry-card" id="chatEntryBtn" type="button">
+                <div class="chat-entry-title">聊天</div>
+                <div class="chat-entry-count"><strong id="chatUnreadCount">0</strong>条未读会话</div>
+                <div class="chat-entry-hint" id="chatEntryHint">点击查看好友列表</div>
+              </button>
+            </div>
+            <button class="me-collection-card" id="meFavoritesCard" type="button" data-me-collection="favorites">
+              <div class="me-collection-card-title">收藏条目</div>
+              <div class="me-collection-card-count" id="meFavoritesCount">—</div>
+              <div class="me-collection-card-hint" id="meFavoritesHint">请先登录后查看</div>
+            </button>
+            <button class="me-collection-card" id="meLikesCard" type="button" data-me-collection="likes">
+              <div class="me-collection-card-title">点赞条目</div>
+              <div class="me-collection-card-count" id="meLikesCount">—</div>
+              <div class="me-collection-card-hint" id="meLikesHint">请先登录后查看</div>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card wide" data-category="my">
+        <div class="card-title">反馈与支持</div>
+        <div class="desc">联系管理员，或提交攻略投稿、工具建议与纠错说明。</div>
+        <div class="actions">
+          <button class="btn secondary" id="openContactModalBtn" type="button">联系我们</button>
+          <button class="btn secondary" id="openContributionModalBtn" type="button">攻略投稿/纠错</button>
+        </div>
+      </section>
+
+      <!-- 暂时隐藏赞助/会员入口；恢复时移除此 section 的 hidden 属性 -->
+      <section class="card wide" data-category="my" hidden>
+        <div class="card-title">赞助 / 会员</div>
+        <div class="card-body">
+          <p>感谢你对无尽冬日工具的支持。通过赞助可解锁会员相关权益（具体以后端实际接入为准）。</p>
+
+          <div class="sponsor-section">
+            <h2 class="sponsor-title">赞助档位</h2>
+            <div class="sponsor-grid">
+              <div class="sponsor-tier" data-amount="9.9" data-gift="网站会员 1个月">
+                <div class="sponsor-price">￥9.9</div>
+                <div class="sponsor-gift">赠送网站会员 1个月</div>
+                <button class="btn sponsor-btn" type="button">去赞助</button>
+              </div>
+              <div class="sponsor-tier" data-amount="18.8" data-gift="网站会员 2个月">
+                <div class="sponsor-price">￥18.8</div>
+                <div class="sponsor-gift">赠送网站会员 2个月</div>
+                <button class="btn sponsor-btn" type="button">去赞助</button>
+              </div>
+              <div class="sponsor-tier" data-amount="26.66" data-gift="网站会员 3个月">
+                <div class="sponsor-price">￥26.66</div>
+                <div class="sponsor-gift">赠送网站会员 3个月</div>
+                <button class="btn sponsor-btn" type="button">去赞助</button>
+              </div>
+              <div class="sponsor-tier" data-amount="49.9" data-gift="网站会员 半年">
+                <div class="sponsor-price">￥49.9</div>
+                <div class="sponsor-gift">赠送网站会员 半年</div>
+                <button class="btn sponsor-btn" type="button">去赞助</button>
+              </div>
+              <div class="sponsor-tier" data-amount="108.8" data-gift="网站会员 一年">
+                <div class="sponsor-price">￥108.8</div>
+                <div class="sponsor-gift">赠送网站会员 一年</div>
+                <button class="btn sponsor-btn" type="button">去赞助</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子、飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球、柒枫团队\A宣传大使：懒羊羊\A赞助：39 拙山枯水大江行\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;align-self:stretch;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;font-weight:400;letter-spacing:.02em;-webkit-font-smoothing:antialiased;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;display:block}
+@supports (text-wrap:balance){footer.wjdr-footer .site-footer-legal{text-wrap:balance}}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45;font-weight:300}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:color .15s ease,opacity .15s ease}
+footer.wjdr-footer a:hover{opacity:1;color:var(--text,#e2e8f0)}
+html[data-theme="day"] footer.wjdr-footer{color:var(--muted,#475569);border-top-color:var(--border,rgba(15,23,42,.14));background:rgba(255,255,255,.45)}
+html[data-theme="day"] footer.wjdr-footer a:hover{color:var(--text,#0f172a)}
+body.theme-day footer.wjdr-footer{color:var(--muted,#64748b);border-top-color:rgba(15,23,42,.12);background:rgba(255,255,255,.35)}
+body.theme-day footer.wjdr-footer a:hover{color:var(--text,#1e293b)}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px;padding:12px 14px 18px}}
+body>footer.wjdr-footer{align-self:stretch;max-width:none}
+</style>
+<footer class="wjdr-footer">
+      <p class="site-footer-legal">
+        版权所有 © 2026 冬日工具箱
+        <span class="site-footer-sep" aria-hidden="true">|</span>
+        <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">冀ICP备2026012727号</a>
+        <span class="site-footer-sep" aria-hidden="true">|</span>
+        <a href="https://beian.miit.gov.cn/#/Integrated/recordQuery" target="_blank" rel="noopener noreferrer">备案查询</a>
+        <span class="site-footer-sep" aria-hidden="true">|</span>
+        联系方式：<a href="mailto:3450243972@qq.com">3450243972@qq.com</a>
+      </p>
+    </footer>
+
+  </div>
+
+  <div class="changelog-modal" id="announcementModal" aria-hidden="true">
+    <div class="changelog-panel" role="dialog" aria-modal="true" aria-label="系统公告">
+      <div class="changelog-title">
+        <h3 id="announcementModalTitle">系统公告</h3>
+        <button class="changelog-close" id="closeAnnouncement" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="changelog-body">
+        <p class="announcement-meta" id="announcementModalMeta"></p>
+        <div class="announcement-content" id="announcementModalContent">暂无公告内容</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="changelog-modal" id="contactModal" aria-hidden="true">
+    <div class="changelog-panel" role="dialog" aria-modal="true" aria-label="联系我们">
+      <div class="changelog-title">
+        <h3 id="contactModalTitle">联系我们</h3>
+        <button class="changelog-close" id="closeContactModal" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="changelog-body">
+        <p class="announcement-content" id="contactModalDesc">如需联系站点管理员，请通过邮箱发送。</p>
+        <div class="contact-email-row">
+          <span class="contact-email-text" id="contactEmailText">3450243972@qq.com</span>
+          <button class="btn secondary contact-copy-btn" id="copyContactEmailBtn" type="button">复制</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="changelog-modal" id="contributionModal" aria-hidden="true">
+    <div class="changelog-panel" role="dialog" aria-modal="true" aria-label="攻略投稿与纠错">
+      <div class="changelog-title">
+        <h3>攻略投稿 / 纠错 / 工具建议</h3>
+        <button class="changelog-close" id="closeContributionModal" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="changelog-body">
+        <p class="announcement-content">欢迎提交攻略投稿、内容纠错或工具建议，我们会尽快联系您。</p>
+        <div class="contribution-field">
+          <label for="contributionContact">联系方式（微信 / QQ / 手机号）</label>
+          <input id="contributionContact" maxlength="64" placeholder="例如：微信abc123 / QQ123456 / 138****0000" />
+        </div>
+        <div class="contribution-field">
+          <label for="contributionContent">攻略文档投稿/工具投稿/工具建议</label>
+          <textarea id="contributionContent" maxlength="1000" placeholder="如有攻略或者工具方面的需求或发现数据不正确，欢迎反馈与投稿。"></textarea>
+        </div>
+        <div class="contribution-meta" id="contributionCount">0/1000</div>
+        <div class="actions">
+          <button class="btn" id="submitContributionBtn" type="button">提交</button>
+          <button class="btn secondary" id="cancelContributionBtn" type="button">取消</button>
+        </div>
+        <p class="announcement-meta" id="contributionStatus"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 更新日志弹窗 -->
+  <div class="changelog-modal" id="changelogModal" aria-hidden="true">
+    <div class="changelog-panel" role="dialog" aria-modal="true" aria-label="更新日志">
+      <div class="changelog-title">
+        <h3>首页更新日志</h3>
+        <button class="changelog-close" id="closeChangelog" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="changelog-body">
+        <h4>V0.9.39（2026-08-25）</h4>
+        <ol>
+          <li><strong>活动日历上线</strong>：新增淡暖色活动日历，支持周视图、月视图、跨日日程、组合任务和每日清单，并可自由查看最近 18 个月的活动安排。</li>
+          <li><strong>首页加载优化</strong>：桌面顶部和手机版底部新增“活动日历”，仅在用户点击后加载日历内容，减少首页初次打开的流量消耗。</li>
+          <li><strong>活动日历体验优化</strong>：日程数据支持单次持续多天后按天、周或月重复，并保留不连续日期活动；活动分类与暖色标识更清晰。</li>
+          <li><strong>创冰工坊最优摆放助手</strong>：新增基础工具入口，支持直接打开创冰工坊最优摆放辅助页面。</li>
+        </ol>
+        <h4>V0.9.38（2026-08-25）</h4>
+        <ol>
+          <li><strong>移民预测日期扩展</strong>：日期选择支持查看最近两年的历史移民日期，并继续保留当期与后续预测日期。</li>
+          <li><strong>移民日期状态</strong>：日期列表、当前日期标记及历史对照新增“未开放”状态提示。</li>
+        </ol>
+        <h4>V0.9.37（2026-08-24）</h4>
+        <ol>
+          <li><strong>打熊车身推荐上线</strong>：新增 S–D 级车身英雄、远征一技能与搭配特性查询，支持英雄关键词搜索和评级筛选。</li>
+          <li><strong>返回体验优化</strong>：优化工具、数据详情及论坛页面的返回行为；从站内进入时返回上次浏览位置，直接打开时回到对应功能分类。</li>
+        </ol>
+        <h4>V0.9.35（2026-08-23）</h4>
+        <ol><li><strong>熊坑排布简约版上线</strong>：更轻量、更简单的熊坑排布工具，适合快速完成成员与站位安排，并支持存档恢复和分享导入。</li></ol>
+        <h4>V0.9.32（2026-08-22）</h4>
+        <ol>
+          <li><strong>移民相关数据</strong>：补齐 12 代英雄进度和 2026-08-16 历史移民记录，恢复邻邦进度历史阶段，并统一移民预测、历史移民分组与邻邦进度的显示口径。</li>
+          <li><strong>论坛阅读体验</strong>：修复文章帖和图文帖正文换行失效的问题，论坛详情页底部致谢同步站点最新内容。</li>
+          <li><strong>领主装备与宝石计算器</strong>：补充神话 T4-3 星至神话 T6-3 星阶段数据。</li>
+          <li><strong>分享卡片优化</strong>：普通页面补充分享标题、简介和默认卡片图；论坛文章优先使用封面图或正文首图。</li>
+        </ol>
+        <h4>V0.9.28（2026-08-03）</h4>
+        <ol>
+          <li><strong>专家计算器更新</strong>：补全专家「加雷斯」 1–100 级好感度、专家印记、关系进阶与部队属性，并补充「重振旗鼓」天赋与技能效果、升级条件及资源区间计算。</li>
+          <li><strong>积分与社交功能</strong>：积分中心新增前 50 名积分排行榜及个人积分排名；主页搜索新增用户名搜索并支持进入用户主页；聊天支持收到消息后免回关回复，双向会话保留每分钟 10 条限制，并可点击聊天用户名进入对方主页。</li>
+          <li><strong>底层代码重构</strong>：重构底层代码，提升网页流畅性。</li>
+        </ol>
+
+        <h4>V0.9.27（2026-07-24）</h4>
+        <ol>
+          <li><strong>专家计算器更新</strong>：新增专家「加雷斯」，支持铁森林馈赠、铁棘战阵、不败铁军和威名震慑的学习经验与学识之书升级计算；尚未收录的专家等级与效果信息统一标记为「暂无数据」。</li>
+        </ol>
+
+        <h4>V0.9.26（2026-07-12）</h4>
+        <ol>
+          <li><strong>移动端工具布局优化</strong>：修复「更多工具」长标题不换行和样式不一致的问题，窄屏入口改为稳定三列；T12 科技计算器改为双列科技卡，T12 数据总览的筛选与统计改为两列，展开明细使用紧凑四列指标网格。</li>
+          <li><strong>建筑工具拆分</strong>：「1-30级建筑升级」更名为「1-30建筑升级数据查询」，并新增独立「1-30建筑升级计算器」，可汇总当前等级到目标等级的资源、时间、实力与区间明细。</li>
+          <li><strong>主题与提示优化</strong>：增强建筑数据、建筑计算器和宠物数据查询的白天/黑夜视觉区分；移民券计算器增加数据失准提示并移入「更多工具」。</li>
+        </ol>
+
+        <h4>V0.9.25（2026-06-27）</h4>
+        <ol>
+          <li><strong>新增「1-30级建筑升级」</strong>：上线熔炉、使馆、射手营、军医所、矛兵营、指挥部、盾兵营 1-30 级数据查询工具，支持选择当前等级与目标等级，自动汇总总资源、总时间与总实力提升，并保留完整原始数据表。</li>
+          <li><strong>新增「宠物数据查询」</strong>：上线宠物养成材料、满级实力与突破评分查询，支持按宠物/同组宠物切换查看，并可按等级快速筛选材料与评分数据。</li>
+          <li><strong>工具入口补充</strong>：上述两个新工具已加入首页「工具 → 数据查询」分类，方便从首页直接进入查询。</li>
+        </ol>
+
+        <h4>V0.9.24（2026-06-13）</h4>
+        <ol>
+          <li><strong>修复了一些已知问题。</strong></li>
+        </ol>
+
+        <h4>V0.9.23（2026-06-13）</h4>
+        <ol>
+          <li><strong>首页主题色修复</strong>：修复「基础工具」「更多工具」「小游戏」分区标题在白天/黑夜模式下始终保持黑色的问题，现在统一跟随主题文字变量切换。</li>
+          <li><strong>积分商城兑换修复</strong>：修复商城道具实际兑换成功后仍提示“兑换失败”的问题，兑换完成后会正确返回最新积分与会员状态。</li>
+        </ol>
+
+        <h4>V0.9.22（2026-06-13）</h4>
+        <ol>
+          <li><strong>新增专家计算器</strong>：参考「专家数据表」新增专家关系、天赋、技能等级与资源消耗计算；已整理罗妮等专家数据，不完整技能位保留「待补充」状态，方便后续继续补全。</li>
+          <li><strong>专家计算器手机端优化</strong>：重新整理手机端布局，专家选择、等级范围、技能范围和操作按钮更适合竖屏点击，减少控件拥挤和错位。</li>
+          <li><strong>首页工具卡片修复</strong>：修复手机端工具描述样式异常的问题，尤其是「无尽冬日人格测试」长描述不再撑开卡片，工具宫格保持更整齐。</li>
+          <li><strong>日夜主题修复</strong>：修复首页部分文字在白天/黑夜模式下颜色不同步的问题；登录弹窗、积分中心、积分商城、赞助/支付弹窗、卡片标题、标签与按钮等文字现在跟随主题切换。</li>
+          <li><strong>移动端主题体验</strong>：统一多个工具页的日夜主题逻辑，修复部分手机端点击主题按钮无效、点击一次触发多次或按钮状态不同步的问题。</li>
+        </ol>
+
+        <h4>V0.9.21（2026-06-04）</h4>
+        <ol>
+          <li><strong>我的信息</strong>：页面布局重构——「积分中心」整合每日签到、积分商城与激活码兑换（商城与激活码改为二级弹层）；聊天、收藏与点赞合并为「我的互动」；联系与投稿合并为「反馈与支持」。</li>
+          <li><strong>积分中心</strong>：登录后可每日签到领积分（连续 7 天当日额外 +5）；积分商城可兑换会员等道具；激活码支持兑换积分、会员或组合奖励。</li>
+        </ol>
+
+        <h4>V0.9.19（2026-06-04）</h4>
+        <ol>
+          <li><strong>甜甜的攻略站</strong>：「基础工具」新增入口，内含攻略 1.0 / 2.0 / 3.0 三个版本；展示目录预览，点击打开金山文档完整攻略（金山文档不支持其它网站内嵌）。</li>
+        </ol>
+
+        <h4>V0.9.18（2026-06-04）</h4>
+        <ol>
+          <li><strong>英雄数据</strong>：目录与各代英雄详情显示逻辑优化。</li>
+          <li><strong>礼包参考</strong>：常规/特惠礼包页与首页道具搜索的数据与站点保持同步，礼包内容更新后前台即时生效。</li>
+          <li><strong>熊坑排布</strong>：登录后保存会自动保留历史版本；新增「保存方案」与加载时的备份列表，可从历史方案恢复布局。</li>
+          <li><strong>无尽冬日WJTI人格测试</strong>：娱乐功能完善重新返场！</li>
+        </ol>
+
+        <h4>V0.9.14（2026-05-25）</h4>
+        <ol>
+          <li><strong>首页搜索</strong>：修复论坛帖子搜不到的问题；修复有搜索词时工具卡片筛选失效。</li>
+          <li><strong>练兵计算站</strong>：修正 T11→T12 晋升时间为 35 秒/兵（直接练 T12 仍为 3 分 35 秒/兵）。</li>
+        </ol>
+
+        <h4>V0.9.13（2026-05-25）</h4>
+        <ol>
+          <li><strong>首页搜索</strong>：「全部」Tab 搜索框现可匹配<strong>论坛帖子</strong>（标题、正文、作者），并展示命中提示与帖子列表。</li>
+          <li><strong>论坛图片</strong>：点击预览图可放大查看；放大后右下角提供<strong>查看原图（文件大小）</strong>按钮，可切换为完整画质原图。</li>
+        </ol>
+
+        <h4>V0.9.12（2026-05-25）</h4>
+        <ol>
+          <li><strong>练兵计算站</strong>：界面与计算逻辑优化，支持 T11/T12 减免；修复兵阶下拉框无法加载。</li>
+        </ol>
+
+        <h4>V0.9.11（2026-05-25）</h4>
+        <p><strong>精炼火晶工具与火晶建筑计算器</strong></p>
+        <ol>
+          <li><strong>新增「精炼提炼计算器」</strong>：按游戏内分段概率表计算期望产出与火晶消耗；支持按次数或周策略计算，并计入<strong>每日首次提炼 50% 消耗优惠</strong>。</li>
+          <li><strong>新增「精炼提炼模拟器」</strong>：逐步模拟单次提炼结果，并提供蒙特卡洛批量统计，便于感受波动与期望值差异。</li>
+          <li><strong>火晶建筑计算器升级</strong>：可选 6 档周策略（14+6 至 94+6）估算<strong>精炼周期</strong>，同步展示每周期期望产出、优惠后消耗与<strong>估算总火晶消耗</strong>；底部附策略参考表。</li>
+        </ol>
+        <p><strong>论坛</strong></p>
+        <ol>
+          <li>修复部分<strong>CDN 环境</strong>下帖子<strong>置顶</strong>、<strong>编辑保存</strong>失败的问题；首页弹层与独立阅读页均已改用兼容的请求方式。</li>
+        </ol>
+
+        <h4>V0.9.10（2026-05-12）</h4>
+        <p><strong>熊坑排布：贴图透明度与命名可读性</strong></p>
+        <ol>
+          <li><strong>图标透明度</strong>：顶栏「建筑偏移」旁新增滑块（约 20%～100%），可整体减轻已摆放<strong>建筑贴图</strong>与<strong>王城四角炮台</strong>的不透明度，命名更容易压住图；偏好保存在本机浏览器。</li>
+          <li><strong>炉子类</strong>：仍保留原先相对更淡的系数，会与滑块设定<strong>相乘</strong>，100% 时与改版前观感一致。</li>
+          <li><strong>2×2 命名</strong>：默认字色略加深，并为命名文字增加<strong>描边式阴影</strong>、略增大字号；若自行改色，仍保留辅助描边以便在鲜艳贴图上阅读。</li>
+          <li><strong>下载图片</strong>：导出 PNG 与画布一致（含上述透明度与命名描边）；透明度为<strong>显示选项</strong>，不写入本机/账号布局存档。</li>
+        </ol>
+
+        <h4>V0.9.9（2026-05-11）</h4>
+        <p><strong>移民预测与历史移民分组</strong></p>
+        <ol>
+          <li><strong>移民预测</strong>：矩阵区「推算展示日」右侧增加<strong>日期下拉</strong>，可切换与「多期开放日推演」同源的外推展示日并重算矩阵；区服概览合并重复日期、压缩表述。</li>
+          <li><strong>移民预测</strong>：页顶与矩阵下方<strong>说明文案</strong>精简；进度列中<strong>战争学院</strong>档位不再显示「（T11）」括号。</li>
+          <li><strong>历史移民分组</strong>：矩阵内战争学院阶段档位展示与移民预测一致（仅显示「战争学院」）。</li>
+        </ol>
+
+        <h4>V0.9.8（2026-05-06）</h4>
+        <p><strong>首页活动轮播与计算器小优化</strong></p>
+        <ol>
+          <li><strong>顶部活动轮播</strong>：修复<strong>电脑端</strong>点击轮播图无法打开链接的问题（鼠标指针捕获导致点击未落到链接上）；手机端原可正常使用。</li>
+          <li><strong>练兵计算站</strong>：「练兵时间与得分」中各项计算结果的小数位由四位（可练兵数量原为六位）统一为<strong>两位小数</strong>，阅读更简洁。</li>
+          <li><strong>领主装备与宝石计算器</strong>：宝石材料表头「宝石材料 A/B/C」更名为「<strong>宝石图纸</strong> / <strong>宝石手册</strong> / <strong>宝石秘典</strong>」，与游戏内常用名称一致（仅展示文案，算法不变）。</li>
+        </ol>
+
+        <h4>V0.9.7（2026-05-06）</h4>
+        <p><strong>熊坑排布体验与坐标表增强</strong></p>
+        <ol>
+          <li><strong>王城</strong>：支持 16×16 王城主图摆放，四角内嵌 2×2 炮台。</li>
+          <li><strong>炉子 / 炉子2</strong>：建筑贴图统一为约 80% 不透明度（画布、导出与侧栏预览一致）。</li>
+          <li><strong>存档与同步</strong>：本机/账号存档、导入导出配置时，2×2 的<strong>命名颜色、加粗、斜体</strong>与画布、坐标表一致读写；修复登录后加载账号布局时部分命名样式未正确还原的问题。</li>
+          <li><strong>放置物坐标表</strong>：支持按放置类型筛选；多选与批量设置<strong>仅在表格内</strong>勾选生效；表格内可直接改命名与样式并与画布双向同步。</li>
+          <li><strong>重名提示</strong>：2×2 命名在全局范围内 trim 后判重（含多个空命名视为同名），重复行在表内<strong>标红</strong>并带悬浮说明。</li>
+          <li><strong>默认命名</strong>：新摆非联盟矿 2×2 默认依次为「<strong>命名1</strong>」「<strong>命名2</strong>」…，自动避开已有名字，炉子与炉子2 不再共用同一默认文案。</li>
+        </ol>
+
+        <h4>V0.9.6（2026-05-05）</h4>
+        <p><strong>浏览器标题规范与邻邦进度表修正</strong></p>
+        <ol>
+          <li><strong>全站命名</strong>：除首页与入口页仍为「冬日工具箱」外，<code>public</code> 内各工具页、礼包参考子页及用户协议/隐私等，统一为「<strong>功能名-冬日工具箱</strong>」格式，标签栏更易辨认来源。</li>
+          <li><strong>邻邦进度（游戏进度查询）</strong>：总表与按区服查询的区间上限修正，<strong>3628～3799</strong> 等区段可正常展示与匹配；去除 <strong>3510～3556 / 3557～3591</strong> 误套用的日期覆盖；<strong>3628～3799</strong> 等与公式一致的冗余覆盖已撤下，里程碑与主站公式对齐（<strong>3592～3627</strong> 仍保留单独覆盖）。</li>
+        </ol>
+
+        <h4>V0.9.5（2026-05-04）</h4>
+        <p><strong>论坛文章阅读</strong></p>
+        <ol>
+          <li>修复论坛「文章」在<strong>首页阅读弹层</strong>与<strong>单独打开的帖子阅读页</strong>（新标签页）中换行丢失的问题：正文按与评论区一致的规则保留换行，编辑时分段与发布后展示一致（「图文」不受影响）。</li>
+        </ol>
+        <p><strong>综合优化：搜索更好用、手机更好看、表格更好查</strong></p>
+        <ol>
+          <li><strong>新增移民预测工具</strong>：上线 `移民预测` 页，提供“下期展示日”外推、矩阵 <strong>+1 日同档分组</strong>汇总与<strong>下期起多期开放日推演</strong>。</li>
+          <li><strong>首页搜索更强</strong>：在首页“全部”搜索中输入道具/材料名（如：专精石、设计图纸、抛光液、宝石图纸等），即可提示哪些礼包能买到，并可一键跳转查看。</li>
+          <li><strong>英雄数据更清晰</strong>：补齐部分英雄头像；手机端排版优化，阅读更顺眼。</li>
+          <li><strong>熊坑排布更完善</strong>：新增联盟矿、联盟总部、堡垒、要塞、山、湖等摆放项；范围提示更直观；导出图片效果更统一。</li>
+          <li><strong>表格更好查</strong>：邻邦进度、历史移民分组等大表格浏览时，关键信息会更容易对照，不容易迷路。</li>
+          <li><strong>主题更稳定（电脑端）</strong>：修复部分页面日/夜切换偶发失效，整体配色更一致；手机端日/夜切换问题仍在排查中，后续继续修复。</li>
+          <li><strong>礼包参考总览移动端更顺手</strong>：手机端礼包栏支持下拉选择；目录支持搜索与清空，找表更快。</li>
+          <li><strong>论坛浏览量</strong>：修复多次阅读计数异常、列表预览与详情不一致、以及 PostgreSQL 环境下列表浏览量长期显示为 0 等问题；优化在 IIS/反代下的计数与列表刷新策略。</li>
+          <li><strong>论坛阅读体验</strong>：阅读弹层内作者行展示头像与「关注」，点头像或昵称进入用户主页；弹层内未点赞时爱心与背景对比度增强，更易辨认。</li>
+          <li><strong>帖子单独阅读页</strong>（新标签打开）：与弹层一致的头像/关注/进主页；点赞、收藏与浏览量操作条移至<strong>正文下方</strong>，便于先读文再互动。</li>
+          <li><strong>从阅读页回首页看作者</strong>：支持通过链接参数打开指定用户主页（与论坛流程衔接）。</li>
+        </ol>
+
+        <h4>V0.9.1（2026-04-30）</h4>
+        <ol>
+          <li><strong>礼包参考总览</strong>：新增“返回首页”按钮。</li>
+          <li><strong>熊坑排布</strong>：账号保存修复（未登录本机保存、登录保存到账号）、清空二次确认、撤销支持误删/清空。</li>
+        </ol>
+
+        <h4>V0.8.8</h4>
+        <p><strong>T12 煌耀系列工具上线与手机端体验优化</strong></p>
+        <ol>
+          <li>新增 `T12 煌耀系列数据总览`：按兵种筛选、关键词检索、同名科技折叠查看。</li>
+          <li>新增 `T12 煌耀系列科技计算器`：按当前/目标等级汇总资源与时间。</li>
+          <li>T12 计算器新增 `解锁T12` 预设：快速估算解锁成本。</li>
+          <li>T12 数据总览移动端改为折叠卡片视图，两列数据布局提升可读性。</li>
+          <li>修复移动端统计卡与字号/裁切问题，隐藏源表路径展示。</li>
+        </ol>
+
+        <h4>V0.8.7</h4>
+        <p><strong>礼包参考页按原表格结构回归展示</strong></p>
+        <ol>
+          <li>礼包参考总览保留单页切换，详情区回归表格展示，按源表排布还原。</li>
+          <li>表格内图片回归单元格位置显示。</li>
+          <li>`秘宝猎人` 按原表切分区块，避免误拼接。</li>
+          <li>`雪原大冒险` 重建购买/进度/自选表，“活动建议”改为可折叠说明区。</li>
+          <li>进入逐表修正阶段，持续按源攻略文档校对。</li>
+        </ol>
+
+        <h4>V0.8.6</h4>
+        <p><strong>T11 计算器整页重写与结果展示升级</strong></p>
+        <ol>
+          <li>T11 科技计算器整页重写，结构重排并适配移动端。</li>
+          <li>结果区从横向表格改为详情卡片，展示更直观。</li>
+          <li>总览新增资源总和（钢/肉/木/煤/铁等）便于估算。</li>
+          <li>修复脚本与标签损坏导致的打不开问题。</li>
+          <li>礼包参考页入口与首页展示保持可用。</li>
+        </ol>
+
+        <h4>V0.8.5</h4>
+        <p><strong>工具入口、礼包页与移动端体验更新</strong></p>
+        <ol>
+          <li>首页重点工具入口拆分更清晰，展示更直观。</li>
+          <li>重点工具卡图标升级为专属图片资源。</li>
+          <li>常规/特惠礼包数据同步刷新，与源表一致。</li>
+          <li>礼包页移动端改为“当前礼包下方展开详情”，支持多礼包同时展开。</li>
+          <li>T11 计算器继续优化手机端布局。</li>
+        </ol>
+
+        <h4>V0.8.4</h4>
+        <p><strong>个人资料与社交体验升级</strong></p>
+        <ol>
+          <li>“我的信息 - 个人资料”新增个人介绍设置与主页展示。</li>
+          <li>生日公开时主页显示星座信息。</li>
+          <li>聊天升级：关注后可发起聊天，限额策略上线。</li>
+          <li>“我的信息”页补齐收藏/点赞/聊天等入口。</li>
+        </ol>
+
+        <h4>V0.8.3</h4>
+        <p><strong>我的信息与论坛身份展示更新</strong></p>
+        <ol>
+          <li>“我的收藏 / 我的点赞”改为数量卡片展示，可打开详情弹窗搜索。</li>
+          <li>论坛/评论/主页/我的信息新增头衔展示。</li>
+          <li>会员账号新增 VIP 标识与昵称高亮。</li>
+        </ol>
+
+        <h4>V0.8.2</h4>
+        <p><strong>个人主页与关注体系上线</strong></p>
+        <ol>
+          <li>“我的信息”新增头像、关注/粉丝入口。</li>
+          <li>论坛作者头像/昵称可点击进入用户主页。</li>
+          <li>主页新增关注/粉丝数量与文章列表。</li>
+          <li>新增关注/取消关注交互与数量实时更新。</li>
+          <li>隐私策略：仅展示数量，不开放他人名单。</li>
+        </ol>
+
+        <h4>V0.8.1</h4>
+        <p><strong>首页与论坛白天模式修复</strong></p>
+        <ol>
+          <li>修复首页“更新日志”弹窗白天模式可读性。</li>
+          <li>修复论坛白天模式样式与控件层级一致性。</li>
+        </ol>
+
+        <h4>V0.8.0</h4>
+        <p><strong>首页菜单与移动端体验更新</strong></p>
+        <ol>
+          <li>首页重构为 6 分栏，新增“全部”搜索。</li>
+          <li>工具/论坛/日历分栏展示优化与入口调整。</li>
+          <li>移动端底部菜单与卡片密度优化。</li>
+        </ol>
+
+        <h4>V0.7.0</h4>
+        <p><strong>首页与功能页体验优化</strong></p>
+        <ol>
+          <li>全站统一新增右下角主题切换按钮。</li>
+          <li>优化日/夜切换过渡与日间模式可读性。</li>
+          <li>礼包计算器文案与显示问题修复。</li>
+        </ol>
+
+        <h4>V0.6.1</h4>
+        <p><strong>新增联系与投稿</strong></p>
+        <ol>
+          <li>新增“联系我们”和“攻略投稿/纠错”。</li>
+        </ol>
+
+        <h4>V0.6.0</h4>
+        <p><strong>首页功能与展示体验更新</strong></p>
+        <ol>
+          <li>邻邦进度查询升级为按具体区服查询。</li>
+          <li>邻邦页面拆分为“双页面”结构并支持切换。</li>
+          <li>历史移民分组矩阵重排，视觉对比更清晰。</li>
+          <li>全站主题适配补齐若干页面日间模式残留样式。</li>
+        </ol>
+
+        <h4>V0.5.0</h4>
+        <p><strong>首页交互与资料体验优化</strong></p>
+        <ol>
+          <li>新增公告入口；个人资料改为全屏展示。</li>
+          <li>更换头像新增预览确认弹窗；用户名修改交互优化。</li>
+          <li>工程站时间倒计时“返回主页”跳转修正。</li>
+          <li>修复已知问题并进行美观调整。</li>
+        </ol>
+
+        <h4>V0.4.0</h4>
+        <p><strong>论坛交互与账号策略升级</strong></p>
+        <ol>
+          <li>评论支持二级回复展示与折叠。</li>
+          <li>评论操作改为右侧三点菜单，界面更简洁。</li>
+          <li>作者标识与社区秩序体验优化。</li>
+          <li>用户名修改策略调整为“每月最多 2 次”。</li>
+        </ol>
+
+        <h4>V0.3.0</h4>
+        <p><strong>日/夜主题 + 活动日历上线 + 论坛功能升级</strong></p>
+        <ol>
+          <li>新增日/夜双主题背景与活动日历周/月视图。</li>
+          <li>论坛新增点赞与评论统计，详情页支持点赞切换。</li>
+          <li>修复已知问题。</li>
+        </ol>
+
+        <h4>V0.2.1</h4>
+        <p><strong>账号与体验优化</strong></p>
+        <ol>
+          <li>账号体系区分 ID 与用户名，个人资料支持月度次数限制修改。</li>
+          <li>用户名校验兼容性修复。</li>
+        </ol>
+
+        <h4>V0.2.0</h4>
+        <p><strong>论坛发布体验优化</strong></p>
+        <ol>
+          <li>论坛嵌入主页面，分区与发布/阅读体验优化。</li>
+          <li>文章支持富文本与插图，多图上传与展示优化。</li>
+          <li>发布防重复提交与超时提示增强。</li>
+        </ol>
+
+        <h4>V0.1.0</h4>
+        <p><strong>移民券计算器上线 / 工程站时间倒计时优化</strong></p>
+        <ol>
+          <li>移民券计算器上线；工程站时间倒计时完善。</li>
+          <li>导入/导出配置弹窗与超长数据处理优化，修复部分设备异常。</li>
+        </ol>
+
+        <h4>V0.0.2</h4>
+        <p><strong>工程站时间倒计时</strong></p>
+        <ol>
+          <li>新增：占领后标记功能。</li>
+        </ol>
+
+        <h4>V0.0.1</h4>
+        <ol>
+          <li>工具箱策划中......</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <!-- 支付弹窗（支付接口预留） -->
+  <div class="pay-modal" id="payModal" aria-hidden="true">
+    <div class="pay-panel" role="dialog" aria-modal="true" aria-label="支付">
+      <div class="pay-head">
+        <h3>赞助支付</h3>
+        <button class="pay-close" id="payClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="pay-body">
+        <div class="pay-summary" id="paySummary">您已选择：赞助 <strong id="payAmount">￥0</strong>，赠送 <strong id="payGift">—</strong></div>
+        <div class="pay-slot" id="paySlot">
+          <div class="pay-slot-inner">支付接口预留<br><span style="font-size:.8rem;margin-top:8px;display:block;">此处后续接入微信 / 支付宝等</span></div>
+        </div>
+        <p class="pay-hint">支付成功后，会员权益将自动开通至您的账号。</p>
+      </div>
+    </div>
+  </div>
+  <!-- 登录/注册弹窗 -->
+  <div class="auth-modal" id="authModal" aria-hidden="true">
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-label="登录/注册">
+      <div class="auth-head">
+        <h3>登录 / 注册</h3>
+        <button class="auth-close" id="authClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="auth-body">
+        <div class="auth-row">
+          <label for="authUsername">ID（8-18位，字母/数字/下划线）</label>
+          <input id="authUsername" autocomplete="username" placeholder="请输入ID" />
+        </div>
+        <div class="auth-row">
+          <label for="authPassword">密码（8-18位，必须包含字母+数字）</label>
+          <input id="authPassword" type="password" autocomplete="current-password" placeholder="请输入密码" />
+        </div>
+        <div class="auth-actions">
+          <button id="authDoLogin" type="button">登录</button>
+          <button class="secondary" id="openRegister" type="button">注册</button>
+        </div>
+        <p class="auth-legal-note">使用本站的登录或注册功能，即表示你已阅读并同意<a href="/legal/user-agreement" target="_blank" rel="noopener noreferrer">《用户协议》</a>与<a href="/legal/privacy" target="_blank" rel="noopener noreferrer">《隐私声明》</a>。</p>
+        <div class="auth-error" id="authError"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-modal" id="registerModal" aria-hidden="true">
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-label="注册">
+      <div class="auth-head">
+        <h3>注册</h3>
+        <button class="auth-close" id="registerClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="auth-body">
+        <div class="auth-row">
+          <label for="registerId">ID（8-18位，字母/数字/下划线）</label>
+          <input id="registerId" autocomplete="off" placeholder="请输入ID" />
+        </div>
+        <div class="auth-row">
+          <label for="registerPassword">密码（8-18位，必须包含字母+数字）</label>
+          <input id="registerPassword" type="password" autocomplete="new-password" placeholder="请输入密码" />
+        </div>
+        <div class="auth-row">
+          <label for="registerPassword2">确认密码</label>
+          <input id="registerPassword2" type="password" autocomplete="new-password" placeholder="再次输入密码" />
+        </div>
+        <div class="profile-hint">注册后系统会自动分配用户名，可在“我的信息-个人资料”修改。</div>
+        <div class="auth-actions">
+          <button id="registerDo" type="button">完成注册</button>
+        </div>
+        <p class="auth-legal-note">点击注册即表示你已阅读并同意<a href="/legal/user-agreement" target="_blank" rel="noopener noreferrer">《用户协议》</a>与<a href="/legal/privacy" target="_blank" rel="noopener noreferrer">《隐私声明》</a>。</p>
+        <div class="auth-error" id="registerError"></div>
+      </div>
+    </div>
+  </div>
+
+<div class="auth-modal profile-fullscreen" id="profileModal" aria-hidden="true">
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-label="个人资料">
+      <div class="auth-head">
+        <h3>个人资料</h3>
+        <button class="auth-close" id="profileClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="auth-body">
+        <div class="profile-avatar-row">
+          <img class="profile-avatar-preview" id="profileAvatarPreview" alt="头像" />
+          <div class="profile-avatar-controls">
+            <input id="profileAvatarInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+            <button class="secondary" id="profileAvatarUpload" type="button">更换头像</button>
+          </div>
+        </div>
+        <div class="profile-hint" id="profileAvatarHint"></div>
+        <div class="profile-username-row">
+          <span class="profile-username-label">用户名</span>
+          <button class="profile-username-btn" id="profileUsernameTrigger" type="button">
+            <span id="profileUsernameText">-</span>
+            <span class="edit">修改</span>
+          </button>
+        </div>
+        <div class="auth-row" style="margin-top:12px;">
+          <label for="profileGender">性别</label>
+          <select id="profileGender">
+            <option value="unknown">保密</option>
+            <option value="male">男</option>
+            <option value="female">女</option>
+          </select>
+        </div>
+        <div class="auth-row">
+          <label for="profileBirthday">生日</label>
+          <input id="profileBirthday" type="date" />
+        </div>
+        <div class="auth-row">
+          <label for="profileBirthdayPublic">生日可见性</label>
+          <select id="profileBirthdayPublic">
+            <option value="0">私密</option>
+            <option value="1">公开</option>
+          </select>
+        </div>
+        <div class="auth-row">
+          <label for="profileBio">个人介绍</label>
+          <textarea id="profileBio" maxlength="120" placeholder="请输入个人介绍"></textarea>
+        </div>
+        <div class="auth-actions">
+          <button id="profileBaseSave" type="button">保存资料</button>
+        </div>
+        <div class="profile-hint" id="profileHint"></div>
+        <div class="auth-error" id="profileError"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-modal" id="avatarPreviewModal" aria-hidden="true">
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-label="头像预览">
+      <div class="auth-head">
+        <h3>头像预览</h3>
+        <button class="auth-close" id="avatarPreviewClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="auth-body">
+        <img class="avatar-preview-image" id="avatarPreviewImage" alt="头像预览" />
+        <div class="profile-hint" id="avatarPreviewHint">确认后将更新为当前头像。</div>
+        <div class="auth-actions">
+          <button class="secondary" id="avatarPreviewCancel" type="button">取消</button>
+          <button id="avatarPreviewConfirm" type="button">确定</button>
+        </div>
+        <div class="auth-error" id="avatarPreviewError"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-modal" id="profileNameModal" aria-hidden="true">
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-label="修改用户名">
+      <div class="auth-head">
+        <h3>修改用户名</h3>
+        <button class="auth-close" id="profileNameClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="auth-body">
+        <div class="auth-row">
+          <label for="profileNameInput">新用户名（2-15字，中英文/数字/下划线）</label>
+          <input id="profileNameInput" autocomplete="off" placeholder="请输入用户名" />
+        </div>
+        <div class="profile-hint" id="profileNameHint"></div>
+        <div class="auth-actions">
+          <button class="secondary" id="profileNameCancel" type="button">取消</button>
+          <button id="profileNameConfirm" type="button">确定</button>
+        </div>
+        <div class="auth-error" id="profileNameError"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="forum-fab" id="forumFab" type="button">发布</button>
+
+  <div class="forum-modal" id="forumModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="发布内容">
+      <div class="forum-head">
+        <h3>发布内容</h3>
+        <button class="forum-close" id="forumClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="forum-body">
+        <div class="forum-type" id="forumTypeTabs">
+          <button class="forum-type-btn active" type="button" data-type="image">图文</button>
+          <button class="forum-type-btn" type="button" data-type="article">文章</button>
+        </div>
+        <div class="forum-field">
+          <label for="forumModalTitle">标题</label>
+          <input id="forumModalTitle" maxlength="120" placeholder="请输入标题" />
+        </div>
+        <div class="forum-toolbar" id="forumToolbar">
+          <select id="forumFontFamily">
+            <option value="">字体</option>
+            <option value="Microsoft YaHei">微软雅黑</option>
+            <option value="SimSun">宋体</option>
+            <option value="SimHei">黑体</option>
+            <option value="KaiTi">楷体</option>
+            <option value="Arial">Arial</option>
+          </select>
+          <select id="forumFontSize">
+            <option value="">字号</option>
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="22">22</option>
+            <option value="28">28</option>
+          </select>
+          <div class="forum-toolbar-group">
+            <span class="forum-toolbar-label">字色</span>
+            <input id="forumColor" type="color" title="文字颜色" />
+            <span class="forum-toolbar-label">底色</span>
+            <input id="forumBgColor" type="color" title="背景色" />
+          </div>
+          <button type="button" data-cmd="bold">加粗</button>
+          <button type="button" data-cmd="italic">倾斜</button>
+          <button type="button" data-cmd="underline">下划线</button>
+          <button type="button" data-cmd="strikeThrough">删除线</button>
+          <button type="button" data-cmd="subscript">下标</button>
+          <button type="button" data-cmd="superscript">上标</button>
+          <button type="button" data-cmd="insertOrderedList">有序列表</button>
+          <button type="button" data-cmd="insertUnorderedList">无序列表</button>
+          <button type="button" data-cmd="justifyLeft">左对齐</button>
+          <button type="button" data-cmd="justifyCenter">居中</button>
+          <button type="button" data-cmd="justifyRight">右对齐</button>
+          <button type="button" data-cmd="formatBlock" data-value="h2">标题</button>
+          <button type="button" data-cmd="insertHorizontalRule">分隔线</button>
+          <button type="button" data-cmd="createLink">链接</button>
+          <button type="button" data-cmd="unlink">取消链接</button>
+          <button type="button" data-cmd="removeFormat">清除格式</button>
+          <div class="forum-toolbar-group forum-toolbar-upload" id="forumEmbedGroup">
+            <span class="forum-toolbar-label">插图（可选）</span>
+            <input id="forumEmbedImage" class="forum-upload-input" type="file" accept="image/*" multiple />
+            <label class="forum-upload-trigger" for="forumEmbedImage">选择插图</label>
+            <span class="forum-upload-meta" id="forumEmbedImageMeta">未选择任何文件</span>
+          </div>
+
+        </div>
+        <div class="forum-image-size" id="forumImageSizer" style="display:none;">
+          <span class="forum-toolbar-label">图片大小</span>
+          <input id="forumImgWidthRange" type="range" min="20" max="100" value="100" />
+          <input id="forumImgWidthPx" type="number" min="40" max="1600" placeholder="像素" />
+          <button class="btn secondary" id="forumImgReset" type="button">自适应</button>
+        </div>
+        <div id="forumTypeImagePane">
+          <div class="forum-field">
+            <label for="forumImageEditor">内容</label>
+            <div class="forum-editor" id="forumImageEditor" contenteditable="true" data-placeholder="请输入内容"></div>
+          </div>
+          <div class="forum-field forum-upload-field">
+            <label for="forumModalImage">图片（可多选，必选）</label>
+            <input id="forumModalImage" class="forum-upload-input" type="file" accept="image/*" multiple />
+            <div class="forum-upload-row">
+              <label class="forum-upload-trigger" for="forumModalImage">选择图片</label>
+              <span class="forum-upload-meta" id="forumModalImageMeta">未选择任何文件</span>
+            </div>
+            <div id="forumImageList" class="forum-image-list"></div>
+          </div>
+        </div>
+        <div id="forumTypeArticlePane" style="display:none;">
+          <div class="forum-field">
+            <label for="forumEditor">文章内容</label>
+            <div class="forum-editor" id="forumEditor" contenteditable="true" data-placeholder="请输入文章内容"></div>
+          </div>
+        </div>
+        <div class="forum-actions">
+          <button class="btn" id="forumPublishBtn" type="button">发布</button>
+        </div>
+        <div class="forum-status" id="forumPublishStatus"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-view-modal" id="forumViewModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="阅读内容">
+      <div class="forum-head">
+        <h3 id="forumViewTitle">阅读内容</h3>
+        <div class="forum-head-actions">
+          <button class="btn secondary" id="forumEditPostBtn" type="button" style="display:none;">编辑</button>
+          <button class="btn danger" id="forumDeletePostBtn" type="button" style="display:none;">删除</button>
+          <button class="btn secondary" id="forumPinPostBtn" type="button" style="display:none;">置顶</button>
+          <button class="forum-close" id="forumViewClose" type="button" aria-label="返回">返回</button>
+        </div>
+      </div>
+      <div class="forum-body">
+        <div class="forum-meta" id="forumViewMeta"></div>
+        <div class="forum-detail-actions">
+          <button class="forum-like-btn" id="forumLikeBtn" type="button" aria-label="点赞">
+            <span class="forum-like-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 3.9 4 6.5 4c1.74 0 3.41.81 4.5 2.09C12.09 4.81 13.76 4 15.5 4 18.1 4 20 6 20 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </span>
+            <span id="forumLikeCount">0</span>
+          </button>
+          <button class="forum-favorite-btn" id="forumFavoriteBtn" type="button" aria-label="收藏">
+            <span class="forum-favorite-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+            </span>
+            <span id="forumFavoriteCount">0</span>
+          </button>
+          <div class="forum-detail-count" aria-label="浏览量">
+            <span class="forum-detail-count-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 5c5.5 0 9.7 4.3 10.9 6.1.2.3.2.6 0 .9C21.7 13.7 17.5 18 12 18S2.3 13.7 1.1 12c-.2-.3-.2-.6 0-.9C2.3 9.3 6.5 5 12 5zm0 2C8.1 7 4.8 10 3.3 11.6 4.8 13.2 8.1 16 12 16s7.2-2.8 8.7-4.4C19.2 10 15.9 7 12 7zm0 2.2A2.8 2.8 0 1 1 12 15a2.8 2.8 0 0 1 0-5.8z"/></svg>
+            </span>
+            <span id="forumDetailViewCount">0</span>
+          </div>
+          <div class="forum-detail-count" aria-label="评论数">
+            <span class="forum-detail-count-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M21 6.5a4.5 4.5 0 0 0-4.5-4.5h-9A4.5 4.5 0 0 0 3 6.5v6A4.5 4.5 0 0 0 7.5 17H8v3.1c0 .6.7.9 1.1.5L12 17h4.5A4.5 4.5 0 0 0 21 12.5v-6z"/></svg>
+            </span>
+            <span id="forumDetailCommentCount">0</span>
+          </div>
+        </div>
+        <div class="forum-content-view" id="forumViewContent"></div>
+        <div class="forum-comments">
+          <div class="forum-comments-title">评论</div>
+          <div class="forum-comment-reply" id="forumReplyHint" style="display:none;"></div>
+          <div class="forum-field forum-comment-field">
+            <textarea id="forumCommentInput" maxlength="2000" placeholder="写下你的评论"></textarea>
+          </div>
+          <div class="forum-actions">
+            <button class="btn secondary" id="forumCommentSubmit" type="button">发表评论</button>
+          </div>
+          <div id="forumCommentList">
+            <div class="forum-status">暂无评论</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-image-lightbox" id="forumImageLightbox" aria-hidden="true">
+    <button class="forum-image-lightbox-close" id="forumImageLightboxClose" type="button" aria-label="关闭图片预览">关闭</button>
+    <div class="forum-image-lightbox-stage" id="forumImageLightboxStage">
+      <img id="forumImageLightboxImg" alt="图片预览" />
+      <button class="forum-image-lightbox-original" id="forumImageLightboxOriginal" type="button" style="display:none;">查看原图</button>
+    </div>
+  </div>
+
+  <div class="forum-view-modal user-home-modal" id="userHomeModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="用户主页">
+      <div class="forum-head">
+        <h3 id="userHomeTitle">用户主页</h3>
+        <div class="forum-head-actions">
+          <button class="forum-close" id="userHomeClose" type="button" aria-label="关闭">关闭</button>
+        </div>
+      </div>
+      <div class="forum-body">
+        <div class="user-home-profile" id="userHomeProfile"></div>
+        <div class="forum-status" id="userHomeStatus" style="display:none;"></div>
+        <div class="user-home-tabs" id="userHomeTabs">
+          <button class="user-home-tab active" type="button" data-user-home-view="posts">文章</button>
+          <button class="user-home-tab" type="button" data-user-home-view="following">关注</button>
+          <button class="user-home-tab" type="button" data-user-home-view="followers">粉丝</button>
+        </div>
+        <div class="user-home-list" id="userHomeList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-view-modal user-home-modal" id="meShopModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="积分商城">
+      <div class="forum-head">
+        <h3>积分商城</h3>
+        <div class="forum-head-actions">
+          <button class="forum-close" id="meShopModalClose" type="button" aria-label="关闭">关闭</button>
+        </div>
+      </div>
+      <div class="forum-body">
+        <p class="me-rewards-hint" id="meShopHint">使用积分兑换会员等道具。请先登录后查看商城。</p>
+        <div class="me-shop-grid" id="meShopGrid">
+          <div class="me-shop-card" style="justify-content:center;align-items:center;color:var(--muted);">加载中...</div>
+        </div>
+        <div class="admin-status" id="meShopStatus" style="margin-top:10px;display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-view-modal user-home-modal" id="mePointsRankingModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="积分排行榜">
+      <div class="forum-head">
+        <h3>积分排行榜</h3>
+        <div class="forum-head-actions">
+          <button class="forum-close" id="mePointsRankingClose" type="button" aria-label="关闭">关闭</button>
+        </div>
+      </div>
+      <div class="forum-body">
+        <p class="me-rewards-hint">按积分从高到低展示前 50 名；相同积分并列排名。</p>
+        <div class="points-ranking-list" id="mePointsRankingList"><div class="forum-status">加载中...</div></div>
+        <div class="points-ranking-me" id="mePointsRankingSelf"></div>
+        <div class="forum-status" id="mePointsRankingStatus" style="display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-view-modal user-home-modal" id="meRedeemModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="激活码兑换">
+      <div class="forum-head">
+        <h3>激活码兑换</h3>
+        <div class="forum-head-actions">
+          <button class="forum-close" id="meRedeemModalClose" type="button" aria-label="关闭">关闭</button>
+        </div>
+      </div>
+      <div class="forum-body">
+        <p class="me-rewards-hint">输入激活码可兑换积分、会员或商城道具。</p>
+        <div class="me-redeem-row">
+          <input id="meRedeemCodeInput" maxlength="48" placeholder="请输入激活码" autocomplete="off" />
+          <button class="btn" id="meRedeemCodeBtn" type="button" disabled>兑换</button>
+        </div>
+        <div class="admin-status" id="meRedeemStatus" style="margin-top:10px;display:none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-view-modal user-home-modal" id="meCollectionModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="我的收藏与点赞">
+      <div class="forum-head">
+        <h3 id="meCollectionTitle">我的收藏</h3>
+        <div class="forum-head-actions">
+          <button class="forum-close" id="meCollectionClose" type="button" aria-label="关闭">关闭</button>
+        </div>
+      </div>
+      <div class="forum-body">
+        <div class="collection-toolbar">
+          <input class="collection-search" id="meCollectionSearch" type="search" placeholder="搜索标题、分区、类型" autocomplete="off" />
+          <button class="btn secondary" id="meCollectionSearchClear" type="button">清空</button>
+        </div>
+        <div class="forum-status" id="meCollectionStatus" style="display:none;"></div>
+        <div class="user-home-list" id="meCollectionList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-view-modal chat-modal" id="chatModal" aria-hidden="true">
+    <div class="forum-panel" role="dialog" aria-modal="true" aria-label="聊天">
+      <div class="forum-head">
+        <h3>聊天</h3>
+        <div class="forum-head-actions">
+          <button class="forum-close" id="chatModalClose" type="button" aria-label="关闭">关闭</button>
+        </div>
+      </div>
+      <div class="forum-body chat-modal-body">
+        <div class="chat-wrap" id="chatWorkspace" style="display:none;">
+          <div class="chat-side">
+            <div class="chat-side-head">
+              <span>好友列表</span>
+              <div class="chat-head-actions">
+                <button class="btn secondary" id="chatBackToEntryBtn" type="button">关闭</button>
+                <button class="btn secondary" id="chatRefreshBtn" type="button">刷新</button>
+              </div>
+            </div>
+            <div class="chat-peer-list" id="chatPeerList">
+              <div class="forum-status">请先登录后查看</div>
+            </div>
+          </div>
+          <div class="chat-main">
+            <div class="chat-main-head">
+              <button class="chat-peer-title-btn" id="chatPeerTitle" type="button" data-chat-open-profile disabled>请选择会话</button>
+              <button class="btn secondary" id="chatBackToListBtn" type="button" style="display:none;">返回列表</button>
+            </div>
+            <div class="chat-thread" id="chatThread">
+              <div class="forum-status">暂无消息</div>
+            </div>
+            <div class="chat-send">
+              <textarea id="chatInput" maxlength="1000" placeholder="输入消息（回车发送，Shift+回车换行）"></textarea>
+              <div class="chat-send-actions">
+                <span class="profile-hint" id="chatHint">先关注对方后可发起聊天</span>
+                <button class="btn" id="chatSendBtn" type="button">发送</button>
+              </div>
+              <div class="forum-status" id="chatStatus" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dev-toast" id="devToast" aria-live="polite">开发中...</div>
+
+  <script>
+    window.__giftPackSearchBlobs = null;
+    window.__giftPackSearchBlobsPromise = fetch('/api/gift-packs/search-blobs', { credentials: 'same-origin' })
+      .then(function(r){ return r.json().then(function(d){ if(!r.ok) throw new Error(d&&d.error||r.status); return d; }); })
+      .then(function(d){
+        window.__giftPackSearchBlobs = (d && d.blobs) ? d.blobs : { regular: [], special: [] };
+        return window.__giftPackSearchBlobs;
+      })
+      .catch(function(){
+        window.__giftPackSearchBlobs = { regular: [], special: [] };
+        return window.__giftPackSearchBlobs;
+      });
+  </script>
+  <script src="/function/home-app.js?v=20260826-2"></script>
+</body>
+</html>
