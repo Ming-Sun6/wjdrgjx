@@ -485,17 +485,24 @@
       const childStarts = (schedule.items || []).map((item) => item.startDate).filter(Boolean).sort(compareDates);
       const parentDate = childStarts[0] || schedule.startDate;
       const parent = Object.assign({}, schedule, {
-        startDate: addDays(parentDate, -1),
-        endDate: addDays(parentDate, -1),
+        startDate: parentDate,
+        endDate: parentDate,
+        timelineParentDate: addDays(parentDate, -1),
         name: schedule.name,
       });
-      const parentBar = bar(parent, week);
+      const parentVisual = Object.assign({}, parent, {
+        startDate: parent.timelineParentDate,
+        endDate: parent.timelineParentDate,
+      });
+      const parentBar = bar(parentVisual, week);
+      if (parentBar) parentBar.onclick = () => detail(parent);
       if (parentBar) {
-        const clipped = clipSegment(parent, week.from, week.to);
+        const parentDisplayDate = parent.timelineParentDate || addDays(parentDate, -1);
+        const clipped = clipSegment(Object.assign({}, parent, {startDate: parentDisplayDate, endDate: parentDisplayDate}), week.from, week.to);
         const start = Math.max(0, diffDays(week.from, clipped.clipStart));
         parentBar.classList.add("calendar-composite-parent-title");
         parentBar.style.position = "absolute";
-        parentBar.style.left = `calc(${start} * 112px)`;
+          parentBar.style.left = `calc(${start} * 112px)`;
         parentBar.style.top = "0";
         parentBar.style.width = "112px";
         parentBar.style.height = `calc(${lanes.length} * 48px)`;
@@ -808,7 +815,7 @@
           parentBar.classList.add("calendar-timeline-parent-name");
           parentBar.style.position = "absolute";
           parentBar.style.top = "0";
-          parentBar.style.left = `calc(${Math.max(0, diffDays(range.from, parentItem.startDate))} * var(--timeline-day-width))`;
+          parentBar.style.left = `calc(${Math.max(0, diffDays(range.from, parentItem.timelineParentDate || addDays(parentItem.startDate, -1)))} * var(--timeline-day-width))`;
           parentBar.style.width = "var(--timeline-day-width)";
           parentBar.style.height = `calc(${lanes.length} * 54px)`;
           parentBar.style.margin = "0";
