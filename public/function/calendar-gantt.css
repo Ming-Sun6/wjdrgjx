@@ -12,6 +12,7 @@
   --calendar-shadow:0 16px 42px rgba(116,82,54,.13);
   --category-width:148px;
 }
+html.is-mobile-desktop-viewport{--category-width:59px}
 .calendar-timeline-parent-title{outline:2px solid color-mix(in srgb,currentColor 32%,transparent);outline-offset:-2px;font-weight:900}
 .calendar-timeline-parent-title{outline:2px solid color-mix(in srgb,currentColor 32%,transparent);outline-offset:-2px;font-weight:900}
 *{box-sizing:border-box}
@@ -103,7 +104,6 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
 .calendar-timeline-lane{background-image:repeating-linear-gradient(to right,transparent 0,transparent calc(var(--timeline-day-width) - 1px),var(--calendar-line) calc(var(--timeline-day-width) - 1px),var(--calendar-line) var(--timeline-day-width));background-position:0 0;background-size:auto 100%}
 
 @media (max-width:760px) and (hover:none) and (pointer:coarse){
-  :root{--category-width:59px}
   body{padding:64px 6px 16px}
   .calendar-page-header{height:52px;padding:0 10px}
   .calendar-page-header h1{font-size:.96rem}
@@ -118,6 +118,5 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
   .calendar-range-label{min-width:104px;font-size:.73rem}
   .calendar-clamp-notice,.calendar-rotate-notice{min-height:16px;margin-bottom:5px;font-size:.68rem}
   .calendar-scroll{overflow:auto;border-radius:11px}
-  #calendarGanttRoot{width:500%;zoom:.2}
   html.is-embedded .calendar-shell{padding:7px;border-radius:12px}
 }
