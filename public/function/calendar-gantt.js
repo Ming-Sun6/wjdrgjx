@@ -926,23 +926,30 @@
             range,
           );
           if (ordinary) root.appendChild(ordinary);
+          const dailyGroups = [];
           group.composites.forEach((schedules) => {
             const schedule = schedules[0];
+            if (schedule.compositeLayout === "daily-list") {
+              dailyGroups.push(...schedules);
+              return;
+            }
             const section =
-              schedule.compositeLayout === "daily-list"
-                ? renderTimelineDailySection(
-                    group.category.name,
-                    schedules,
-                    range,
-                  )
-                : timelineSection(
-                    group.category.name,
-                    schedules.flatMap((item) => timelineItems(item, range)),
-                    schedule.name,
-                    range,
-                  );
+              timelineSection(
+                group.category.name,
+                schedules.flatMap((item) => timelineItems(item, range)),
+                schedule.name,
+                range,
+              );
             if (section) root.appendChild(section);
           });
+          if (dailyGroups.length) {
+            const dailySection = renderTimelineDailySection(
+              group.category.name,
+              dailyGroups,
+              range,
+            );
+            if (dailySection) root.appendChild(dailySection);
+          }
         });
       return root;
     }
