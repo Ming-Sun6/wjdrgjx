@@ -35,6 +35,25 @@ test('neighbor progress config normalizes stages and preserves explicit override
   assert.deepEqual(result.stages[0].dates.slice(0, 4), ['2026-09-01', '2026-09-15', '2026-09-29', '2026-10-13']);
 });
 
+test('neighbor progress normalizes common range separators for public queries', () => {
+  assert.equal(config.normalizeNeighborProgressRange('4446～4470'), '4446~4470');
+  assert.equal(config.normalizeNeighborProgressRange('4471 - 4495'), '4471~4495');
+  assert.equal(config.normalizeNeighborProgressRange('4520—4496'), '4496~4520');
+
+  const result = config.normalizeNeighborProgressConfig({
+    ranges: ['4446～4470', '4471–4495'],
+    stages: []
+  });
+  assert.deepEqual(result.ranges, ['4446~4470', '4471~4495']);
+});
+
+test('public neighbor progress searches the authoritative remote range list', () => {
+  const page = fs.readFileSync(path.join(__dirname, '..', 'public/function/neighbor-progress.html'), 'utf8');
+  assert.match(page, /labels\s*=\s*config\.ranges\.slice\(\)/);
+  assert.doesNotMatch(page, /config\.ranges\.concat\(labels\.slice/);
+  assert.match(page, /\[~\\uFF5E\\-\\u2013\\u2014\]/);
+});
+
 test('neighbor progress treats the first range date as the saved anchor', () => {
   const result = config.normalizeNeighborProgressConfig({
     intervalDays: 14,

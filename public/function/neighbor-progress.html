@@ -499,8 +499,10 @@
       ];
       var remoteConfig = null;
       function applyRemoteConfig(config) {
-        if (!config || !Array.isArray(config.stages)) return;
+        if (!config || typeof config !== "object") return;
         remoteConfig = config;
+        if (Array.isArray(config.ranges) && config.ranges.length) labels = config.ranges.slice();
+        if (!Array.isArray(config.stages)) return;
         config.stages.forEach(function (remote) {
           if (!remote || !remote.key || !remote.name || remote.enabled === false) return;
           var existing = null;
@@ -509,7 +511,6 @@
           else { stageDefs.push({ key: String(remote.key), name: String(remote.name), offset: 0, remoteDates: remote.dates || [] }); }
           stateLabelMap[String(remote.key)] = String(remote.name).replace(/英雄$/, '');
         });
-        if (Array.isArray(config.ranges) && config.ranges.length) labels = config.ranges.concat(labels.slice(config.ranges.length));
       }
 
       var hero11OpenByLabel = {
@@ -701,7 +702,7 @@
 
       function toDisplayRangeForTable(label) {
         var t = String(label || "");
-        if (/^\d+\s*~\s*\d+$/.test(t)) return t.replace("~", "\uFF5E");
+        if (/^\d+\s*[~\uFF5E\-\u2013\u2014]\s*\d+$/.test(t)) return t.replace(/[~\-\u2013\u2014]/, "\uFF5E");
         return t;
       }
 
@@ -827,7 +828,7 @@
         var t = String(rangeText).trim();
         var m1 = t.match(/^NB(\d+)$/);
         if (m1) return Number(m1[1]) === value;
-        var m2 = t.match(/^(\d+)\s*~\s*(\d+)$/);
+        var m2 = t.match(/^(\d+)\s*[~\uFF5E\-\u2013\u2014]\s*(\d+)$/);
         if (m2) {
           var a = Number(m2[1]);
           var b = Number(m2[2]);
@@ -979,5 +980,4 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
 
 </body>
 </html>
-
 

@@ -35,6 +35,15 @@ function addDays(dateString, days) {
   return date.toISOString().slice(0, 10);
 }
 
+function normalizeNeighborProgressRange(value) {
+  const text = String(value || '').trim();
+  const match = text.match(/^(\d+)\s*[~\uFF5E\-\u2013\u2014]\s*(\d+)$/);
+  if (!match) return text;
+  const first = Number(match[1]);
+  const second = Number(match[2]);
+  return `${Math.min(first, second)}~${Math.max(first, second)}`;
+}
+
 function generateStageDates(anchorDate, rangeCount = DEFAULT_NEIGHBOR_PROGRESS_RANGES.length, intervalDays = DEFAULT_NEIGHBOR_PROGRESS_INTERVAL_DAYS) {
   if (!isIsoDate(anchorDate)) return [];
   const count = Math.max(1, Math.min(200, Number(rangeCount) || DEFAULT_NEIGHBOR_PROGRESS_RANGES.length));
@@ -46,7 +55,7 @@ function normalizeNeighborProgressConfig(input) {
   const raw = input && typeof input === 'object' ? input : {};
   const intervalDays = Math.max(1, Math.min(60, Math.round(Number(raw.intervalDays) || DEFAULT_NEIGHBOR_PROGRESS_INTERVAL_DAYS)));
   const ranges = Array.isArray(raw.ranges) && raw.ranges.length
-    ? raw.ranges.map((value) => String(value || '').trim()).filter(Boolean).slice(0, 200)
+    ? raw.ranges.map(normalizeNeighborProgressRange).filter(Boolean).slice(0, 200)
     : DEFAULT_NEIGHBOR_PROGRESS_RANGES.slice();
   const sourceStages = Array.isArray(raw.stages) ? raw.stages.slice(0, 50) : [];
   const stages = [];
@@ -81,5 +90,6 @@ module.exports = {
   defaultNeighborProgressConfig,
   generateStageDates,
   isIsoDate,
+  normalizeNeighborProgressRange,
   normalizeNeighborProgressConfig
 };
