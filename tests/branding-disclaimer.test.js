@@ -29,10 +29,19 @@ test('embedded tools do not inject a second player-made notice', () => {
   assert.match(calendar, /analytics-tracker\.js\?v=20260825-2/);
 });
 
+test('site footer legal links include about us and privacy policy', () => {
+  const source = read('public/function/site-beian.js');
+  assert.match(source, /\/legal\/about/);
+  assert.match(source, /\u5173\u4e8e\u6211\u4eec/);
+  assert.match(source, /\u9690\u79c1\u653f\u7b56/);
+  assert.doesNotMatch(source, /\u9690\u79c1\u58f0\u660e/);
+});
+
 test('main public pages use the shortened site brand', () => {
   const pages = [
     'index.html',
     'rukou.html',
+    'legal/about.html',
     'legal/privacy.html',
     'legal/user-agreement.html',
     'public/function/expert-calculator.html',

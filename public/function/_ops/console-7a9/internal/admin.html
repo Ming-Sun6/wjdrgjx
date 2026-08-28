@@ -752,6 +752,10 @@
     }
     .site-footer-editor:focus{border-color:rgba(59,130,246,.8);box-shadow:0 0 0 3px rgba(59,130,246,.18);}
     .site-footer-preview{white-space:pre-wrap;line-height:1.75;text-align:center;}
+    .legal-doc-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;}
+    .legal-doc-pane{display:none;}
+    .legal-doc-pane.active{display:block;}
+    .legal-doc-editor{min-height:360px;font-family:Consolas,Monaco,"Courier New",monospace;font-size:13px;}
     .tool-management-toolbar{
       display:flex;
       justify-content:space-between;
@@ -858,6 +862,7 @@
         <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
         <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
         <button class="side-item" type="button" data-page="site-footer" data-admin-only="1">底部致谢</button>
+        <button class="side-item" type="button" data-page="legal-docs" data-admin-only="1">协议与隐私政策</button>
         <button class="side-item" type="button" data-page="voices" data-admin-only="1">用户发声</button>
         <button class="side-item" type="button" data-page="admin-log" data-admin-only="1">后台更新日志</button>
       </aside>
@@ -1988,6 +1993,81 @@
           </div>
         </section>
 
+        <section class="card page" id="page-legal-docs" data-page="legal-docs">
+          <div class="page-title">协议与隐私政策</div>
+          <div class="calendar-admin">
+            <div class="form-section">
+              <div class="form-title">更新弹窗</div>
+              <div class="form-group">
+                <label for="legalNoticeTitle">弹窗标题</label>
+                <input id="legalNoticeTitle" maxlength="80" placeholder="例如：用户协议与隐私政策更新" />
+              </div>
+              <div class="form-group">
+                <label for="legalNoticeSummary">弹窗说明</label>
+                <textarea id="legalNoticeSummary" class="site-footer-editor" style="min-height:110px;" maxlength="2000" placeholder="用户首次进入或你发布更新后，会看到这段说明。"></textarea>
+              </div>
+              <div class="legal-doc-tabs" id="legalDocTabs">
+                <button class="btn secondary" type="button" data-legal-tab="about">关于我们</button>
+                <button class="btn secondary" type="button" data-legal-tab="agreement">用户协议</button>
+                <button class="btn secondary" type="button" data-legal-tab="privacy">隐私政策</button>
+              </div>
+              <div class="legal-doc-pane active" data-legal-pane="about">
+                <div class="form-group">
+                  <label for="legalAboutTitle">关于我们 · 标题</label>
+                  <input id="legalAboutTitle" maxlength="40" />
+                </div>
+                <div class="form-group">
+                  <label for="legalAboutEffective">生效日期</label>
+                  <input id="legalAboutEffective" type="date" />
+                </div>
+                <div class="form-group">
+                  <label for="legalAboutBody">正文（支持 HTML，纯文本会按空行分段）</label>
+                  <textarea id="legalAboutBody" class="site-footer-editor legal-doc-editor" maxlength="80000"></textarea>
+                </div>
+              </div>
+              <div class="legal-doc-pane" data-legal-pane="agreement">
+                <div class="form-group">
+                  <label for="legalAgreementTitle">用户协议 · 标题</label>
+                  <input id="legalAgreementTitle" maxlength="40" />
+                </div>
+                <div class="form-group">
+                  <label for="legalAgreementEffective">生效日期</label>
+                  <input id="legalAgreementEffective" type="date" />
+                </div>
+                <div class="form-group">
+                  <label for="legalAgreementBody">正文（支持 HTML，纯文本会按空行分段）</label>
+                  <textarea id="legalAgreementBody" class="site-footer-editor legal-doc-editor" maxlength="80000"></textarea>
+                </div>
+              </div>
+              <div class="legal-doc-pane" data-legal-pane="privacy">
+                <div class="form-group">
+                  <label for="legalPrivacyTitle">隐私政策 · 标题</label>
+                  <input id="legalPrivacyTitle" maxlength="40" />
+                </div>
+                <div class="form-group">
+                  <label for="legalPrivacyEffective">生效日期</label>
+                  <input id="legalPrivacyEffective" type="date" />
+                </div>
+                <div class="form-group">
+                  <label for="legalPrivacyBody">正文（支持 HTML，纯文本会按空行分段）</label>
+                  <textarea id="legalPrivacyBody" class="site-footer-editor legal-doc-editor" maxlength="80000"></textarea>
+                </div>
+              </div>
+              <div class="calendar-actions">
+                <button class="btn secondary" id="legalDocsSaveBtn" type="button">保存草稿</button>
+                <button class="btn" id="legalDocsPublishBtn" type="button">发布更新</button>
+                <button class="btn secondary" id="legalDocsReloadBtn" type="button">重新加载</button>
+              </div>
+              <div class="admin-status" id="legalDocsStatus"></div>
+            </div>
+            <div class="form-section">
+              <div class="form-title">当前状态</div>
+              <div class="admin-status" id="legalDocsMeta"></div>
+              <div id="legalDocsPreview" class="site-footer-preview" style="text-align:left;">尚未加载</div>
+            </div>
+          </div>
+        </section>
+
         <section class="card page" id="page-voices" data-page="voices">
           <div class="page-title">用户发声</div>
           <div class="admin-toolbar">
@@ -2069,6 +2149,10 @@
         </section>
 
         <section class="card page" id="page-admin-log" data-page="admin-log">
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.41（2026-08-28）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>协议与隐私政策</strong>：新增后台「协议与隐私政策」编辑栏，可快捷修改关于我们、用户协议、隐私政策；发布后前台弹出确认更新窗口，用户点击「确定」后不再重复提示。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.40（2026-08-26）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>活动日历五步工作台</strong>：正式接入基本信息、日期与重复、组合任务、颜色与说明、预设五步编辑流程，桌面与手机端布局同步优化。</div>
@@ -2848,6 +2932,122 @@
         setStatus('siteFooterStatus','已保存，前台将读取最新底部致谢。');
       }catch(e){
         setStatus('siteFooterStatus','保存失败：'+(e.message||'网络错误'));
+      }finally{
+        if(btn) btn.disabled=false;
+      }
+    }
+
+    function switchLegalDocTab(tabId){
+      var tabs=document.querySelectorAll('#legalDocTabs [data-legal-tab]');
+      var panes=document.querySelectorAll('[data-legal-pane]');
+      Array.prototype.forEach.call(tabs,function(btn){
+        var active=btn.getAttribute('data-legal-tab')===tabId;
+        btn.classList.add('btn');
+        btn.classList.toggle('secondary', !active);
+      });
+      Array.prototype.forEach.call(panes,function(pane){
+        pane.classList.toggle('active', pane.getAttribute('data-legal-pane')===tabId);
+      });
+    }
+
+    function collectLegalDocsPayload(){
+      return {
+        noticeTitle:(document.getElementById('legalNoticeTitle')&&document.getElementById('legalNoticeTitle').value)||'',
+        noticeSummary:(document.getElementById('legalNoticeSummary')&&document.getElementById('legalNoticeSummary').value)||'',
+        documents:{
+          about:{
+            title:(document.getElementById('legalAboutTitle')&&document.getElementById('legalAboutTitle').value)||'',
+            effectiveAt:(document.getElementById('legalAboutEffective')&&document.getElementById('legalAboutEffective').value)||'',
+            bodyHtml:(document.getElementById('legalAboutBody')&&document.getElementById('legalAboutBody').value)||''
+          },
+          agreement:{
+            title:(document.getElementById('legalAgreementTitle')&&document.getElementById('legalAgreementTitle').value)||'',
+            effectiveAt:(document.getElementById('legalAgreementEffective')&&document.getElementById('legalAgreementEffective').value)||'',
+            bodyHtml:(document.getElementById('legalAgreementBody')&&document.getElementById('legalAgreementBody').value)||''
+          },
+          privacy:{
+            title:(document.getElementById('legalPrivacyTitle')&&document.getElementById('legalPrivacyTitle').value)||'',
+            effectiveAt:(document.getElementById('legalPrivacyEffective')&&document.getElementById('legalPrivacyEffective').value)||'',
+            bodyHtml:(document.getElementById('legalPrivacyBody')&&document.getElementById('legalPrivacyBody').value)||''
+          }
+        }
+      };
+    }
+
+    function fillLegalDocsForm(legalDocs){
+      var docs=(legalDocs&&legalDocs.documents)||{};
+      var noticeTitle=document.getElementById('legalNoticeTitle');
+      var noticeSummary=document.getElementById('legalNoticeSummary');
+      if(noticeTitle) noticeTitle.value=(legalDocs&&legalDocs.noticeTitle)||'';
+      if(noticeSummary) noticeSummary.value=(legalDocs&&legalDocs.noticeSummary)||'';
+      var map={
+        about:['legalAboutTitle','legalAboutEffective','legalAboutBody'],
+        agreement:['legalAgreementTitle','legalAgreementEffective','legalAgreementBody'],
+        privacy:['legalPrivacyTitle','legalPrivacyEffective','legalPrivacyBody']
+      };
+      Object.keys(map).forEach(function(id){
+        var doc=docs[id]||{};
+        var titleEl=document.getElementById(map[id][0]);
+        var dateEl=document.getElementById(map[id][1]);
+        var bodyEl=document.getElementById(map[id][2]);
+        if(titleEl) titleEl.value=doc.title||'';
+        if(dateEl) dateEl.value=String(doc.effectiveAt||'').slice(0,10);
+        if(bodyEl) bodyEl.value=doc.bodyHtml||'';
+      });
+      var meta=document.getElementById('legalDocsMeta');
+      var preview=document.getElementById('legalDocsPreview');
+      var parts=[];
+      if(legalDocs&&legalDocs.version) parts.push('当前版本：'+legalDocs.version);
+      if(legalDocs&&legalDocs.publishedAt) parts.push('最近发布：'+formatDateTime(legalDocs.publishedAt));
+      if(legalDocs&&legalDocs.publishedBy) parts.push('发布人：'+legalDocs.publishedBy);
+      if(meta) meta.textContent=parts.join(' · ')||'尚未发布过更新';
+      if(preview){
+        preview.textContent=(legalDocs&&legalDocs.noticeTitle?legalDocs.noticeTitle:'用户协议与隐私政策更新')+'\n\n'+(legalDocs&&legalDocs.noticeSummary?legalDocs.noticeSummary:'');
+      }
+    }
+
+    async function loadLegalDocsAdmin(){
+      if(!authUser||!authUser.isAdmin){
+        setStatus('legalDocsStatus','没有权限：请使用管理员账号登录。');
+        return;
+      }
+      setStatus('legalDocsStatus','加载中...');
+      try{
+        var r=await apiFetch('/api/admin/legal-docs',{method:'GET'});
+        var d=await r.json().catch(function(){return null;});
+        if(!r.ok){
+          setStatus('legalDocsStatus','加载失败：'+((d&&d.error)||r.status));
+          return;
+        }
+        fillLegalDocsForm(d&&d.legalDocs);
+        switchLegalDocTab('about');
+        setStatus('legalDocsStatus','已加载。修改后可先保存草稿，确认无误再点「发布更新」。');
+      }catch(e){
+        setStatus('legalDocsStatus','加载失败：'+(e.message||'网络错误'));
+      }
+    }
+
+    async function saveLegalDocsAdmin(publish){
+      if(!authUser||!authUser.isAdmin){
+        setStatus('legalDocsStatus','没有权限：请使用管理员账号登录。');
+        return;
+      }
+      var btn=document.getElementById(publish?'legalDocsPublishBtn':'legalDocsSaveBtn');
+      if(publish && !confirm('发布后，尚未确认过的用户以及所有用户（相对新版本）将在下次进入网站时看到更新弹窗。确定发布？')) return;
+      if(btn) btn.disabled=true;
+      setStatus('legalDocsStatus',publish?'发布中...':'保存中...');
+      try{
+        var url=publish?'/api/admin/legal-docs/publish':'/api/admin/legal-docs';
+        var r=await apiFetch(url,{method:publish?'POST':'PUT',body:JSON.stringify(collectLegalDocsPayload())});
+        var d=await r.json().catch(function(){return null;});
+        if(!r.ok){
+          setStatus('legalDocsStatus',(publish?'发布失败：':'保存失败：')+((d&&d.error)||r.status));
+          return;
+        }
+        fillLegalDocsForm(d&&d.legalDocs);
+        setStatus('legalDocsStatus',publish?'已发布。用户下次打开网站会看到更新弹窗。':'草稿已保存，前台暂不弹窗，需再点「发布更新」。');
+      }catch(e){
+        setStatus('legalDocsStatus',(publish?'发布失败：':'保存失败：')+(e.message||'网络错误'));
       }finally{
         if(btn) btn.disabled=false;
       }
@@ -4946,6 +5146,7 @@
       else if(currentPage==='announcement') loadAnnouncementAdmin();
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='site-footer') loadSiteFooterAdmin();
+      else if(currentPage==='legal-docs') loadLegalDocsAdmin();
       else if(currentPage==='voices') loadUserVoices();
     }
 
@@ -5129,6 +5330,14 @@
       var preview=document.getElementById('siteFooterPreview');
       var input=document.getElementById('siteFooterContent');
       if(preview) preview.textContent=(input&&input.value)||'暂无内容';
+    });
+    document.getElementById('legalDocsSaveBtn')&&document.getElementById('legalDocsSaveBtn').addEventListener('click',function(){ saveLegalDocsAdmin(false); });
+    document.getElementById('legalDocsPublishBtn')&&document.getElementById('legalDocsPublishBtn').addEventListener('click',function(){ saveLegalDocsAdmin(true); });
+    document.getElementById('legalDocsReloadBtn')&&document.getElementById('legalDocsReloadBtn').addEventListener('click',loadLegalDocsAdmin);
+    document.getElementById('legalDocTabs')&&document.getElementById('legalDocTabs').addEventListener('click',function(e){
+      var btn=e.target.closest('[data-legal-tab]');
+      if(!btn) return;
+      switchLegalDocTab(btn.getAttribute('data-legal-tab'));
     });
 
     (function initAnnouncementEditor(){

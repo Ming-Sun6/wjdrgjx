@@ -197,6 +197,23 @@
     document.head.appendChild(sc);
   }
 
+  function ensureLegalNoticeScript() {
+    if (window.__wjdrLegalNoticeScriptQueued) return;
+    window.__wjdrLegalNoticeScriptQueued = true;
+    try {
+      var nodes = document.getElementsByTagName('script');
+      for (var i = 0; i < nodes.length; i++) {
+        var src = nodes[i].getAttribute('src') || '';
+        var path = (src.split('?')[0].split('#')[0] || '').trim();
+        if (/legal-notice\.js$/i.test(path)) return;
+      }
+    } catch (_e) {}
+    var sc = document.createElement('script');
+    sc.src = '/function/legal-notice.js';
+    sc.async = true;
+    document.head.appendChild(sc);
+  }
+
   function ensureSmartBackScript() {
     if (window.__wjdrSmartBackScriptQueued || window.__wjdrSmartBackBound) return;
     window.__wjdrSmartBackScriptQueued = true;
@@ -210,6 +227,7 @@
     ensurePlayerMadeNotice();
     ensureSiteBeianScript();
     ensureSiteFooterScript();
+    ensureLegalNoticeScript();
     ensureSmartBackScript();
     if (!pageLoadsUnifiedTheme()) {
       applyTheme(getStoredTheme() || 'night');

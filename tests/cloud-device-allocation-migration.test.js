@@ -25,7 +25,7 @@ test('launcher contains only the requested title and two tool links', () => {
     { href: 'v2.6.html', label: '脚本链接' },
     { href: 'ai.html', label: '云机链接' },
   ]);
-  assert.doesNotMatch(launcher, /analytics-tracker\.js|备案|隐私声明|用户协议|<footer\b/i);
+  assert.doesNotMatch(launcher, /analytics-tracker\.js|备案|隐私声明|隐私政策|关于我们|用户协议|<footer\b/i);
 });
 
 test('migrated tools match the source file hashes', () => {

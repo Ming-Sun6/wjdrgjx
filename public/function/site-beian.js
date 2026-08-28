@@ -36,23 +36,33 @@
     p.id = 'wjdr-legal-doc-links';
     p.className = 'site-footer-legal';
 
+    function makeSep() {
+      var sep = document.createElement('span');
+      sep.className = 'wjdr-legal-docs-sep';
+      sep.setAttribute('aria-hidden', 'true');
+      sep.textContent = '|';
+      return sep;
+    }
+
+    var aAbout = document.createElement('a');
+    aAbout.href = '/legal/about';
+    aAbout.rel = 'noopener noreferrer';
+    aAbout.textContent = '《关于我们》';
+
     var aUser = document.createElement('a');
     aUser.href = '/legal/user-agreement';
     aUser.rel = 'noopener noreferrer';
     aUser.textContent = '《用户协议》';
 
-    var sep = document.createElement('span');
-    sep.className = 'wjdr-legal-docs-sep';
-    sep.setAttribute('aria-hidden', 'true');
-    sep.textContent = '|';
-
     var aPri = document.createElement('a');
     aPri.href = '/legal/privacy';
     aPri.rel = 'noopener noreferrer';
-    aPri.textContent = '《隐私声明》';
+    aPri.textContent = '《隐私政策》';
 
+    p.appendChild(aAbout);
+    p.appendChild(makeSep());
     p.appendChild(aUser);
-    p.appendChild(sep);
+    p.appendChild(makeSep());
     p.appendChild(aPri);
 
     var footer = document.querySelector('footer.wjdr-footer');

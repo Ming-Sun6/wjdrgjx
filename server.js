@@ -76,6 +76,16 @@ const { DEFAULT_HISTORY_IMMIGRATION_DATES, defaultHistoryImmigrationConfig, norm
 const { ensureCalendarSchema, createCalendarStore } = require('./calendar-store');
 const { mountCalendarRoutes } = require('./calendar-routes');
 const { mountHomeNavigationRoutes, HOME_NAVIGATION_CATALOG, normalizeHomeNavigation, createHomeNavigationHandlers } = require('./home-navigation');
+const {
+  LEGAL_DOCS_SETTING_KEY,
+  loadDefaultsFromLegalDir,
+  normalizeLegalDocs,
+  toPublicNotice,
+  applyAdminPayload,
+  renderLegalPageHtml,
+  writeLegalHtmlFiles,
+  docIdFromRequestPath
+} = require('./legal-docs');
 
 const app = express();
 const runChatSendSerial = createKeyedSerialExecutor();
@@ -92,6 +102,7 @@ const FORUM_IMAGE_UPLOAD_DIR = path.join(__dirname, 'uploads', 'forum');
 const FORUM_IMAGE_PUBLIC_PREFIX = '/uploads/forum/';
 const DEFAULT_ADMIN_LOGIN_ID = process.env.DEFAULT_ADMIN_LOGIN_ID || 'admin';
 const SITE_FOOTER_SETTING_KEY = 'site_footer';
+const LEGAL_DIR = path.join(__dirname, 'legal');
 const TOOL_MANAGEMENT_SETTING_KEY = 'tool_management';
 const NEIGHBOR_PROGRESS_SETTING_KEY = 'neighbor_progress_schedule';
 const HISTORY_IMMIGRATION_SETTING_KEY = 'history_immigration_config';
@@ -333,6 +344,22 @@ app.use(
   express.static(path.join(__dirname, 'aeroplane-chess', 'frontend'))
 );
 app.use(express.static(path.join(__dirname, 'public')));
+app.get(
+  ['/legal/about', '/legal/about.html', '/legal/privacy', '/legal/privacy.html', '/legal/user-agreement', '/legal/user-agreement.html'],
+  async (req, res, next) => {
+    try {
+      const stored = await getSetting(LEGAL_DOCS_SETTING_KEY, null);
+      if (!stored || !stored.publishedAt) return next();
+      const docId = docIdFromRequestPath(req.path);
+      if (!docId) return next();
+      const docs = normalizeLegalDocs(stored, loadDefaultsFromLegalDir(LEGAL_DIR));
+      return res.type('html').send(renderLegalPageHtml(docId, docs));
+    } catch (_err) {
+      return next();
+    }
+  }
+);
+app.use('/legal', express.static(path.join(__dirname, 'legal'), { extensions: ['html'] }));
 
 const aeroplaneChessPollingService = mountAeroplaneChessPollingRoutes(app, {
   recordHistory: async (entry) => {
@@ -1507,6 +1534,12 @@ async function getSiteFooterSetting() {
     updatedAt: value && value.updatedAt ? value.updatedAt : null,
     updatedBy: value && value.updatedBy ? value.updatedBy : null
   };
+}
+
+async function getLegalDocsState() {
+  const defaults = loadDefaultsFromLegalDir(LEGAL_DIR);
+  const stored = await getSetting(LEGAL_DOCS_SETTING_KEY, null);
+  return normalizeLegalDocs(stored, defaults);
 }
 
 function normalizeToolManagement(payload) {
@@ -2720,6 +2753,71 @@ app.put('/api/admin/site-footer', async (req, res) => {
 
 app.post('/api/admin/site-footer', async (req, res) => {
   try { await updateSiteFooter(req, res); } catch (err) { console.error('admin site footer post failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+app.get('/api/legal-notice', async (_req, res) => {
+  try {
+    const docs = await getLegalDocsState();
+    return res.json({ notice: toPublicNotice(docs) });
+  } catch (err) {
+    console.error('legal notice get failed:', err);
+    return res.json({ notice: toPublicNotice(loadDefaultsFromLegalDir(LEGAL_DIR)) });
+  }
+});
+
+app.get('/api/admin/legal-docs', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    return res.json({ legalDocs: await getLegalDocsState() });
+  } catch (err) {
+    console.error('admin legal docs get failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+async function saveLegalDocs(req, res, publish) {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  const actorName = admin.username || admin.login_id || String(admin.id);
+  const current = await getLegalDocsState();
+  const applied = applyAdminPayload(current, req.body || {}, {
+    publish: !!publish,
+    actorName,
+    defaults: loadDefaultsFromLegalDir(LEGAL_DIR)
+  });
+  if (applied.error) return res.status(400).json({ error: applied.error });
+  await setSetting(LEGAL_DOCS_SETTING_KEY, applied.docs);
+  if (publish) {
+    try {
+      writeLegalHtmlFiles(LEGAL_DIR, applied.docs);
+    } catch (err) {
+      console.error('legal html write failed:', err);
+      return res.status(500).json({ error: 'WRITE_FAILED' });
+    }
+  }
+  await auditAdminAction(req, {
+    actor: admin,
+    action: publish ? 'legal_docs.publish' : 'legal_docs.save',
+    targetType: 'legal_docs',
+    targetId: String(applied.docs.version || 'current'),
+    riskLevel: 'watch',
+    summary: publish ? '发布用户协议与隐私政策更新' : '保存用户协议与隐私政策草稿',
+    metadata: { version: applied.docs.version, publish: !!publish }
+  });
+  return res.json({ ok: true, legalDocs: applied.docs });
+}
+
+app.put('/api/admin/legal-docs', async (req, res) => {
+  try { await saveLegalDocs(req, res, false); } catch (err) { console.error('admin legal docs put failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+app.post('/api/admin/legal-docs', async (req, res) => {
+  try { await saveLegalDocs(req, res, false); } catch (err) { console.error('admin legal docs post failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+app.post('/api/admin/legal-docs/publish', async (req, res) => {
+  try { await saveLegalDocs(req, res, true); } catch (err) { console.error('admin legal docs publish failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
 });
 
 const handleProfileUpdate = async (req, res) => {
