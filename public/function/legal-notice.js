@@ -33,6 +33,19 @@
     } catch (_e) {}
   }
 
+  function sendAck(version) {
+    if (typeof fetch !== 'function') return;
+    try {
+      fetch('/api/legal-notice/ack', {
+        method: 'POST',
+        credentials: 'include',
+        keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ version: String(version || '') })
+      }).catch(function () {});
+    } catch (_e) {}
+  }
+
   function injectStyles() {
     if (document.getElementById('wjdr-legal-notice-styles')) return;
     var style = document.createElement('style');
@@ -107,6 +120,7 @@
     if (confirmBtn) {
       confirmBtn.onclick = function () {
         writeAck(notice.version);
+        sendAck(notice.version);
         modal.classList.remove('open');
         modal.setAttribute('aria-hidden', 'true');
       };

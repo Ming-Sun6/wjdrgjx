@@ -22,6 +22,7 @@ let sharp = null;
 try { sharp = require('sharp'); } catch (_e) { sharp = null; }
 const {
   ensureVisitorIdentity,
+  isValidVisitorId,
   classifyRequestPath,
   classifyApiPath
 } = require('./analytics/identity');
@@ -1542,6 +1543,40 @@ async function getLegalDocsState() {
   return normalizeLegalDocs(stored, defaults);
 }
 
+async function countLegalNoticeAcks(version) {
+  const ver = String(version || '').trim().slice(0, 32);
+  if (!ver) return 0;
+  try {
+    const row = await queryOne(
+      'SELECT COUNT(*) AS c FROM legal_notice_acks WHERE notice_version = ?',
+      [ver]
+    );
+    return Math.max(0, Number(row && row.c) || 0);
+  } catch (err) {
+    console.error('legal notice ack count failed:', err);
+    return 0;
+  }
+}
+
+async function recordLegalNoticeAck(version, visitorId, userId) {
+  const ver = String(version || '').trim().slice(0, 32);
+  const vid = String(visitorId || '').trim().slice(0, 32);
+  if (!ver || !isValidVisitorId(vid)) return { counted: false };
+  const uid = Number.isFinite(Number(userId)) && Number(userId) > 0 ? Number(userId) : null;
+  if (pgDatabase) {
+    await execute(
+      'INSERT INTO legal_notice_acks (notice_version, visitor_id, user_id) VALUES (?, ?, ?) ON CONFLICT (notice_version, visitor_id) DO NOTHING',
+      [ver, vid, uid]
+    );
+  } else {
+    await execute(
+      'INSERT IGNORE INTO legal_notice_acks (notice_version, visitor_id, user_id) VALUES (?, ?, ?)',
+      [ver, vid, uid]
+    );
+  }
+  return { counted: true };
+}
+
 function normalizeToolManagement(payload) {
   const inputTools = Array.isArray(payload) ? payload : (Array.isArray(payload?.tools) ? payload.tools : []);
   const knownIds = new Set(TOOL_CATALOG.map((tool) => tool.id));
@@ -1858,6 +1893,15 @@ async function initDB() {
         value text NOT NULL
       );
     `);
+    await execute(`
+      CREATE TABLE IF NOT EXISTS legal_notice_acks (
+        notice_version varchar(32) NOT NULL,
+        visitor_id varchar(32) NOT NULL,
+        user_id integer NULL,
+        created_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+        PRIMARY KEY (notice_version, visitor_id)
+      );
+    `);
     // 新增：帖子浏览量表（PostgreSQL 版本）
     await execute(`
       CREATE TABLE IF NOT EXISTS forum_post_views (
@@ -2041,6 +2085,15 @@ async function initDB() {
     CREATE TABLE IF NOT EXISTS site_settings (
       \`key\` VARCHAR(64) PRIMARY KEY,
       value MEDIUMTEXT NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  await execute(`
+    CREATE TABLE IF NOT EXISTS legal_notice_acks (
+      notice_version VARCHAR(32) NOT NULL,
+      visitor_id VARCHAR(32) NOT NULL,
+      user_id INT NULL,
+      created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+      PRIMARY KEY (notice_version, visitor_id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
   await execute(`
@@ -2765,11 +2818,35 @@ app.get('/api/legal-notice', async (_req, res) => {
   }
 });
 
+app.post('/api/legal-notice/ack', async (req, res) => {
+  try {
+    const docs = await getLegalDocsState();
+    const version = String((req.body && req.body.version) || '').trim().slice(0, 32);
+    if (!version || version !== String(docs.version || '')) {
+      return res.json({ ok: true, counted: false });
+    }
+    const user = await currentUserFromRequest(req);
+    const recorded = await recordLegalNoticeAck(
+      version,
+      req.analyticsVisitorId,
+      user && user.id
+    );
+    return res.json({ ok: true, counted: !!recorded.counted });
+  } catch (err) {
+    console.error('legal notice ack failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
 app.get('/api/admin/legal-docs', async (req, res) => {
   try {
     const admin = await requireAdmin(req, res);
     if (!admin) return;
-    return res.json({ legalDocs: await getLegalDocsState() });
+    const legalDocs = await getLegalDocsState();
+    return res.json({
+      legalDocs,
+      ackCount: await countLegalNoticeAcks(legalDocs.version)
+    });
   } catch (err) {
     console.error('admin legal docs get failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -2805,7 +2882,11 @@ async function saveLegalDocs(req, res, publish) {
     summary: publish ? '发布用户协议与隐私政策更新' : '保存用户协议与隐私政策草稿',
     metadata: { version: applied.docs.version, publish: !!publish }
   });
-  return res.json({ ok: true, legalDocs: applied.docs });
+  return res.json({
+    ok: true,
+    legalDocs: applied.docs,
+    ackCount: await countLegalNoticeAcks(applied.docs.version)
+  });
 }
 
 app.put('/api/admin/legal-docs', async (req, res) => {

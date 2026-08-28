@@ -2151,7 +2151,7 @@
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.41（2026-08-28）</div>
-            <div style="color:var(--muted);line-height:1.6;"><strong>协议与隐私政策</strong>：新增后台「协议与隐私政策」编辑栏，可快捷修改关于我们、用户协议、隐私政策；发布后前台弹出确认更新窗口，用户点击「确定」后不再重复提示。</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>协议与隐私政策</strong>：新增后台「协议与隐私政策」编辑栏，可快捷修改关于我们、用户协议、隐私政策；发布后前台弹出确认更新窗口，用户点击「确定」后不再重复提示。后台记录当前版本有多少人点了确定（同一访客只计 1 次）。</div>
           </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.40（2026-08-26）</div>
@@ -2974,7 +2974,7 @@
       };
     }
 
-    function fillLegalDocsForm(legalDocs){
+    function fillLegalDocsForm(legalDocs, ackCount){
       var docs=(legalDocs&&legalDocs.documents)||{};
       var noticeTitle=document.getElementById('legalNoticeTitle');
       var noticeSummary=document.getElementById('legalNoticeSummary');
@@ -3000,6 +3000,7 @@
       if(legalDocs&&legalDocs.version) parts.push('当前版本：'+legalDocs.version);
       if(legalDocs&&legalDocs.publishedAt) parts.push('最近发布：'+formatDateTime(legalDocs.publishedAt));
       if(legalDocs&&legalDocs.publishedBy) parts.push('发布人：'+legalDocs.publishedBy);
+      parts.push('已确认：'+Math.max(0, Number(ackCount)||0)+' 人（当前版本，同一访客只计 1 次）');
       if(meta) meta.textContent=parts.join(' · ')||'尚未发布过更新';
       if(preview){
         preview.textContent=(legalDocs&&legalDocs.noticeTitle?legalDocs.noticeTitle:'用户协议与隐私政策更新')+'\n\n'+(legalDocs&&legalDocs.noticeSummary?legalDocs.noticeSummary:'');
@@ -3019,7 +3020,7 @@
           setStatus('legalDocsStatus','加载失败：'+((d&&d.error)||r.status));
           return;
         }
-        fillLegalDocsForm(d&&d.legalDocs);
+        fillLegalDocsForm(d&&d.legalDocs, d&&d.ackCount);
         switchLegalDocTab('about');
         setStatus('legalDocsStatus','已加载。修改后可先保存草稿，确认无误再点「发布更新」。');
       }catch(e){
@@ -3044,7 +3045,7 @@
           setStatus('legalDocsStatus',(publish?'发布失败：':'保存失败：')+((d&&d.error)||r.status));
           return;
         }
-        fillLegalDocsForm(d&&d.legalDocs);
+        fillLegalDocsForm(d&&d.legalDocs, d&&d.ackCount);
         setStatus('legalDocsStatus',publish?'已发布。用户下次打开网站会看到更新弹窗。':'草稿已保存，前台暂不弹窗，需再点「发布更新」。');
       }catch(e){
         setStatus('legalDocsStatus',(publish?'发布失败：':'保存失败：')+(e.message||'网络错误'));
