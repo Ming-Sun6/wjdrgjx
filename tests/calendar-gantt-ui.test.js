@@ -74,12 +74,21 @@ test('calendar renders the persisted bold schedule style', () => {
 });
 
 test('important child tasks render a thumbs-up marker in every calendar view', () => {
-  assert.match(html, /calendar-gantt\.js\?v=20260829-1/);
+  assert.match(html, /calendar-gantt\.js\?v=20260829-2/);
   assert.match(html, /calendar-gantt\.css\?v=20260829-1/);
   assert.match(js, /function appendHighlight/);
   assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
   assert.ok((js.match(/appendHighlight\(/g) || []).length >= 3);
   assert.match(css, /\.calendar-bar \.highlight/);
+});
+
+test('lane packing keeps lower sortOrder above shorter same-start tasks', () => {
+  const lanes = gantt.packLanes([
+    { id: 'short', startDate: '2026-08-17', endDate: '2026-08-17', sortOrder: 30 },
+    { id: 'escort', startDate: '2026-08-17', endDate: '2026-08-22', sortOrder: 10 },
+    { id: 'intercept', startDate: '2026-08-17', endDate: '2026-08-22', sortOrder: 20 }
+  ]);
+  assert.deepEqual(lanes.map((lane) => lane.map((item) => item.id)), [['escort'], ['intercept'], ['short']]);
 });
 
 test('first-fit lane packing shares adjacent tasks and separates overlaps', () => {

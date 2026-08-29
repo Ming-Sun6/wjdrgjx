@@ -22,7 +22,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>后台管理-冬日工具箱</title>
   <link rel="stylesheet" href="./admin-dashboard.css" />
-  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260829-1" />
+  <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260829-2" />
   <style>
     :root{
       --bg-night-1:#0b1220;
@@ -1385,7 +1385,7 @@
                   <div class="calendar-step-panel" data-calendar-panel="tasks" role="tabpanel" hidden>
                     <div class="calendar-step-title">组合任务</div>
                     <div class="admin-status calendar-normal-task-hint">普通日程不需要添加子任务。选择“组合日程”后，可在这里设置跨日甘特任务或每日清单。</div>
-                    <div id="calendarCompositeFields" hidden><div class="form-grid calendar-panel-grid"><div class="form-group"><label for="calendarCompositeLayout">展示方式</label><select id="calendarCompositeLayout"><option value="gantt">跨日甘特任务块</option><option value="daily-list">每日清单</option></select></div><div class="form-group"><label for="calendarChildColorMode">子任务配色</label><select id="calendarChildColorMode"><option value="uniform">统一配色（跟随主活动）</option><option value="random" selected>自动随机配色（按名称固定）</option><option value="custom">自定义配色（逐个设置）</option></select><small>切换模式不会清除已经保存的自定义颜色。</small></div></div><div id="calendarCompositeItems"></div><button class="btn secondary" id="calendarAddCompositeItemBtn" type="button">＋ 新增子任务</button><div id="calendarDailyChecklistBoard" hidden></div><div id="calendarGanttTaskBoard" hidden></div></div>
+                    <div id="calendarCompositeFields" hidden><div class="form-grid calendar-panel-grid"><div class="form-group"><label for="calendarCompositeLayout">展示方式</label><select id="calendarCompositeLayout"><option value="gantt">跨日甘特任务块</option><option value="daily-list">每日清单</option></select></div><div class="form-group"><label for="calendarChildColorMode">子任务配色</label><select id="calendarChildColorMode"><option value="uniform">统一配色（跟随主活动）</option><option value="random" selected>自动随机配色（按名称固定）</option><option value="custom">自定义配色（逐个设置）</option></select><small>切换模式不会清除已经保存的自定义颜色。</small></div></div><div id="calendarCompositeItems"></div><button class="btn secondary" id="calendarAddCompositeItemBtn" type="button">＋ 新增子任务</button><div class="calendar-tasks-workbench"><div id="calendarPublicPreview" hidden></div><div id="calendarDailyChecklistBoard" hidden></div></div><div id="calendarGanttTaskBoard" hidden></div></div>
                   </div>
 
                   <div class="calendar-step-panel" data-calendar-panel="style" role="tabpanel" hidden>
@@ -5442,7 +5442,7 @@
   <script src="/function/admin-neighbor-progress-page.js?v=3"></script>
   <script src="/function/admin-history-immigration-page.js?v=2"></script>
   <script src="/function/admin-calendar-model.js?v=20260827-5"></script>
-  <script src="/function/admin-calendar-page.js?v=20260829-1"></script>
+  <script src="/function/admin-calendar-page.js?v=20260829-2"></script>
   <script src="/function/admin-home-navigation-page.js?v=1"></script>
   <script>
   (function(){

@@ -117,6 +117,7 @@
         (a, b) =>
           compareDates(a.startDate, b.startDate) ||
           Number(a.timelinePriority || 0) - Number(b.timelinePriority || 0) ||
+          Number(a.sortOrder || 0) - Number(b.sortOrder || 0) ||
           compareDates(a.endDate, b.endDate) ||
           String(a.id).localeCompare(String(b.id)),
       );
