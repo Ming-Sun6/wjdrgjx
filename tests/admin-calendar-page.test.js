@@ -55,10 +55,10 @@ test('calendar admin production page uses the approved six-step workspace', () =
 test('calendar admin loads versioned production assets in dependency order', () => {
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260827-5');
-  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260829-4');
+  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260829-5');
 
   assert.ok(modelAt > 0 && pageAt > modelAt);
-  assert.match(html, /admin-calendar-page\.css\?v=20260829-4/);
+  assert.match(html, /admin-calendar-page\.css\?v=20260829-5/);
 });
 
 test('calendar admin script exposes the editor API and step controller', () => {
@@ -91,6 +91,18 @@ test('calendar admin styles provide the approved desktop and mobile workspace', 
   assert.match(css, /\.calendar-help-dialog,\.calendar-preview-edit-dialog\{[^}]*position:fixed[^}]*inset:50% auto auto 50%[^}]*transform:translate\(-50%,-50%\)/s);
   assert.match(css, /\.calendar-preview-drop\.is-drop-target/);
   assert.match(css, /@media\s*\(max-width:\s*560px\)[\s\S]*?\.calendar-sticky-actions\s+#[^}]*grid-column:\s*1\/-1/s);
+});
+
+test('public calendar preview shares one grid so day columns stay aligned', () => {
+  const css = read('public/function/admin-calendar-page.css');
+  const js = read('public/function/admin-calendar-page.js');
+
+  assert.match(css, /\.calendar-public-preview-grid\{[^}]*display:grid/s);
+  assert.match(css, /\.calendar-public-preview-grid\{[^}]*grid-template-columns:\s*\d+px\s+repeat\(var\(--preview-days\),minmax\(/s);
+  assert.match(css, /\.calendar-public-preview-bar\{[^}]*min-width:\s*0/s);
+  assert.doesNotMatch(css, /\.calendar-public-preview-row\{[^}]*grid-template-columns/s);
+  assert.match(js, /calendar-public-preview-cell/);
+  assert.match(js, /grid-row:'\+row/);
 });
 
 test('admin-only changelog records the production calendar workspace release', () => {
@@ -164,7 +176,7 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const js = read('public/function/admin-calendar-page.js');
 
-  assert.match(html, /admin-calendar-page\.js\?v=20260829-4/);
+  assert.match(html, /admin-calendar-page\.js\?v=20260829-5/);
   assert.match(js, /\/api\/admin\/calendar\/categories/);
   assert.match(js, /\/api\/admin\/calendar\/schedules/);
   assert.match(js, /recurrenceUnit/);
