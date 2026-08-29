@@ -10,11 +10,29 @@ const calendarPageHtml = () => {
   return html.match(/<section[^>]+id="page-calendar"[\s\S]*?<\/section>/)?.[0] || '';
 };
 
-test('calendar admin production page uses the approved five-step workspace', () => {
+test('calendar admin production page uses the approved six-step workspace', () => {
   const page = calendarPageHtml();
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
+  const nav = page.match(/<nav class="calendar-step-nav"[\s\S]*?<\/nav>/)?.[0] || '';
+  const steps = Array.from(nav.matchAll(/data-calendar-step="([^"]+)"[\s\S]*?<span>(\d+)<\/span><strong>([^<]+)<\/strong>/g)).map((match) => [match[1], match[2], match[3]]);
+  const tasksPanel = page.match(/<div class="calendar-step-panel" data-calendar-panel="tasks"[\s\S]*?<div class="calendar-step-panel" data-calendar-panel="style"/)?.[0] || '';
+  const previewPanel = page.match(/<div class="calendar-step-panel" data-calendar-panel="preview"[\s\S]*?<div class="calendar-actions"/)?.[0] || '';
 
-  for (const step of ['basic', 'date', 'tasks', 'style', 'presets']) {
+  assert.deepEqual(steps, [
+    ['basic', '1', '基本信息'],
+    ['date', '2', '日期与重复'],
+    ['tasks', '3', '组合任务'],
+    ['style', '4', '颜色与说明'],
+    ['presets', '5', '预设'],
+    ['preview', '6', '公开日历预览']
+  ]);
+  assert.match(tasksPanel, /组合任务/);
+  assert.doesNotMatch(tasksPanel, /id="calendarPublicPreview"/);
+  assert.doesNotMatch(tasksPanel, /calendar-tasks-workbench/);
+  assert.match(previewPanel, /id="calendarPublicPreview"/);
+  assert.match(previewPanel, /公开日历预览/);
+
+  for (const step of ['basic', 'date', 'tasks', 'style', 'presets', 'preview']) {
     assert.match(page, new RegExp(`data-calendar-step="${step}"`));
     assert.match(page, new RegExp(`data-calendar-panel="${step}"`));
   }
@@ -37,10 +55,10 @@ test('calendar admin production page uses the approved five-step workspace', () 
 test('calendar admin loads versioned production assets in dependency order', () => {
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260827-5');
-  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260829-2');
+  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260829-4');
 
   assert.ok(modelAt > 0 && pageAt > modelAt);
-  assert.match(html, /admin-calendar-page\.css\?v=20260829-2/);
+  assert.match(html, /admin-calendar-page\.css\?v=20260829-4/);
 });
 
 test('calendar admin script exposes the editor API and step controller', () => {
@@ -64,7 +82,7 @@ test('calendar admin styles provide the approved desktop and mobile workspace', 
   const css = read('public/function/admin-calendar-page.css');
 
   assert.match(css, /\.calendar-workspace\s*\{[^}]*grid-template-columns:\s*220px\s+minmax\(0,1fr\)/s);
-  assert.match(css, /\.calendar-tasks-workbench/);
+  assert.doesNotMatch(css, /\.calendar-tasks-workbench/);
   assert.match(css, /\.calendar-public-preview-bar/);
   assert.match(css, /\.calendar-step-button[^}]*min-height:\s*40px/s);
   assert.match(css, /@media\s*\(max-width:\s*900px\)/);
@@ -112,6 +130,7 @@ test('calendar admin exposes a clearer structure, optional recurrence, presets, 
   assert.match(page, /value="daily-list"/);
   assert.match(page, /id="calendarCompositeItems"/);
   assert.match(page, /id="calendarDailyChecklistBoard"/);
+  assert.match(page, /data-calendar-step="preview"/);
   assert.match(page, /id="calendarPublicPreview"/);
   assert.match(page, /id="calendarGanttTaskBoard"/);
   assert.match(html, /id="calendarDailyItemColor"/);
@@ -145,7 +164,7 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const js = read('public/function/admin-calendar-page.js');
 
-  assert.match(html, /admin-calendar-page\.js\?v=20260829-2/);
+  assert.match(html, /admin-calendar-page\.js\?v=20260829-4/);
   assert.match(js, /\/api\/admin\/calendar\/categories/);
   assert.match(js, /\/api\/admin\/calendar\/schedules/);
   assert.match(js, /recurrenceUnit/);

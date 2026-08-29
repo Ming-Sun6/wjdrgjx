@@ -28,6 +28,7 @@ function element(attributes = {}) {
 function loadPage(overrides = {}) {
   const fields = {
     calendarEditorHelp: element(),
+    calendarScheduleFormTitle: element({ value: '' }),
     calendarScheduleCategory: element({ value: '3' }),
     calendarScheduleName: element({ value: '联盟总动员' }),
     calendarScheduleType: element({ value: 'normal' }),
@@ -53,8 +54,8 @@ function loadPage(overrides = {}) {
     calendarCompositeLayout: element({ value: 'gantt' }),
     ...overrides
   };
-  const buttons = ['basic', 'date', 'tasks', 'style', 'presets'].map((step) => element({ 'data-calendar-step': step }));
-  const panels = ['basic', 'date', 'tasks', 'style', 'presets'].map((step) => element({ 'data-calendar-panel': step }));
+  const buttons = ['basic', 'date', 'tasks', 'style', 'presets', 'preview'].map((step) => element({ 'data-calendar-step': step }));
+  const panels = ['basic', 'date', 'tasks', 'style', 'presets', 'preview'].map((step) => element({ 'data-calendar-panel': step }));
   const document = {
     getElementById(id) { return fields[id] || null; },
     querySelectorAll(selector) {
@@ -80,6 +81,21 @@ test('real page step controller changes panels without clearing form values', ()
   assert.equal(buttons.find((button) => button.getAttribute('data-calendar-step') === 'style').classList.contains('active'), true);
   assert.equal(panels.find((panel) => panel.getAttribute('data-calendar-panel') === 'style').hidden, false);
   assert.equal(panels.find((panel) => panel.getAttribute('data-calendar-panel') === 'date').hidden, true);
+});
+
+test('public calendar preview is a sixth step and does not reuse the task panel', () => {
+  const { page, fields, buttons, panels } = loadPage();
+
+  page.setEditorStep('tasks');
+  page.setEditorStep('preview');
+
+  assert.equal(fields.calendarScheduleName.value, '联盟总动员');
+  assert.equal(buttons.find((button) => button.getAttribute('data-calendar-step') === 'preview').classList.contains('active'), true);
+  assert.equal(buttons.find((button) => button.getAttribute('data-calendar-step') === 'tasks').classList.contains('active'), false);
+  assert.equal(panels.find((panel) => panel.getAttribute('data-calendar-panel') === 'preview').hidden, false);
+  assert.equal(panels.find((panel) => panel.getAttribute('data-calendar-panel') === 'tasks').hidden, true);
+  assert.match(fields.calendarEditorHelp.textContent, /公开日历/);
+  assert.match(fields.calendarScheduleFormTitle.textContent, /公开日历预览/);
 });
 
 test('real page schedulePayload maps recurring form controls through the shared model', () => {
