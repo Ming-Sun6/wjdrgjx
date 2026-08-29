@@ -527,33 +527,28 @@ function expandDefinitions(definitions, options) {
         }
       }
       if (occurrence.compositeLayout === 'daily-list') {
-        const allCards = [];
-        for (const child of childOccurrences) {
-          for (let date = child.startDate; compareDates(date, child.endDate) <= 0; date = addDays(date, 1)) {
-            allCards.push({
-              id: `${child.id}:day:${date}`,
-              itemOccurrenceId: child.id,
-              itemId: child.itemId,
-              parentOccurrenceId: occurrence.id,
-              name: child.name,
-              date,
-              startDate: date,
-              endDate: date,
-              startTime: child.startTime,
-              endTime: child.endTime,
-              color: child.color,
-              description: child.description,
-              sortOrder: child.sortOrder,
-              highlighted: child.highlighted,
-              fontBold: child.fontBold
-            });
-          }
-        }
-        allCards.sort((a, b) => compareDates(a.date, b.date) || a.sortOrder - b.sortOrder || a.itemId - b.itemId || a.id.localeCompare(b.id));
-        const cards = allCards.filter((card) => compareDates(card.date, from) >= 0 && compareDates(card.date, to) <= 0);
+        const allCards = childOccurrences.map((child) => ({
+          id: child.id,
+          itemOccurrenceId: child.id,
+          itemId: child.itemId,
+          parentOccurrenceId: occurrence.id,
+          name: child.name,
+          date: child.startDate,
+          startDate: child.startDate,
+          endDate: child.endDate,
+          startTime: child.startTime,
+          endTime: child.endTime,
+          color: child.color,
+          description: child.description,
+          sortOrder: child.sortOrder,
+          highlighted: child.highlighted,
+          fontBold: child.fontBold
+        }));
+        allCards.sort((a, b) => compareDates(a.startDate, b.startDate) || a.sortOrder - b.sortOrder || a.itemId - b.itemId || a.id.localeCompare(b.id));
+        const cards = allCards.filter((card) => intersects(card.startDate, card.endDate, from, to));
         if (!cards.length) continue;
-        occurrence.firstCardDate = allCards[0].date;
-        occurrence.lastCardDate = allCards[allCards.length - 1].date;
+        occurrence.firstCardDate = allCards.reduce((min, card) => (compareDates(card.startDate, min) < 0 ? card.startDate : min), allCards[0].startDate);
+        occurrence.lastCardDate = allCards.reduce((max, card) => (compareDates(card.endDate, max) > 0 ? card.endDate : max), allCards[0].endDate);
         occurrence.cards = cards;
         addUnits(1 + cards.length);
       } else {

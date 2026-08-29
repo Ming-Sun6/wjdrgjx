@@ -169,7 +169,7 @@ test('expands weekly recurrence with stable occurrence ids', () => {
   ]);
 });
 
-test('daily checklist expands multi-day children into separate stable cards', () => {
+test('daily checklist keeps multi-day children as one merged card', () => {
   const result = domain.expandDefinitions([{
     id: 20,
     category: { id: 5, code: 'limited', name: '限定活动', color: '#e8a6a6', sortOrder: 5 },
@@ -204,10 +204,13 @@ test('daily checklist expands multi-day children into separate stable cards', ()
   assert.equal(result.schedules.length, 1);
   assert.equal(result.schedules[0].firstCardDate, '2026-08-24');
   assert.equal(result.schedules[0].lastCardDate, '2026-08-26');
-  assert.deepEqual(result.schedules[0].cards.map((card) => card.id), [
-    '20:2026-08-24:item:201:2026-08-24:day:2026-08-25',
-    '20:2026-08-24:item:202:2026-08-25:day:2026-08-25',
-    '20:2026-08-24:item:201:2026-08-24:day:2026-08-26'
+  assert.deepEqual(result.schedules[0].cards.map((card) => ({
+    id: card.id,
+    startDate: card.startDate,
+    endDate: card.endDate
+  })), [
+    { id: '20:2026-08-24:item:201:2026-08-24', startDate: '2026-08-24', endDate: '2026-08-26' },
+    { id: '20:2026-08-24:item:202:2026-08-25', startDate: '2026-08-25', endDate: '2026-08-25' }
   ]);
   assert.equal(result.schedules[0].cards[0].color, domain.activityColor('领主宝石'));
   assert.equal(result.schedules[0].cards[1].color, '#123456');
@@ -250,5 +253,5 @@ test('render unit limit fails atomically', () => {
     endDate: '2026-08-10',
     enabled: true,
     items: [{ id: 301, name: '每日任务', enabled: true, sortOrder: 1, dateMode: 'all-span' }]
-  }], { from: '2026-08-01', to: '2026-08-10', maxUnits: 5 }), (error) => error && error.code === 'EXPANSION_LIMIT');
+  }], { from: '2026-08-01', to: '2026-08-10', maxUnits: 1 }), (error) => error && error.code === 'EXPANSION_LIMIT');
 });

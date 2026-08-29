@@ -71,7 +71,7 @@ test('expansion limit returns 422 without a partial payload', async () => {
       name: '清单', scheduleType: 'composite', compositeLayout: 'daily-list', startDate: '2026-08-01', endDate: '2026-08-10', enabled: true,
       items: [{ id: 91, name: '任务', enabled: true, dateMode: 'all-span' }]
     }] },
-    maxRenderUnits: 2
+    maxRenderUnits: 1
   });
   const response = createResponse();
   await handlers.getPublic({ query: { from: '2026-08-01', to: '2026-08-10' } }, response);

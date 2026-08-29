@@ -80,6 +80,20 @@
       latestDate: date(y + 1),
     };
   }
+  function cardRange(card) {
+    const startDate = card && (card.startDate || card.date);
+    const endDate = card && (card.endDate || card.date || startDate);
+    return { startDate, endDate, date: startDate };
+  }
+  function cardIntersects(card, from, to) {
+    const range = cardRange(card);
+    return (
+      range.startDate &&
+      range.endDate &&
+      compareDates(range.endDate, from) >= 0 &&
+      compareDates(range.startDate, to) <= 0
+    );
+  }
   function clipSegment(item, weekStart, weekEnd) {
     if (
       compareDates(item.endDate, weekStart) < 0 ||
@@ -525,6 +539,32 @@
       group.append(cat, rows);
       return group;
     }
+    function withCardRange(card) {
+      return Object.assign({}, card, cardRange(card));
+    }
+    function clippedDailyCards(cards, range) {
+      return (cards || [])
+        .map(withCardRange)
+        .map((card) => clipSegment(card, range.from, range.to))
+        .filter(Boolean)
+        .map((card) =>
+          Object.assign({}, card, {
+            startDate: card.clipStart,
+            endDate: card.clipEnd,
+          }),
+        );
+    }
+    function activeCardBounds(cards, range) {
+      const dates = (cards || [])
+        .map(withCardRange)
+        .filter((card) => cardIntersects(card, range.from, range.to))
+        .flatMap((card) => [
+          compareDates(card.startDate, range.from) < 0 ? range.from : card.startDate,
+          compareDates(card.endDate, range.to) > 0 ? range.to : card.endDate,
+        ])
+        .sort(compareDates);
+      return dates.length ? { first: dates[0], last: dates[dates.length - 1] } : null;
+    }
     function renderDaily(schedule, week, categoryName) {
       const frag = document.createDocumentFragment();
       const titleRow = document.createElement("div");
@@ -534,18 +574,9 @@
       cat.textContent = categoryName;
       const title = document.createElement("div");
       title.className = "calendar-daily-title";
-      const activeDates = (schedule.cards || [])
-        .map((card) => card.date)
-        .filter(
-          (date) =>
-            compareDates(date, week.from) >= 0 &&
-            compareDates(date, week.to) <= 0,
-        )
-        .sort(compareDates);
-      if (activeDates.length) {
-        const firstDay = diffDays(week.from, activeDates[0]);
-        const lastDay = diffDays(week.from, activeDates[activeDates.length - 1]);
-        title.style.gridColumn = `${firstDay + 2} / ${lastDay + 3}`;
+      const bounds = activeCardBounds(schedule.cards, week);
+      if (bounds) {
+        title.style.gridColumn = `${diffDays(week.from, bounds.first) + 2} / ${diffDays(week.from, bounds.last) + 3}`;
       }
       title.style.fontWeight = schedule.fontBold ? "900" : "";
       title.textContent =
@@ -565,37 +596,9 @@
       }
       titleRow.append(cat, title);
       frag.appendChild(titleRow);
-      const content = document.createElement("div");
-      content.className = "calendar-daily-content";
-      const spacer = document.createElement("div");
-      spacer.className = "calendar-daily-spacer";
-      content.appendChild(spacer);
-      for (let i = 0; i < 7; i++) {
-        const date = addDays(week.from, i);
-        const stack = document.createElement("div");
-        stack.className = "calendar-day-stack";
-        (schedule.cards || [])
-          .filter((card) => card.date === date)
-          .sort(
-            (a, b) =>
-              (a.sortOrder || 0) - (b.sortOrder || 0) ||
-              String(a.id).localeCompare(String(b.id)),
-          )
-          .forEach((card) => {
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "calendar-day-card";
-            button.style.background = card.color || "#f7d6b5";
-            button.style.color = contrast(card.color);
-            button.style.fontWeight = card.fontBold ? "900" : "";
-            button.textContent = card.name || "任务";
-            appendHighlight(button, card);
-            button.onclick = () => detail(card);
-            stack.appendChild(button);
-          });
-        content.appendChild(stack);
-      }
-      frag.appendChild(content);
+      packLanes(clippedDailyCards(schedule.cards, week)).forEach((lane) => {
+        frag.appendChild(row("", lane, week, "calendar-daily-card-row"));
+      });
       return frag;
     }
     function renderDailyGroup(schedules, week, categoryName) {
@@ -607,14 +610,11 @@
       cat.textContent = categoryName;
       titleRow.appendChild(cat);
       schedules.forEach((schedule) => {
-        const activeDates = (schedule.cards || [])
-          .map((card) => card.date)
-          .filter((date) => compareDates(date, week.from) >= 0 && compareDates(date, week.to) <= 0)
-          .sort(compareDates);
-        if (!activeDates.length) return;
+        const bounds = activeCardBounds(schedule.cards, week);
+        if (!bounds) return;
         const title = document.createElement("div");
         title.className = "calendar-daily-title";
-        title.style.gridColumn = `${diffDays(week.from, activeDates[0]) + 2} / ${diffDays(week.from, activeDates[activeDates.length - 1]) + 3}`;
+        title.style.gridColumn = `${diffDays(week.from, bounds.first) + 2} / ${diffDays(week.from, bounds.last) + 3}`;
         title.style.fontWeight = schedule.fontBold ? "900" : "";
         title.textContent = schedule.name;
         if (schedule.description) {
@@ -625,34 +625,9 @@
         titleRow.appendChild(title);
       });
       frag.appendChild(titleRow);
-      const content = document.createElement("div");
-      content.className = "calendar-daily-content";
-      const spacer = document.createElement("div");
-      spacer.className = "calendar-daily-spacer";
-      content.appendChild(spacer);
-      for (let i = 0; i < 7; i++) {
-        const date = addDays(week.from, i);
-        const stack = document.createElement("div");
-        stack.className = "calendar-day-stack";
-        schedules
-          .flatMap((schedule) => schedule.cards || [])
-          .filter((card) => card.date === date)
-          .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0) || String(a.id).localeCompare(String(b.id)))
-          .forEach((card) => {
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "calendar-day-card calendar-timeline-child-card";
-            button.style.background = card.color || "#f7d6b5";
-            button.style.color = contrast(card.color);
-            button.style.fontWeight = card.fontBold ? "900" : "";
-            button.textContent = card.name || "任务";
-            appendHighlight(button, card);
-            button.onclick = () => detail(card);
-            stack.appendChild(button);
-          });
-        content.appendChild(stack);
-      }
-      frag.appendChild(content);
+      packLanes(clippedDailyCards(schedules.flatMap((schedule) => schedule.cards || []), week)).forEach((lane) => {
+        frag.appendChild(row("", lane, week, "calendar-daily-card-row"));
+      });
       return frag;
     }
     function renderWeek(week, monthInfo) {
@@ -661,10 +636,8 @@
       block.appendChild(header(week, monthInfo));
       const visible = state.schedules.filter((schedule) =>
         schedule.compositeLayout === "daily-list"
-          ? (schedule.cards || []).some(
-              (card) =>
-                compareDates(card.date, week.from) >= 0 &&
-                compareDates(card.date, week.to) <= 0,
+          ? (schedule.cards || []).some((card) =>
+              cardIntersects(card, week.from, week.to),
             )
           : compareDates(schedule.endDate, week.from) >= 0 &&
             compareDates(schedule.startDate, week.to) <= 0,
@@ -758,13 +731,9 @@
           color: "#f4c8ad",
         });
         const cards = (schedule.cards || [])
-          .filter(
-            (card) =>
-              compareDates(card.date, range.from) >= 0 &&
-              compareDates(card.date, range.to) <= 0,
-          )
+          .filter((card) => cardIntersects(card, range.from, range.to))
           .map((card) =>
-            Object.assign({}, card, {
+            Object.assign({}, card, cardRange(card), {
               scheduleId: schedule.scheduleId,
               timelineName: card.name,
               fontBold: schedule.fontBold || card.fontBold,
@@ -872,41 +841,19 @@
         });
         rows.appendChild(titleLane);
       }
-      const childLane = document.createElement("div");
-      childLane.className =
-        "calendar-timeline-lane calendar-timeline-daily-children";
-      for (
-        let date = range.from;
-        compareDates(date, range.to) <= 0;
-        date = addDays(date, 1)
-      ) {
-        const dayCards = cards
-          .filter((card) => card.date === date)
-          .sort(
-            (a, b) =>
-              (a.sortOrder || 0) - (b.sortOrder || 0) ||
-              String(a.id).localeCompare(String(b.id)),
-          );
-        if (!dayCards.length) continue;
-        const stack = document.createElement("div");
-        stack.className = "calendar-timeline-day-stack";
-        stack.style.gridColumn = String(diffDays(range.from, date) + 1);
-        dayCards.forEach((card) => {
-          const button = document.createElement("button");
-          button.type = "button";
-          button.className =
-            "calendar-day-card calendar-timeline-child-card";
-          button.style.background = card.color || "#f7d6b5";
-          button.style.color = contrast(card.color);
-          button.style.fontWeight = card.fontBold ? "900" : "";
-          button.textContent = card.name || "任务";
-          appendHighlight(button, card);
-          button.onclick = () => detail(card);
-          stack.appendChild(button);
+      packLanes(clippedDailyCards(cards, range)).forEach((lane) => {
+        const childLane = document.createElement("div");
+        childLane.className =
+          "calendar-timeline-lane calendar-timeline-daily-children";
+        lane.forEach((card) => {
+          const barNode = timelineBar(card, range);
+          if (barNode) {
+            barNode.classList.add("calendar-timeline-child-card");
+            childLane.appendChild(barNode);
+          }
         });
-        childLane.appendChild(stack);
-      }
-      rows.appendChild(childLane);
+        rows.appendChild(childLane);
+      });
       section.append(label, rows);
       return section;
     }

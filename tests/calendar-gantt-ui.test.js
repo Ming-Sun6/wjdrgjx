@@ -50,14 +50,14 @@ test('timeline merges daily checklist children into one row below the parent', (
   assert.match(js, /calendar-timeline-daily-title/);
   assert.match(js, /function renderTimelineDailySection/);
   assert.match(js, /calendar-timeline-daily-children/);
-  assert.match(js, /calendar-timeline-day-stack/);
-  assert.match(js, /card\.date\s*===\s*date/);
+  assert.match(js, /function cardRange/);
+  assert.match(js, /packLanes\(clippedDailyCards/);
   assert.match(js, /const compositeKey\s*=\s*schedule\.scheduleId/);
   assert.match(js, /group\.composites\.get\(compositeKey\)\.push\(schedule\)/);
   assert.match(js, /schedules\.flatMap\(\(schedule\)\s*=>\s*timelineItems\(schedule, range\),?\s*\)/);
   assert.match(js, /titles\.forEach\(\(title\)\s*=>/);
   assert.match(css, /\.calendar-timeline-daily-children/);
-  assert.match(css, /\.calendar-timeline-day-stack/);
+  assert.doesNotMatch(js, /card\.date\s*===\s*date/);
 });
 
 test('timeline preserves composite parent labels above their child tasks', () => {
@@ -70,15 +70,15 @@ test('timeline preserves composite parent labels above their child tasks', () =>
 
 test('calendar renders the persisted bold schedule style', () => {
   assert.match(js, /item\.fontBold\s*\?\s*["']900["']/);
-  assert.match(js, /card\.fontBold\s*\?\s*["']900["']/);
+  assert.match(js, /fontBold:\s*schedule\.fontBold\s*\|\|\s*card\.fontBold/);
 });
 
 test('important child tasks render a thumbs-up marker in every calendar view', () => {
-  assert.match(html, /calendar-gantt\.js\?v=20260827-20/);
-  assert.match(html, /calendar-gantt\.css\?v=20260827-20/);
+  assert.match(html, /calendar-gantt\.js\?v=20260829-1/);
+  assert.match(html, /calendar-gantt\.css\?v=20260829-1/);
   assert.match(js, /function appendHighlight/);
   assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
-  assert.ok((js.match(/appendHighlight\(/g) || []).length >= 6);
+  assert.ok((js.match(/appendHighlight\(/g) || []).length >= 3);
   assert.match(css, /\.calendar-bar \.highlight/);
 });
 
