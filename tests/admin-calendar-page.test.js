@@ -37,10 +37,10 @@ test('calendar admin production page uses the approved five-step workspace', () 
 test('calendar admin loads versioned production assets in dependency order', () => {
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const modelAt = html.indexOf('/function/admin-calendar-model.js?v=20260827-5');
-  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260827-9');
+  const pageAt = html.indexOf('/function/admin-calendar-page.js?v=20260829-1');
 
   assert.ok(modelAt > 0 && pageAt > modelAt);
-  assert.match(html, /admin-calendar-page\.css\?v=20260827-5/);
+  assert.match(html, /admin-calendar-page\.css\?v=20260829-1/);
 });
 
 test('calendar admin script exposes the editor API and step controller', () => {
@@ -112,8 +112,24 @@ test('calendar admin exposes a clearer structure, optional recurrence, presets, 
   assert.match(page, /id="calendarDailyChecklistBoard"/);
   assert.match(page, /id="calendarGanttTaskBoard"/);
   assert.match(html, /id="calendarDailyItemColor"/);
+  assert.match(html, /id="calendarDailyItemColorPalette"/);
   assert.match(html, /id="calendarDailyItemHighlighted"/);
+  const presets = [
+    ['#f4d03f', '领主'],
+    ['#f08a3b', '英雄'],
+    ['#e24b4b', '火晶'],
+    ['#5aaa6a', '采集'],
+    ['#4a90d9', '体力'],
+    ['#e89bb8', '转盘'],
+    ['#8b6bc9', '专家宠物'],
+    ['#8d6e4f', '加速']
+  ];
+  for (const [color, label] of presets) {
+    assert.match(html, new RegExp(`data-color="${color}"[^>]*>${label}<`));
+  }
   const js = read('public/function/admin-calendar-page.js');
+  assert.match(js, /function syncDailyItemColor/);
+  assert.match(js, /calendarDailyItemColorPalette/);
   assert.match(js, /rawIndex=String\(byId\('calendarDailyItemIndex'\)\.value\|\|''\)\.trim\(\)/);
   assert.match(js, /calendar-gantt-category-heading/);
   assert.match(js, /calendar-gantt-parent-cell/);
@@ -124,7 +140,7 @@ test('calendar admin script supports recurrence, composite children, and CRUD ac
   const html = read('public/function/_ops/console-7a9/internal/admin.html');
   const js = read('public/function/admin-calendar-page.js');
 
-  assert.match(html, /admin-calendar-page\.js\?v=20260827-9/);
+  assert.match(html, /admin-calendar-page\.js\?v=20260829-1/);
   assert.match(js, /\/api\/admin\/calendar\/categories/);
   assert.match(js, /\/api\/admin\/calendar\/schedules/);
   assert.match(js, /recurrenceUnit/);
