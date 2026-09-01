@@ -52,5 +52,11 @@ test('bear body recommendation follows the shared data-query theme language', ()
 test('bear body recommendation prominently credits the data source', () => {
   const html = read('public/function/bear-body-recommendation.html');
   assert.match(html, /class="source-credit"/);
-  assert.match(html, /数据来源：1096今麦雾，欢迎移民1096/);
+  assert.match(html, /数据来源：/);
+  assert.match(html, /小红书作者松树君/);
+  assert.match(html, /小红书号 8187707597/);
+  assert.match(html, /href="https:\/\/xhslink\.cn\/o\/4DVKCYFXNgX"/);
+  assert.match(html, /target="_blank"/);
+  assert.match(html, /rel="noopener noreferrer"/);
+  assert.doesNotMatch(html, /1096今麦雾/);
 });

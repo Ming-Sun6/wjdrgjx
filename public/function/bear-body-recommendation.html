@@ -85,11 +85,15 @@
     h1 { margin: 0 0 8px; font-size: clamp(28px, 5vw, 44px); letter-spacing: 0; }
     .hero p { max-width: 760px; margin: 0; color: var(--muted); line-height: 1.75; }
     .source-credit {
-      display: inline-flex; align-items: center; margin: 14px 0 0; padding: 8px 11px;
+      display: inline-block; margin: 14px 0 0; padding: 8px 11px;
       border: 1px solid color-mix(in srgb, var(--accent-2) 72%, var(--line)); border-radius: 5px;
       background: color-mix(in srgb, var(--accent-2) 13%, var(--panel)); color: var(--text);
       font-size: 13px; font-weight: 900; line-height: 1.55;
     }
+    .source-credit a {
+      color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px;
+    }
+    .source-credit a:hover, .source-credit a:focus-visible { color: var(--accent-strong); }
     .toolbar {
       display: grid; grid-template-columns: minmax(220px, 1fr) auto; gap: 14px; margin: 16px 0;
       padding: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); box-shadow: var(--shadow);
@@ -162,7 +166,7 @@
       <p class="eyebrow">BEAR RALLY · 车身评级</p>
       <h1>打熊车身推荐</h1>
       <p>按远征一技能查看车身评级、适用英雄和搭配特性。评级会受到车头英雄、技能乘区与触发概率影响。</p>
-      <div class="source-credit" role="note">数据来源：1096今麦雾，欢迎移民1096</div>
+      <div class="source-credit" role="note">数据来源：<a href="https://xhslink.cn/o/4DVKCYFXNgX" target="_blank" rel="noopener noreferrer">小红书作者松树君（小红书号 8187707597）</a></div>
     </section>
 
     <section class="toolbar" aria-label="筛选">
