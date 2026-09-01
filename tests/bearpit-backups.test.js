@@ -7,7 +7,8 @@ const {
   normalizeBackupTitle,
   defaultBackupTitle,
   countLayoutItems,
-  generateShareKey
+  generateShareKey,
+  isValidShareData
 } = require('../bearpit-backups');
 
 test('normalizeBackupTitle trims and caps length', () => {
@@ -23,7 +24,18 @@ test('defaultBackupTitle includes timestamp prefix', () => {
 
 test('countLayoutItems counts placed items only', () => {
   assert.equal(countLayoutItems({ items: [{}, {}] }), 2);
+  assert.equal(countLayoutItems({ placements: [{}, {}, {}] }), 3);
+  assert.equal(countLayoutItems({ v: 2, i: [[1, 2, 2], [3, 4, 1]] }), 2);
   assert.equal(countLayoutItems({}), 0);
+});
+
+test('share payload accepts both BeaPit compact layouts and simple-version layouts', () => {
+  assert.equal(isValidShareData({ v: 2, i: [[10, 20, 2, '矿']] }), true);
+  assert.equal(isValidShareData({ v: 1, items: [{ r: 1, c: 2, s: 2 }] }), true);
+  assert.equal(isValidShareData({ grid: { rows: 21, cols: 21 }, placements: [] }), true);
+  assert.equal(isValidShareData({ v: 2, i: 'nope' }), false);
+  assert.equal(isValidShareData({ foo: 1 }), false);
+  assert.equal(isValidShareData(null), false);
 });
 
 test('server mounts bearpit backup routes and BeaPit page has backup UI', () => {
@@ -32,12 +44,15 @@ test('server mounts bearpit backup routes and BeaPit page has backup UI', () => 
   assert.match(serverSource, /mountBearpitBackupRoutes\(/);
   assert.match(moduleSource, /\/api\/bearpit\/backups/);
   assert.match(moduleSource, /\/api\/bearpit\/shares/);
+  assert.match(moduleSource, /isValidShareData\(data\)/);
   assert.match(moduleSource, /requireAuth\(req, res\)/);
 
   const page = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'BeaPit.html'), 'utf8');
   assert.match(page, /woam-save-scheme/);
   assert.match(page, /backupLoadModal/);
   assert.match(page, /\/api\/bearpit\/backups/);
+  assert.match(page, /serializeLayoutCompact\(\)/);
+  assert.match(page, /\/api\/bearpit\/shares\/' \+ encodeURIComponent\(text\)/);
 });
 
 test('share keys are short random alphanumeric codes', () => {

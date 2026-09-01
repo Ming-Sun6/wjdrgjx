@@ -1651,9 +1651,9 @@
             </div>
             <div class="import-body">
                 <p class="import-hint">
-                    请把「导出配置」得到的序列码粘贴到下面输入框。导入会覆盖当前所有摆放。
+                    请把「生成分享秘钥」得到的 16 位秘钥粘贴到下面。导入会覆盖当前所有摆放。
                 </p>
-                <textarea class="import-textarea" id="importBeaPitInput" placeholder="在此粘贴配置序列码..."></textarea>
+                <textarea class="import-textarea" id="importBeaPitInput" placeholder="在此粘贴分享秘钥..."></textarea>
                 <div class="import-status" id="importBeaPitStatus"></div>
             </div>
             <div class="import-actions">
@@ -1672,7 +1672,7 @@
             </div>
             <div class="export-body">
                 <p class="export-hint">
-                    下方为导出的配置序列码。可复制分享给他人，他人通过「导入配置」粘贴即可还原排布。
+                    下方为分享秘钥。可复制发给他人，他人通过「导入分享秘钥」粘贴即可还原排布。秘钥仅显示一次，请立即复制保存。
                 </p>
                 <textarea class="export-textarea" id="exportBeaPitOutput" readonly></textarea>
                 <div class="export-status" id="exportBeaPitStatus"></div>
@@ -4384,7 +4384,7 @@
                     if (statusEl) { statusEl.className = 'import-status'; statusEl.textContent = ''; }
                 }
                 function parseConfig(rawText) {
-                    const config = JSON.parse(rawText);
+                    const config = (rawText && typeof rawText === 'object') ? rawText : JSON.parse(rawText);
                     if (!config) throw new Error('配置格式错误');
                     const defC = BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
                     let gx = Number(config.gox) || 0;
@@ -4446,13 +4446,21 @@
                 [document.getElementById('closeImportBeaPit'), document.getElementById('cancelImportBeaPit')].forEach(b => b?.addEventListener('click', closeImport));
                 modal?.addEventListener('click', e => { if (e.target === modal) closeImport(); });
                 document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal?.classList.contains('open')) closeImport(); });
-                doBtn?.addEventListener('click', function() {
+                doBtn?.addEventListener('click', async function() {
                     const stage = doBtn.dataset.stage || 'parse';
                     const text = (inputEl?.value || '').trim();
                     if (stage === 'parse') {
-                        if (!text) { setStatus('error', '请先粘贴配置序列码。'); return; }
+                        if (!text) { setStatus('error', '请先粘贴分享秘钥。'); return; }
                         try {
-                            const parsed = parseConfig(text);
+                            let rawConfig = text;
+                            if (/^[A-Za-z0-9]{16}$/.test(text)) {
+                                setStatus('info', '正在读取分享秘钥…');
+                                const response = await apiFetch('/api/bearpit/shares/' + encodeURIComponent(text));
+                                const payload = await response.json().catch(() => null);
+                                if (!response.ok || !payload?.data) throw new Error('分享秘钥无效或已过期');
+                                rawConfig = payload.data;
+                            }
+                            const parsed = parseConfig(rawConfig);
                             if (!parsed.items.length) { setStatus('error', '配置中没有可导入的放置物。'); return; }
                             pendingImported = parsed;
                             doBtn.dataset.stage = 'confirm';
@@ -4461,7 +4469,7 @@
                             setStatus('info', `已解析到 ${parsed.items.length} 个放置物${offHint}。点击「确认覆盖并导入」将覆盖当前所有摆放。`);
                         } catch (err) {
                             pendingImported = null;
-                            setStatus('error', '配置格式错误：' + (err?.message || '请检查 JSON 格式'));
+                            setStatus('error', '配置格式错误：' + (err?.message || '请检查秘钥是否正确'));
                         }
                         return;
                     }

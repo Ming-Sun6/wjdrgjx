@@ -82,7 +82,25 @@ const BEARPIT_SIMPLE_BACKUPS_DDL_PG = `
 function countLayoutItems(data) {
   if (Array.isArray(data?.items)) return data.items.length;
   if (Array.isArray(data?.placements)) return data.placements.length;
+  if (Number(data?.v) === 2 && Array.isArray(data?.i)) return data.i.length;
   return Array.isArray(data?.members) ? data.members.length : 0;
+}
+
+function isSimpleShareData(data) {
+  return Boolean(data && typeof data === 'object' && data.grid && typeof data.grid === 'object' && Array.isArray(data.placements));
+}
+
+function isBeaPitShareData(data) {
+  if (!data || typeof data !== 'object') return false;
+  if (Array.isArray(data.items)) return true;
+  if (Number(data.v) === 2 && Array.isArray(data.i)) {
+    return data.i.length === 0 || data.i.some((row) => Array.isArray(row) && row.length >= 3);
+  }
+  return false;
+}
+
+function isValidShareData(data) {
+  return isSimpleShareData(data) || isBeaPitShareData(data);
 }
 
 function normalizeBackupTitle(value) {
@@ -345,7 +363,7 @@ function mountBearpitBackupRoutes(deps) {
       if (!user) return;
       await ensureShareTable();
       const data = req.body?.data;
-      if (!data || typeof data !== 'object' || !data.grid || !Array.isArray(data.placements)) {
+      if (!isValidShareData(data)) {
         return res.status(400).json({ error: 'BAD_DATA' });
       }
       let shareKey = null;
@@ -401,6 +419,7 @@ module.exports = {
   mountBearpitBackupRoutes,
   generateShareKey,
   countLayoutItems,
+  isValidShareData,
   normalizeBackupTitle,
   defaultBackupTitle
 };
