@@ -2029,9 +2029,16 @@
               <div class="admin-status" id="publisherStatus"></div>
             </div>
             <div class="form-section">
-              <div class="form-title">发帖用户真实浏览量</div>
+              <div class="form-title">广告位流量</div>
               <div class="admin-status" style="margin-bottom:12px;color:var(--muted);font-size:.85rem;line-height:1.6;">
-                这里只统计真实阅读次数：用户每打开一次帖子阅读页记 1 次。不含前台对外展示的加权浏览量。
+                首页与帖子阅读页的独立访客 / 打开次数。这是广告位有没有人在看，不是 AdWork 收益。
+              </div>
+              <div class="publisher-stat-grid" id="publisherAdSummary"></div>
+            </div>
+            <div class="form-section">
+              <div class="form-title">内容真实阅读</div>
+              <div class="admin-status" style="margin-bottom:12px;color:var(--muted);font-size:.85rem;line-height:1.6;">
+                只统计本方案上线后的合格阅读：同一访客同一帖 30 分钟内记 1 次，阅读页需停留约 2.5 秒，不含作者自己和后台账号。前台对外仍是加权展示量，仅在展开明细里对照。历史加权记录无法准确还原，不在这里显示。
               </div>
               <div class="form-grid">
                 <div class="form-group">
@@ -2058,8 +2065,10 @@
                 <div class="form-group">
                   <label for="publisherViewSort">排序</label>
                   <select id="publisherViewSort">
-                    <option value="recentViews">区间新增浏览</option>
-                    <option value="realViews">真实总浏览</option>
+                    <option value="recentViews">区间新增阅读</option>
+                    <option value="recentUv">区间新增访客</option>
+                    <option value="realViews">真实阅读 PV</option>
+                    <option value="realUv">独立访客 UV</option>
                     <option value="postCount">发帖数</option>
                     <option value="username">用户名</option>
                   </select>
@@ -2077,13 +2086,15 @@
                     <tr>
                       <th style="width:72px;">明细</th>
                       <th>用户</th>
-                      <th style="width:90px;">发帖数</th>
-                      <th style="width:120px;">真实总浏览</th>
-                      <th style="width:130px;">区间新增浏览</th>
+                      <th style="width:80px;">发帖数</th>
+                      <th style="width:100px;">真实 PV</th>
+                      <th style="width:100px;">独立 UV</th>
+                      <th style="width:110px;">区间新增 PV</th>
+                      <th style="width:110px;">区间新增 UV</th>
                     </tr>
                   </thead>
                   <tbody id="publisherViewsTbody">
-                    <tr><td colspan="5" style="color:var(--muted);">加载中…</td></tr>
+                    <tr><td colspan="7" style="color:var(--muted);">加载中…</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -3053,23 +3064,34 @@
       return qs.toString();
     }
 
-    function renderPublisherViewSummary(summary, range){
+    function renderPublisherViewSummary(summary, range, ads){
       var mount=document.getElementById('publisherViewSummary');
-      if(!mount) return;
+      var adMount=document.getElementById('publisherAdSummary');
       var s=summary||{};
-      var daysLabel=range&&range.days?('近'+range.days+'日'):'区间';
+      var a=ads||{};
+      var daysLabel=range&&range.days?('近'+range.days+'日'):'所选区间';
+      if(adMount){
+        adMount.innerHTML=
+          '<div class="publisher-stat-card"><div class="k">首页广告位 PV</div><div class="v">'+Number(a.homePv||0)+'</div></div>'+
+          '<div class="publisher-stat-card"><div class="k">首页广告位 UV</div><div class="v">'+Number(a.homeUv||0)+'</div></div>'+
+          '<div class="publisher-stat-card"><div class="k">帖子页广告位 PV</div><div class="v">'+Number(a.forumPv||0)+'</div></div>'+
+          '<div class="publisher-stat-card"><div class="k">帖子页广告位 UV</div><div class="v">'+Number(a.forumUv||0)+'</div></div>';
+      }
+      if(!mount) return;
       mount.innerHTML=
         '<div class="publisher-stat-card"><div class="k">发帖用户</div><div class="v">'+Number(s.users||0)+'</div></div>'+
         '<div class="publisher-stat-card"><div class="k">帖子数</div><div class="v">'+Number(s.posts||0)+'</div></div>'+
-        '<div class="publisher-stat-card"><div class="k">真实总浏览</div><div class="v">'+Number(s.realViews||0)+'</div></div>'+
-        '<div class="publisher-stat-card"><div class="k">'+daysLabel+'新增</div><div class="v">'+Number(s.recentViews||0)+'</div></div>';
+        '<div class="publisher-stat-card"><div class="k">真实阅读 PV</div><div class="v">'+Number(s.realViews||0)+'</div></div>'+
+        '<div class="publisher-stat-card"><div class="k">独立访客 UV</div><div class="v">'+Number(s.realUv||0)+'</div></div>'+
+        '<div class="publisher-stat-card"><div class="k">'+daysLabel+'新增 PV</div><div class="v">'+Number(s.recentViews||0)+'</div></div>'+
+        '<div class="publisher-stat-card"><div class="k">'+daysLabel+'新增 UV</div><div class="v">'+Number(s.recentUv||0)+'</div></div>';
     }
 
     function renderPublisherViewRows(users){
       var tbody=document.getElementById('publisherViewsTbody');
       if(!tbody) return;
       if(!users||!users.length){
-        tbody.innerHTML='<tr><td colspan="5" style="color:var(--muted);">没有符合条件的发帖用户。</td></tr>';
+        tbody.innerHTML='<tr><td colspan="7" style="color:var(--muted);">没有符合条件的发帖用户。真实阅读从本方案上线后才开始记。</td></tr>';
         return;
       }
       tbody.innerHTML=users.map(function(u){
@@ -3077,7 +3099,10 @@
           return '<tr>'+
             '<td><a href="/function/forum-post.html?id='+encodeURIComponent(p.id)+'" target="_blank" rel="noopener">'+escapeHtml(p.title||('帖子 #'+p.id))+'</a></td>'+
             '<td>'+Number(p.realViews||0)+'</td>'+
+            '<td>'+Number(p.realUv||0)+'</td>'+
             '<td>'+Number(p.recentViews||0)+'</td>'+
+            '<td>'+Number(p.recentUv||0)+'</td>'+
+            '<td style="color:var(--muted);">'+Number(p.displayViews||0)+'</td>'+
           '</tr>';
         }).join('');
         return '<tr class="publisher-user-row" data-user-id="'+u.userId+'">'+
@@ -3085,12 +3110,14 @@
           '<td>'+escapeHtml(u.username||'')+'<div style="color:var(--muted);font-size:.78rem;margin-top:2px;">ID '+u.userId+(u.loginId?(' · '+escapeHtml(u.loginId)):'')+'</div></td>'+
           '<td>'+Number(u.postCount||0)+'</td>'+
           '<td>'+Number(u.realViews||0)+'</td>'+
+          '<td>'+Number(u.realUv||0)+'</td>'+
           '<td>'+Number(u.recentViews||0)+'</td>'+
+          '<td>'+Number(u.recentUv||0)+'</td>'+
         '</tr>'+
         '<tr class="publisher-post-wrap" data-user-id="'+u.userId+'" hidden>'+
-          '<td colspan="5">'+
+          '<td colspan="7">'+
             (posts
-              ? '<table class="publisher-post-table"><thead><tr><th>帖子</th><th style="width:120px;">真实浏览</th><th style="width:130px;">区间新增</th></tr></thead><tbody>'+posts+'</tbody></table>'
+              ? '<table class="publisher-post-table"><thead><tr><th>帖子</th><th>真实 PV</th><th>独立 UV</th><th>区间新增 PV</th><th>区间新增 UV</th><th>前台展示量</th></tr></thead><tbody>'+posts+'</tbody></table>'
               : '<div style="color:var(--muted);font-size:.82rem;">没有帖子。</div>')+
           '</td>'+
         '</tr>';
@@ -3145,10 +3172,10 @@
           return;
         }
         publisherViewState.page=Number(d.page||1);
-        renderPublisherViewSummary(d.summary,d.range);
+        renderPublisherViewSummary(d.summary,d.range,d.ads);
         renderPublisherViewRows(d.users);
         renderPublisherViewPager(d);
-        setStatus('publisherViewsStatus','已加载真实浏览量（不含前台加权数）。');
+        setStatus('publisherViewsStatus','已加载。真实阅读只含上线后的合格打开；广告位流量来自页面访问统计。');
       }catch(e){
         setStatus('publisherViewsStatus','统计失败：'+(e.message||'网络错误'));
       }

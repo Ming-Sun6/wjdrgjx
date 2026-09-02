@@ -378,7 +378,7 @@
   </style>
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
-  <script src="/function/analytics-tracker.js?v=20260902-5" defer></script>
+  <script src="/function/analytics-tracker.js?v=20260902-6" defer></script>
   <script type="text/javascript" charset="UTF-8" src="https://cdn.adwork.net/js/makemoney.js" async></script>
   <script src="/function/site-footer.js" defer></script>
   <meta property="og:type" content="article" />
@@ -1308,7 +1308,14 @@
       bindForumMetaOnce();
       try{
         state.me = await loadMe();
-        await refresh(true);
+        await refresh(false);
+        if (typeof window.wjdrScheduleForumQualifiedRead === 'function') {
+          window.wjdrScheduleForumQualifiedRead(id, function(viewCount){
+            if(state.post) state.post.viewCount = viewCount;
+            var el=document.getElementById('viewCount');
+            if(el) el.textContent=String(viewCount);
+          });
+        }
         document.getElementById('likeBtn').addEventListener('click',toggleLike);
         document.getElementById('favBtn').addEventListener('click',toggleFav);
         document.getElementById('commentSubmit').addEventListener('click',submitComment);

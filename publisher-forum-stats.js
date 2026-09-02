@@ -1,11 +1,7 @@
-const crypto = require('crypto');
 const {
-  FORUM_REAL_VIEW_KEY_PREFIX,
-  pickLegacyLeadersToPromote
-} = require('./forum-post-views');
-
-const FORUM_VIEW_REAL_BACKFILL_SETTING = 'forum_view_real_backfill_v1';
-const REAL_VIEW_SQL = `v.viewer_key LIKE '${FORUM_REAL_VIEW_KEY_PREFIX}%'`;
+  HOME_AD_PAGE_KEYS,
+  FORUM_POST_PAGE_KEY
+} = require('./forum-post-reads');
 
 function toNumber(value) {
   const n = Number(value);
@@ -96,7 +92,9 @@ function normalizeAuthorRow(row) {
     loginId: String(row.loginId || row.loginid || row.login_id || ''),
     postCount: toNumber(row.postCount || row.postcount),
     realViews: toNumber(row.realViews || row.realviews),
+    realUv: toNumber(row.realUv || row.realuv),
     recentViews: toNumber(row.recentViews || row.recentviews),
+    recentUv: toNumber(row.recentUv || row.recentuv),
     posts: []
   };
 }
@@ -108,57 +106,47 @@ function normalizePostRow(row) {
     status: String(row.status || ''),
     createdAt: row.createdAt || row.created_at || null,
     realViews: toNumber(row.realViews || row.realviews),
-    recentViews: toNumber(row.recentViews || row.recentviews)
+    realUv: toNumber(row.realUv || row.realuv),
+    recentViews: toNumber(row.recentViews || row.recentviews),
+    recentUv: toNumber(row.recentUv || row.recentuv),
+    displayViews: toNumber(row.displayViews || row.displayviews)
   };
+}
+
+function homePageKeySql() {
+  return HOME_AD_PAGE_KEYS.map(() => '?').join(',');
 }
 
 function createPublisherForumStatsService(deps) {
   const services = deps || {};
   const queryRows = services.queryRows || (async () => []);
   const queryOne = services.queryOne || (async () => null);
-  const execute = services.execute || (async () => ({}));
-  const getSetting = services.getSetting || (async () => null);
-  const setSetting = services.setSetting || (async () => {});
   const likeOp = services.likeOp || 'LIKE';
-  let backfillPromise = null;
 
-  async function ensureLegacyRealViewBackfill() {
-    const done = await getSetting(FORUM_VIEW_REAL_BACKFILL_SETTING, null);
-    if (done && done.doneAt) return done;
-    if (backfillPromise) return backfillPromise;
-    backfillPromise = (async () => {
-      const posts = await queryRows('SELECT DISTINCT post_id AS postId FROM forum_post_views', []);
-      let promoted = 0;
-      for (const post of posts || []) {
-        const postId = toNumber(post.postId || post.postid || post.post_id);
-        if (postId <= 0) continue;
-        const rows = await queryRows(
-          'SELECT viewer_key AS viewerKey, created_at AS createdAt FROM forum_post_views WHERE post_id = ?',
-          [postId]
-        );
-        const leaders = pickLegacyLeadersToPromote(rows || []);
-        for (const leader of leaders) {
-          const oldKey = String(leader.viewerKey || leader.viewer_key || '');
-          if (!oldKey || oldKey.startsWith(FORUM_REAL_VIEW_KEY_PREFIX)) continue;
-          const newKey = `${FORUM_REAL_VIEW_KEY_PREFIX}legacy:${crypto.randomUUID()}`;
-          await execute(
-            'UPDATE forum_post_views SET viewer_key = ? WHERE post_id = ? AND viewer_key = ?',
-            [newKey, postId, oldKey]
-          );
-          promoted += 1;
-        }
-      }
-      const result = { doneAt: new Date().toISOString(), promoted };
-      await setSetting(FORUM_VIEW_REAL_BACKFILL_SETTING, result);
-      return result;
-    })().finally(() => {
-      backfillPromise = null;
-    });
-    return backfillPromise;
+  async function getAdSlotStats(range) {
+    const row = await queryOne(
+      `
+      SELECT
+        COALESCE(SUM(CASE WHEN page_key IN (${homePageKeySql()}) THEN 1 ELSE 0 END), 0) AS homePv,
+        COUNT(DISTINCT CASE WHEN page_key IN (${homePageKeySql()}) THEN visitor_id END) AS homeUv,
+        COALESCE(SUM(CASE WHEN page_key = ? THEN 1 ELSE 0 END), 0) AS forumPv,
+        COUNT(DISTINCT CASE WHEN page_key = ? THEN visitor_id END) AS forumUv
+      FROM analytics_events
+      WHERE event_type = 'page_view'
+        AND COALESCE(is_admin_area, 0) = 0
+        AND occurred_at >= ? AND occurred_at <= ?
+      `,
+      [...HOME_AD_PAGE_KEYS, ...HOME_AD_PAGE_KEYS, FORUM_POST_PAGE_KEY, FORUM_POST_PAGE_KEY, range.from, range.to]
+    );
+    return {
+      homePv: toNumber(row && (row.homePv || row.homepv)),
+      homeUv: toNumber(row && (row.homeUv || row.homeuv)),
+      forumPv: toNumber(row && (row.forumPv || row.forumpv)),
+      forumUv: toNumber(row && (row.forumUv || row.forumuv))
+    };
   }
 
   async function getAuthorViewStats(query) {
-    await ensureLegacyRealViewBackfill();
     const range = parsePublisherForumViewRange(query);
     const filter = buildUserFilter(query, likeOp);
     const page = Math.max(1, Math.floor(toNumber(query && query.page) || 1));
@@ -166,13 +154,15 @@ function createPublisherForumStatsService(deps) {
     const sortKey = String((query && query.sort) || 'recentViews');
     const sortSql = {
       recentViews: 'recentViews DESC, realViews DESC, postCount DESC',
-      realViews: 'realViews DESC, recentViews DESC, postCount DESC',
+      recentUv: 'recentUv DESC, recentViews DESC, realUv DESC',
+      realViews: 'realViews DESC, realUv DESC, postCount DESC',
+      realUv: 'realUv DESC, realViews DESC, postCount DESC',
       postCount: 'postCount DESC, realViews DESC',
       username: 'u.username ASC'
     }[sortKey] || 'recentViews DESC, realViews DESC, postCount DESC';
 
     const whereSql = filter.where.length ? `WHERE ${filter.where.join(' AND ')}` : '';
-    const rangeParams = [range.from, range.to];
+    const rangeParams = [range.from, range.to, range.from, range.to];
 
     const totalRow = await queryOne(
       `
@@ -187,7 +177,7 @@ function createPublisherForumStatsService(deps) {
       `,
       filter.params
     );
-    const total = Math.max(0, toNumber(totalRow && (totalRow.total)));
+    const total = Math.max(0, toNumber(totalRow && totalRow.total));
     const totalPages = Math.max(1, Math.ceil(total / pageSize) || 1);
     const safePage = Math.min(page, totalPages);
     const offset = (safePage - 1) * pageSize;
@@ -199,11 +189,13 @@ function createPublisherForumStatsService(deps) {
         u.username AS username,
         u.login_id AS loginId,
         COUNT(DISTINCT p.id) AS postCount,
-        COALESCE(SUM(CASE WHEN ${REAL_VIEW_SQL} THEN 1 ELSE 0 END), 0) AS realViews,
-        COALESCE(SUM(CASE WHEN ${REAL_VIEW_SQL} AND v.created_at >= ? AND v.created_at <= ? THEN 1 ELSE 0 END), 0) AS recentViews
+        COALESCE(SUM(CASE WHEN r.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS realViews,
+        COUNT(DISTINCT r.visitor_id) AS realUv,
+        COALESCE(SUM(CASE WHEN r.created_at >= ? AND r.created_at <= ? THEN 1 ELSE 0 END), 0) AS recentViews,
+        COUNT(DISTINCT CASE WHEN r.created_at >= ? AND r.created_at <= ? THEN r.visitor_id END) AS recentUv
       FROM users u
       INNER JOIN forum_posts p ON p.author_id = u.id
-      LEFT JOIN forum_post_views v ON v.post_id = p.id
+      LEFT JOIN forum_post_reads r ON r.post_id = p.id
       ${whereSql}
       GROUP BY u.id, u.username, u.login_id
       ORDER BY ${sortSql}
@@ -223,10 +215,16 @@ function createPublisherForumStatsService(deps) {
           p.title AS title,
           p.status AS status,
           p.created_at AS createdAt,
-          COALESCE(SUM(CASE WHEN ${REAL_VIEW_SQL} THEN 1 ELSE 0 END), 0) AS realViews,
-          COALESCE(SUM(CASE WHEN ${REAL_VIEW_SQL} AND v.created_at >= ? AND v.created_at <= ? THEN 1 ELSE 0 END), 0) AS recentViews
+          COALESCE(SUM(CASE WHEN r.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS realViews,
+          COUNT(DISTINCT r.visitor_id) AS realUv,
+          COALESCE(SUM(CASE WHEN r.created_at >= ? AND r.created_at <= ? THEN 1 ELSE 0 END), 0) AS recentViews,
+          COUNT(DISTINCT CASE WHEN r.created_at >= ? AND r.created_at <= ? THEN r.visitor_id END) AS recentUv,
+          (
+            SELECT COUNT(*) FROM forum_post_views v
+            WHERE v.post_id = p.id AND v.created_at <= CURRENT_TIMESTAMP(3)
+          ) AS displayViews
         FROM forum_posts p
-        LEFT JOIN forum_post_views v ON v.post_id = p.id
+        LEFT JOIN forum_post_reads r ON r.post_id = p.id
         WHERE p.author_id IN (${placeholders})
         GROUP BY p.id, p.author_id, p.title, p.status, p.created_at
         ORDER BY recentViews DESC, realViews DESC, p.created_at DESC
@@ -245,15 +243,19 @@ function createPublisherForumStatsService(deps) {
       SELECT
         COUNT(DISTINCT u.id) AS users,
         COUNT(DISTINCT p.id) AS posts,
-        COALESCE(SUM(CASE WHEN ${REAL_VIEW_SQL} THEN 1 ELSE 0 END), 0) AS realViews,
-        COALESCE(SUM(CASE WHEN ${REAL_VIEW_SQL} AND v.created_at >= ? AND v.created_at <= ? THEN 1 ELSE 0 END), 0) AS recentViews
+        COALESCE(SUM(CASE WHEN r.id IS NOT NULL THEN 1 ELSE 0 END), 0) AS realViews,
+        COUNT(DISTINCT r.visitor_id) AS realUv,
+        COALESCE(SUM(CASE WHEN r.created_at >= ? AND r.created_at <= ? THEN 1 ELSE 0 END), 0) AS recentViews,
+        COUNT(DISTINCT CASE WHEN r.created_at >= ? AND r.created_at <= ? THEN r.visitor_id END) AS recentUv
       FROM users u
       INNER JOIN forum_posts p ON p.author_id = u.id
-      LEFT JOIN forum_post_views v ON v.post_id = p.id
+      LEFT JOIN forum_post_reads r ON r.post_id = p.id
       ${whereSql}
       `,
       [...rangeParams, ...filter.params]
     );
+
+    const ads = await getAdSlotStats(range);
 
     return {
       range: {
@@ -261,11 +263,14 @@ function createPublisherForumStatsService(deps) {
         to: range.to.toISOString(),
         days: range.days
       },
+      ads,
       summary: {
-        users: toNumber(summaryRow && (summaryRow.users)),
-        posts: toNumber(summaryRow && (summaryRow.posts)),
+        users: toNumber(summaryRow && summaryRow.users),
+        posts: toNumber(summaryRow && summaryRow.posts),
         realViews: toNumber(summaryRow && (summaryRow.realViews || summaryRow.realviews)),
-        recentViews: toNumber(summaryRow && (summaryRow.recentViews || summaryRow.recentviews))
+        realUv: toNumber(summaryRow && (summaryRow.realUv || summaryRow.realuv)),
+        recentViews: toNumber(summaryRow && (summaryRow.recentViews || summaryRow.recentviews)),
+        recentUv: toNumber(summaryRow && (summaryRow.recentUv || summaryRow.recentuv))
       },
       page: safePage,
       pageSize,
@@ -276,13 +281,12 @@ function createPublisherForumStatsService(deps) {
   }
 
   return {
-    ensureLegacyRealViewBackfill,
+    getAdSlotStats,
     getAuthorViewStats
   };
 }
 
 module.exports = {
-  FORUM_VIEW_REAL_BACKFILL_SETTING,
   parsePublisherForumViewRange,
   sanitizeUserQuery,
   createPublisherForumStatsService

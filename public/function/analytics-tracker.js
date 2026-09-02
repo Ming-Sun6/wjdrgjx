@@ -115,9 +115,20 @@
   function sendPageView() {
     if (location.protocol === 'file:') return;
     if (typeof fetch !== 'function') return;
+    var pageKey = derivePageKey(location.pathname || '/');
+    var pagePath = location.pathname || '/';
+    var scopeKey = pageKey;
+    try {
+      var postId = new URLSearchParams(location.search || '').get('id');
+      if (isForumPostPage() && postId) {
+        pagePath = pagePath + '?id=' + encodeURIComponent(postId);
+        scopeKey = 'forum_post:' + String(postId);
+      }
+    } catch (_e) {}
     var payload = {
-      pagePath: location.pathname || '/',
-      pageKey: derivePageKey(location.pathname || '/'),
+      pagePath: pagePath,
+      pageKey: pageKey,
+      scopeKey: scopeKey,
       referrer: document.referrer || ''
     };
     fetch('/api/analytics/page-view', {
@@ -128,6 +139,60 @@
       body: JSON.stringify(payload)
     }).catch(function () {});
   }
+
+  function cancelForumQualifiedRead(postId) {
+    var jobs = window.__wjdrForumReadJobs || {};
+    var id = Number(postId);
+    var job = jobs[id];
+    if (!job) return;
+    if (job.timer) clearInterval(job.timer);
+    document.removeEventListener('visibilitychange', job.onVis);
+    delete jobs[id];
+  }
+
+  function scheduleForumQualifiedRead(postId, onViewCount) {
+    var id = Number(postId);
+    if (!Number.isFinite(id) || id <= 0) return;
+    window.__wjdrForumReadJobs = window.__wjdrForumReadJobs || {};
+    if (window.__wjdrForumReadJobs[id]) return;
+    var visibleMs = 0;
+    var lastTick = Date.now();
+    var done = false;
+    var job = { timer: null, onVis: null };
+    function cleanup() {
+      if (job.timer) clearInterval(job.timer);
+      job.timer = null;
+      document.removeEventListener('visibilitychange', job.onVis);
+      delete window.__wjdrForumReadJobs[id];
+    }
+    function fire() {
+      if (done) return;
+      done = true;
+      cleanup();
+      fetch('/api/forum/posts/' + id + '/read?_=' + Date.now(), {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store'
+      })
+        .then(function (r) { return r.json().catch(function () { return null; }); })
+        .then(function (d) {
+          if (!d || d.viewCount == null) return;
+          if (typeof onViewCount === 'function') onViewCount(Number(d.viewCount || 0), !!d.recorded);
+        })
+        .catch(function () {});
+    }
+    job.onVis = function () { lastTick = Date.now(); };
+    job.timer = setInterval(function () {
+      var now = Date.now();
+      if (!document.hidden) visibleMs += Math.max(0, now - lastTick);
+      lastTick = now;
+      if (visibleMs >= 2500) fire();
+    }, 250);
+    document.addEventListener('visibilitychange', job.onVis);
+    window.__wjdrForumReadJobs[id] = job;
+  }
+  window.wjdrScheduleForumQualifiedRead = scheduleForumQualifiedRead;
+  window.wjdrCancelForumQualifiedRead = cancelForumQualifiedRead;
 
   function ensurePlayerMadeNotice() {
     try {

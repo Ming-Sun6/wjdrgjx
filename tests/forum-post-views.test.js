@@ -96,9 +96,13 @@ test('legacy clusters that already have a real key are not promoted again', () =
 
 test('server integrates delayed forum view helpers for inserts and counts', () => {
   const source = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+  const reads = fs.readFileSync(path.join(root, 'forum-post-reads.js'), 'utf8');
 
   assert.match(source, /require\('\.\/forum-post-views'\)/);
+  assert.match(source, /require\('\.\/forum-post-reads'\)/);
   assert.match(source, /FORUM_VISIBLE_VIEW_COUNT_EXPR\('p'\)/);
-  assert.match(source, /buildForumViewRows\(postId/);
-  assert.match(source, /SELECT COUNT\(\*\) AS c FROM forum_post_views WHERE post_id = \? AND created_at <= CURRENT_TIMESTAMP\(3\)/);
+  assert.match(source, /applyQualifiedForumRead/);
+  assert.match(source, /\/api\/forum\/posts\/:id\/read/);
+  assert.match(reads, /buildForumViewRows/);
+  assert.match(reads, /SELECT COUNT\(\*\) AS c FROM forum_post_views WHERE post_id = \? AND created_at <= CURRENT_TIMESTAMP\(3\)/);
 });

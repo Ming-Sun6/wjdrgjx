@@ -131,7 +131,14 @@ const ROW_ALIAS_MAP = {
   postcount: 'postCount',
   realviews: 'realViews',
   recentviews: 'recentViews',
-  postid: 'postId'
+  postid: 'postId',
+  realuv: 'realUv',
+  recentuv: 'recentUv',
+  displayviews: 'displayViews',
+  homepv: 'homePv',
+  homeuv: 'homeUv',
+  forumpv: 'forumPv',
+  forumuv: 'forumUv'
 };
 
 function normalizeRowAliases(row) {

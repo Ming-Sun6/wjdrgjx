@@ -175,7 +175,7 @@ function createAnalyticsService(deps) {
       pagePath: payload?.pagePath || '/',
       pageKey: payload?.pageKey || 'rukou',
       scopeType: 'page',
-      scopeKey: payload?.pageKey || 'rukou',
+      scopeKey: payload?.scopeKey || payload?.pageKey || 'rukou',
       userId: payload?.userId || null,
       visitorId: payload?.visitorId || null,
       sessionId: payload?.sessionId || null,

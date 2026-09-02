@@ -2969,6 +2969,9 @@ function setForumSection(section){
   loadForumPosts();
 }
 async function openForumView(id){
+  if (typeof window.wjdrCancelForumQualifiedRead === 'function' && forumCurrentPostId && Number(forumCurrentPostId) !== Number(id)) {
+    window.wjdrCancelForumQualifiedRead(forumCurrentPostId);
+  }
   forumViewReturnScrollY = getWindowScrollY();
   forumCurrentPostId = id;
   forumReplyToComment = null;
@@ -2989,7 +2992,17 @@ async function openForumView(id){
     favoriteBtn.disabled=true;
     favoriteBtn.classList.add('loading');
   }
-  await loadForumDetail(id, { recordView: true });
+  await loadForumDetail(id);
+  if (typeof window.wjdrScheduleForumQualifiedRead === 'function') {
+    window.wjdrScheduleForumQualifiedRead(id, function(viewCount){
+      updateForumListStats(id, undefined, undefined, undefined, viewCount);
+      if (forumCurrentPost && Number(forumCurrentPost.id) === Number(id)) {
+        forumCurrentPost.viewCount = viewCount;
+        var viewEl = document.getElementById('forumDetailViewCount');
+        if (viewEl) viewEl.textContent = String(viewCount);
+      }
+    });
+  }
 }
 var forumLightboxState = { originalUrl:'', showingOriginal:false, sizeBytes:0 };
 function resetForumImageLightboxOriginalBtn(){
@@ -3061,6 +3074,9 @@ function closeForumImageLightbox(){
 function closeForumView(){
   var m=document.getElementById('forumViewModal');
   if(!m) return;
+  if (typeof window.wjdrCancelForumQualifiedRead === 'function' && forumCurrentPostId) {
+    window.wjdrCancelForumQualifiedRead(forumCurrentPostId);
+  }
   closeForumImageLightbox();
   m.classList.remove('open');
   m.setAttribute('aria-hidden','true');

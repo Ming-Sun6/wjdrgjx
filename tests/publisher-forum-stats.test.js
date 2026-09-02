@@ -41,55 +41,56 @@ test('publisher forum view range accepts today, all, and custom dates', () => {
   assert.equal(custom.to.getHours(), 23);
 });
 
-test('publisher forum stats counts only real view keys and can expand posts', async () => {
+test('publisher forum stats reads fact table and ad slot events, not inflated view keys', async () => {
   const { createPublisherForumStatsService } = require('../publisher-forum-stats');
   const calls = [];
   const service = createPublisherForumStatsService({
-    getSetting: async () => ({ doneAt: '2026-09-01T00:00:00.000Z' }),
-    setSetting: async () => {},
     queryOne: async (sql) => {
       calls.push(['one', sql]);
+      if (/analytics_events/.test(sql)) return { homePv: 20, homeUv: 8, forumPv: 12, forumUv: 5 };
       if (/COUNT\(\*\) AS total/.test(sql)) return { total: 1 };
-      return { users: 1, posts: 2, realViews: 4, recentViews: 1 };
+      return { users: 1, posts: 2, realViews: 4, realUv: 3, recentViews: 1, recentUv: 1 };
     },
     queryRows: async (sql, params) => {
       calls.push(['rows', sql, params]);
       if (/AS postCount/.test(sql)) {
-        return [{ userId: 9, username: '飞菇', loginId: 'feigu', postCount: 2, realViews: 4, recentViews: 1 }];
+        return [{ userId: 9, username: '飞菇', loginId: 'feigu', postCount: 2, realViews: 4, realUv: 3, recentViews: 1, recentUv: 1 }];
       }
       return [
-        { id: 21, userId: 9, title: '攻略A', status: 'approved', createdAt: '2026-08-01', realViews: 3, recentViews: 1 },
-        { id: 22, userId: 9, title: '攻略B', status: 'approved', createdAt: '2026-08-02', realViews: 1, recentViews: 0 }
+        { id: 21, userId: 9, title: '攻略A', status: 'approved', createdAt: '2026-08-01', realViews: 3, realUv: 2, recentViews: 1, recentUv: 1, displayViews: 18 },
+        { id: 22, userId: 9, title: '攻略B', status: 'approved', createdAt: '2026-08-02', realViews: 1, realUv: 1, recentViews: 0, recentUv: 0, displayViews: 6 }
       ];
     }
   });
 
   const result = await service.getAuthorViewStats({ days: 7, q: '飞菇' });
+  const sql = calls.map((c) => c[1]).join('\n');
   assert.equal(result.summary.realViews, 4);
-  assert.equal(result.summary.recentViews, 1);
-  assert.equal(result.users.length, 1);
-  assert.equal(result.users[0].username, '飞菇');
-  assert.equal(result.users[0].posts.length, 2);
-  assert.equal(result.users[0].posts[0].realViews, 3);
-  assert.match(calls.map((c) => c[1]).join('\n'), /viewer_key LIKE 'r:%'/);
-  assert.doesNotMatch(calls.map((c) => c[1]).join('\n'), /created_at <= CURRENT_TIMESTAMP/);
+  assert.equal(result.summary.realUv, 3);
+  assert.equal(result.ads.homePv, 20);
+  assert.equal(result.ads.forumUv, 5);
+  assert.equal(result.users[0].posts[0].displayViews, 18);
+  assert.match(sql, /forum_post_reads/);
+  assert.match(sql, /analytics_events/);
+  assert.doesNotMatch(sql, /viewer_key LIKE 'r:%'/);
+  assert.doesNotMatch(sql, /forum_view_real_backfill/);
 });
 
-test('admin publisher page and server expose split ad switches plus real view stats', () => {
+test('admin publisher page and server expose split ads plus fact-table stats', () => {
   const server = read('server.js');
   const admin = read('public/function/_ops/console-7a9/internal/admin.html');
   const stats = read('publisher-forum-stats.js');
+  const tracker = read('public/function/analytics-tracker.js');
 
   assert.match(server, /createPublisherForumStatsService/);
-  assert.match(server, /homeAdEnabled: publisher\.homeAdEnabled/);
-  assert.match(server, /forumAdEnabled: publisher\.forumAdEnabled/);
-  assert.match(admin, /id="publisherHomeAdEnabled"/);
-  assert.match(admin, /id="publisherForumAdEnabled"/);
-  assert.match(admin, /id="publisherUserFilter"/);
-  assert.match(admin, /data-days="7"/);
-  assert.match(admin, /真实总浏览/);
-  assert.match(admin, /区间新增浏览/);
-  assert.match(admin, /publisher-expand/);
-  assert.match(stats, /FORUM_VIEW_REAL_BACKFILL_SETTING/);
-  assert.match(stats, /pickLegacyLeadersToPromote/);
+  assert.match(server, /CREATE TABLE IF NOT EXISTS forum_post_reads/);
+  assert.match(admin, /id="publisherAdSummary"/);
+  assert.match(admin, /内容真实阅读/);
+  assert.match(admin, /前台展示量/);
+  assert.match(admin, /本方案上线后/);
+  assert.match(stats, /forum_post_reads/);
+  assert.doesNotMatch(stats, /FORUM_VIEW_REAL_BACKFILL_SETTING/);
+  assert.match(tracker, /function scheduleForumQualifiedRead/);
+  assert.match(tracker, /scopeKey/);
+  assert.match(tracker, /forum_post:/);
 });
