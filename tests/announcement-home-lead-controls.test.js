@@ -89,6 +89,7 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
   assert.match(publicHome, /cfg\.adEnabled===false/);
   const tracker = read('public/function/analytics-tracker.js');
   assert.match(tracker, /function applyHomePublisherRuntime\(\)/);
+  assert.match(tracker, /wjdr-home-publisher-gap/);
   assert.match(tracker, /cfg\.enabled === false/);
   assert.match(tracker, /cdn\.adwork\.net\/js\/makemoney\.js/);
   assert.match(tracker, /data-id="1129"/);
@@ -101,4 +102,5 @@ test('home lead has responsive presentation and disabled-click styling', () => {
   assert.match(home, /aspect-ratio:/);
   assert.match(home, /\.wjdr-home-carousel\.is-static/);
   assert.match(home, /@media \(max-width:\s*600px\)/);
+  assert.match(home, /body:has\(#wjdrAdworkSlot\)/);
 });

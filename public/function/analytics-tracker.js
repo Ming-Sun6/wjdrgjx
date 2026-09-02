@@ -280,10 +280,23 @@
     ensureAdworkSdk();
   }
 
+  function ensureHomePublisherGapStyle() {
+    if (document.getElementById('wjdr-home-publisher-gap')) return;
+    var style = document.createElement('style');
+    style.id = 'wjdr-home-publisher-gap';
+    style.textContent =
+      'body:has(#wjdrAdworkSlot)>.auth-bar~.container,' +
+      'body:has(.wjdr-home-lead:not([hidden]))>.auth-bar~.container{padding-top:10px!important}' +
+      '@media (max-width:600px){body:has(#wjdrAdworkSlot)>.auth-bar~.container,' +
+      'body:has(.wjdr-home-lead:not([hidden]))>.auth-bar~.container{padding-top:8px!important}}';
+    (document.head || document.documentElement).appendChild(style);
+  }
+
   function applyHomePublisherRuntime() {
     if (window.__wjdrHomePublisherBound) return;
     if (!isHomePage()) return;
     window.__wjdrHomePublisherBound = true;
+    ensureHomePublisherGapStyle();
     setHomeLeadVisible(false);
     fetch('/api/home-lead', { credentials: 'omit', cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return null; }); })

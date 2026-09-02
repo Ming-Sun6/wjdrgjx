@@ -348,6 +348,10 @@
   body > .auth-bar ~ .container {
     padding-top:118px;
   }
+  body:has(#wjdrAdworkSlot) > .auth-bar ~ .container,
+  body:has(.wjdr-home-lead:not([hidden])) > .auth-bar ~ .container {
+    padding-top:8px !important;
+  }
 
   .featured-tools-grid {
     grid-template-columns:repeat(2,minmax(0,1fr)) !important;

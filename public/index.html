@@ -36,8 +36,8 @@
   <meta name="baidu_union_verify" content="eaadf6429f67b66ae13f8c9fa5b45146">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>冬日工具箱</title>
-  <link rel="stylesheet" href="/function/home.css?v=20260902-1">
-  <script src="/function/analytics-tracker.js?v=20260902-2" defer></script>
+  <link rel="stylesheet" href="/function/home.css?v=20260902-3">
+  <script src="/function/analytics-tracker.js?v=20260902-3" defer></script>
   <script type="text/javascript" charset="UTF-8" src="https://cdn.adwork.net/js/makemoney.js" async></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <style id="wjdr-home-mobile-title-fix">
@@ -79,10 +79,12 @@
   <!-- 窄屏下 mobile-responsive 为避开固定 auth-bar 会加大 .container 的 padding-top；
        首页已包含活动横幅时不应再预留整块顶部空白，否则标题与横幅间距过大 -->
   <style id="wjdr-home-lead-container-gap">
+    body:has(#wjdrAdworkSlot) > .auth-bar ~ .container,
     body:has(.wjdr-home-lead:not([hidden])) > .auth-bar ~ .container{
       padding-top:10px !important;
     }
     @media (max-width:600px){
+      body:has(#wjdrAdworkSlot) > .auth-bar ~ .container,
       body:has(.wjdr-home-lead:not([hidden])) > .auth-bar ~ .container{
         padding-top:8px !important;
       }
