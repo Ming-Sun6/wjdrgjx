@@ -34,6 +34,21 @@ body.no-scroll{overflow:hidden;}
   z-index:2;
 }
 
+.wjdr-adwork-slot{
+  width:100%;
+  margin:10px auto 6px;
+  padding:0 16px;
+  text-align:center;
+  overflow:visible;
+  position:relative;
+  z-index:2;
+}
+.wjdr-adwork-slot .adwork-net{
+  display:inline-block;
+  margin:0 auto;
+  overflow:visible;
+}
+.wjdr-home-lead[hidden]{display:none!important;}
 .wjdr-home-lead{
   position:relative;
   z-index:1;

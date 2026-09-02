@@ -36,8 +36,9 @@
   <meta name="baidu_union_verify" content="eaadf6429f67b66ae13f8c9fa5b45146">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>冬日工具箱</title>
-  <link rel="stylesheet" href="/function/home.css?v=20260826-1">
+  <link rel="stylesheet" href="/function/home.css?v=20260902-1">
   <script src="/function/analytics-tracker.js" defer></script>
+  <script type="text/javascript" charset="UTF-8" src="https://cdn.adwork.net/js/makemoney.js" async></script>
   <link rel="stylesheet" href="/function/mobile-responsive.css" />
   <style id="wjdr-home-mobile-title-fix">
     @media (max-width: 768px){
@@ -78,11 +79,11 @@
   <!-- 窄屏下 mobile-responsive 为避开固定 auth-bar 会加大 .container 的 padding-top；
        首页已包含活动横幅时不应再预留整块顶部空白，否则标题与横幅间距过大 -->
   <style id="wjdr-home-lead-container-gap">
-    body:has(.wjdr-home-lead) > .auth-bar ~ .container{
+    body:has(.wjdr-home-lead:not([hidden])) > .auth-bar ~ .container{
       padding-top:10px !important;
     }
     @media (max-width:600px){
-      body:has(.wjdr-home-lead) > .auth-bar ~ .container{
+      body:has(.wjdr-home-lead:not([hidden])) > .auth-bar ~ .container{
         padding-top:8px !important;
       }
     }
@@ -92,7 +93,10 @@
 </head>
 <body>
 
-  <div class="wjdr-home-lead" aria-label="活动说明入口">
+  <div class="wjdr-adwork-slot" id="wjdrAdworkSlot">
+    <div class="adwork-net adwork-auto" data-id="1129"></div>
+  </div>
+  <div class="wjdr-home-lead" aria-label="活动说明入口" hidden>
     <div class="wjdr-home-lead-inner">
       <div class="wjdr-home-carousel" id="wjdrHomeLeadRoot">
         <div class="wjdr-home-carousel-track" id="wjdrHomeLeadTrack">
@@ -264,12 +268,39 @@
       }
       armTimer();
     }
+    function applyAdSlot(cfg){
+      var slot=document.getElementById('wjdrAdworkSlot');
+      if(!slot) return;
+      if(cfg&&cfg.adEnabled===false){
+        if(slot.parentNode) slot.parentNode.removeChild(slot);
+      }
+    }
     fetch('/api/home-lead',{credentials:'omit',cache:'no-store'})
       .then(function(r){ return r.json().catch(function(){ return null; }); })
       .then(function(cfg){
+        applyAdSlot(cfg);
+        var lead=document.querySelector('.wjdr-home-lead');
+        if(cfg&&cfg.enabled===false){
+          if(lead){
+            lead.hidden=true;
+            lead.setAttribute('aria-hidden','true');
+          }
+          clearTimer();
+          return;
+        }
+        if(lead){
+          lead.hidden=false;
+          lead.removeAttribute('aria-hidden');
+        }
         if(cfg&&cfg.slides&&cfg.slides.length) build(cfg.slides, cfg.intervalMs, cfg.clickEnabled);
       })
-      .catch(function(){});
+      .catch(function(){
+        var lead=document.querySelector('.wjdr-home-lead');
+        if(lead){
+          lead.hidden=false;
+          lead.removeAttribute('aria-hidden');
+        }
+      });
   })();
   </script>
   <div class="auth-bar" id="authBar">

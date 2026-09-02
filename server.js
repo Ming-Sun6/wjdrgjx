@@ -476,6 +476,7 @@ function sanitizeAnnouncementHtml(inputHtml) {
 }
 
 const HOME_LEAD_SETTING_KEY = 'home_lead_carousel';
+const PUBLISHER_ADS_SETTING_KEY = 'publisher_ads';
 
 function isSafeSitePath(urlPath) {
   const p = String(urlPath || '').trim();
@@ -629,6 +630,7 @@ function defaultHomeLeadCarousel() {
   return {
     intervalMs: 6000,
     clickEnabled: true,
+    enabled: true,
     slides: [
       {
         id: 'default',
@@ -646,6 +648,7 @@ function normalizeHomeLeadCarousel(input) {
   const base = defaultHomeLeadCarousel();
   if (!input || typeof input !== 'object') return base;
   const clickEnabled = input.clickEnabled !== false;
+  const enabled = input.enabled !== false;
   let intervalMs = Number(input.intervalMs);
   if (!Number.isFinite(intervalMs)) intervalMs = base.intervalMs;
   intervalMs = Math.max(3000, Math.min(30000, Math.floor(intervalMs)));
@@ -672,8 +675,27 @@ function normalizeHomeLeadCarousel(input) {
       detailHtml
     });
   }
-  if (!slides.length) return { ...base, clickEnabled };
-  return { intervalMs, clickEnabled, slides };
+  if (!slides.length) return { ...base, clickEnabled, enabled };
+  return { intervalMs, clickEnabled, enabled, slides };
+}
+
+function defaultPublisherAds() {
+  return { adEnabled: true };
+}
+
+function normalizePublisherAds(input) {
+  if (!input || typeof input !== 'object') return defaultPublisherAds();
+  return { adEnabled: input.adEnabled !== false };
+}
+
+async function getPublisherAds() {
+  const stored = await getSetting(PUBLISHER_ADS_SETTING_KEY, null);
+  if (stored && typeof stored === 'object') return normalizePublisherAds(stored);
+  const lead = await getSetting(HOME_LEAD_SETTING_KEY, null);
+  if (lead && typeof lead === 'object' && Object.prototype.hasOwnProperty.call(lead, 'adEnabled')) {
+    return normalizePublisherAds({ adEnabled: lead.adEnabled });
+  }
+  return defaultPublisherAds();
 }
 
 app.get('/', (req, res) => {
@@ -3642,10 +3664,53 @@ app.post('/api/admin/announcement', async (req, res) => {
 app.get('/api/home-lead', async (_req, res) => {
   try {
     const stored = await getSetting(HOME_LEAD_SETTING_KEY, null);
-    return res.json(normalizeHomeLeadCarousel(stored));
+    const publisher = await getPublisherAds();
+    return res.json({ ...normalizeHomeLeadCarousel(stored), adEnabled: publisher.adEnabled });
   } catch (err) {
     console.error('home-lead get failed:', err);
-    return res.json(defaultHomeLeadCarousel());
+    return res.json({ ...defaultHomeLeadCarousel(), adEnabled: true });
+  }
+});
+
+app.get('/api/publisher', async (_req, res) => {
+  try {
+    return res.json(await getPublisherAds());
+  } catch (err) {
+    console.error('publisher get failed:', err);
+    return res.json(defaultPublisherAds());
+  }
+});
+
+app.get('/api/admin/publisher', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    return res.json(await getPublisherAds());
+  } catch (err) {
+    console.error('admin publisher get failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.put('/api/admin/publisher', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const normalized = normalizePublisherAds(req.body);
+    await setSetting(PUBLISHER_ADS_SETTING_KEY, normalized);
+    await auditAdminAction(req, {
+      actor: admin,
+      action: 'publisher.update',
+      targetType: 'publisher_ads',
+      targetId: 'current',
+      riskLevel: 'watch',
+      summary: `更新流量主广告位（${normalized.adEnabled ? '开启' : '关闭'}）`,
+      metadata: { adEnabled: normalized.adEnabled }
+    });
+    return res.json({ ok: true, publisher: normalized });
+  } catch (err) {
+    console.error('admin publisher put failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
 });
 
@@ -3673,8 +3738,8 @@ app.put('/api/admin/home-lead', async (req, res) => {
       targetType: 'home_lead_carousel',
       targetId: 'current',
       riskLevel: 'watch',
-      summary: `更新首页活动横幅（${normalized.slides.length} 张）`,
-      metadata: { slideCount: normalized.slides.length }
+      summary: `更新首页活动横幅（轮播${normalized.enabled ? '开' : '关'}，${normalized.slides.length} 张）`,
+      metadata: { slideCount: normalized.slides.length, enabled: normalized.enabled }
     });
     return res.json({ ok: true, homeLead: normalized });
   } catch (err) {
