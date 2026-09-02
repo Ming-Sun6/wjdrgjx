@@ -87,6 +87,11 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
   assert.match(home, /slot\.parentNode\.removeChild\(slot\)/);
   assert.match(publicHome, /function applyAdSlot\(cfg\)/);
   assert.match(publicHome, /cfg\.adEnabled===false/);
+  const tracker = read('public/function/analytics-tracker.js');
+  assert.match(tracker, /function applyHomePublisherRuntime\(\)/);
+  assert.match(tracker, /cfg\.enabled === false/);
+  assert.match(tracker, /cdn\.adwork\.net\/js\/makemoney\.js/);
+  assert.match(tracker, /data-id="1129"/);
 });
 
 test('home lead has responsive presentation and disabled-click styling', () => {

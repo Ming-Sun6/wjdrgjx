@@ -223,12 +223,87 @@
     document.head.appendChild(sc);
   }
 
+  function isHomePage() {
+    var path = String((location.pathname || '/').split('?')[0] || '/').replace(/\/+$/, '') || '/';
+    return path === '/' || /\/index\.html$/i.test(path) || path === '/public/index.html';
+  }
+
+  function findHomeLead() {
+    return document.querySelector('.wjdr-home-lead');
+  }
+
+  function setHomeLeadVisible(visible) {
+    var lead = findHomeLead();
+    if (!lead) return;
+    if (visible) {
+      lead.hidden = false;
+      lead.removeAttribute('aria-hidden');
+    } else {
+      lead.hidden = true;
+      lead.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  function ensureAdworkSdk() {
+    try {
+      var nodes = document.getElementsByTagName('script');
+      for (var i = 0; i < nodes.length; i++) {
+        var src = nodes[i].getAttribute('src') || '';
+        if (/cdn\.adwork\.net\/js\/makemoney\.js/i.test(src)) return;
+      }
+    } catch (_e) {}
+    var sc = document.createElement('script');
+    sc.type = 'text/javascript';
+    sc.charset = 'UTF-8';
+    sc.src = 'https://cdn.adwork.net/js/makemoney.js';
+    sc.async = true;
+    (document.head || document.documentElement).appendChild(sc);
+  }
+
+  function applyHomeAdSlot(cfg) {
+    var slot = document.getElementById('wjdrAdworkSlot');
+    if (cfg && cfg.adEnabled === false) {
+      if (slot && slot.parentNode) slot.parentNode.removeChild(slot);
+      return;
+    }
+    if (!slot) {
+      slot = document.createElement('div');
+      slot.id = 'wjdrAdworkSlot';
+      slot.className = 'wjdr-adwork-slot';
+      slot.innerHTML = '<div class="adwork-net adwork-auto" data-id="1129"></div>';
+      var notice = document.getElementById('__wjdrPlayerNotice');
+      var lead = findHomeLead();
+      if (notice && notice.parentNode) notice.parentNode.insertBefore(slot, notice.nextSibling);
+      else if (lead && lead.parentNode) lead.parentNode.insertBefore(slot, lead);
+      else document.body.insertBefore(slot, document.body.firstChild);
+    }
+    ensureAdworkSdk();
+  }
+
+  function applyHomePublisherRuntime() {
+    if (window.__wjdrHomePublisherBound) return;
+    if (!isHomePage()) return;
+    window.__wjdrHomePublisherBound = true;
+    setHomeLeadVisible(false);
+    fetch('/api/home-lead', { credentials: 'omit', cache: 'no-store' })
+      .then(function (r) { return r.json().catch(function () { return null; }); })
+      .then(function (cfg) {
+        if (cfg && cfg.enabled === false) setHomeLeadVisible(false);
+        else setHomeLeadVisible(true);
+        applyHomeAdSlot(cfg);
+      })
+      .catch(function () {
+        setHomeLeadVisible(true);
+      });
+  }
+
   function boot() {
     ensurePlayerMadeNotice();
     ensureSiteBeianScript();
     ensureSiteFooterScript();
     ensureLegalNoticeScript();
     ensureSmartBackScript();
+    applyHomePublisherRuntime();
     if (!pageLoadsUnifiedTheme()) {
       applyTheme(getStoredTheme() || 'night');
       ensureThemeToggleButton();
