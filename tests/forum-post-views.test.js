@@ -55,6 +55,45 @@ test('forum visible view count SQL excludes future delayed rows', () => {
   assert.match(FORUM_VISIBLE_VIEW_COUNT_EXPR('p'), /created_at\s*<=\s*CURRENT_TIMESTAMP\(3\)/i);
 });
 
+test('first inserted forum view is the real view and the rest are seeded', () => {
+  const {
+    FORUM_REAL_VIEW_KEY_PREFIX,
+    FORUM_SEEDED_VIEW_KEY_PREFIX,
+    isRealForumViewKey,
+    buildForumViewRows
+  } = require('../forum-post-views');
+
+  const rows = buildForumViewRows(7, new Date('2026-06-16T00:00:00.000Z'), () => 0.5);
+  assert.equal(isRealForumViewKey(rows[0].viewerKey), true);
+  assert.match(rows[0].viewerKey, new RegExp('^' + FORUM_REAL_VIEW_KEY_PREFIX));
+  assert.equal(rows.slice(1).every((row) => row.viewerKey.startsWith(FORUM_SEEDED_VIEW_KEY_PREFIX)), true);
+  assert.equal(rows.slice(1).some((row) => isRealForumViewKey(row.viewerKey)), false);
+});
+
+test('legacy view clusters promote one real leader per inflated batch', () => {
+  const { pickLegacyLeadersToPromote } = require('../forum-post-views');
+  const start = new Date('2026-06-16T00:00:00.000Z');
+  const rows = [
+    { viewerKey: 'v:a', createdAt: start },
+    { viewerKey: 'v:b', createdAt: new Date(start.getTime() + 3 * 60 * 1000) },
+    { viewerKey: 'v:c', createdAt: new Date(start.getTime() + 12 * 60 * 1000) },
+    { viewerKey: 'v:d', createdAt: new Date(start.getTime() + 40 * 60 * 1000) },
+    { viewerKey: 'v:e', createdAt: new Date(start.getTime() + 42 * 60 * 1000) }
+  ];
+  const leaders = pickLegacyLeadersToPromote(rows);
+  assert.deepEqual(leaders.map((row) => row.viewerKey), ['v:a', 'v:d']);
+});
+
+test('legacy clusters that already have a real key are not promoted again', () => {
+  const { pickLegacyLeadersToPromote } = require('../forum-post-views');
+  const start = new Date('2026-06-16T00:00:00.000Z');
+  const leaders = pickLegacyLeadersToPromote([
+    { viewerKey: 'r:already', createdAt: start },
+    { viewerKey: 'v:fake', createdAt: new Date(start.getTime() + 2 * 60 * 1000) }
+  ]);
+  assert.deepEqual(leaders, []);
+});
+
 test('server integrates delayed forum view helpers for inserts and counts', () => {
   const source = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 

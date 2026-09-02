@@ -661,6 +661,16 @@
       box-shadow:0 0 0 3px rgba(59,130,246,.18);
     }
     .calendar-admin .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;}
+    .publisher-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px;}
+    .publisher-stat-card{border:1px solid var(--border);border-radius:10px;background:var(--surface-strong);padding:12px;}
+    .publisher-stat-card .k{color:var(--muted);font-size:.75rem;font-weight:700;}
+    .publisher-stat-card .v{margin-top:4px;font-size:1.35rem;font-weight:800;}
+    .publisher-range-btns{display:flex;flex-wrap:wrap;gap:8px;}
+    .publisher-post-table{width:100%;min-width:0;margin-top:8px;}
+    .publisher-post-table th,.publisher-post-table td{font-size:.82rem;padding:8px 10px;}
+    .publisher-expand{background:transparent;border:0;color:var(--accent);cursor:pointer;font-weight:800;padding:0;font-size:.86rem;}
+    .publisher-user-row.is-open{background:rgba(59,130,246,.08);}
+    .publisher-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:.82rem;}
     .calendar-admin .type-buttons{display:flex;gap:8px;flex-wrap:wrap;}
     .calendar-admin .type-btn{
       flex:1 1 120px;
@@ -1988,17 +1998,27 @@
           <div class="page-title">流量主</div>
           <div class="calendar-admin">
             <div class="form-section">
-              <div class="form-title">首页广告</div>
+              <div class="form-title">广告位</div>
               <div class="admin-status" style="margin-bottom:14px;color:var(--muted);font-size:.85rem;line-height:1.6;">
-                当前仅接入首页顶部自适应广告（AdWork 单元 ID 1129）。关闭后首页会移除广告容器，不再请求和展示广告。
+                当前接入首页顶部与论坛帖子阅读页（AdWork 单元 ID 1129）。两个开关互相独立，关闭后对应页面会移除广告容器，不再请求和展示广告。
               </div>
-              <div class="toggle" style="justify-content:space-between;margin-bottom:14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong);">
+              <div class="toggle" style="justify-content:space-between;margin-bottom:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong);">
                 <div>
                   <div style="font-weight:700;">首页广告位</div>
                   <div style="margin-top:3px;color:var(--muted);font-size:.78rem;">关闭后首页顶部广告会移除。重新打开并保存后立即恢复。</div>
                 </div>
                 <label class="switch" title="开启或关闭首页广告位">
-                  <input id="publisherAdEnabled" type="checkbox" checked />
+                  <input id="publisherHomeAdEnabled" type="checkbox" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+              <div class="toggle" style="justify-content:space-between;margin-bottom:14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong);">
+                <div>
+                  <div style="font-weight:700;">帖子页广告位</div>
+                  <div style="margin-top:3px;color:var(--muted);font-size:.78rem;">关闭后论坛阅读页广告会移除。重新打开并保存后立即恢复。</div>
+                </div>
+                <label class="switch" title="开启或关闭帖子页广告位">
+                  <input id="publisherForumAdEnabled" type="checkbox" checked />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -2007,6 +2027,67 @@
                 <button class="btn secondary" type="button" id="publisherReloadBtn">重新加载</button>
               </div>
               <div class="admin-status" id="publisherStatus"></div>
+            </div>
+            <div class="form-section">
+              <div class="form-title">发帖用户真实浏览量</div>
+              <div class="admin-status" style="margin-bottom:12px;color:var(--muted);font-size:.85rem;line-height:1.6;">
+                这里只统计真实阅读次数：用户每打开一次帖子阅读页记 1 次。不含前台对外展示的加权浏览量。
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>快捷区间</label>
+                  <div class="publisher-range-btns" id="publisherRangeBtns">
+                    <button class="view-btn" type="button" data-days="1">今日</button>
+                    <button class="view-btn active" type="button" data-days="7">近7日</button>
+                    <button class="view-btn" type="button" data-days="30">近30日</button>
+                    <button class="view-btn" type="button" data-range="all">全部</button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="publisherViewFrom">开始日期</label>
+                  <input id="publisherViewFrom" type="date" />
+                </div>
+                <div class="form-group">
+                  <label for="publisherViewTo">结束日期</label>
+                  <input id="publisherViewTo" type="date" />
+                </div>
+                <div class="form-group">
+                  <label for="publisherUserFilter">筛选用户</label>
+                  <input id="publisherUserFilter" type="search" placeholder="用户名 / ID / 登录ID" />
+                </div>
+                <div class="form-group">
+                  <label for="publisherViewSort">排序</label>
+                  <select id="publisherViewSort">
+                    <option value="recentViews">区间新增浏览</option>
+                    <option value="realViews">真实总浏览</option>
+                    <option value="postCount">发帖数</option>
+                    <option value="username">用户名</option>
+                  </select>
+                </div>
+              </div>
+              <div class="calendar-actions">
+                <button class="btn" type="button" id="publisherViewsQueryBtn">查询</button>
+                <button class="btn secondary" type="button" id="publisherViewsReloadBtn">重置近7日</button>
+              </div>
+              <div class="admin-status" id="publisherViewsStatus"></div>
+              <div class="publisher-stat-grid" id="publisherViewSummary"></div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="width:72px;">明细</th>
+                      <th>用户</th>
+                      <th style="width:90px;">发帖数</th>
+                      <th style="width:120px;">真实总浏览</th>
+                      <th style="width:130px;">区间新增浏览</th>
+                    </tr>
+                  </thead>
+                  <tbody id="publisherViewsTbody">
+                    <tr><td colspan="5" style="color:var(--muted);">加载中…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="publisher-pager" id="publisherViewsPager"></div>
             </div>
           </div>
         </section>
@@ -2934,9 +3015,143 @@
       updateSiteFooterCount();
     }
 
+    var publisherViewState={days:7,range:'',from:'',to:'',q:'',sort:'recentViews',page:1};
+
     function applyPublisherAdsToForm(publisher){
-      var adEnabledInput=document.getElementById('publisherAdEnabled');
-      if(adEnabledInput) adEnabledInput.checked=!publisher||publisher.adEnabled!==false;
+      var homeInput=document.getElementById('publisherHomeAdEnabled');
+      var forumInput=document.getElementById('publisherForumAdEnabled');
+      var homeOn=true;
+      var forumOn=true;
+      if(publisher){
+        homeOn=publisher.homeAdEnabled!=null?publisher.homeAdEnabled!==false:publisher.adEnabled!==false;
+        forumOn=publisher.forumAdEnabled!=null?publisher.forumAdEnabled!==false:publisher.adEnabled!==false;
+      }
+      if(homeInput) homeInput.checked=homeOn;
+      if(forumInput) forumInput.checked=forumOn;
+    }
+
+    function setPublisherRangeButtons(days, range){
+      var wrap=document.getElementById('publisherRangeBtns');
+      if(!wrap) return;
+      [].forEach.call(wrap.querySelectorAll('[data-days],[data-range]'),function(btn){
+        var isAll=range==='all' && btn.getAttribute('data-range')==='all';
+        var isDays=range!=='all' && String(btn.getAttribute('data-days')||'')===String(days||'');
+        btn.classList.toggle('active', !!(isAll||isDays));
+      });
+    }
+
+    function publisherViewQueryString(){
+      var qs=new URLSearchParams();
+      if(publisherViewState.range==='all') qs.set('range','all');
+      else if(publisherViewState.days) qs.set('days',String(publisherViewState.days));
+      if(publisherViewState.from) qs.set('from',publisherViewState.from);
+      if(publisherViewState.to) qs.set('to',publisherViewState.to);
+      if(publisherViewState.q) qs.set('q',publisherViewState.q);
+      if(publisherViewState.sort) qs.set('sort',publisherViewState.sort);
+      qs.set('page',String(publisherViewState.page||1));
+      qs.set('pageSize','50');
+      return qs.toString();
+    }
+
+    function renderPublisherViewSummary(summary, range){
+      var mount=document.getElementById('publisherViewSummary');
+      if(!mount) return;
+      var s=summary||{};
+      var daysLabel=range&&range.days?('近'+range.days+'日'):'区间';
+      mount.innerHTML=
+        '<div class="publisher-stat-card"><div class="k">发帖用户</div><div class="v">'+Number(s.users||0)+'</div></div>'+
+        '<div class="publisher-stat-card"><div class="k">帖子数</div><div class="v">'+Number(s.posts||0)+'</div></div>'+
+        '<div class="publisher-stat-card"><div class="k">真实总浏览</div><div class="v">'+Number(s.realViews||0)+'</div></div>'+
+        '<div class="publisher-stat-card"><div class="k">'+daysLabel+'新增</div><div class="v">'+Number(s.recentViews||0)+'</div></div>';
+    }
+
+    function renderPublisherViewRows(users){
+      var tbody=document.getElementById('publisherViewsTbody');
+      if(!tbody) return;
+      if(!users||!users.length){
+        tbody.innerHTML='<tr><td colspan="5" style="color:var(--muted);">没有符合条件的发帖用户。</td></tr>';
+        return;
+      }
+      tbody.innerHTML=users.map(function(u){
+        var posts=(u.posts||[]).map(function(p){
+          return '<tr>'+
+            '<td><a href="/function/forum-post.html?id='+encodeURIComponent(p.id)+'" target="_blank" rel="noopener">'+escapeHtml(p.title||('帖子 #'+p.id))+'</a></td>'+
+            '<td>'+Number(p.realViews||0)+'</td>'+
+            '<td>'+Number(p.recentViews||0)+'</td>'+
+          '</tr>';
+        }).join('');
+        return '<tr class="publisher-user-row" data-user-id="'+u.userId+'">'+
+          '<td><button class="publisher-expand" type="button" data-user-id="'+u.userId+'">展开</button></td>'+
+          '<td>'+escapeHtml(u.username||'')+'<div style="color:var(--muted);font-size:.78rem;margin-top:2px;">ID '+u.userId+(u.loginId?(' · '+escapeHtml(u.loginId)):'')+'</div></td>'+
+          '<td>'+Number(u.postCount||0)+'</td>'+
+          '<td>'+Number(u.realViews||0)+'</td>'+
+          '<td>'+Number(u.recentViews||0)+'</td>'+
+        '</tr>'+
+        '<tr class="publisher-post-wrap" data-user-id="'+u.userId+'" hidden>'+
+          '<td colspan="5">'+
+            (posts
+              ? '<table class="publisher-post-table"><thead><tr><th>帖子</th><th style="width:120px;">真实浏览</th><th style="width:130px;">区间新增</th></tr></thead><tbody>'+posts+'</tbody></table>'
+              : '<div style="color:var(--muted);font-size:.82rem;">没有帖子。</div>')+
+          '</td>'+
+        '</tr>';
+      }).join('');
+    }
+
+    function renderPublisherViewPager(data){
+      var mount=document.getElementById('publisherViewsPager');
+      if(!mount) return;
+      var page=Number(data&&data.page||1);
+      var totalPages=Number(data&&data.totalPages||1);
+      var total=Number(data&&data.total||0);
+      mount.innerHTML=
+        '<div>共 '+total+' 位发帖用户 · 第 '+page+' / '+totalPages+' 页</div>'+
+        '<div style="display:flex;gap:8px;">'+
+          '<button class="btn secondary" type="button" id="publisherViewsPrev" '+(page<=1?'disabled':'')+'>上一页</button>'+
+          '<button class="btn secondary" type="button" id="publisherViewsNext" '+(page>=totalPages?'disabled':'')+'>下一页</button>'+
+        '</div>';
+    }
+
+    function collectPublisherViewFilters(){
+      var fromEl=document.getElementById('publisherViewFrom');
+      var toEl=document.getElementById('publisherViewTo');
+      var qEl=document.getElementById('publisherUserFilter');
+      var sortEl=document.getElementById('publisherViewSort');
+      publisherViewState.from=fromEl&&fromEl.value||'';
+      publisherViewState.to=toEl&&toEl.value||'';
+      publisherViewState.q=qEl&&qEl.value.trim()||'';
+      publisherViewState.sort=sortEl&&sortEl.value||'recentViews';
+      if(publisherViewState.from||publisherViewState.to){
+        publisherViewState.range='';
+        publisherViewState.days=0;
+        setPublisherRangeButtons(0,'');
+      }
+    }
+
+    async function loadPublisherForumViews(){
+      if(!authUser||!authUser.isAdmin){
+        setStatus('publisherViewsStatus','没有权限：请使用管理员账号登录。');
+        return;
+      }
+      setStatus('publisherViewsStatus','正在统计真实浏览量...');
+      try{
+        var r=await apiFetch('/api/admin/publisher/forum-views?'+publisherViewQueryString(),{method:'GET'});
+        var d=await readApiJsonSafe(r);
+        if(r.status===401||r.status===403){
+          setStatus('publisherViewsStatus','没有权限：请确认管理员账号。');
+          return;
+        }
+        if(!r.ok||!d||d.__nonJson){
+          setStatus('publisherViewsStatus','统计失败：'+((d&&d.error)||r.status));
+          return;
+        }
+        publisherViewState.page=Number(d.page||1);
+        renderPublisherViewSummary(d.summary,d.range);
+        renderPublisherViewRows(d.users);
+        renderPublisherViewPager(d);
+        setStatus('publisherViewsStatus','已加载真实浏览量（不含前台加权数）。');
+      }catch(e){
+        setStatus('publisherViewsStatus','统计失败：'+(e.message||'网络错误'));
+      }
     }
 
     async function loadPublisherAdmin(){
@@ -2958,6 +3173,7 @@
         }
         applyPublisherAdsToForm(d);
         setStatus('publisherStatus','已加载配置（修改后请点击保存）。');
+        loadPublisherForumViews();
       }catch(e){
         setStatus('publisherStatus','加载失败：'+(e.message||'网络错误'));
       }
@@ -2968,19 +3184,23 @@
         setStatus('publisherStatus','没有权限：请使用管理员账号登录。');
         return;
       }
-      var adEnabledInput=document.getElementById('publisherAdEnabled');
+      var homeInput=document.getElementById('publisherHomeAdEnabled');
+      var forumInput=document.getElementById('publisherForumAdEnabled');
       var btn=document.getElementById('publisherSaveBtn');
       setStatus('publisherStatus','保存中...');
       if(btn) btn.disabled=true;
       try{
-        var r=await apiFetch('/api/admin/publisher',{method:'PUT',body:JSON.stringify({adEnabled: !!(adEnabledInput&&adEnabledInput.checked)})});
+        var r=await apiFetch('/api/admin/publisher',{method:'PUT',body:JSON.stringify({
+          homeAdEnabled: !!(homeInput&&homeInput.checked),
+          forumAdEnabled: !!(forumInput&&forumInput.checked)
+        })});
         var d=await readApiJsonSafe(r);
         if(!r.ok||!d||d.__nonJson){
           setStatus('publisherStatus','保存失败：'+((d&&d.error)||r.status));
           return;
         }
         applyPublisherAdsToForm(d.publisher||d);
-        setStatus('publisherStatus','已保存，首页将读取最新广告开关。');
+        setStatus('publisherStatus','已保存，首页与帖子页将分别读取对应开关。');
       }catch(e){
         setStatus('publisherStatus','保存失败：'+(e.message||'网络错误'));
       }finally{
@@ -5431,6 +5651,73 @@
     document.getElementById('announcementReloadBtn')&&document.getElementById('announcementReloadBtn').addEventListener('click',loadAnnouncementAdmin);
     document.getElementById('publisherSaveBtn')&&document.getElementById('publisherSaveBtn').addEventListener('click',savePublisherAdmin);
     document.getElementById('publisherReloadBtn')&&document.getElementById('publisherReloadBtn').addEventListener('click',loadPublisherAdmin);
+    document.getElementById('publisherViewsQueryBtn')&&document.getElementById('publisherViewsQueryBtn').addEventListener('click',function(){
+      collectPublisherViewFilters();
+      publisherViewState.page=1;
+      loadPublisherForumViews();
+    });
+    document.getElementById('publisherViewsReloadBtn')&&document.getElementById('publisherViewsReloadBtn').addEventListener('click',function(){
+      publisherViewState={days:7,range:'',from:'',to:'',q:'',sort:'recentViews',page:1};
+      var fromEl=document.getElementById('publisherViewFrom');
+      var toEl=document.getElementById('publisherViewTo');
+      var qEl=document.getElementById('publisherUserFilter');
+      var sortEl=document.getElementById('publisherViewSort');
+      if(fromEl) fromEl.value='';
+      if(toEl) toEl.value='';
+      if(qEl) qEl.value='';
+      if(sortEl) sortEl.value='recentViews';
+      setPublisherRangeButtons(7,'');
+      loadPublisherForumViews();
+    });
+    document.getElementById('publisherRangeBtns')&&document.getElementById('publisherRangeBtns').addEventListener('click',function(e){
+      var btn=e.target.closest('[data-days],[data-range]');
+      if(!btn) return;
+      var fromEl=document.getElementById('publisherViewFrom');
+      var toEl=document.getElementById('publisherViewTo');
+      if(fromEl) fromEl.value='';
+      if(toEl) toEl.value='';
+      publisherViewState.from='';
+      publisherViewState.to='';
+      publisherViewState.page=1;
+      if(btn.getAttribute('data-range')==='all'){
+        publisherViewState.range='all';
+        publisherViewState.days=0;
+        setPublisherRangeButtons(0,'all');
+      }else{
+        publisherViewState.range='';
+        publisherViewState.days=Number(btn.getAttribute('data-days')||7);
+        setPublisherRangeButtons(publisherViewState.days,'');
+      }
+      loadPublisherForumViews();
+    });
+    document.getElementById('publisherUserFilter')&&document.getElementById('publisherUserFilter').addEventListener('keydown',function(e){
+      if(e.key!=='Enter') return;
+      collectPublisherViewFilters();
+      publisherViewState.page=1;
+      loadPublisherForumViews();
+    });
+    document.getElementById('publisherViewsTbody')&&document.getElementById('publisherViewsTbody').addEventListener('click',function(e){
+      var btn=e.target.closest('.publisher-expand');
+      if(!btn) return;
+      var userId=btn.getAttribute('data-user-id');
+      var wrap=document.querySelector('.publisher-post-wrap[data-user-id="'+userId+'"]');
+      var row=document.querySelector('.publisher-user-row[data-user-id="'+userId+'"]');
+      if(!wrap) return;
+      var open=wrap.hidden;
+      wrap.hidden=!open;
+      if(row) row.classList.toggle('is-open', open);
+      btn.textContent=open?'收起':'展开';
+    });
+    document.getElementById('publisherViewsPager')&&document.getElementById('publisherViewsPager').addEventListener('click',function(e){
+      if(e.target&&e.target.id==='publisherViewsPrev'){
+        publisherViewState.page=Math.max(1,(publisherViewState.page||1)-1);
+        loadPublisherForumViews();
+      }
+      if(e.target&&e.target.id==='publisherViewsNext'){
+        publisherViewState.page=(publisherViewState.page||1)+1;
+        loadPublisherForumViews();
+      }
+    });
     document.getElementById('siteFooterSaveBtn')&&document.getElementById('siteFooterSaveBtn').addEventListener('click',saveSiteFooterAdmin);
     document.getElementById('siteFooterReloadBtn')&&document.getElementById('siteFooterReloadBtn').addEventListener('click',loadSiteFooterAdmin);
     document.getElementById('siteFooterContent')&&document.getElementById('siteFooterContent').addEventListener('input',function(){

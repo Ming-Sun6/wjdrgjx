@@ -70,6 +70,7 @@ const {
   FORUM_VISIBLE_VIEW_COUNT_EXPR,
   buildForumViewRows
 } = require('./forum-post-views');
+const { createPublisherForumStatsService } = require('./publisher-forum-stats');
 const { getChatSendPolicy, canReadChatThread, createKeyedSerialExecutor } = require('./social-features');
 const { injectShareMeta, resolvePageMeta, resolvePublicHtmlPath } = require('./share-meta');
 const { defaultNeighborProgressConfig, normalizeNeighborProgressConfig } = require('./neighbor-progress-config');
@@ -680,12 +681,18 @@ function normalizeHomeLeadCarousel(input) {
 }
 
 function defaultPublisherAds() {
-  return { adEnabled: true };
+  return { homeAdEnabled: true, forumAdEnabled: true };
 }
 
 function normalizePublisherAds(input) {
   if (!input || typeof input !== 'object') return defaultPublisherAds();
-  return { adEnabled: input.adEnabled !== false };
+  const hasHome = Object.prototype.hasOwnProperty.call(input, 'homeAdEnabled');
+  const hasForum = Object.prototype.hasOwnProperty.call(input, 'forumAdEnabled');
+  const legacyOn = input.adEnabled !== false;
+  return {
+    homeAdEnabled: hasHome ? input.homeAdEnabled !== false : legacyOn,
+    forumAdEnabled: hasForum ? input.forumAdEnabled !== false : legacyOn
+  };
 }
 
 async function getPublisherAds() {
@@ -3665,10 +3672,20 @@ app.get('/api/home-lead', async (_req, res) => {
   try {
     const stored = await getSetting(HOME_LEAD_SETTING_KEY, null);
     const publisher = await getPublisherAds();
-    return res.json({ ...normalizeHomeLeadCarousel(stored), adEnabled: publisher.adEnabled });
+    return res.json({
+      ...normalizeHomeLeadCarousel(stored),
+      adEnabled: publisher.homeAdEnabled,
+      homeAdEnabled: publisher.homeAdEnabled,
+      forumAdEnabled: publisher.forumAdEnabled
+    });
   } catch (err) {
     console.error('home-lead get failed:', err);
-    return res.json({ ...defaultHomeLeadCarousel(), adEnabled: true });
+    return res.json({
+      ...defaultHomeLeadCarousel(),
+      adEnabled: true,
+      homeAdEnabled: true,
+      forumAdEnabled: true
+    });
   }
 });
 
@@ -3704,12 +3721,35 @@ app.put('/api/admin/publisher', async (req, res) => {
       targetType: 'publisher_ads',
       targetId: 'current',
       riskLevel: 'watch',
-      summary: `更新流量主广告位（${normalized.adEnabled ? '开启' : '关闭'}）`,
-      metadata: { adEnabled: normalized.adEnabled }
+      summary: `更新流量主广告位（首页${normalized.homeAdEnabled ? '开' : '关'} / 帖子页${normalized.forumAdEnabled ? '开' : '关'}）`,
+      metadata: {
+        homeAdEnabled: normalized.homeAdEnabled,
+        forumAdEnabled: normalized.forumAdEnabled
+      }
     });
     return res.json({ ok: true, publisher: normalized });
   } catch (err) {
     console.error('admin publisher put failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+const publisherForumStats = createPublisherForumStatsService({
+  queryRows,
+  queryOne,
+  execute,
+  getSetting,
+  setSetting,
+  likeOp: pgDatabase ? 'ILIKE' : 'LIKE'
+});
+
+app.get('/api/admin/publisher/forum-views', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    return res.json(await publisherForumStats.getAuthorViewStats(req.query || {}));
+  } catch (err) {
+    console.error('admin publisher forum-views failed:', err);
     return res.status(500).json({ error: 'INTERNAL_ERROR' });
   }
 });

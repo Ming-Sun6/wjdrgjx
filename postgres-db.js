@@ -125,7 +125,13 @@ const ROW_ALIAS_MAP = {
   coverimage: 'coverImage',
   coverimages: 'coverImages',
   userloginid: 'userLoginId',
-  userusername: 'userUsername'
+  userusername: 'userUsername',
+  userid: 'userId',
+  loginid: 'loginId',
+  postcount: 'postCount',
+  realviews: 'realViews',
+  recentviews: 'recentViews',
+  postid: 'postId'
 };
 
 function normalizeRowAliases(row) {

@@ -223,9 +223,21 @@
     document.head.appendChild(sc);
   }
 
+  function pagePath() {
+    return String((location.pathname || '/').split('?')[0] || '/').replace(/\/+$/, '') || '/';
+  }
+
   function isHomePage() {
-    var path = String((location.pathname || '/').split('?')[0] || '/').replace(/\/+$/, '') || '/';
+    var path = pagePath();
     return path === '/' || /\/index\.html$/i.test(path) || path === '/public/index.html';
+  }
+
+  function isForumPostPage() {
+    return /\/forum-post\.html$/i.test(pagePath());
+  }
+
+  function isPublisherAdPage() {
+    return isHomePage() || isForumPostPage();
   }
 
   function findHomeLead() {
@@ -262,7 +274,10 @@
 
   function applyHomeAdSlot(cfg) {
     var slot = document.getElementById('wjdrAdworkSlot');
-    if (cfg && cfg.adEnabled === false) {
+    var adsOff = isForumPostPage()
+      ? (cfg && cfg.forumAdEnabled === false)
+      : (cfg && (cfg.homeAdEnabled === false || cfg.adEnabled === false));
+    if (adsOff) {
       if (slot && slot.parentNode) slot.parentNode.removeChild(slot);
       return;
     }
@@ -271,11 +286,19 @@
       slot.id = 'wjdrAdworkSlot';
       slot.className = 'wjdr-adwork-slot';
       slot.innerHTML = '<div class="adwork-net adwork-auto" data-id="1129"></div>';
-      var notice = document.getElementById('__wjdrPlayerNotice');
-      var lead = findHomeLead();
-      if (notice && notice.parentNode) notice.parentNode.insertBefore(slot, notice.nextSibling);
-      else if (lead && lead.parentNode) lead.parentNode.insertBefore(slot, lead);
-      else document.body.insertBefore(slot, document.body.firstChild);
+      if (isForumPostPage()) {
+        var wrap = document.querySelector('.wrap');
+        var card = wrap && wrap.querySelector('.card');
+        if (card && card.parentNode) card.parentNode.insertBefore(slot, card);
+        else if (wrap) wrap.insertBefore(slot, wrap.firstChild);
+        else document.body.insertBefore(slot, document.body.firstChild);
+      } else {
+        var notice = document.getElementById('__wjdrPlayerNotice');
+        var lead = findHomeLead();
+        if (notice && notice.parentNode) notice.parentNode.insertBefore(slot, notice.nextSibling);
+        else if (lead && lead.parentNode) lead.parentNode.insertBefore(slot, lead);
+        else document.body.insertBefore(slot, document.body.firstChild);
+      }
     }
     ensureAdworkSdk();
   }
@@ -294,19 +317,23 @@
 
   function applyHomePublisherRuntime() {
     if (window.__wjdrHomePublisherBound) return;
-    if (!isHomePage()) return;
+    if (!isPublisherAdPage()) return;
     window.__wjdrHomePublisherBound = true;
-    ensureHomePublisherGapStyle();
-    setHomeLeadVisible(false);
+    if (isHomePage()) {
+      ensureHomePublisherGapStyle();
+      setHomeLeadVisible(false);
+    }
     fetch('/api/home-lead', { credentials: 'omit', cache: 'no-store' })
       .then(function (r) { return r.json().catch(function () { return null; }); })
       .then(function (cfg) {
-        if (cfg && cfg.enabled === false) setHomeLeadVisible(false);
-        else setHomeLeadVisible(true);
+        if (isHomePage()) {
+          if (cfg && cfg.enabled === false) setHomeLeadVisible(false);
+          else setHomeLeadVisible(true);
+        }
         applyHomeAdSlot(cfg);
       })
       .catch(function () {
-        setHomeLeadVisible(true);
+        if (isHomePage()) setHomeLeadVisible(true);
       });
   }
 

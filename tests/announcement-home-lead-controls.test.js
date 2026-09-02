@@ -72,14 +72,20 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
 
   assert.match(server, /PUBLISHER_ADS_SETTING_KEY = 'publisher_ads'/);
   assert.match(server, /function defaultPublisherAds\(\)/);
-  assert.match(server, /adEnabled:\s*input\.adEnabled !== false/);
+  assert.match(server, /homeAdEnabled:\s*hasHome \? input\.homeAdEnabled !== false : legacyOn/);
+  assert.match(server, /forumAdEnabled:\s*hasForum \? input\.forumAdEnabled !== false : legacyOn/);
   assert.match(server, /app\.get\('\/api\/publisher'/);
   assert.match(server, /app\.get\('\/api\/admin\/publisher'/);
   assert.match(server, /app\.put\('\/api\/admin\/publisher'/);
+  assert.match(server, /\/api\/admin\/publisher\/forum-views/);
   assert.match(admin, /data-page="publisher"/);
   assert.match(admin, />流量主</);
   assert.match(admin, /id="page-publisher"/);
-  assert.match(admin, /id="publisherAdEnabled"/);
+  assert.match(admin, /id="publisherHomeAdEnabled"/);
+  assert.match(admin, /id="publisherForumAdEnabled"/);
+  assert.match(admin, /id="publisherViewsTbody"/);
+  assert.match(admin, /\/api\/admin\/publisher\/forum-views/);
+  assert.doesNotMatch(admin, /id="publisherAdEnabled"/);
   assert.doesNotMatch(admin, /id="homeLeadAdEnabled"/);
   assert.match(admin, /\/api\/admin\/publisher/);
   assert.match(home, /function applyAdSlot\(cfg\)/);
@@ -89,10 +95,20 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
   assert.match(publicHome, /cfg\.adEnabled===false/);
   const tracker = read('public/function/analytics-tracker.js');
   assert.match(tracker, /function applyHomePublisherRuntime\(\)/);
+  assert.match(tracker, /function isForumPostPage\(\)/);
+  assert.match(tracker, /isHomePage\(\) \|\| isForumPostPage\(\)/);
   assert.match(tracker, /wjdr-home-publisher-gap/);
   assert.match(tracker, /cfg\.enabled === false/);
   assert.match(tracker, /cdn\.adwork\.net\/js\/makemoney\.js/);
   assert.match(tracker, /data-id="1129"/);
+  assert.match(tracker, /cfg\.forumAdEnabled === false/);
+  assert.match(tracker, /cfg\.homeAdEnabled === false/);
+  const forumPost = read('public/function/forum-post.html');
+  assert.match(forumPost, /cdn\.adwork\.net\/js\/makemoney\.js/);
+  assert.match(forumPost, /id="wjdrAdworkSlot"/);
+  assert.match(forumPost, /class="adwork-net adwork-auto"/);
+  assert.match(forumPost, /data-id="1129"/);
+  assert.match(admin, /首页顶部与论坛帖子阅读页/);
 });
 
 test('home lead has responsive presentation and disabled-click styling', () => {

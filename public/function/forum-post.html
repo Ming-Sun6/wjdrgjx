@@ -59,6 +59,17 @@
         linear-gradient(135deg, var(--bg1), var(--bg2));
     }
     .wrap{max-width:860px;margin:0 auto;padding:18px 14px 42px;}
+    .wjdr-adwork-slot{
+      width:100%;
+      margin:0 auto 14px;
+      text-align:center;
+      overflow:visible;
+    }
+    .wjdr-adwork-slot .adwork-net{
+      display:inline-block;
+      margin:0 auto;
+      overflow:visible;
+    }
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
     .topbar-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
     .whoami{color:var(--muted);font-size:.86rem;font-weight:800;white-space:nowrap;}
@@ -367,7 +378,8 @@
   </style>
   <link rel="stylesheet" href="/function/theme.css" />
   <script src="/function/theme.js" defer></script>
-  <script src="/function/analytics-tracker.js" defer></script>
+  <script src="/function/analytics-tracker.js?v=20260902-5" defer></script>
+  <script type="text/javascript" charset="UTF-8" src="https://cdn.adwork.net/js/makemoney.js" async></script>
   <script src="/function/site-footer.js" defer></script>
   <meta property="og:type" content="article" />
   <meta property="og:title" content="论坛阅读-冬日工具箱" />
@@ -388,6 +400,10 @@
         <button class="btn secondary" id="backBtn" type="button">返回论坛</button>
         <div class="whoami" id="whoami">检查登录中…</div>
       </div>
+    </div>
+
+    <div class="wjdr-adwork-slot" id="wjdrAdworkSlot">
+      <div class="adwork-net adwork-auto" data-id="1129"></div>
     </div>
 
     <div class="card">
