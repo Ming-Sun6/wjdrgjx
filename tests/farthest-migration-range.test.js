@@ -158,6 +158,27 @@ test('september prediction group for 755 is 743 to 918', () => {
   assert.ok(last.to >= 3333);
 });
 
+test('unreachable targets keep forecasting through every immigration period', () => {
+  const { defaultNeighborProgressConfig } = require('../neighbor-progress-config');
+  const schedule = api.applyNeighborProgress(defaultNeighborProgressConfig());
+  const historyConfig = { dates: api.DEFAULT_HISTORY_DATES, intervalDays: 28, rules: { displayOffsetDays: 1 } };
+  const dates = api.upcomingImmigrationDates(historyConfig, '2026-09-03');
+  const plan = api.planHopsToTarget(schedule, 755, 2500, {
+    asOfDate: '2026-09-03',
+    historyConfig: historyConfig
+  });
+  assert.equal(plan.reached, false);
+  assert.equal(plan.beyondSpan, true);
+  assert.equal(plan.steps.length, dates.length);
+  assert.ok(plan.steps.length > 8);
+  const inGroupStep = plan.steps.find(function (step) {
+    return step.to >= 2500 && step.to <= step.group.hi;
+  });
+  assert.ok(inGroupStep);
+  assert.equal(inGroupStep.overCap, true);
+  assert.notEqual(plan.steps[plan.steps.length - 1].index, inGroupStep.index);
+});
+
 test('steps past the 180-day farthest zone are flagged over cap', () => {
   const { defaultNeighborProgressConfig } = require('../neighbor-progress-config');
   const schedule = api.applyNeighborProgress(defaultNeighborProgressConfig());
@@ -225,7 +246,7 @@ test('home pages and the tool shell expose farthest migration range', () => {
   assert.match(page, /目标区/);
   assert.match(page, /仅供参考，请以游戏内为准/);
   assert.doesNotMatch(page, /三档最远区号/);
-  assert.match(page, /farthest-migration-range\.js\?v=20260903-10/);
+  assert.match(page, /farthest-migration-range\.js\?v=20260903-11/);
   assert.match(page, /overCap/);
   assert.match(page, /pill ok zone/);
   assert.match(page, /property="og:image"/);

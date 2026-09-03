@@ -715,8 +715,8 @@
         reached: inGroup && !overCap,
         moved: farthest !== originNum
       });
-      if (inGroup) {
-        reached = !overCap;
+      if (inGroup && !overCap) {
+        reached = true;
         break;
       }
     }
