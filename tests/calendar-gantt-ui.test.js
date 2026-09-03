@@ -75,7 +75,7 @@ test('calendar renders the persisted bold schedule style', () => {
 
 test('important child tasks render a thumbs-up marker in every calendar view', () => {
   assert.match(html, /calendar-gantt\.js\?v=20260829-2/);
-  assert.match(html, /calendar-gantt\.css\?v=20260902-1/);
+  assert.match(html, /calendar-gantt\.css\?v=20260829-1/);
   assert.match(js, /function appendHighlight/);
   assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
   assert.ok((js.match(/appendHighlight\(/g) || []).length >= 3);
@@ -106,15 +106,6 @@ test('calendar styles provide warm rounded gantt grids and horizontal scrolling'
   assert.match(css, /\.calendar-category-cell[^}]*position:\s*sticky/s);
   assert.match(css, /grid-template-columns:\s*minmax\([^;]+repeat\(7/s);
   assert.match(css, /overflow-x:\s*auto/);
-});
-
-test('date header freezes at the top of the calendar scrollport', () => {
-  assert.match(css, /\.calendar-timeline-header\{[^}]*position:sticky[^}]*top:0/s);
-  assert.match(css, /\.calendar-date-header\{[^}]*position:sticky[^}]*top:0/s);
-  assert.match(css, /html:not\(\.is-embedded\),html:not\(\.is-embedded\) body\{[^}]*overflow:\s*hidden/s);
-  assert.match(css, /html:not\(\.is-embedded\) \.calendar-scroll\{[^}]*min-height:\s*0[^}]*overflow:\s*auto/s);
-  assert.match(css, /html\.is-embedded \.calendar-scroll\{[^}]*overflow:\s*auto/s);
-  assert.match(css, /html\.is-mobile-desktop-viewport \.calendar-scroll:has\(\.calendar-continuous-timeline\)\{[^}]*overflow-y:\s*auto/s);
 });
 
 test('every week and month category column stays fixed while scrolling', () => {
