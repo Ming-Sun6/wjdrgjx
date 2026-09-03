@@ -691,12 +691,12 @@
       const group = grouped.group;
       const inGroup = targetNum >= group.lo && targetNum <= group.hi;
       const edge = towardNewer ? group.hi : group.lo;
-      const farthest = inGroup ? targetNum : edge;
-      const overCap = towardNewer ? farthest > capServer : farthest < capServer;
+      const dest = inGroup ? targetNum : edge;
+      const overCap = towardNewer ? dest > capServer : dest < capServer;
+      const farthest = inGroup && !overCap ? targetNum : edge;
       const extended = towardNewer ? farthest > bestToward : farthest < bestToward;
-      if (steps.length && !inGroup && !overCap && !extended) continue;
-      if (extended && !overCap) bestToward = farthest;
-      if (steps.length && !inGroup && !overCap && farthest !== bestToward && !extended) continue;
+      if (steps.length && !inGroup && !extended) continue;
+      if (extended) bestToward = farthest;
       steps.push({
         index: steps.length,
         label: periodLabel(steps.length),
@@ -715,12 +715,8 @@
         reached: inGroup && !overCap,
         moved: farthest !== originNum
       });
-      if (overCap) {
-        stuck = true;
-        break;
-      }
       if (inGroup) {
-        reached = true;
+        reached = !overCap;
         break;
       }
     }
