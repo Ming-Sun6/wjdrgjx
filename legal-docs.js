@@ -419,6 +419,163 @@ function docIdFromRequestPath(urlPath) {
   return '';
 }
 
+const TOOL_ACCESS_AGREEMENT_SETTING_KEY = 'tool_access_agreement';
+const TOOL_ACCESS_AGREEMENT_DEF = {
+  id: 'tool-access',
+  file: 'tool-access-agreement.html',
+  title: '功能申请协议',
+  href: '/legal/tool-access-agreement',
+  effectiveAt: '2026-09-03'
+};
+const DEFAULT_TOOL_ACCESS_AGREEMENT_VERSION = '20260903b';
+const DEFAULT_TOOL_ACCESS_NOTICE_TITLE = '功能申请协议已更新';
+const DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY =
+  '需要申请的功能适用《功能申请协议》。本次更新明确：若你泄露账号、权限或未公开内容，由此产生的全部后果由你自行承担。请阅读后确认。';
+
+function loadToolAccessAgreementDefault(legalDir) {
+  let bodyHtml = '';
+  try {
+    bodyHtml = extractCardBodyFromHtml(fs.readFileSync(path.join(legalDir, TOOL_ACCESS_AGREEMENT_DEF.file), 'utf8'));
+  } catch (_e) {
+    bodyHtml = `<p>${escapeHtml(TOOL_ACCESS_AGREEMENT_DEF.title)}</p>`;
+  }
+  return {
+    version: DEFAULT_TOOL_ACCESS_AGREEMENT_VERSION,
+    title: TOOL_ACCESS_AGREEMENT_DEF.title,
+    href: TOOL_ACCESS_AGREEMENT_DEF.href,
+    file: TOOL_ACCESS_AGREEMENT_DEF.file,
+    effectiveAt: TOOL_ACCESS_AGREEMENT_DEF.effectiveAt,
+    bodyHtml,
+    noticeTitle: DEFAULT_TOOL_ACCESS_NOTICE_TITLE,
+    noticeSummary: DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY,
+    publishedAt: null,
+    publishedBy: null,
+    updatedAt: null,
+    updatedBy: null
+  };
+}
+
+function normalizeToolAccessAgreement(raw, defaults) {
+  const base = defaults && typeof defaults === 'object' ? defaults : {
+    version: DEFAULT_TOOL_ACCESS_AGREEMENT_VERSION,
+    title: TOOL_ACCESS_AGREEMENT_DEF.title,
+    href: TOOL_ACCESS_AGREEMENT_DEF.href,
+    file: TOOL_ACCESS_AGREEMENT_DEF.file,
+    effectiveAt: TOOL_ACCESS_AGREEMENT_DEF.effectiveAt,
+    bodyHtml: '',
+    noticeTitle: DEFAULT_TOOL_ACCESS_NOTICE_TITLE,
+    noticeSummary: DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY,
+    publishedAt: null,
+    publishedBy: null,
+    updatedAt: null,
+    updatedBy: null
+  };
+  const stored = raw && typeof raw === 'object' ? raw : {};
+  return {
+    version: String(stored.version || base.version || DEFAULT_TOOL_ACCESS_AGREEMENT_VERSION),
+    title: String(stored.title || base.title || TOOL_ACCESS_AGREEMENT_DEF.title).trim().slice(0, MAX_DOC_TITLE) || TOOL_ACCESS_AGREEMENT_DEF.title,
+    href: TOOL_ACCESS_AGREEMENT_DEF.href,
+    file: TOOL_ACCESS_AGREEMENT_DEF.file,
+    effectiveAt: formatDateYmd(stored.effectiveAt || base.effectiveAt || TOOL_ACCESS_AGREEMENT_DEF.effectiveAt) || TOOL_ACCESS_AGREEMENT_DEF.effectiveAt,
+    bodyHtml: String(stored.bodyHtml || base.bodyHtml || '').trim(),
+    noticeTitle: String(stored.noticeTitle || base.noticeTitle || DEFAULT_TOOL_ACCESS_NOTICE_TITLE).trim().slice(0, MAX_NOTICE_TITLE) || DEFAULT_TOOL_ACCESS_NOTICE_TITLE,
+    noticeSummary: String(stored.noticeSummary || base.noticeSummary || DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY).trim().slice(0, MAX_NOTICE_SUMMARY) || DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY,
+    publishedAt: stored.publishedAt || base.publishedAt || null,
+    publishedBy: stored.publishedBy || base.publishedBy || null,
+    updatedAt: stored.updatedAt || base.updatedAt || null,
+    updatedBy: stored.updatedBy || base.updatedBy || null
+  };
+}
+
+function applyToolAccessAgreementPayload(current, body, options) {
+  const opts = options || {};
+  const now = opts.now || new Date().toISOString();
+  const actorName = String(opts.actorName || '').trim() || null;
+  const publish = opts.publish === true;
+  const next = normalizeToolAccessAgreement(current, opts.defaults);
+  const payload = body && typeof body === 'object' ? body : {};
+
+  if (Object.prototype.hasOwnProperty.call(payload, 'title')) {
+    const title = String(payload.title || '').trim().slice(0, MAX_DOC_TITLE);
+    if (!title) return { error: 'EMPTY_DOC_TITLE' };
+    next.title = title;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'effectiveAt')) {
+    next.effectiveAt = formatDateYmd(payload.effectiveAt) || TOOL_ACCESS_AGREEMENT_DEF.effectiveAt;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'noticeTitle')) {
+    const title = String(payload.noticeTitle || '').trim().slice(0, MAX_NOTICE_TITLE);
+    if (!title) return { error: 'EMPTY_NOTICE_TITLE' };
+    next.noticeTitle = title;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'noticeSummary')) {
+    const summary = String(payload.noticeSummary || '').trim().slice(0, MAX_NOTICE_SUMMARY);
+    if (!summary) return { error: 'EMPTY_NOTICE_SUMMARY' };
+    next.noticeSummary = summary;
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, 'bodyHtml') || Object.prototype.hasOwnProperty.call(payload, 'body')) {
+    const raw = String(payload.bodyHtml != null ? payload.bodyHtml : payload.body || '');
+    const html = looksLikeHtml(raw) ? sanitizeLegalHtml(raw) : textToHtml(raw);
+    if (!html) return { error: 'EMPTY_DOC_BODY' };
+    if (html.length > MAX_DOC_BODY) return { error: 'DOC_BODY_TOO_LONG' };
+    next.bodyHtml = html;
+  }
+  if (!String(next.bodyHtml || '').trim()) return { error: 'EMPTY_DOC_BODY' };
+
+  next.updatedAt = now;
+  next.updatedBy = actorName;
+  if (publish) {
+    next.version = String(Date.now());
+    next.publishedAt = now;
+    next.publishedBy = actorName;
+  }
+  return { doc: next };
+}
+
+function renderToolAccessAgreementHtml(doc) {
+  const normalized = normalizeToolAccessAgreement(doc);
+  const title = normalized.title || TOOL_ACCESS_AGREEMENT_DEF.title;
+  const updated = formatDateYmd(normalized.publishedAt || normalized.updatedAt || normalized.effectiveAt);
+  const effective = formatDateYmd(normalized.effectiveAt) || updated;
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(title)}-冬日工具箱</title>
+    <style>
+      ${LEGAL_PAGE_STYLE}
+    </style>
+    <script src="/function/analytics-tracker.js" defer></script>
+  </head>
+  <body>
+    <div class="wrap">
+      <a class="back" href="/">← 返回首页</a>
+      <div class="card">
+        <h1>${escapeHtml(title)}</h1>
+        <div class="meta">
+          生效日期：${escapeHtml(effective)}<br />
+          最近更新：${escapeHtml(updated)}<br />
+          版本：${escapeHtml(normalized.version)}
+        </div>
+        ${normalized.bodyHtml}
+      </div>
+      <div class="muted" style="margin-top: 14px; white-space: pre-wrap">
+${escapeHtml(LEGAL_PAGE_CREDITS)}
+      </div>
+    </div>
+    <script src="/function/site-beian.js" defer></script>
+  </body>
+</html>
+`;
+}
+
+function writeToolAccessAgreementHtmlFile(legalDir, doc) {
+  const html = renderToolAccessAgreementHtml(doc);
+  fs.writeFileSync(path.join(legalDir, TOOL_ACCESS_AGREEMENT_DEF.file), html, 'utf8');
+  return TOOL_ACCESS_AGREEMENT_DEF.file;
+}
+
 module.exports = {
   LEGAL_DOCS_SETTING_KEY,
   INITIAL_NOTICE_VERSION,
@@ -434,5 +591,15 @@ module.exports = {
   writeLegalHtmlFiles,
   docIdFromRequestPath,
   sanitizeLegalHtml,
-  textToHtml
+  textToHtml,
+  TOOL_ACCESS_AGREEMENT_SETTING_KEY,
+  TOOL_ACCESS_AGREEMENT_DEF,
+  DEFAULT_TOOL_ACCESS_AGREEMENT_VERSION,
+  DEFAULT_TOOL_ACCESS_NOTICE_TITLE,
+  DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY,
+  loadToolAccessAgreementDefault,
+  normalizeToolAccessAgreement,
+  applyToolAccessAgreementPayload,
+  renderToolAccessAgreementHtml,
+  writeToolAccessAgreementHtmlFile
 };

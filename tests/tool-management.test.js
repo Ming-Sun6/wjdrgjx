@@ -144,6 +144,8 @@ test('managed tool paths resolve for direct-link availability checks', () => {
   const adminHtml = fs.readFileSync(path.join(root, 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'), 'utf8');
   assert.match(adminHtml, /权限申请/);
   assert.match(adminHtml, /data-request-action="approve"/);
+  assert.match(adminHtml, /toolAccessPublishBtn/);
+  assert.match(adminHtml, /\/api\/admin\/tool-access-agreement/);
   assert.match(serverSource, /isToolAllowedForUser/);
   assert.ok(serverSource.indexOf("tool availability check skipped") < serverSource.indexOf('mountGiftcodeProxy(app)'));
   assert.match(webConfigSource, /ReverseProxyFunctionDirectoryIndexToNode3000/);
@@ -402,6 +404,51 @@ test('tool access agreement update notice is limited to logged-in users on reque
   const firstVisit = createResponse();
   await firstApplicant.getNotice({ query: { path: '/map-tool/' } }, firstVisit);
   assert.deepEqual(firstVisit.body, { show: false });
+});
+
+test('published tool access agreement version drives the request-page notice', async () => {
+  const settings = {
+    tool_management: {
+      tools: server.TOOL_CATALOG.map((tool) => ({
+        id: tool.id,
+        visible: tool.defaultVisible,
+        enabled: true,
+        adminOnly: tool.id === 'map-editor',
+        allowedLoginIds: tool.id === 'map-editor' ? ['player_01'] : []
+      }))
+    },
+    tool_access_agreement_acks: { acks: { 42: server.TOOL_ACCESS_AGREEMENT_VERSION } },
+    tool_access_agreement: {
+      version: '2099010101',
+      noticeTitle: '申请协议改了',
+      noticeSummary: '新的说明：全部后果由你自行承担。'
+    }
+  };
+  const user = { id: 42, login_id: 'player_01', username: '申请者' };
+  const handlers = server.createToolAccessRequestHandlers({
+    getSetting: async (key, fallback) => (Object.prototype.hasOwnProperty.call(settings, key) ? settings[key] : fallback),
+    setSetting: async (key, value) => { settings[key] = value; },
+    requireAuth: async () => user,
+    currentUserFromRequest: async () => user
+  });
+
+  const shown = createResponse();
+  await handlers.getNotice({ query: { path: '/map-tool/' } }, shown);
+  assert.equal(shown.body.show, true);
+  assert.equal(shown.body.notice.version, '2099010101');
+  assert.equal(shown.body.notice.title, '申请协议改了');
+  assert.match(shown.body.notice.summary, /全部后果由你自行承担/);
+
+  const stale = createResponse();
+  await handlers.ackNotice({ body: { version: server.TOOL_ACCESS_AGREEMENT_VERSION } }, stale);
+  assert.equal(stale.statusCode, 400);
+
+  const acked = createResponse();
+  await handlers.ackNotice({ body: { version: '2099010101' } }, acked);
+  assert.equal(acked.body.ok, true);
+  const afterAck = createResponse();
+  await handlers.getNotice({ query: { path: '/map-tool/' } }, afterAck);
+  assert.deepEqual(afterAck.body, { show: false });
 });
 
 function createResponse() {

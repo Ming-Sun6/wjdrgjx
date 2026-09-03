@@ -87,7 +87,16 @@ const {
   applyAdminPayload,
   renderLegalPageHtml,
   writeLegalHtmlFiles,
-  docIdFromRequestPath
+  docIdFromRequestPath,
+  TOOL_ACCESS_AGREEMENT_SETTING_KEY,
+  DEFAULT_TOOL_ACCESS_AGREEMENT_VERSION,
+  DEFAULT_TOOL_ACCESS_NOTICE_TITLE,
+  DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY,
+  loadToolAccessAgreementDefault,
+  normalizeToolAccessAgreement,
+  applyToolAccessAgreementPayload,
+  renderToolAccessAgreementHtml,
+  writeToolAccessAgreementHtmlFile
 } = require('./legal-docs');
 
 const app = express();
@@ -109,7 +118,7 @@ const LEGAL_DIR = path.join(__dirname, 'legal');
 const TOOL_MANAGEMENT_SETTING_KEY = 'tool_management';
 const TOOL_ACCESS_REQUESTS_SETTING_KEY = 'tool_access_requests';
 const MAX_TOOL_ACCESS_REQUESTS = 300;
-const TOOL_ACCESS_AGREEMENT_VERSION = '20260903b';
+const TOOL_ACCESS_AGREEMENT_VERSION = DEFAULT_TOOL_ACCESS_AGREEMENT_VERSION;
 const TOOL_ACCESS_AGREEMENT_HREF = '/legal/tool-access-agreement';
 const TOOL_ACCESS_AGREEMENT_ACKS_SETTING_KEY = 'tool_access_agreement_acks';
 const NEIGHBOR_PROGRESS_SETTING_KEY = 'neighbor_progress_schedule';
@@ -578,6 +587,19 @@ app.get(
       if (!docId) return next();
       const docs = normalizeLegalDocs(stored, loadDefaultsFromLegalDir(LEGAL_DIR));
       return res.type('html').send(renderLegalPageHtml(docId, docs));
+    } catch (_err) {
+      return next();
+    }
+  }
+);
+app.get(
+  ['/legal/tool-access-agreement', '/legal/tool-access-agreement.html'],
+  async (req, res, next) => {
+    try {
+      const stored = await getSetting(TOOL_ACCESS_AGREEMENT_SETTING_KEY, null);
+      if (!stored || !stored.publishedAt) return next();
+      const doc = normalizeToolAccessAgreement(stored, loadToolAccessAgreementDefault(LEGAL_DIR));
+      return res.type('html').send(renderToolAccessAgreementHtml(doc));
     } catch (_err) {
       return next();
     }
@@ -1794,6 +1816,25 @@ async function getLegalDocsState() {
   return normalizeLegalDocs(stored, defaults);
 }
 
+async function getToolAccessAgreementState() {
+  const defaults = loadToolAccessAgreementDefault(LEGAL_DIR);
+  const stored = await getSetting(TOOL_ACCESS_AGREEMENT_SETTING_KEY, null);
+  return normalizeToolAccessAgreement(stored, defaults);
+}
+
+async function countToolAccessAgreementAcks(version) {
+  const ver = String(version || '').trim().slice(0, 32);
+  if (!ver) return 0;
+  const stored = await getSetting(TOOL_ACCESS_AGREEMENT_ACKS_SETTING_KEY, { acks: {} });
+  const raw = stored && typeof stored === 'object' ? (stored.acks || stored) : {};
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return 0;
+  let count = 0;
+  for (const value of Object.values(raw)) {
+    if (String(value || '').trim() === ver) count += 1;
+  }
+  return count;
+}
+
 async function countLegalNoticeAcks(version) {
   const ver = String(version || '').trim().slice(0, 32);
   if (!ver) return 0;
@@ -2104,6 +2145,29 @@ function createToolAccessRequestHandlers(dependencies = {}) {
     await writeSetting(TOOL_ACCESS_AGREEMENT_ACKS_SETTING_KEY, { acks, updatedAt: now() });
   }
 
+  async function currentAgreement() {
+    if (typeof dependencies.getToolAccessAgreement === 'function') {
+      try {
+        const injected = await dependencies.getToolAccessAgreement();
+        if (injected && typeof injected === 'object') {
+          return normalizeToolAccessAgreement(injected, null);
+        }
+      } catch (_error) {}
+    }
+    try {
+      const stored = await readSetting(TOOL_ACCESS_AGREEMENT_SETTING_KEY, null);
+      if (stored && typeof stored === 'object') {
+        return normalizeToolAccessAgreement(stored, null);
+      }
+    } catch (_error) {}
+    return {
+      version: TOOL_ACCESS_AGREEMENT_VERSION,
+      noticeTitle: DEFAULT_TOOL_ACCESS_NOTICE_TITLE,
+      noticeSummary: DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY,
+      href: TOOL_ACCESS_AGREEMENT_HREF
+    };
+  }
+
   function toolRequiresApplication(setting) {
     if (!setting) return false;
     if (setting.enabled === false) return true;
@@ -2140,11 +2204,11 @@ function createToolAccessRequestHandlers(dependencies = {}) {
       createdAt: now(),
       resolvedAt: null,
       resolvedBy: null,
-      agreementVersion: TOOL_ACCESS_AGREEMENT_VERSION
+      agreementVersion: (await currentAgreement()).version
     };
     const next = [request, ...requests].slice(0, MAX_TOOL_ACCESS_REQUESTS);
     await writeRequests(next);
-    try { await writeUserAgreementAck(userId, TOOL_ACCESS_AGREEMENT_VERSION); } catch (_error) {}
+    try { await writeUserAgreementAck(userId, request.agreementVersion); } catch (_error) {}
     return res.status(201).json({ ok: true, request: publicToolAccessRequest(request) });
   }
 
@@ -2223,13 +2287,15 @@ function createToolAccessRequestHandlers(dependencies = {}) {
     const acks = await readAgreementAcks();
     const previous = acks[String(user.id)] || '';
     if (!previous && !hasAccess) return res.json({ show: false });
-    if (previous === TOOL_ACCESS_AGREEMENT_VERSION) return res.json({ show: false });
+    const agreement = await currentAgreement();
+    const version = String(agreement.version || TOOL_ACCESS_AGREEMENT_VERSION);
+    if (previous === version) return res.json({ show: false });
     return res.json({
       show: true,
       notice: {
-        version: TOOL_ACCESS_AGREEMENT_VERSION,
-        title: '功能申请协议已更新',
-        summary: '需要申请的功能适用《功能申请协议》。本次更新明确：若你泄露账号、权限或未公开内容，由此产生的全部后果由你自行承担。请阅读后确认。',
+        version,
+        title: agreement.noticeTitle || DEFAULT_TOOL_ACCESS_NOTICE_TITLE,
+        summary: agreement.noticeSummary || DEFAULT_TOOL_ACCESS_NOTICE_SUMMARY,
         href: TOOL_ACCESS_AGREEMENT_HREF
       }
     });
@@ -2238,8 +2304,10 @@ function createToolAccessRequestHandlers(dependencies = {}) {
   async function ackNotice(req, res) {
     const user = await authenticate(req, res);
     if (!user) return;
-    const version = String(req.body?.version || TOOL_ACCESS_AGREEMENT_VERSION).trim().slice(0, 32);
-    if (version !== TOOL_ACCESS_AGREEMENT_VERSION) return res.status(400).json({ error: 'BAD_VERSION' });
+    const agreement = await currentAgreement();
+    const currentVersion = String(agreement.version || TOOL_ACCESS_AGREEMENT_VERSION);
+    const version = String(req.body?.version || currentVersion).trim().slice(0, 32);
+    if (version !== currentVersion) return res.status(400).json({ error: 'BAD_VERSION' });
     await writeUserAgreementAck(Number(user.id), version);
     return res.json({ ok: true, version });
   }
@@ -3536,6 +3604,69 @@ app.post('/api/admin/legal-docs', async (req, res) => {
 
 app.post('/api/admin/legal-docs/publish', async (req, res) => {
   try { await saveLegalDocs(req, res, true); } catch (err) { console.error('admin legal docs publish failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+app.get('/api/admin/tool-access-agreement', async (req, res) => {
+  try {
+    const admin = await requireAdmin(req, res);
+    if (!admin) return;
+    const agreement = await getToolAccessAgreementState();
+    return res.json({
+      agreement,
+      ackCount: await countToolAccessAgreementAcks(agreement.version)
+    });
+  } catch (err) {
+    console.error('admin tool access agreement get failed:', err);
+    return res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+async function saveToolAccessAgreement(req, res, publish) {
+  const admin = await requireAdmin(req, res);
+  if (!admin) return;
+  const actorName = admin.username || admin.login_id || String(admin.id);
+  const current = await getToolAccessAgreementState();
+  const applied = applyToolAccessAgreementPayload(current, req.body || {}, {
+    publish: !!publish,
+    actorName,
+    defaults: loadToolAccessAgreementDefault(LEGAL_DIR)
+  });
+  if (applied.error) return res.status(400).json({ error: applied.error });
+  await setSetting(TOOL_ACCESS_AGREEMENT_SETTING_KEY, applied.doc);
+  if (publish) {
+    try {
+      writeToolAccessAgreementHtmlFile(LEGAL_DIR, applied.doc);
+    } catch (err) {
+      console.error('tool access agreement html write failed:', err);
+      return res.status(500).json({ error: 'WRITE_FAILED' });
+    }
+  }
+  await auditAdminAction(req, {
+    actor: admin,
+    action: publish ? 'tool_access_agreement.publish' : 'tool_access_agreement.save',
+    targetType: 'tool_access_agreement',
+    targetId: String(applied.doc.version || 'current'),
+    riskLevel: 'watch',
+    summary: publish ? '发布功能申请协议更新' : '保存功能申请协议草稿',
+    metadata: { version: applied.doc.version, publish: !!publish }
+  });
+  return res.json({
+    ok: true,
+    agreement: applied.doc,
+    ackCount: await countToolAccessAgreementAcks(applied.doc.version)
+  });
+}
+
+app.put('/api/admin/tool-access-agreement', async (req, res) => {
+  try { await saveToolAccessAgreement(req, res, false); } catch (err) { console.error('admin tool access agreement put failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+app.post('/api/admin/tool-access-agreement', async (req, res) => {
+  try { await saveToolAccessAgreement(req, res, false); } catch (err) { console.error('admin tool access agreement post failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
+});
+
+app.post('/api/admin/tool-access-agreement/publish', async (req, res) => {
+  try { await saveToolAccessAgreement(req, res, true); } catch (err) { console.error('admin tool access agreement publish failed:', err); res.status(500).json({ error: 'INTERNAL_ERROR' }); }
 });
 
 const handleProfileUpdate = async (req, res) => {

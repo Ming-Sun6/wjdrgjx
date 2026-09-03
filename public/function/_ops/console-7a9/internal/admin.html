@@ -2213,6 +2213,38 @@
               <div class="admin-status" id="legalDocsMeta"></div>
               <div id="legalDocsPreview" class="site-footer-preview" style="text-align:left;">尚未加载</div>
             </div>
+            <div class="form-section">
+              <div class="form-title">功能申请协议（单独发布）</div>
+              <p class="muted" style="margin:0 0 12px;">这份协议只给需要申请的功能用。发布后不会走全站「用户协议与隐私政策」弹窗，只提醒申请页里已登录的用户。</p>
+              <div class="form-group">
+                <label for="toolAccessNoticeTitle">申请页更新弹窗标题</label>
+                <input id="toolAccessNoticeTitle" maxlength="80" placeholder="例如：功能申请协议已更新" />
+              </div>
+              <div class="form-group">
+                <label for="toolAccessNoticeSummary">申请页更新弹窗说明</label>
+                <textarea id="toolAccessNoticeSummary" class="site-footer-editor" style="min-height:110px;" maxlength="2000" placeholder="已有权限或曾确认过旧版的登录用户，会在申请页看到这段说明。"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="toolAccessTitle">协议标题</label>
+                <input id="toolAccessTitle" maxlength="40" />
+              </div>
+              <div class="form-group">
+                <label for="toolAccessEffective">生效日期</label>
+                <input id="toolAccessEffective" type="date" />
+              </div>
+              <div class="form-group">
+                <label for="toolAccessBody">正文（支持 HTML，纯文本会按空行分段）</label>
+                <textarea id="toolAccessBody" class="site-footer-editor legal-doc-editor" maxlength="80000"></textarea>
+              </div>
+              <div class="calendar-actions">
+                <button class="btn secondary" id="toolAccessSaveBtn" type="button">保存草稿</button>
+                <button class="btn" id="toolAccessPublishBtn" type="button">发布申请协议</button>
+                <button class="btn secondary" id="toolAccessReloadBtn" type="button">重新加载</button>
+              </div>
+              <div class="admin-status" id="toolAccessStatus"></div>
+              <div class="admin-status" id="toolAccessMeta"></div>
+              <div id="toolAccessPreview" class="site-footer-preview" style="text-align:left;">尚未加载</div>
+            </div>
           </div>
         </section>
 
@@ -3411,6 +3443,86 @@
         setStatus('legalDocsStatus',publish?'已发布。用户下次打开网站会看到更新弹窗。':'草稿已保存，前台暂不弹窗，需再点「发布更新」。');
       }catch(e){
         setStatus('legalDocsStatus',(publish?'发布失败：':'保存失败：')+(e.message||'网络错误'));
+      }finally{
+        if(btn) btn.disabled=false;
+      }
+    }
+
+    function collectToolAccessAgreementPayload(){
+      return {
+        title:(document.getElementById('toolAccessTitle')&&document.getElementById('toolAccessTitle').value)||'',
+        effectiveAt:(document.getElementById('toolAccessEffective')&&document.getElementById('toolAccessEffective').value)||'',
+        noticeTitle:(document.getElementById('toolAccessNoticeTitle')&&document.getElementById('toolAccessNoticeTitle').value)||'',
+        noticeSummary:(document.getElementById('toolAccessNoticeSummary')&&document.getElementById('toolAccessNoticeSummary').value)||'',
+        bodyHtml:(document.getElementById('toolAccessBody')&&document.getElementById('toolAccessBody').value)||''
+      };
+    }
+
+    function fillToolAccessAgreementForm(agreement, ackCount){
+      var title=document.getElementById('toolAccessTitle');
+      var effective=document.getElementById('toolAccessEffective');
+      var noticeTitle=document.getElementById('toolAccessNoticeTitle');
+      var noticeSummary=document.getElementById('toolAccessNoticeSummary');
+      var body=document.getElementById('toolAccessBody');
+      if(title) title.value=(agreement&&agreement.title)||'';
+      if(effective) effective.value=String((agreement&&agreement.effectiveAt)||'').slice(0,10);
+      if(noticeTitle) noticeTitle.value=(agreement&&agreement.noticeTitle)||'';
+      if(noticeSummary) noticeSummary.value=(agreement&&agreement.noticeSummary)||'';
+      if(body) body.value=(agreement&&agreement.bodyHtml)||'';
+      var meta=document.getElementById('toolAccessMeta');
+      var preview=document.getElementById('toolAccessPreview');
+      var parts=[];
+      if(agreement&&agreement.version) parts.push('当前版本：'+agreement.version);
+      if(agreement&&agreement.publishedAt) parts.push('最近发布：'+formatDateTime(agreement.publishedAt));
+      if(agreement&&agreement.publishedBy) parts.push('发布人：'+agreement.publishedBy);
+      parts.push('已确认：'+Math.max(0, Number(ackCount)||0)+' 人（当前版本）');
+      if(meta) meta.textContent=parts.join(' · ')||'尚未发布过更新';
+      if(preview){
+        preview.textContent=((agreement&&agreement.noticeTitle)||'功能申请协议已更新')+'\n\n'+((agreement&&agreement.noticeSummary)||'');
+      }
+    }
+
+    async function loadToolAccessAgreementAdmin(){
+      if(!authUser||!authUser.isAdmin){
+        setStatus('toolAccessStatus','没有权限：请使用管理员账号登录。');
+        return;
+      }
+      setStatus('toolAccessStatus','加载中...');
+      try{
+        var r=await apiFetch('/api/admin/tool-access-agreement',{method:'GET'});
+        var d=await r.json().catch(function(){return null;});
+        if(!r.ok){
+          setStatus('toolAccessStatus','加载失败：'+((d&&d.error)||r.status));
+          return;
+        }
+        fillToolAccessAgreementForm(d&&d.agreement, d&&d.ackCount);
+        setStatus('toolAccessStatus','已加载。修改后可先保存草稿，确认无误再点「发布申请协议」。');
+      }catch(e){
+        setStatus('toolAccessStatus','加载失败：'+(e.message||'网络错误'));
+      }
+    }
+
+    async function saveToolAccessAgreementAdmin(publish){
+      if(!authUser||!authUser.isAdmin){
+        setStatus('toolAccessStatus','没有权限：请使用管理员账号登录。');
+        return;
+      }
+      var btn=document.getElementById(publish?'toolAccessPublishBtn':'toolAccessSaveBtn');
+      if(publish && !confirm('发布后，只会在需要申请的功能页提醒已登录用户（已有权限或曾确认过旧版的人）。首页、未登录访客和公开工具不会弹窗。确定发布？')) return;
+      if(btn) btn.disabled=true;
+      setStatus('toolAccessStatus',publish?'发布中...':'保存中...');
+      try{
+        var url=publish?'/api/admin/tool-access-agreement/publish':'/api/admin/tool-access-agreement';
+        var r=await apiFetch(url,{method:publish?'POST':'PUT',body:JSON.stringify(collectToolAccessAgreementPayload())});
+        var d=await r.json().catch(function(){return null;});
+        if(!r.ok){
+          setStatus('toolAccessStatus',(publish?'发布失败：':'保存失败：')+((d&&d.error)||r.status));
+          return;
+        }
+        fillToolAccessAgreementForm(d&&d.agreement, d&&d.ackCount);
+        setStatus('toolAccessStatus',publish?'已发布。只会在申请页提醒已登录用户，不会全站弹窗。':'草稿已保存，前台暂不弹窗，需再点「发布申请协议」。');
+      }catch(e){
+        setStatus('toolAccessStatus',(publish?'发布失败：':'保存失败：')+(e.message||'网络错误'));
       }finally{
         if(btn) btn.disabled=false;
       }
@@ -5581,7 +5693,7 @@
       else if(currentPage==='home-lead') loadHomeLeadAdmin();
       else if(currentPage==='publisher') loadPublisherAdmin();
       else if(currentPage==='site-footer') loadSiteFooterAdmin();
-      else if(currentPage==='legal-docs') loadLegalDocsAdmin();
+      else if(currentPage==='legal-docs'){ loadLegalDocsAdmin(); loadToolAccessAgreementAdmin(); }
       else if(currentPage==='voices') loadUserVoices();
     }
 
@@ -5845,6 +5957,9 @@
     document.getElementById('legalDocsSaveBtn')&&document.getElementById('legalDocsSaveBtn').addEventListener('click',function(){ saveLegalDocsAdmin(false); });
     document.getElementById('legalDocsPublishBtn')&&document.getElementById('legalDocsPublishBtn').addEventListener('click',function(){ saveLegalDocsAdmin(true); });
     document.getElementById('legalDocsReloadBtn')&&document.getElementById('legalDocsReloadBtn').addEventListener('click',loadLegalDocsAdmin);
+    document.getElementById('toolAccessSaveBtn')&&document.getElementById('toolAccessSaveBtn').addEventListener('click',function(){ saveToolAccessAgreementAdmin(false); });
+    document.getElementById('toolAccessPublishBtn')&&document.getElementById('toolAccessPublishBtn').addEventListener('click',function(){ saveToolAccessAgreementAdmin(true); });
+    document.getElementById('toolAccessReloadBtn')&&document.getElementById('toolAccessReloadBtn').addEventListener('click',loadToolAccessAgreementAdmin);
     document.getElementById('legalDocTabs')&&document.getElementById('legalDocTabs').addEventListener('click',function(e){
       var btn=e.target.closest('[data-legal-tab]');
       if(!btn) return;
