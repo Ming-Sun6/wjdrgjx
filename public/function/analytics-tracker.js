@@ -240,7 +240,7 @@
       }
     } catch (_e) {}
     var sc = document.createElement('script');
-    sc.src = '/function/site-beian.js';
+    sc.src = '/function/site-beian.js?v=20260903-1';
     sc.async = true;
     document.head.appendChild(sc);
   }

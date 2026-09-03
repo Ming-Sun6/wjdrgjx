@@ -5,7 +5,7 @@
     if (document.getElementById('wjdr-site-beian-styles')) return;
 
     var css =
-      '#wjdr-legal-doc-links{margin:12px auto 0;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;box-sizing:border-box;font-size:12px;line-height:1.65;color:#94a3b8}' +
+      '#wjdr-legal-doc-links{margin:0 auto 8px;padding:0;width:100%;max-width:min(100%,52rem);text-align:center;box-sizing:border-box;font-size:12px;line-height:1.65;color:#94a3b8}' +
       '#wjdr-legal-doc-links a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;opacity:.95;transition:opacity .15s ease,color .15s ease}' +
       '#wjdr-legal-doc-links a:hover{opacity:1}' +
       'footer.wjdr-footer #wjdr-legal-doc-links{color:inherit}' +
@@ -67,12 +67,23 @@
 
     var footer = document.querySelector('footer.wjdr-footer');
     if (footer) {
-      appendNodeBeforeBeianWrap(footer, p);
+      var copyright = firstCopyrightRow(footer);
+      if (copyright) footer.insertBefore(p, copyright);
+      else appendNodeBeforeBeianWrap(footer, p);
     } else {
       var bodyBeian = document.getElementById('wjdr-site-beian-wrap');
       if (bodyBeian) document.body.insertBefore(p, bodyBeian);
       else document.body.appendChild(p);
     }
+  }
+
+  function firstCopyrightRow(footer) {
+    var nodes = footer.querySelectorAll('p.site-footer-legal');
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].id === 'wjdr-legal-doc-links' || nodes[i].id === 'wjdr-icp-links') continue;
+      return nodes[i];
+    }
+    return null;
   }
 
   function appendNodeBeforeBeianWrap(container, node) {

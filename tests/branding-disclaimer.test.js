@@ -31,10 +31,18 @@ test('embedded tools do not inject a second player-made notice', () => {
 
 test('site footer legal links include about us and privacy policy', () => {
   const source = read('public/function/site-beian.js');
+  const home = read('index.html');
+  const publicHome = read('public/index.html');
   assert.match(source, /\/legal\/about/);
   assert.match(source, /\u5173\u4e8e\u6211\u4eec/);
   assert.match(source, /\u9690\u79c1\u653f\u7b56/);
+  assert.match(source, /firstCopyrightRow/);
   assert.doesNotMatch(source, /\u9690\u79c1\u58f0\u660e/);
+  assert.match(home, /id="wjdr-legal-doc-links"/);
+  assert.match(home, /\/legal\/about/);
+  assert.ok(home.indexOf('wjdr-legal-doc-links') < home.indexOf('版权所有 © 2026'));
+  assert.match(publicHome, /id="wjdr-legal-doc-links"/);
+  assert.ok(publicHome.indexOf('wjdr-legal-doc-links') < publicHome.indexOf('版权所有 © 2026'));
 });
 
 test('main public pages use the shortened site brand', () => {

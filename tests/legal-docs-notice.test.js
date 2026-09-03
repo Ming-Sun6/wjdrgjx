@@ -57,6 +57,7 @@ test('publish bumps version and keeps sanitized html', () => {
   assert.match(applied.docs.documents.about.bodyHtml, /<h2>测试<\/h2>/);
   assert.doesNotMatch(applied.docs.documents.about.bodyHtml, /script/i);
   assert.match(renderLegalPageHtml('about', applied.docs), /协议已更新|测试|关于我们/);
+  assert.match(renderLegalPageHtml('about', applied.docs), /id="wjdr-legal-doc-links"/);
 });
 
 test('request path maps to legal document ids', () => {

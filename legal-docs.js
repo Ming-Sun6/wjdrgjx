@@ -99,6 +99,18 @@ const LEGAL_PAGE_STYLE = `:root {
         color: var(--muted);
         font-size: 12px;
         line-height: 1.8;
+      }
+      .legal-doc-links {
+        margin: 16px 0 0;
+        text-align: center;
+        font-size: 12px;
+        line-height: 1.65;
+        color: var(--muted);
+      }
+      .legal-doc-links a {
+        color: var(--link);
+        text-decoration: none;
+        border-bottom: 1px dotted currentColor;
       }`;
 
 const LEGAL_PAGE_CREDITS = `制作：2041茗子、飞菇
@@ -108,6 +120,14 @@ const LEGAL_PAGE_CREDITS = `制作：2041茗子、飞菇
 宣传大使：懒羊羊
 
 感谢以上所有人对本攻略站的付出`;
+
+const LEGAL_DOC_LINKS_HTML = `<p id="wjdr-legal-doc-links" class="legal-doc-links">
+        <a href="/legal/about">《关于我们》</a>
+        <span aria-hidden="true"> | </span>
+        <a href="/legal/user-agreement">《用户协议》</a>
+        <span aria-hidden="true"> | </span>
+        <a href="/legal/privacy">《隐私政策》</a>
+      </p>`;
 
 function escapeHtml(value) {
   return String(value || '')
@@ -393,6 +413,7 @@ function renderLegalPageHtml(docId, docs) {
       <div class="muted" style="margin-top: 14px; white-space: pre-wrap">
 ${escapeHtml(LEGAL_PAGE_CREDITS)}
       </div>
+      ${LEGAL_DOC_LINKS_HTML}
     </div>
     <script src="/function/site-beian.js" defer></script>
   </body>
@@ -563,6 +584,7 @@ function renderToolAccessAgreementHtml(doc) {
       <div class="muted" style="margin-top: 14px; white-space: pre-wrap">
 ${escapeHtml(LEGAL_PAGE_CREDITS)}
       </div>
+      ${LEGAL_DOC_LINKS_HTML}
     </div>
     <script src="/function/site-beian.js" defer></script>
   </body>
