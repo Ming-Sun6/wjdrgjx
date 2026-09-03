@@ -103,6 +103,8 @@ test('server mounts public and authenticated admin tool management routes', () =
   assert.match(serverSource, /app\.get\('\/api\/admin\/tool-management'/);
   assert.match(serverSource, /app\.put\('\/api\/admin\/tool-management'/);
   assert.match(serverSource, /app\.post\('\/api\/admin\/tool-management'/);
+  assert.match(serverSource, /app\.post\('\/api\/tool-access-requests'/);
+  assert.match(serverSource, /app\.get\('\/api\/admin\/tool-access-requests'/);
   assert.match(serverSource, /requireAdmin\(req, res\)/);
   assert.match(serverSource, /setSetting\(TOOL_MANAGEMENT_SETTING_KEY/);
   assert.match(serverSource, /action:\s*'tool_management\.update'/);
@@ -119,6 +121,13 @@ test('managed tool paths resolve for direct-link availability checks', () => {
   assert.match(serverSource, /sendToolDisabledPage/);
   assert.match(serverSource, /sendToolAdminOnlyPage/);
   assert.match(serverSource, /sendToolRestrictedPage/);
+  const gatePage = server.renderToolGatePageHtml({ title: '全能地图编辑器当前已关闭', message: '该工具当前已关闭，请稍后再试。', tool: { id: 'map-editor' } });
+  assert.match(gatePage, /申请权限/);
+  assert.match(gatePage, /data-tool-id="map-editor"/);
+  assert.match(gatePage, /\/api\/tool-access-requests/);
+  const adminHtml = fs.readFileSync(path.join(root, 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'), 'utf8');
+  assert.match(adminHtml, /权限申请/);
+  assert.match(adminHtml, /data-request-action="approve"/);
   assert.match(serverSource, /isToolAllowedForUser/);
   assert.ok(serverSource.indexOf("tool availability check skipped") < serverSource.indexOf('mountGiftcodeProxy(app)'));
   assert.match(webConfigSource, /ReverseProxyFunctionDirectoryIndexToNode3000/);
@@ -259,6 +268,60 @@ test('allowlists grant specified users without automatically granting admins', (
   assert.equal(server.isToolAllowedForUser(both, { loginId: 'player_01' }), true);
   assert.equal(server.toPublicToolManagement([both], { login_id: 'other_user' })[0].viewerAllowed, false);
   assert.ok(!Object.prototype.hasOwnProperty.call(server.toPublicToolManagement([both])[0], 'allowedLoginIds'));
+});
+
+test('users can request tool access and admins can approve it onto the allowlist', async () => {
+  const settings = {
+    tool_management: {
+      tools: server.TOOL_CATALOG.map((tool) => ({
+        id: tool.id,
+        visible: tool.defaultVisible,
+        enabled: true,
+        adminOnly: tool.id === 'map-editor',
+        allowedLoginIds: tool.id === 'map-editor' ? ['owner_01'] : []
+      }))
+    },
+    tool_access_requests: { requests: [] }
+  };
+  const writes = [];
+  const audits = [];
+  const user = { id: 42, login_id: 'player_01', username: '申请者' };
+  const admin = { id: 7, login_id: 'admin01', username: '管理员' };
+  const handlers = server.createToolAccessRequestHandlers({
+    getSetting: async (key, fallback) => (Object.prototype.hasOwnProperty.call(settings, key) ? settings[key] : fallback),
+    setSetting: async (key, value) => {
+      settings[key] = value;
+      writes.push({ key, value });
+    },
+    requireAuth: async () => user,
+    requireAdmin: async () => admin,
+    currentUserFromRequest: async () => user,
+    auditAdminAction: async (_req, details) => audits.push(details),
+    now: () => '2026-09-03T04:00:00.000Z',
+    newId: () => 'tar_test_1'
+  });
+
+  const created = createResponse();
+  await handlers.create({ body: { toolId: 'map-editor' } }, created);
+  assert.equal(created.statusCode, 201);
+  assert.equal(created.body.request.status, 'pending');
+
+  const duplicate = createResponse();
+  await handlers.create({ body: { toolId: 'map-editor' } }, duplicate);
+  assert.equal(duplicate.statusCode, 409);
+  assert.deepEqual(duplicate.body, { error: 'ALREADY_PENDING', request: created.body.request });
+
+  const mine = createResponse();
+  await handlers.getMine({ query: { toolId: 'map-editor' } }, mine);
+  assert.equal(mine.body.request.id, 'tar_test_1');
+
+  const approved = createResponse();
+  await handlers.resolveAdmin({ params: { id: 'tar_test_1' } }, approved, 'approve');
+  assert.equal(approved.statusCode, 200);
+  assert.equal(approved.body.request.status, 'approved');
+  const savedTools = writes.find((item) => item.key === 'tool_management').value.tools;
+  assert.deepEqual(savedTools.find((tool) => tool.id === 'map-editor').allowedLoginIds, ['owner_01', 'player_01', '42']);
+  assert.equal(audits[0].action, 'tool_access_request.approve');
 });
 
 function createResponse() {

@@ -4647,7 +4647,7 @@ refreshMe();
       var disabled=config.enabled===false;
       card.classList.toggle('tool-is-disabled',disabled);
       var link=card.querySelector('a');
-      if(link){link.setAttribute('aria-disabled',disabled?'true':'false');link.tabIndex=disabled?-1:0;}
+      if(link){link.setAttribute('aria-disabled','false');link.tabIndex=0;}
       var badge=String(config.badge||'none').toLowerCase();
       if(badge === 'new' || badge === 'hot')updateToolBadge(card,badge);
       else updateToolBadge(card,'none');
@@ -4666,7 +4666,6 @@ refreshMe();
       .catch(function(){});
   }
   window.__wjdrReloadToolManagement=reloadToolManagement;
-  document.addEventListener('click',function(event){var card=event.target.closest&&event.target.closest('[data-tool-id].tool-is-disabled');if(card){event.preventDefault();event.stopPropagation();}},{capture:true});
   reloadToolManagement();
 })();
 

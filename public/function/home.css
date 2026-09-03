@@ -1407,7 +1407,7 @@ body.theme-day .gift-pack-search-hint-more{color:#64748b;}
 }
 .tool-is-disabled{filter:grayscale(.72);opacity:.62;position:relative;}
 .tool-is-disabled:after{content:"已关闭";position:absolute;right:10px;top:10px;z-index:4;padding:4px 8px;border-radius:999px;background:#695d54;color:#fff;font-size:.7rem;font-weight:800;pointer-events:none;}
-.tool-is-disabled a{cursor:not-allowed;}
+.tool-is-disabled a{cursor:pointer;}
 .tool-tile-card{
   min-height:118px;
   padding:10px;

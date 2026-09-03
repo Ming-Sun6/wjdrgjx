@@ -107,6 +107,8 @@ const DEFAULT_ADMIN_LOGIN_ID = process.env.DEFAULT_ADMIN_LOGIN_ID || 'admin';
 const SITE_FOOTER_SETTING_KEY = 'site_footer';
 const LEGAL_DIR = path.join(__dirname, 'legal');
 const TOOL_MANAGEMENT_SETTING_KEY = 'tool_management';
+const TOOL_ACCESS_REQUESTS_SETTING_KEY = 'tool_access_requests';
+const MAX_TOOL_ACCESS_REQUESTS = 300;
 const NEIGHBOR_PROGRESS_SETTING_KEY = 'neighbor_progress_schedule';
 const HISTORY_IMMIGRATION_SETTING_KEY = 'history_immigration_config';
 const TOOL_BADGES = new Set(['none', 'new', 'hot']);
@@ -216,16 +218,171 @@ function findManagedToolByPath(pathname) {
   return null;
 }
 
+function renderToolGatePageHtml({ title, message, tool }) {
+  const safeTitle = escapeHtml(title);
+  const safeMessage = escapeHtml(message);
+  const toolId = escapeHtml(String(tool && tool.id || ''));
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>${safeTitle}</title>
+  <style>
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:linear-gradient(145deg,#fff7e9,#e9f1e8);color:#483b31;font-family:"Microsoft YaHei",sans-serif}
+    .box{width:min(520px,100%);padding:34px;border:1px solid #ead7c2;border-radius:24px;background:rgba(255,255,255,.9);box-shadow:0 20px 60px rgba(76,55,38,.13);text-align:center}
+    h1{margin:0 0 12px;font-size:1.55rem}
+    p{color:#756456;line-height:1.8}
+    .actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    a,button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:11px 18px;border-radius:999px;font-weight:700;font-size:1rem;font-family:inherit;cursor:pointer;text-decoration:none;box-sizing:border-box}
+    a{background:#bd6d49;color:#fff;border:0}
+    button{background:#fff;color:#bd6d49;border:1px solid #bd6d49}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .login-form{display:grid;gap:8px;margin-top:16px;text-align:left}
+    .login-form[hidden]{display:none}
+    .login-form input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ead7c2;border-radius:12px;font-size:1rem;font-family:inherit}
+    .hint{margin:14px 0 0;font-size:.9rem}
+  </style>
+</head>
+<body data-tool-id="${toolId}">
+  <main class="box">
+    <h1>${safeTitle}</h1>
+    <p>${safeMessage}</p>
+    <div class="actions">
+      <a href="/">返回工具箱首页</a>
+      <button type="button" id="requestAccessBtn">申请权限</button>
+    </div>
+    <form id="loginForm" class="login-form" hidden>
+      <input id="loginIdInput" name="loginId" autocomplete="username" placeholder="登录 ID" maxlength="32">
+      <input id="passwordInput" name="password" type="password" autocomplete="current-password" placeholder="密码" maxlength="64">
+      <button type="submit">登录并申请</button>
+    </form>
+    <p class="hint" id="requestStatus">登录后即可向管理员申请使用该功能。</p>
+  </main>
+  <script>
+    (function () {
+      var toolId = document.body.getAttribute('data-tool-id') || '';
+      var btn = document.getElementById('requestAccessBtn');
+      var statusEl = document.getElementById('requestStatus');
+      var loginForm = document.getElementById('loginForm');
+      var loginIdInput = document.getElementById('loginIdInput');
+      var passwordInput = document.getElementById('passwordInput');
+      function setStatus(text, isError) {
+        statusEl.textContent = text;
+        statusEl.style.color = isError ? '#a24b32' : '#756456';
+      }
+      function api(url, options) {
+        return fetch(url, Object.assign({
+          credentials: 'same-origin',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+        }, options || {})).then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            return { res: res, data: data };
+          });
+        });
+      }
+      function markApplied(text) {
+        btn.disabled = true;
+        btn.textContent = '已申请';
+        loginForm.hidden = true;
+        setStatus(text || '已提交申请，请等待管理员审核。');
+      }
+      function submitRequest() {
+        return api('/api/tool-access-requests', {
+          method: 'POST',
+          body: JSON.stringify({ toolId: toolId })
+        }).then(function (result) {
+          var error = result.data && result.data.error;
+          if (result.res.status === 401 || error === 'SESSION_EXPIRED' || error === 'UNAUTHORIZED') {
+            loginForm.hidden = false;
+            btn.disabled = false;
+            setStatus('请先登录后再申请。', true);
+            return false;
+          }
+          if (error === 'ALREADY_PENDING') { markApplied('你已提交申请，请等待管理员审核。'); return true; }
+          if (error === 'ALREADY_ALLOWED') {
+            btn.disabled = true;
+            btn.textContent = '已通过';
+            setStatus('你已有权限，请刷新页面。');
+            return true;
+          }
+          if (!result.res.ok) {
+            setStatus(error === 'UNKNOWN_TOOL' ? '无法识别该工具。' : '申请失败，请稍后再试。', true);
+            btn.disabled = false;
+            return false;
+          }
+          markApplied('已提交申请，请等待管理员审核。');
+          return true;
+        });
+      }
+      btn.addEventListener('click', function () {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        api('/api/auth/me').then(function (result) {
+          if (!result.data || !result.data.authenticated) {
+            loginForm.hidden = false;
+            btn.disabled = false;
+            setStatus('请先登录后再申请。');
+            return;
+          }
+          return submitRequest();
+        }).catch(function () {
+          setStatus('网络错误，请稍后再试。', true);
+          btn.disabled = false;
+        });
+      });
+      loginForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var loginId = String(loginIdInput.value || '').trim();
+        var password = String(passwordInput.value || '');
+        if (!loginId || !password) {
+          setStatus('请填写登录 ID 和密码。', true);
+          return;
+        }
+        api('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ loginId: loginId, password: password })
+        }).then(function (result) {
+          if (!result.res.ok) {
+            setStatus(result.data && result.data.error === 'BANNED' ? '该账号已被封禁。' : '账号或密码不正确。', true);
+            return;
+          }
+          return submitRequest();
+        }).catch(function () {
+          setStatus('登录失败，请稍后再试。', true);
+        });
+      });
+      if (toolId) {
+        api('/api/tool-access-requests/mine?toolId=' + encodeURIComponent(toolId)).then(function (result) {
+          var request = result.data && result.data.request;
+          if (!request) return;
+          if (request.status === 'pending') markApplied('你已提交申请，请等待管理员审核。');
+          else if (request.status === 'approved') {
+            btn.disabled = true;
+            btn.textContent = '已通过';
+            setStatus('申请已通过，请刷新页面后重试。');
+          }
+        }).catch(function () {});
+      }
+    })();
+  </script>
+</body>
+</html>`;
+}
+
 function sendToolDisabledPage(res, tool, message) {
-  const safeName = escapeHtml(tool && tool.name || '该工具');
-  const safeMessage = escapeHtml(message || '该工具当前已关闭，请稍后再试。');
+  const safeName = tool && tool.name || '该工具';
   res.status(503);
   res.setHeader('Cache-Control', 'no-store');
-  return res.type('html').send(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeName}已关闭</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:linear-gradient(145deg,#fff7e9,#e9f1e8);color:#483b31;font-family:"Microsoft YaHei",sans-serif}.box{width:min(520px,100%);padding:34px;border:1px solid #ead7c2;border-radius:24px;background:rgba(255,255,255,.9);box-shadow:0 20px 60px rgba(76,55,38,.13);text-align:center}h1{margin:0 0 12px;font-size:1.55rem}p{color:#756456;line-height:1.8}a{display:inline-flex;margin-top:14px;padding:11px 18px;border-radius:999px;background:#bd6d49;color:#fff;text-decoration:none;font-weight:700}</style></head><body><main class="box"><h1>${safeName}当前已关闭</h1><p>${safeMessage}</p><a href="/">返回工具箱首页</a></main></body></html>`);
+  return res.type('html').send(renderToolGatePageHtml({
+    title: `${safeName}当前已关闭`,
+    message: message || '该工具当前已关闭，请稍后再试。',
+    tool
+  }));
 }
 
 function sendToolRestrictedPage(res, tool, setting) {
-  const safeName = escapeHtml(tool && tool.name || '该工具');
+  const safeName = tool && tool.name || '该工具';
   const allowedCount = Array.isArray(setting?.allowedLoginIds) ? setting.allowedLoginIds.length : 0;
   const adminOnly = setting?.adminOnly === true;
   const title = adminOnly && !allowedCount ? `${safeName}仅管理员可访问` : `${safeName}仅指定用户可访问`;
@@ -236,7 +393,11 @@ function sendToolRestrictedPage(res, tool, setting) {
       : '该工具当前仅对指定用户开放。';
   res.status(403);
   res.setHeader('Cache-Control', 'no-store');
-  return res.type('html').send(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:linear-gradient(145deg,#fff7e9,#e9f1e8);color:#483b31;font-family:"Microsoft YaHei",sans-serif}.box{width:min(520px,100%);padding:34px;border:1px solid #ead7c2;border-radius:24px;background:rgba(255,255,255,.9);box-shadow:0 20px 60px rgba(76,55,38,.13);text-align:center}h1{margin:0 0 12px;font-size:1.55rem}p{color:#756456;line-height:1.8}a{display:inline-flex;margin-top:14px;padding:11px 18px;border-radius:999px;background:#bd6d49;color:#fff;text-decoration:none;font-weight:700}</style></head><body><main class="box"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p><a href="/">返回工具箱首页</a></main></body></html>`);
+  return res.type('html').send(renderToolGatePageHtml({
+    title,
+    message,
+    tool
+  }));
 }
 
 function sendToolAdminOnlyPage(res, tool) {
@@ -1826,6 +1987,165 @@ function createToolManagementHandlers(dependencies = {}) {
   return { getPublic, getAdmin, saveAdmin };
 }
 
+function catalogToolById(toolId) {
+  return TOOL_CATALOG.find((tool) => tool.id === toolId) || null;
+}
+
+function normalizeToolAccessRequests(payload) {
+  const input = Array.isArray(payload) ? payload : (Array.isArray(payload?.requests) ? payload.requests : []);
+  const requests = [];
+  const seen = new Set();
+  for (const item of input) {
+    const tool = catalogToolById(item?.toolId);
+    const id = String(item?.id || '').trim();
+    const status = item?.status === 'approved' || item?.status === 'rejected' ? item.status : 'pending';
+    const userId = Number(item?.userId);
+    const loginId = String(item?.loginId || '').trim();
+    if (!tool || !id || seen.has(id) || !Number.isInteger(userId) || userId <= 0 || !loginId) continue;
+    seen.add(id);
+    requests.push({
+      id,
+      toolId: tool.id,
+      toolName: tool.name,
+      userId,
+      loginId,
+      username: String(item?.username || '').trim().slice(0, 32),
+      status,
+      createdAt: String(item?.createdAt || ''),
+      resolvedAt: item?.resolvedAt ? String(item.resolvedAt) : null,
+      resolvedBy: item?.resolvedBy ? String(item.resolvedBy) : null
+    });
+    if (requests.length >= MAX_TOOL_ACCESS_REQUESTS) break;
+  }
+  return { requests };
+}
+
+function publicToolAccessRequest(request) {
+  if (!request) return null;
+  return {
+    id: request.id,
+    toolId: request.toolId,
+    status: request.status,
+    createdAt: request.createdAt
+  };
+}
+
+function createToolAccessRequestHandlers(dependencies = {}) {
+  const readSetting = dependencies.getSetting || getSetting;
+  const writeSetting = dependencies.setSetting || setSetting;
+  const authenticate = dependencies.requireAuth || requireAuth;
+  const authenticateAdmin = dependencies.requireAdmin || requireAdmin;
+  const writeAudit = dependencies.auditAdminAction || auditAdminAction;
+  const now = dependencies.now || (() => new Date().toISOString());
+  const resolveUser = dependencies.currentUserFromRequest || currentUserFromRequest;
+  const newId = dependencies.newId || ((userId) => `tar_${Date.now().toString(36)}_${userId}`);
+
+  async function readRequests() {
+    const stored = await readSetting(TOOL_ACCESS_REQUESTS_SETTING_KEY, { requests: [] });
+    return normalizeToolAccessRequests(stored).requests;
+  }
+
+  async function writeRequests(requests) {
+    await writeSetting(TOOL_ACCESS_REQUESTS_SETTING_KEY, { requests, updatedAt: now() });
+  }
+
+  async function create(req, res) {
+    const user = await authenticate(req, res);
+    if (!user) return;
+    const tool = catalogToolById(String(req.body?.toolId || '').trim());
+    if (!tool) return res.status(400).json({ error: 'UNKNOWN_TOOL' });
+    const loginId = String(user.login_id || user.loginId || '').trim();
+    if (!loginId) return res.status(400).json({ error: 'UNKNOWN_TOOL' });
+    const storedTools = await readSetting(TOOL_MANAGEMENT_SETTING_KEY, { tools: [] });
+    const tools = normalizeToolManagement(storedTools).tools || [];
+    const setting = tools.find((item) => item.id === tool.id);
+    if (setting && setting.enabled !== false && isToolAllowedForUser(setting, user)) {
+      return res.status(409).json({ error: 'ALREADY_ALLOWED' });
+    }
+    const requests = await readRequests();
+    const userId = Number(user.id);
+    const existing = requests.find((item) => item.toolId === tool.id && item.userId === userId && item.status === 'pending');
+    if (existing) return res.status(409).json({ error: 'ALREADY_PENDING', request: publicToolAccessRequest(existing) });
+    const request = {
+      id: newId(userId),
+      toolId: tool.id,
+      toolName: tool.name,
+      userId,
+      loginId,
+      username: String(user.username || '').trim().slice(0, 32),
+      status: 'pending',
+      createdAt: now(),
+      resolvedAt: null,
+      resolvedBy: null
+    };
+    const next = [request, ...requests].slice(0, MAX_TOOL_ACCESS_REQUESTS);
+    await writeRequests(next);
+    return res.status(201).json({ ok: true, request: publicToolAccessRequest(request) });
+  }
+
+  async function getMine(req, res) {
+    const user = await resolveUser(req);
+    if (!user) return res.json({ request: null });
+    const toolId = String(req.query?.toolId || '').trim();
+    if (!catalogToolById(toolId)) return res.json({ request: null });
+    const requests = await readRequests();
+    const mine = requests.find((item) => item.toolId === toolId && item.userId === Number(user.id));
+    return res.json({ request: publicToolAccessRequest(mine || null) });
+  }
+
+  async function listAdmin(req, res) {
+    const admin = await authenticateAdmin(req, res);
+    if (!admin) return;
+    const requests = await readRequests();
+    const pending = requests.filter((item) => item.status === 'pending');
+    const resolved = requests.filter((item) => item.status !== 'pending').slice(0, 40);
+    return res.json({ requests: pending.concat(resolved) });
+  }
+
+  async function resolveAdmin(req, res, action) {
+    const admin = await authenticateAdmin(req, res);
+    if (!admin) return;
+    const requestId = String(req.params?.id || '').trim();
+    const requests = await readRequests();
+    const index = requests.findIndex((item) => item.id === requestId);
+    if (index < 0) return res.status(404).json({ error: 'NOT_FOUND' });
+    const request = requests[index];
+    if (request.status !== 'pending') return res.status(409).json({ error: 'ALREADY_RESOLVED' });
+    const resolvedBy = admin.username || admin.login_id || String(admin.id);
+    const resolvedAt = now();
+    if (action === 'approve') {
+      const storedTools = await readSetting(TOOL_MANAGEMENT_SETTING_KEY, { tools: [] });
+      const normalized = normalizeToolManagement(storedTools);
+      const tools = (normalized.error ? normalizeToolManagement([]).tools : normalized.tools).map((tool) => {
+        if (tool.id !== request.toolId) return tool;
+        return {
+          ...tool,
+          allowedLoginIds: normalizeAllowedUserRefs([...(tool.allowedLoginIds || []), request.loginId, String(request.userId)])
+        };
+      });
+      await writeSetting(TOOL_MANAGEMENT_SETTING_KEY, {
+        tools,
+        updatedAt: resolvedAt,
+        updatedBy: resolvedBy
+      });
+    }
+    requests[index] = { ...request, status: action === 'approve' ? 'approved' : 'rejected', resolvedAt, resolvedBy };
+    await writeRequests(requests);
+    await writeAudit(req, {
+      actor: admin,
+      action: action === 'approve' ? 'tool_access_request.approve' : 'tool_access_request.reject',
+      targetType: 'tool_access_request',
+      targetId: request.id,
+      riskLevel: 'watch',
+      summary: `${action === 'approve' ? '通过' : '驳回'}工具权限申请：${request.toolName} / ${request.loginId}`,
+      metadata: { toolId: request.toolId, userId: request.userId, loginId: request.loginId }
+    });
+    return res.json({ ok: true, request: requests[index] });
+  }
+
+  return { create, getMine, listAdmin, resolveAdmin };
+}
+
 async function normalizeUserQuota(userId) {
   const user = await queryOne('SELECT * FROM users WHERE id = ? LIMIT 1', [userId]);
   if (!user) return null;
@@ -2823,6 +3143,47 @@ async function updateToolManagement(req, res) {
 
 app.put('/api/admin/tool-management', updateToolManagement);
 app.post('/api/admin/tool-management', updateToolManagement);
+
+const toolAccessRequestHandlers = createToolAccessRequestHandlers();
+
+app.post('/api/tool-access-requests', async (req, res) => {
+  try {
+    await toolAccessRequestHandlers.create(req, res);
+  } catch (err) {
+    console.error('tool access request create failed:', err);
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.get('/api/tool-access-requests/mine', async (req, res) => {
+  try {
+    await toolAccessRequestHandlers.getMine(req, res);
+  } catch (err) {
+    console.error('tool access request mine failed:', err);
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+app.get('/api/admin/tool-access-requests', async (req, res) => {
+  try {
+    await toolAccessRequestHandlers.listAdmin(req, res);
+  } catch (err) {
+    console.error('admin tool access requests get failed:', err);
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
+
+async function resolveToolAccessRequest(req, res, action) {
+  try {
+    await toolAccessRequestHandlers.resolveAdmin(req, res, action);
+  } catch (err) {
+    console.error('admin tool access request resolve failed:', err);
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+}
+
+app.post('/api/admin/tool-access-requests/:id/approve', (req, res) => resolveToolAccessRequest(req, res, 'approve'));
+app.post('/api/admin/tool-access-requests/:id/reject', (req, res) => resolveToolAccessRequest(req, res, 'reject'));
 
 app.get('/api/neighbor-progress', async (_req, res) => {
   try {
@@ -5558,6 +5919,8 @@ module.exports = {
   toPublicToolManagement,
   toAdminToolManagement,
   createToolManagementHandlers,
+  createToolAccessRequestHandlers,
+  renderToolGatePageHtml,
   findManagedToolByPath,
   HOME_NAVIGATION_CATALOG,
   normalizeHomeNavigation,

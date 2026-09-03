@@ -810,6 +810,17 @@
     }
     .tool-management-select,.tool-management-message,.tool-management-allowed{width:100%;min-height:38px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface-strong);color:var(--text);}
     .tool-management-message,.tool-management-allowed{grid-column:1/-1;min-height:40px;resize:vertical;}
+    .tool-access-requests-panel{margin:0 0 14px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--surface);}
+    .tool-access-request-list{display:grid;gap:0;}
+    .tool-access-request-row{display:grid;grid-template-columns:minmax(140px,1.2fr) minmax(160px,1fr) minmax(120px,.8fr) auto;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);}
+    .tool-access-request-row:last-child{border-bottom:none;}
+    .tool-access-request-meta{color:var(--muted);font-size:.78rem;}
+    .tool-access-request-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    .tool-access-request-status{font-size:.8rem;font-weight:700;}
+    @media (max-width: 600px){
+      .tool-access-request-row{grid-template-columns:minmax(0,1fr);align-items:start;}
+      .tool-access-request-actions{justify-content:flex-start;}
+    }
 
     @media (max-width: 600px){
       .container{padding:48px 12px 24px;}
@@ -2231,7 +2242,12 @@
 
         <section class="card page" id="page-tool-management" data-page="tool-management">
           <div class="page-title">工具管理</div>
-          <p class="admin-status" style="margin:8px 0 12px;">“入口显示”只控制首页入口。勾选“仅管理员可见”后所有管理员可看；填写“指定用户”后仅名单内用户可看（不勾选仅管理员时，管理员也不会自动看到）。直链会按同样规则拦截。“工具启用”关闭后，复制的直链会显示工具已关闭。</p>
+          <p class="admin-status" style="margin:8px 0 12px;">“入口显示”只控制首页入口。勾选“仅管理员可见”后所有管理员可看；填写“指定用户”后仅名单内用户可看（不勾选仅管理员时，管理员也不会自动看到）。直链会按同样规则拦截。“工具启用”关闭后，复制的直链会显示工具已关闭。用户可在关闭页点击“申请权限”；通过后会立即写入该工具的指定用户名单。</p>
+          <section class="tool-access-requests-panel">
+            <div class="tool-management-group-title">权限申请</div>
+            <div class="admin-status" id="toolAccessRequestStatus" style="padding:8px 12px 0;">尚未加载申请。</div>
+            <div id="toolAccessRequestList" class="tool-access-request-list"></div>
+          </section>
           <div class="tool-management-toolbar">
             <div class="admin-status" id="toolManagementStatus">请先登录管理员账号。</div>
             <div class="tool-management-actions">
@@ -4348,6 +4364,67 @@
         '</section>';
       }).join('');
     }
+    function renderToolAccessRequests(data){
+      var list=document.getElementById('toolAccessRequestList');
+      if(!list) return;
+      var requests=Array.isArray(data && data.requests) ? data.requests : [];
+      if(!requests.length){
+        list.innerHTML='<div class="tool-management-empty">暂无权限申请。</div>';
+        return;
+      }
+      list.innerHTML=requests.map(function(item){
+        var pending=item.status==='pending';
+        var statusText=pending?'待审核':(item.status==='approved'?'已通过':'已驳回');
+        var when=String(item.createdAt||'').replace('T',' ').slice(0,16);
+        return '<div class="tool-access-request-row" data-request-id="'+escapeAttr(item.id)+'">'+
+          '<div><strong>'+escapeHtml(item.toolName||item.toolId)+'</strong><div class="tool-access-request-meta">'+escapeHtml(item.toolId||'')+'</div></div>'+
+          '<div>'+escapeHtml(item.username||'未命名')+'<div class="tool-access-request-meta">'+escapeHtml(item.loginId||'')+(item.userId?' · ID '+escapeHtml(String(item.userId)):'')+'</div></div>'+
+          '<div><span class="tool-access-request-status">'+statusText+'</span><div class="tool-access-request-meta">'+escapeHtml(when)+'</div></div>'+
+          '<div class="tool-access-request-actions">'+(pending
+            ? '<button type="button" class="btn" data-request-action="approve">通过</button><button type="button" class="btn secondary" data-request-action="reject">驳回</button>'
+            : '')+'</div>'+
+        '</div>';
+      }).join('');
+    }
+    async function loadToolAccessRequests(){
+      var list=document.getElementById('toolAccessRequestList');
+      if(!authUser || !authUser.isAdmin){
+        if(list) list.innerHTML='<div class="tool-management-empty">请先登录管理员账号。</div>';
+        setStatus('toolAccessRequestStatus','请先登录管理员账号。');
+        return;
+      }
+      setStatus('toolAccessRequestStatus','正在加载权限申请...');
+      try{
+        var r=await apiFetch('/api/admin/tool-access-requests',{method:'GET'});
+        if(r.status===401 || r.status===403){
+          if(list) list.innerHTML='<div class="tool-management-empty">没有权限查看申请。</div>';
+          setStatus('toolAccessRequestStatus','没有权限：仅管理员可查看申请。');
+          return;
+        }
+        var data=await r.json().catch(function(){ return null; });
+        if(!r.ok) throw new Error(data && data.error ? data.error : 'HTTP '+r.status);
+        renderToolAccessRequests(data);
+        var pending=(data.requests||[]).filter(function(item){ return item.status==='pending'; }).length;
+        setStatus('toolAccessRequestStatus',pending ? ('待审核 '+pending+' 条。通过后立即写入指定用户名单，无需再点保存。') : '暂无待审核申请。');
+      }catch(e){
+        if(list) list.innerHTML='<div class="tool-management-empty">加载失败。</div>';
+        setStatus('toolAccessRequestStatus','申请加载失败：'+(e.message||'网络错误'));
+      }
+    }
+    async function resolveToolAccessRequest(id, action){
+      if(!id || (action!=='approve' && action!=='reject')) return;
+      setStatus('toolAccessRequestStatus',action==='approve'?'正在通过申请...':'正在驳回申请...');
+      try{
+        var r=await apiFetch('/api/admin/tool-access-requests/'+encodeURIComponent(id)+'/'+action,{method:'POST'});
+        var data=await r.json().catch(function(){ return {}; });
+        if(!r.ok) throw new Error(data && data.error ? data.error : 'HTTP '+r.status);
+        setStatus('toolAccessRequestStatus',action==='approve'?'已通过，用户已加入指定名单。':'已驳回该申请。');
+        await loadToolAccessRequests();
+        if(action==='approve') await loadToolManagement();
+      }catch(e){
+        setStatus('toolAccessRequestStatus','处理失败：'+(e.message||'网络错误'));
+      }
+    }
     function setToolManagementBusy(busy){
       var reloadBtn=document.getElementById('toolManagementReloadBtn');
       var saveBtn=document.getElementById('toolManagementSaveBtn');
@@ -5496,7 +5573,7 @@
         if(typeof window.loadActivationRedemptionsAdmin==='function') window.loadActivationRedemptionsAdmin();
       }
       else if(currentPage==='aeroplane-chess'){ if(window.adminAeroplaneChess && window.adminAeroplaneChess.init) window.adminAeroplaneChess.init(); }
-      else if(currentPage==='tool-management') loadToolManagement();
+      else if(currentPage==='tool-management'){ loadToolManagement(); loadToolAccessRequests(); }
       else if(currentPage==='home-navigation'){ if(typeof window.loadAdminHomeNavigation==='function') window.loadAdminHomeNavigation(); }
       else if(currentPage==='neighbor-progress'){ if(window.loadNeighborProgressAdmin) window.loadNeighborProgressAdmin(); }
       else if(currentPage==='history-immigration'){ if(window.loadHistoryImmigrationAdmin) window.loadHistoryImmigrationAdmin(); }
@@ -5590,8 +5667,15 @@
     document.getElementById('adminReloadBtn')&&document.getElementById('adminReloadBtn').addEventListener('click',loadAdmins);
     document.getElementById('moderatorAddBtn')&&document.getElementById('moderatorAddBtn').addEventListener('click',addModerator);
     document.getElementById('moderatorReloadBtn')&&document.getElementById('moderatorReloadBtn').addEventListener('click',loadModerators);
-    document.getElementById('toolManagementReloadBtn')&&document.getElementById('toolManagementReloadBtn').addEventListener('click',loadToolManagement);
+    document.getElementById('toolManagementReloadBtn')&&document.getElementById('toolManagementReloadBtn').addEventListener('click',function(){ loadToolManagement(); loadToolAccessRequests(); });
     document.getElementById('toolManagementSaveBtn')&&document.getElementById('toolManagementSaveBtn').addEventListener('click',saveToolManagement);
+    document.getElementById('toolAccessRequestList')&&document.getElementById('toolAccessRequestList').addEventListener('click',function(event){
+      var button=event.target.closest('[data-request-action]');
+      if(!button) return;
+      var row=button.closest('[data-request-id]');
+      if(!row) return;
+      resolveToolAccessRequest(row.getAttribute('data-request-id'), button.getAttribute('data-request-action'));
+    });
 
     document.getElementById('reviewReloadBtn')&&document.getElementById('reviewReloadBtn').addEventListener('click',loadPendingPosts);
     document.getElementById('violationReloadBtn')&&document.getElementById('violationReloadBtn').addEventListener('click',loadViolationPosts);
