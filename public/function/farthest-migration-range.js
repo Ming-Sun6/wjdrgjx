@@ -208,18 +208,20 @@
     return flags;
   }
 
-  function progressBundleForRange(schedule, rangeIdx, cutoffExcel, periodDate, historyConfig) {
+  function progressBundleForRange(schedule, rangeIdx, cutoffExcel, periodDate, historyConfig, ignoreOverrides) {
     if (rangeIdx < 0 || !Number.isFinite(cutoffExcel)) {
       return { text: "-", sortKey: -1, bucketKey: "__empty__" };
     }
     const label = schedule.ranges[rangeIdx] && schedule.ranges[rangeIdx].label;
     const dates = historyConfig && Array.isArray(historyConfig.dates) ? historyConfig.dates : [];
     const offset = historyDisplayOffset(historyConfig);
-    for (let i = 0; i < dates.length; i++) {
-      const item = dates[i];
-      if (!item || item.enabled === false || item.date !== periodDate || !item.overrides) continue;
-      const override = item.overrides[label];
-      if (override) return { text: String(override), sortKey: 999, bucketKey: String(override) };
+    if (!ignoreOverrides) {
+      for (let i = 0; i < dates.length; i++) {
+        const item = dates[i];
+        if (!item || item.enabled === false || item.date !== periodDate || !item.overrides) continue;
+        const override = item.overrides[label];
+        if (override) return { text: String(override), sortKey: 999, bucketKey: String(override) };
+      }
     }
     const flags = progressFlagsForRange(schedule, rangeIdx, cutoffExcel);
     const stages = schedule.progressStages || [];
@@ -254,14 +256,14 @@
     return merged;
   }
 
-  function predictionGroup(schedule, serverId, periodDate, historyConfig) {
+  function predictionGroup(schedule, serverId, periodDate, historyConfig, ignoreOverrides) {
     const originIdx = findRangeIndex(schedule, Number(serverId));
     if (originIdx < 0 || !isIsoDate(periodDate)) return null;
     const cutoff = isoToExcelSerial(periodDate) + historyDisplayOffset(historyConfig);
-    const originBundle = progressBundleForRange(schedule, originIdx, cutoff, periodDate, historyConfig);
+    const originBundle = progressBundleForRange(schedule, originIdx, cutoff, periodDate, historyConfig, ignoreOverrides);
     const members = [];
     for (let i = 0; i < schedule.ranges.length; i++) {
-      const bundle = progressBundleForRange(schedule, i, cutoff, periodDate, historyConfig);
+      const bundle = progressBundleForRange(schedule, i, cutoff, periodDate, historyConfig, ignoreOverrides);
       if (bundle.bucketKey === originBundle.bucketKey) members.push(schedule.ranges[i]);
     }
     const segs = mergeRangeSegments(members);
@@ -278,9 +280,9 @@
     };
   }
 
-  function lookupPredictionGroup(schedule, originId, periodDate, historyConfig) {
+  function lookupPredictionGroup(schedule, originId, periodDate, historyConfig, ignoreOverrides) {
     const origin = describeServer(schedule, Number(originId));
-    const group = predictionGroup(schedule, Number(originId), periodDate, historyConfig);
+    const group = predictionGroup(schedule, Number(originId), periodDate, historyConfig, ignoreOverrides);
     if (!origin || !group) return { error: "UNKNOWN_SERVER" };
     const furnace = detectFurnace(schedule, Number(originId), dateToSerial(addDays(periodDate, historyDisplayOffset(historyConfig))));
     return {
@@ -683,7 +685,7 @@
       const period = dates[i];
       const openDate = isIsoDate(period && period.date) ? period.date : period;
       if (!isIsoDate(openDate)) continue;
-      const grouped = lookupPredictionGroup(schedule, originNum, openDate, input.historyConfig);
+      const grouped = lookupPredictionGroup(schedule, originNum, openDate, input.historyConfig, true);
       if (grouped.error || !grouped.group) {
         stuck = true;
         break;
