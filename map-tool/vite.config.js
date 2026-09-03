@@ -5,6 +5,8 @@ export default defineConfig({
   base: "/map-tool/",
   plugins: [vue()],
   build: {
-    outDir: "dist",
+    outDir: "../public/map-tool",
+    emptyOutDir: false,
+    assetsDir: "assets",
   },
 });

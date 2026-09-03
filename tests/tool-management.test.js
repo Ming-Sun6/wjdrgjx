@@ -114,6 +114,7 @@ test('managed tool paths resolve for direct-link availability checks', () => {
   assert.equal(server.findManagedToolByPath('/giftcode/').id, 'giftcode-center');
   assert.equal(server.findManagedToolByPath('/map-tool/').id, 'map-editor');
   assert.equal(server.findManagedToolByPath('/map-tool').id, 'map-editor');
+  assert.equal(server.findManagedToolByPath('/map-tool/assets/index-DQHLjCHj.js'), null);
   assert.equal(server.findManagedToolByPath('/function/forum.html'), null);
   assert.match(serverSource, /sendToolDisabledPage/);
   assert.match(serverSource, /sendToolAdminOnlyPage/);
@@ -122,6 +123,13 @@ test('managed tool paths resolve for direct-link availability checks', () => {
   assert.ok(serverSource.indexOf("tool availability check skipped") < serverSource.indexOf('mountGiftcodeProxy(app)'));
   assert.match(webConfigSource, /ReverseProxyFunctionDirectoryIndexToNode3000/);
   assert.match(webConfigSource, /\^\(\?:public\/\)\?giftcode/);
+  assert.match(webConfigSource, /StaticMapToolToPublicMapTool/);
+  assert.match(webConfigSource, /ReverseProxyMapToolIndexToNode3000/);
+  const builtMapToolIndex = fs.readFileSync(path.join(root, 'public', 'map-tool', 'index.html'), 'utf8');
+  assert.match(builtMapToolIndex, /src="\/map-tool\/assets\//);
+  assert.doesNotMatch(builtMapToolIndex, /src="\/src\/main\.js"/);
+  const sourceMapToolConfig = fs.readFileSync(path.join(root, 'map-tool', 'web.config'), 'utf8');
+  assert.match(sourceMapToolConfig, /\/public\/map-tool\//);
 });
 
 test('public handler falls back to the default visible catalog when settings reads fail', async () => {

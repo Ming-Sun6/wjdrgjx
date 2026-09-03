@@ -20,9 +20,9 @@ import VideoDemoModal from "./VideoDemoModal.vue";
 
 const editor = useEditorStore();
 const videos = [
-  { label: "行军装扮 · 佛尔工号", src: "./videos/marchSkin.mp4" },
-  { label: "城镇装扮 · 城镇展示", src: "./videos/townSkin_town.mp4" },
-  { label: "城镇装扮 · 野外展示", src: "./videos/townSkin_wild.mp4" },
+  { label: "行军装扮 · 佛尔工号", src: `${import.meta.env.BASE_URL}videos/marchSkin.mp4` },
+  { label: "城镇装扮 · 城镇展示", src: `${import.meta.env.BASE_URL}videos/townSkin_town.mp4` },
+  { label: "城镇装扮 · 野外展示", src: `${import.meta.env.BASE_URL}videos/townSkin_wild.mp4` },
 ];
 const showVideo = ref(false);
 const catIndex = ref(0);

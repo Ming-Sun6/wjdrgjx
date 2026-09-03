@@ -210,7 +210,7 @@ function findManagedToolByPath(pathname) {
     if (paths.some((entry) => normalizeManagedToolPath(entry) === normalized)) return tool;
     if (tool.id === 'reference-hub' && normalized.startsWith('/function/reference-hub/')) return tool;
     if (tool.id === 'aeroplane-chess' && normalized.startsWith('/function/aeroplane-chess/')) return tool;
-    if (tool.id === 'map-editor' && (normalized === '/map-tool.html' || normalized.startsWith('/map-tool/'))) return tool;
+    if (tool.id === 'map-editor' && (normalized === '/map-tool.html' || normalized === '/map-tool/index.html')) return tool;
     if (tool.id === 'hero-data' && /^\/function\/zero\/(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth)-generation-heroes\.html$/.test(normalized)) return tool;
   }
   return null;
@@ -372,6 +372,10 @@ app.use(
   '/function/aeroplane-chess',
   express.static(path.join(__dirname, 'aeroplane-chess', 'frontend'))
 );
+app.get('/map-tool', (_req, res) => {
+  res.redirect(302, '/map-tool/');
+});
+app.use('/map-tool', express.static(path.join(__dirname, 'public', 'map-tool')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.get(
   ['/legal/about', '/legal/about.html', '/legal/privacy', '/legal/privacy.html', '/legal/user-agreement', '/legal/user-agreement.html'],

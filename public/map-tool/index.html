@@ -2,15 +2,22 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>无尽冬日 · 全能地图编辑器</title>
-    <script type="module" crossorigin src="./assets/index-DQHLjCHj.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-k792H2lb.css">
+    <script type="module" crossorigin src="/map-tool/assets/index-D4vQ3RfH.js"></script>
+    <link rel="stylesheet" crossorigin href="/map-tool/assets/index-k792H2lb.css">
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app"></div>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        setTimeout(function () {
+          var el = document.getElementById("app");
+          if (el && !el.children.length) {
+            el.innerHTML = '<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:Microsoft YaHei,sans-serif;color:#483b31;background:#f6efe4"><div style="max-width:28rem;text-align:center;line-height:1.75">地图编辑器没有加载出来。<br>请确认部署的是打包后的 <code>/map-tool/</code>（public/map-tool），并已更新站点根目录 web.config。</div></div>';
+          }
+        }, 2500);
+      });
+    </script>
   </body>
 </html>

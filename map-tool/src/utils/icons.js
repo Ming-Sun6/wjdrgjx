@@ -1,4 +1,4 @@
-const BASE = "./";
+const BASE = import.meta.env.BASE_URL || "/map-tool/";
 
 const imageCache = new Map();
 const listeners = new Set();
