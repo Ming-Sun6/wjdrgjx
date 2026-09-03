@@ -12,6 +12,20 @@ test('share metadata uses page defaults and injects Open Graph tags', () => {
   assert.match(html, /summary_large_image/);
 });
 
+test('farthest migration range uses its own WeChat share title and subtitle', () => {
+  const meta = resolvePageMeta('/function/farthest-migration-range.html', null);
+  assert.equal(meta.title, '最远移民区间｜冬日工具箱');
+  assert.match(meta.description, /往前、往后最远能移到哪一区/);
+  assert.match(meta.image, /%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB/);
+  const html = injectShareMeta(
+    '<html><head><title>x</title></head><body></body></html>',
+    meta,
+    'https://wjgl.store/function/farthest-migration-range.html'
+  );
+  assert.match(html, /og:title" content="最远移民区间｜冬日工具箱"/);
+  assert.doesNotMatch(html, /og:title" content="冬日工具箱"/);
+});
+
 test('forum share metadata prefers cover, then first content image, then default', () => {
   assert.equal(parseCoverImages('["/uploads/a.jpg"]')[0], '/uploads/a.jpg');
   assert.equal(firstImageFromHtml('<p><img src="/uploads/b.jpg"></p>'), '/uploads/b.jpg');
