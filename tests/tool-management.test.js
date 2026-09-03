@@ -125,6 +125,22 @@ test('managed tool paths resolve for direct-link availability checks', () => {
   assert.match(gatePage, /申请权限/);
   assert.match(gatePage, /data-tool-id="map-editor"/);
   assert.match(gatePage, /\/api\/tool-access-requests/);
+  assert.match(gatePage, /功能申请协议/);
+  assert.match(gatePage, /查看完整协议/);
+  assert.match(gatePage, /\/legal\/tool-access-agreement/);
+  assert.match(gatePage, /id="agreeCheckbox"/);
+  assert.doesNotMatch(gatePage, /部分功能需申请并经管理员审核后方可使用/);
+  const agreementPage = fs.readFileSync(path.join(root, 'legal', 'tool-access-agreement.html'), 'utf8');
+  assert.match(agreementPage, /功能申请协议/);
+  assert.match(agreementPage, /提交申请<strong>不构成<\/strong>本站已经同意开放/);
+  assert.match(agreementPage, /全部法律责任、赔偿、处罚、纠纷、损失及其他后果，均由你自行承担/);
+  assert.match(agreementPage, /仅出现在需要申请的功能页/);
+  assert.match(agreementPage, /也不会向未登录访客弹窗/);
+  assert.match(serverSource, /app\.get\('\/api\/tool-access-agreement-notice'/);
+  const noticeScript = fs.readFileSync(path.join(root, 'public', 'function', 'tool-access-agreement-notice.js'), 'utf8');
+  assert.match(noticeScript, /\/api\/tool-access-agreement-notice/);
+  assert.match(noticeScript, /shouldSkip/);
+  assert.doesNotMatch(noticeScript, /legal-notice/);
   const adminHtml = fs.readFileSync(path.join(root, 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'), 'utf8');
   assert.match(adminHtml, /权限申请/);
   assert.match(adminHtml, /data-request-action="approve"/);
@@ -301,13 +317,18 @@ test('users can request tool access and admins can approve it onto the allowlist
     newId: () => 'tar_test_1'
   });
 
+  const refused = createResponse();
+  await handlers.create({ body: { toolId: 'map-editor' } }, refused);
+  assert.equal(refused.statusCode, 400);
+  assert.deepEqual(refused.body, { error: 'AGREEMENT_REQUIRED' });
+
   const created = createResponse();
-  await handlers.create({ body: { toolId: 'map-editor' } }, created);
+  await handlers.create({ body: { toolId: 'map-editor', acceptedAgreement: true } }, created);
   assert.equal(created.statusCode, 201);
   assert.equal(created.body.request.status, 'pending');
 
   const duplicate = createResponse();
-  await handlers.create({ body: { toolId: 'map-editor' } }, duplicate);
+  await handlers.create({ body: { toolId: 'map-editor', acceptedAgreement: true } }, duplicate);
   assert.equal(duplicate.statusCode, 409);
   assert.deepEqual(duplicate.body, { error: 'ALREADY_PENDING', request: created.body.request });
 
@@ -322,6 +343,65 @@ test('users can request tool access and admins can approve it onto the allowlist
   const savedTools = writes.find((item) => item.key === 'tool_management').value.tools;
   assert.deepEqual(savedTools.find((tool) => tool.id === 'map-editor').allowedLoginIds, ['owner_01', 'player_01', '42']);
   assert.equal(audits[0].action, 'tool_access_request.approve');
+});
+
+test('tool access agreement update notice is limited to logged-in users on request-only tools', async () => {
+  const settings = {
+    tool_management: {
+      tools: server.TOOL_CATALOG.map((tool) => ({
+        id: tool.id,
+        visible: tool.defaultVisible,
+        enabled: true,
+        adminOnly: tool.id === 'map-editor',
+        allowedLoginIds: tool.id === 'map-editor' ? ['player_01'] : []
+      }))
+    },
+    tool_access_agreement_acks: { acks: {} }
+  };
+  const user = { id: 42, login_id: 'player_01', username: '申请者' };
+  const handlers = server.createToolAccessRequestHandlers({
+    getSetting: async (key, fallback) => (Object.prototype.hasOwnProperty.call(settings, key) ? settings[key] : fallback),
+    setSetting: async (key, value) => { settings[key] = value; },
+    requireAuth: async () => user,
+    currentUserFromRequest: async () => user
+  });
+
+  const guest = server.createToolAccessRequestHandlers({
+    getSetting: async (key, fallback) => (Object.prototype.hasOwnProperty.call(settings, key) ? settings[key] : fallback),
+    currentUserFromRequest: async () => null
+  });
+  const guestRes = createResponse();
+  await guest.getNotice({ query: { path: '/map-tool/' } }, guestRes);
+  assert.deepEqual(guestRes.body, { show: false });
+
+  const homeRes = createResponse();
+  await handlers.getNotice({ query: { path: '/' } }, homeRes);
+  assert.deepEqual(homeRes.body, { show: false });
+
+  const publicTool = createResponse();
+  await handlers.getNotice({ query: { path: '/function/BeaPit.html' } }, publicTool);
+  assert.deepEqual(publicTool.body, { show: false });
+
+  const shown = createResponse();
+  await handlers.getNotice({ query: { path: '/map-tool/' } }, shown);
+  assert.equal(shown.body.show, true);
+  assert.equal(shown.body.notice.version, server.TOOL_ACCESS_AGREEMENT_VERSION);
+  assert.match(shown.body.notice.summary, /全部后果由你自行承担/);
+
+  const acked = createResponse();
+  await handlers.ackNotice({ body: { version: server.TOOL_ACCESS_AGREEMENT_VERSION } }, acked);
+  assert.equal(acked.body.ok, true);
+  const afterAck = createResponse();
+  await handlers.getNotice({ query: { path: '/map-tool/' } }, afterAck);
+  assert.deepEqual(afterAck.body, { show: false });
+
+  const firstApplicant = server.createToolAccessRequestHandlers({
+    getSetting: async (key, fallback) => (Object.prototype.hasOwnProperty.call(settings, key) ? settings[key] : fallback),
+    currentUserFromRequest: async () => ({ id: 99, login_id: 'newbie_01' })
+  });
+  const firstVisit = createResponse();
+  await firstApplicant.getNotice({ query: { path: '/map-tool/' } }, firstVisit);
+  assert.deepEqual(firstVisit.body, { show: false });
 });
 
 function createResponse() {

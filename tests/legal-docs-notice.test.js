@@ -58,6 +58,7 @@ test('request path maps to legal document ids', () => {
   assert.equal(docIdFromRequestPath('/legal/about'), 'about');
   assert.equal(docIdFromRequestPath('/legal/privacy.html'), 'privacy');
   assert.equal(docIdFromRequestPath('/legal/user-agreement'), 'agreement');
+  assert.equal(docIdFromRequestPath('/legal/tool-access-agreement'), '');
   assert.equal(docIdFromRequestPath('/legal/nope'), '');
 });
 
@@ -80,6 +81,9 @@ test('server and admin expose legal docs notice endpoints', () => {
   assert.match(admin, /legalDocsPublishBtn/);
   assert.match(admin, /已确认：/);
   assert.match(tracker, /legal-notice\.js/);
+  assert.match(tracker, /tool-access-agreement-notice\.js/);
+  assert.equal(toPublicNotice(loadDefaultsFromLegalDir(path.join(root, 'legal'))).links.length, 3);
+  assert.doesNotMatch(notice, /tool-access-agreement/);
   assert.match(notice, /wjdr_legal_notice_ack/);
   assert.match(notice, />确定</);
   assert.match(notice, /\/legal/);

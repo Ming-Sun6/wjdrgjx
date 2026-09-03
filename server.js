@@ -109,6 +109,9 @@ const LEGAL_DIR = path.join(__dirname, 'legal');
 const TOOL_MANAGEMENT_SETTING_KEY = 'tool_management';
 const TOOL_ACCESS_REQUESTS_SETTING_KEY = 'tool_access_requests';
 const MAX_TOOL_ACCESS_REQUESTS = 300;
+const TOOL_ACCESS_AGREEMENT_VERSION = '20260903b';
+const TOOL_ACCESS_AGREEMENT_HREF = '/legal/tool-access-agreement';
+const TOOL_ACCESS_AGREEMENT_ACKS_SETTING_KEY = 'tool_access_agreement_acks';
 const NEIGHBOR_PROGRESS_SETTING_KEY = 'neighbor_progress_schedule';
 const HISTORY_IMMIGRATION_SETTING_KEY = 'history_immigration_config';
 const TOOL_BADGES = new Set(['none', 'new', 'hot']);
@@ -234,13 +237,16 @@ function renderToolGatePageHtml({ title, message, tool }) {
     h1{margin:0 0 12px;font-size:1.55rem}
     p{color:#756456;line-height:1.8}
     .actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-    a,button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:11px 18px;border-radius:999px;font-weight:700;font-size:1rem;font-family:inherit;cursor:pointer;text-decoration:none;box-sizing:border-box}
-    a{background:#bd6d49;color:#fff;border:0}
+    .actions a,button{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:11px 18px;border-radius:999px;font-weight:700;font-size:1rem;font-family:inherit;cursor:pointer;text-decoration:none;box-sizing:border-box}
+    .actions a{background:#bd6d49;color:#fff;border:0}
     button{background:#fff;color:#bd6d49;border:1px solid #bd6d49}
     button:disabled{opacity:.55;cursor:not-allowed}
+    .agreement-link{display:inline-block;margin-top:8px;color:#bd6d49;font-size:.9rem;font-weight:700;text-decoration:none;border-bottom:1px dotted currentColor}
+    .agree-row{display:flex;align-items:flex-start;justify-content:center;gap:8px;margin-top:12px;color:#483b31;font-size:.9rem;line-height:1.55;text-align:left;cursor:pointer}
+    .agree-row input{margin-top:3px;flex:0 0 auto}
     .login-form{display:grid;gap:8px;margin-top:16px;text-align:left}
     .login-form[hidden]{display:none}
-    .login-form input{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ead7c2;border-radius:12px;font-size:1rem;font-family:inherit}
+    .login-form input[type="text"],.login-form input[type="password"]{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ead7c2;border-radius:12px;font-size:1rem;font-family:inherit}
     .hint{margin:14px 0 0;font-size:.9rem}
   </style>
 </head>
@@ -248,6 +254,11 @@ function renderToolGatePageHtml({ title, message, tool }) {
   <main class="box">
     <h1>${safeTitle}</h1>
     <p>${safeMessage}</p>
+    <a class="agreement-link" href="${TOOL_ACCESS_AGREEMENT_HREF}" target="_blank" rel="noopener noreferrer">查看完整协议</a>
+    <label class="agree-row" for="agreeCheckbox">
+      <input id="agreeCheckbox" type="checkbox">
+      <span>我已阅读并同意《功能申请协议》</span>
+    </label>
     <div class="actions">
       <a href="/">返回工具箱首页</a>
       <button type="button" id="requestAccessBtn">申请权限</button>
@@ -267,6 +278,7 @@ function renderToolGatePageHtml({ title, message, tool }) {
       var loginForm = document.getElementById('loginForm');
       var loginIdInput = document.getElementById('loginIdInput');
       var passwordInput = document.getElementById('passwordInput');
+      var agreeCheckbox = document.getElementById('agreeCheckbox');
       function setStatus(text, isError) {
         statusEl.textContent = text;
         statusEl.style.color = isError ? '#a24b32' : '#756456';
@@ -287,10 +299,22 @@ function renderToolGatePageHtml({ title, message, tool }) {
         loginForm.hidden = true;
         setStatus(text || '已提交申请，请等待管理员审核。');
       }
+      function hasAgreed() {
+        return !!(agreeCheckbox && agreeCheckbox.checked);
+      }
+      function requireAgreement() {
+        if (hasAgreed()) return true;
+        setStatus('请先阅读并勾选同意《功能申请协议》。', true);
+        return false;
+      }
       function submitRequest() {
+        if (!requireAgreement()) {
+          btn.disabled = false;
+          return Promise.resolve(false);
+        }
         return api('/api/tool-access-requests', {
           method: 'POST',
-          body: JSON.stringify({ toolId: toolId })
+          body: JSON.stringify({ toolId: toolId, acceptedAgreement: true })
         }).then(function (result) {
           var error = result.data && result.data.error;
           if (result.res.status === 401 || error === 'SESSION_EXPIRED' || error === 'UNAUTHORIZED') {
@@ -307,7 +331,10 @@ function renderToolGatePageHtml({ title, message, tool }) {
             return true;
           }
           if (!result.res.ok) {
-            setStatus(error === 'UNKNOWN_TOOL' ? '无法识别该工具。' : '申请失败，请稍后再试。', true);
+            var message = '申请失败，请稍后再试。';
+            if (error === 'UNKNOWN_TOOL') message = '无法识别该工具。';
+            else if (error === 'AGREEMENT_REQUIRED') message = '请先阅读并勾选同意《功能申请协议》。';
+            setStatus(message, true);
             btn.disabled = false;
             return false;
           }
@@ -317,6 +344,7 @@ function renderToolGatePageHtml({ title, message, tool }) {
       }
       btn.addEventListener('click', function () {
         if (btn.disabled) return;
+        if (!requireAgreement()) return;
         btn.disabled = true;
         api('/api/auth/me').then(function (result) {
           if (!result.data || !result.data.authenticated) {
@@ -335,6 +363,7 @@ function renderToolGatePageHtml({ title, message, tool }) {
         event.preventDefault();
         var loginId = String(loginIdInput.value || '').trim();
         var password = String(passwordInput.value || '');
+        if (!requireAgreement()) return;
         if (!loginId || !password) {
           setStatus('请填写登录 ID 和密码。', true);
           return;
@@ -366,6 +395,7 @@ function renderToolGatePageHtml({ title, message, tool }) {
       }
     })();
   </script>
+  <script src="/function/tool-access-agreement-notice.js" defer></script>
 </body>
 </html>`;
 }
@@ -2013,7 +2043,8 @@ function normalizeToolAccessRequests(payload) {
       status,
       createdAt: String(item?.createdAt || ''),
       resolvedAt: item?.resolvedAt ? String(item.resolvedAt) : null,
-      resolvedBy: item?.resolvedBy ? String(item.resolvedBy) : null
+      resolvedBy: item?.resolvedBy ? String(item.resolvedBy) : null,
+      agreementVersion: String(item?.agreementVersion || '').trim() || null
     });
     if (requests.length >= MAX_TOOL_ACCESS_REQUESTS) break;
   }
@@ -2049,11 +2080,43 @@ function createToolAccessRequestHandlers(dependencies = {}) {
     await writeSetting(TOOL_ACCESS_REQUESTS_SETTING_KEY, { requests, updatedAt: now() });
   }
 
+  function normalizeAgreementAcks(payload) {
+    const raw = payload && typeof payload === 'object' ? (payload.acks || payload) : {};
+    const acks = {};
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return acks;
+    for (const [userId, version] of Object.entries(raw)) {
+      if (!/^\d+$/.test(userId)) continue;
+      const token = String(version || '').trim().slice(0, 32);
+      if (!token) continue;
+      acks[userId] = token;
+    }
+    return acks;
+  }
+
+  async function readAgreementAcks() {
+    const stored = await readSetting(TOOL_ACCESS_AGREEMENT_ACKS_SETTING_KEY, { acks: {} });
+    return normalizeAgreementAcks(stored);
+  }
+
+  async function writeUserAgreementAck(userId, version) {
+    const acks = await readAgreementAcks();
+    acks[String(userId)] = String(version || TOOL_ACCESS_AGREEMENT_VERSION);
+    await writeSetting(TOOL_ACCESS_AGREEMENT_ACKS_SETTING_KEY, { acks, updatedAt: now() });
+  }
+
+  function toolRequiresApplication(setting) {
+    if (!setting) return false;
+    if (setting.enabled === false) return true;
+    if (setting.adminOnly === true) return true;
+    return Array.isArray(setting.allowedLoginIds) && setting.allowedLoginIds.length > 0;
+  }
+
   async function create(req, res) {
     const user = await authenticate(req, res);
     if (!user) return;
     const tool = catalogToolById(String(req.body?.toolId || '').trim());
     if (!tool) return res.status(400).json({ error: 'UNKNOWN_TOOL' });
+    if (req.body?.acceptedAgreement !== true) return res.status(400).json({ error: 'AGREEMENT_REQUIRED' });
     const loginId = String(user.login_id || user.loginId || '').trim();
     if (!loginId) return res.status(400).json({ error: 'UNKNOWN_TOOL' });
     const storedTools = await readSetting(TOOL_MANAGEMENT_SETTING_KEY, { tools: [] });
@@ -2076,10 +2139,12 @@ function createToolAccessRequestHandlers(dependencies = {}) {
       status: 'pending',
       createdAt: now(),
       resolvedAt: null,
-      resolvedBy: null
+      resolvedBy: null,
+      agreementVersion: TOOL_ACCESS_AGREEMENT_VERSION
     };
     const next = [request, ...requests].slice(0, MAX_TOOL_ACCESS_REQUESTS);
     await writeRequests(next);
+    try { await writeUserAgreementAck(userId, TOOL_ACCESS_AGREEMENT_VERSION); } catch (_error) {}
     return res.status(201).json({ ok: true, request: publicToolAccessRequest(request) });
   }
 
@@ -2143,7 +2208,43 @@ function createToolAccessRequestHandlers(dependencies = {}) {
     return res.json({ ok: true, request: requests[index] });
   }
 
-  return { create, getMine, listAdmin, resolveAdmin };
+  async function getNotice(req, res) {
+    const user = await resolveUser(req);
+    if (!user) return res.json({ show: false });
+    const pathname = String(req.query?.path || '').split('?')[0];
+    const tool = findManagedToolByPath(pathname);
+    if (!tool) return res.json({ show: false });
+    const storedTools = await readSetting(TOOL_MANAGEMENT_SETTING_KEY, { tools: [] });
+    const normalizedTools = normalizeToolManagement(storedTools);
+    const tools = normalizedTools.error ? [] : (normalizedTools.tools || []);
+    const setting = tools.find((item) => item.id === tool.id);
+    if (!toolRequiresApplication(setting)) return res.json({ show: false });
+    const hasAccess = setting.enabled !== false && isToolAllowedForUser(setting, user);
+    const acks = await readAgreementAcks();
+    const previous = acks[String(user.id)] || '';
+    if (!previous && !hasAccess) return res.json({ show: false });
+    if (previous === TOOL_ACCESS_AGREEMENT_VERSION) return res.json({ show: false });
+    return res.json({
+      show: true,
+      notice: {
+        version: TOOL_ACCESS_AGREEMENT_VERSION,
+        title: '功能申请协议已更新',
+        summary: '需要申请的功能适用《功能申请协议》。本次更新明确：若你泄露账号、权限或未公开内容，由此产生的全部后果由你自行承担。请阅读后确认。',
+        href: TOOL_ACCESS_AGREEMENT_HREF
+      }
+    });
+  }
+
+  async function ackNotice(req, res) {
+    const user = await authenticate(req, res);
+    if (!user) return;
+    const version = String(req.body?.version || TOOL_ACCESS_AGREEMENT_VERSION).trim().slice(0, 32);
+    if (version !== TOOL_ACCESS_AGREEMENT_VERSION) return res.status(400).json({ error: 'BAD_VERSION' });
+    await writeUserAgreementAck(Number(user.id), version);
+    return res.json({ ok: true, version });
+  }
+
+  return { create, getMine, listAdmin, resolveAdmin, getNotice, ackNotice };
 }
 
 async function normalizeUserQuota(userId) {
@@ -3184,6 +3285,24 @@ async function resolveToolAccessRequest(req, res, action) {
 
 app.post('/api/admin/tool-access-requests/:id/approve', (req, res) => resolveToolAccessRequest(req, res, 'approve'));
 app.post('/api/admin/tool-access-requests/:id/reject', (req, res) => resolveToolAccessRequest(req, res, 'reject'));
+
+app.get('/api/tool-access-agreement-notice', async (req, res) => {
+  try {
+    await toolAccessRequestHandlers.getNotice(req, res);
+  } catch (err) {
+    console.error('tool access agreement notice get failed:', err);
+    res.json({ show: false });
+  }
+});
+
+app.post('/api/tool-access-agreement-notice/ack', async (req, res) => {
+  try {
+    await toolAccessRequestHandlers.ackNotice(req, res);
+  } catch (err) {
+    console.error('tool access agreement notice ack failed:', err);
+    res.status(500).json({ error: 'INTERNAL_ERROR' });
+  }
+});
 
 app.get('/api/neighbor-progress', async (_req, res) => {
   try {
@@ -5921,6 +6040,7 @@ module.exports = {
   createToolManagementHandlers,
   createToolAccessRequestHandlers,
   renderToolGatePageHtml,
+  TOOL_ACCESS_AGREEMENT_VERSION,
   findManagedToolByPath,
   HOME_NAVIGATION_CATALOG,
   normalizeHomeNavigation,

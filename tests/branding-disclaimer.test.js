@@ -44,6 +44,7 @@ test('main public pages use the shortened site brand', () => {
     'legal/about.html',
     'legal/privacy.html',
     'legal/user-agreement.html',
+    'legal/tool-access-agreement.html',
     'public/function/expert-calculator.html',
     'public/function/forum-post.html',
     'public/function/wjti-personality-test.html',

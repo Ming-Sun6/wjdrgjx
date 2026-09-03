@@ -279,6 +279,23 @@
     document.head.appendChild(sc);
   }
 
+  function ensureToolAccessAgreementNoticeScript() {
+    if (window.__wjdrToolAccessAgreementNoticeQueued) return;
+    window.__wjdrToolAccessAgreementNoticeQueued = true;
+    try {
+      var nodes = document.getElementsByTagName('script');
+      for (var i = 0; i < nodes.length; i++) {
+        var src = nodes[i].getAttribute('src') || '';
+        var path = (src.split('?')[0].split('#')[0] || '').trim();
+        if (/tool-access-agreement-notice\.js$/i.test(path)) return;
+      }
+    } catch (_e) {}
+    var sc = document.createElement('script');
+    sc.src = '/function/tool-access-agreement-notice.js';
+    sc.async = true;
+    document.head.appendChild(sc);
+  }
+
   function ensureSmartBackScript() {
     if (window.__wjdrSmartBackScriptQueued || window.__wjdrSmartBackBound) return;
     window.__wjdrSmartBackScriptQueued = true;
@@ -407,6 +424,7 @@
     ensureSiteBeianScript();
     ensureSiteFooterScript();
     ensureLegalNoticeScript();
+    ensureToolAccessAgreementNoticeScript();
     ensureSmartBackScript();
     applyHomePublisherRuntime();
     if (!pageLoadsUnifiedTheme()) {
