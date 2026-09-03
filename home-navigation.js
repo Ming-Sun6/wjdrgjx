@@ -10,7 +10,7 @@ const HOME_NAVIGATION_CATALOG = Object.freeze([
 ]);
 
 function defaults() {
-  return HOME_NAVIGATION_CATALOG.map((item) => ({ id: item.id, visible: true }));
+  return HOME_NAVIGATION_CATALOG.map((item) => ({ id: item.id, visible: true, adminOnly: false }));
 }
 
 function normalizeHomeNavigation(input, options) {
@@ -20,22 +20,29 @@ function normalizeHomeNavigation(input, options) {
   const byId = new Map();
   for (const item of items) {
     if (!item || typeof item.id !== 'string' || typeof item.visible !== 'boolean' || byId.has(item.id)) return { error: 'BAD_HOME_NAVIGATION' };
-    byId.set(item.id, item.visible);
+    if (item.adminOnly != null && typeof item.adminOnly !== 'boolean') return { error: 'BAD_HOME_NAVIGATION' };
+    byId.set(item.id, { visible: item.visible, adminOnly: item.adminOnly === true });
   }
   if (strict && (byId.size !== HOME_NAVIGATION_CATALOG.length || HOME_NAVIGATION_CATALOG.some((item) => !byId.has(item.id)))) return { error: 'BAD_HOME_NAVIGATION' };
   if ([...byId.keys()].some((id) => !HOME_NAVIGATION_CATALOG.some((item) => item.id === id))) return { error: 'BAD_HOME_NAVIGATION' };
-  const normalized = HOME_NAVIGATION_CATALOG.map((item) => ({ id: item.id, visible: byId.has(item.id) ? byId.get(item.id) : true }));
-  if (!normalized.some((item) => item.visible)) return { error: 'HOME_NAVIGATION_EMPTY' };
+  const normalized = HOME_NAVIGATION_CATALOG.map((item) => {
+    const stored = byId.get(item.id);
+    return stored ? { id: item.id, visible: stored.visible, adminOnly: stored.adminOnly } : { id: item.id, visible: true, adminOnly: false };
+  });
+  if (!normalized.some((item) => item.visible && !item.adminOnly)) return { error: 'HOME_NAVIGATION_EMPTY' };
   return { items: normalized };
 }
 
 function publicProjection(items) {
-  return items.map((item) => ({ id: item.id, visible: item.visible !== false }));
+  return items.map((item) => ({ id: item.id, visible: item.visible !== false, adminOnly: item.adminOnly === true }));
 }
 
 function adminProjection(items) {
   const byId = new Map(items.map((item) => [item.id, item]));
-  return HOME_NAVIGATION_CATALOG.map((catalog) => ({ id: catalog.id, name: catalog.name, visible: byId.get(catalog.id).visible !== false }));
+  return HOME_NAVIGATION_CATALOG.map((catalog) => {
+    const stored = byId.get(catalog.id) || {};
+    return { id: catalog.id, name: catalog.name, visible: stored.visible !== false, adminOnly: stored.adminOnly === true };
+  });
 }
 
 function createHomeNavigationHandlers(dependencies) {

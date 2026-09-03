@@ -12,6 +12,10 @@ wjdr-giftcode/node_modules/
 wjdr-giftcode/__pycache__/
 wjdr-giftcode/.env
 
+# Imported map editor
+map-tool/node_modules/
+map-tool/dist/
+
 # Imported aeroplane chess project
 aeroplane-chess/node_modules/
 aeroplane-chess/frontend/node_modules/

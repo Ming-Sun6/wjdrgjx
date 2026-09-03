@@ -1,0 +1,84 @@
+.bottombar {
+  height:40px;
+  flex:none;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:0 14px;
+  background:var(--bg-panel);
+  border-top:1px solid var(--border);
+  overflow-x:auto;
+  white-space:nowrap
+}
+ .group {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px
+}
+ .tag {
+  color:var(--text-faint);
+  font-size:11px
+}
+ .num {
+  font-variant-numeric:tabular-nums;
+  color:#cfe3ff
+}
+ .divider {
+  width:1px;
+  height:20px;
+  background:var(--border)
+}
+ .spacer {
+  flex:1
+}
+ .credit {
+  font-size:11px;
+  color:var(--text-faint);
+  letter-spacing:.5px;
+  white-space:nowrap
+}
+ .stats {
+  gap:8px
+}
+ .chip {
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  font-size:11px;
+  color:var(--text-dim);
+  background:var(--bg-panel-2);
+  padding:2px 8px;
+  border-radius:10px
+}
+ .chip i {
+  width:8px;
+  height:8px;
+  border-radius:2px;
+  display:inline-block
+}
+ .toggle {
+  border:1px solid var(--border);
+  background:var(--bg-panel-2);
+  color:var(--text-dim);
+  border-radius:6px;
+  padding:2px 8px;
+  cursor:pointer
+}
+ .toggle:hover {
+  border-color:var(--accent);
+  color:#cfe3ff
+}
+ @media (max-width: 768px) {
+  .bottombar {
+  gap:10px;
+  padding:0 10px
+}
+.credit {
+  font-size:10px
+}
+.bottombar::-webkit-scrollbar {
+  height:0
+}
+
+}

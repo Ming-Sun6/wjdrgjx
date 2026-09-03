@@ -23,6 +23,8 @@ test('homepage navigation admin loads, validates, and saves the complete list', 
   assert.match(js, /\/api\/admin\/home-navigation/);
   assert.match(js, /\['all','tools','forum','calendar','my'\]/);
   assert.match(js, /HOME_NAVIGATION_EMPTY/);
+  assert.match(js, /home-navigation-admin-only/);
+  assert.match(js, /item\.visible && !item\.adminOnly/);
   assert.match(js, /method:'PUT'/);
   assert.match(js, /method:'POST'/);
   assert.match(js, /window\.loadAdminHomeNavigation/);

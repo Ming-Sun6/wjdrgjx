@@ -50,6 +50,13 @@ test('home page exposes separate building query and calculator entries', () => {
   assert.match(moreTools, /data-category="calcTools"[\s\S]*?function\/building-upgrade-calculator\.html[\s\S]*?1-30建筑升级(?:<wbr>)?计算器/);
 });
 
+test('home page exposes the all-in-one map editor in basic tools', () => {
+  const home = read('index.html');
+  assert.match(home, /href="\/map-tool\/"/);
+  assert.match(home, /data-tool-priority="core"[^>]*data-tool-id="map-editor"/);
+  assert.match(home, /全能(?:<wbr>)?地图编辑器/);
+});
+
 test('home page exposes the ice workshop placement assistant in basic tools', () => {
   const home = read('index.html');
   assert.match(home, /function\/ice-workshop-placement\.html/);

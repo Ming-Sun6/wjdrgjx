@@ -144,7 +144,8 @@ const TOOL_CATALOG = [
   { id: 'special-gift-data', name: '特惠礼包', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'reference-hub', name: '礼包参考总览', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'gift-rotation-schedule', name: '礼包轮换表', group: 'extended', defaultVisible: true, badge: 'none' },
-  { id: 'aeroplane-chess', name: '极简飞行棋', group: 'miniGames', defaultVisible: true, badge: 'none' }
+  { id: 'aeroplane-chess', name: '极简飞行棋', group: 'miniGames', defaultVisible: true, badge: 'none' },
+  { id: 'map-editor', name: '全能地图编辑器', group: 'core', defaultVisible: true, badge: 'none' }
 ];
 const TOOL_DATA_QUERY_IDS = new Set([
   'hero-data', 'tiantian-strategy', 'bear-body-recommendation', 'ice-workshop-placement',
@@ -184,7 +185,8 @@ const TOOL_ENTRY_PATHS = {
   'special-gift-data': ['/function/Zero/special-gift-data.html'],
   'reference-hub': ['/function/reference-hub/index.html'],
   'gift-rotation-schedule': ['/function/Zero/gift-rotation-schedule.html'],
-  'aeroplane-chess': ['/function/aeroplane-chess/index.html', '/function/aeroplane-chess/game.html', '/function/aeroplane-chess/spectate.html']
+  'aeroplane-chess': ['/function/aeroplane-chess/index.html', '/function/aeroplane-chess/game.html', '/function/aeroplane-chess/spectate.html'],
+  'map-editor': ['/map-tool/', '/map-tool/index.html']
 };
 
 function defaultToolCategory(tool) {
@@ -208,6 +210,7 @@ function findManagedToolByPath(pathname) {
     if (paths.some((entry) => normalizeManagedToolPath(entry) === normalized)) return tool;
     if (tool.id === 'reference-hub' && normalized.startsWith('/function/reference-hub/')) return tool;
     if (tool.id === 'aeroplane-chess' && normalized.startsWith('/function/aeroplane-chess/')) return tool;
+    if (tool.id === 'map-editor' && (normalized === '/map-tool.html' || normalized.startsWith('/map-tool/'))) return tool;
     if (tool.id === 'hero-data' && /^\/function\/zero\/(?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|eleventh|twelfth|thirteenth|fourteenth|fifteenth)-generation-heroes\.html$/.test(normalized)) return tool;
   }
   return null;
@@ -219,6 +222,25 @@ function sendToolDisabledPage(res, tool, message) {
   res.status(503);
   res.setHeader('Cache-Control', 'no-store');
   return res.type('html').send(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeName}已关闭</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:linear-gradient(145deg,#fff7e9,#e9f1e8);color:#483b31;font-family:"Microsoft YaHei",sans-serif}.box{width:min(520px,100%);padding:34px;border:1px solid #ead7c2;border-radius:24px;background:rgba(255,255,255,.9);box-shadow:0 20px 60px rgba(76,55,38,.13);text-align:center}h1{margin:0 0 12px;font-size:1.55rem}p{color:#756456;line-height:1.8}a{display:inline-flex;margin-top:14px;padding:11px 18px;border-radius:999px;background:#bd6d49;color:#fff;text-decoration:none;font-weight:700}</style></head><body><main class="box"><h1>${safeName}当前已关闭</h1><p>${safeMessage}</p><a href="/">返回工具箱首页</a></main></body></html>`);
+}
+
+function sendToolRestrictedPage(res, tool, setting) {
+  const safeName = escapeHtml(tool && tool.name || '该工具');
+  const allowedCount = Array.isArray(setting?.allowedLoginIds) ? setting.allowedLoginIds.length : 0;
+  const adminOnly = setting?.adminOnly === true;
+  const title = adminOnly && !allowedCount ? `${safeName}仅管理员可访问` : `${safeName}仅指定用户可访问`;
+  const message = adminOnly && !allowedCount
+    ? '该工具当前仅对管理员开放，普通用户无法打开此页面。'
+    : adminOnly
+      ? '该工具当前仅对管理员或指定用户开放。'
+      : '该工具当前仅对指定用户开放。';
+  res.status(403);
+  res.setHeader('Cache-Control', 'no-store');
+  return res.type('html').send(`<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box;background:linear-gradient(145deg,#fff7e9,#e9f1e8);color:#483b31;font-family:"Microsoft YaHei",sans-serif}.box{width:min(520px,100%);padding:34px;border:1px solid #ead7c2;border-radius:24px;background:rgba(255,255,255,.9);box-shadow:0 20px 60px rgba(76,55,38,.13);text-align:center}h1{margin:0 0 12px;font-size:1.55rem}p{color:#756456;line-height:1.8}a{display:inline-flex;margin-top:14px;padding:11px 18px;border-radius:999px;background:#bd6d49;color:#fff;text-decoration:none;font-weight:700}</style></head><body><main class="box"><h1>${escapeHtml(title)}</h1><p>${escapeHtml(message)}</p><a href="/">返回工具箱首页</a></main></body></html>`);
+}
+
+function sendToolAdminOnlyPage(res, tool) {
+  return sendToolRestrictedPage(res, tool, { adminOnly: true, allowedLoginIds: [] });
 }
 const DEFAULT_SITE_FOOTER_CREDITS = [
   '制作：2041茗子、飞菇',
@@ -298,6 +320,10 @@ app.use(async (req, res, next) => {
     const tools = normalized.error ? normalizeToolManagement([]).tools : normalized.tools;
     const setting = tools.find((tool) => tool.id === managedTool.id);
     if (setting && setting.enabled === false) return sendToolDisabledPage(res, managedTool, setting.disabledMessage);
+    if (setting && (setting.adminOnly === true || (Array.isArray(setting.allowedLoginIds) && setting.allowedLoginIds.length))) {
+      const user = await currentUserFromRequest(req);
+      if (!isToolAllowedForUser(setting, user)) return sendToolRestrictedPage(res, managedTool, setting);
+    }
     return next();
   } catch (err) {
     console.warn('tool availability check skipped:', err.message);
@@ -1607,6 +1633,55 @@ async function recordLegalNoticeAck(version, visitorId, userId) {
   return { counted: true };
 }
 
+const MAX_TOOL_ALLOWED_USERS = 80;
+
+function normalizeAllowedUserRefs(input) {
+  const raw = Array.isArray(input)
+    ? input
+    : typeof input === 'string'
+      ? String(input).split(/[,，;；\s]+/)
+      : [];
+  const seen = new Set();
+  const refs = [];
+  for (const item of raw) {
+    const text = String(item || '').trim();
+    if (!text) continue;
+    let key = '';
+    let value = text;
+    if (/^\d{1,10}$/.test(text) && Number(text) > 0) {
+      value = String(Number(text));
+      key = 'id:' + value;
+    } else if (isValidLegacyLoginId(text) || isValidStrongLoginId(text)) {
+      value = text;
+      key = 'login:' + text.toLowerCase();
+    } else {
+      continue;
+    }
+    if (seen.has(key)) continue;
+    seen.add(key);
+    refs.push(value);
+    if (refs.length >= MAX_TOOL_ALLOWED_USERS) break;
+  }
+  return refs;
+}
+
+function isToolAllowedForUser(tool, user) {
+  const allowed = Array.isArray(tool?.allowedLoginIds) ? tool.allowedLoginIds : [];
+  const adminOnly = tool?.adminOnly === true;
+  if (!adminOnly && !allowed.length) return true;
+  if (!user) return false;
+  if (adminOnly && (Number(user.is_admin) === 1 || user.isAdmin === true)) return true;
+  const loginId = String(user.login_id || user.loginId || '').trim().toLowerCase();
+  const userId = Number(user.id);
+  for (const ref of allowed) {
+    const token = String(ref || '').trim();
+    if (!token) continue;
+    if (/^\d+$/.test(token) && Number(token) === userId) return true;
+    if (token.toLowerCase() === loginId) return true;
+  }
+  return false;
+}
+
 function normalizeToolManagement(payload) {
   const inputTools = Array.isArray(payload) ? payload : (Array.isArray(payload?.tools) ? payload.tools : []);
   const knownIds = new Set(TOOL_CATALOG.map((tool) => tool.id));
@@ -1627,6 +1702,8 @@ function normalizeToolManagement(payload) {
         id: tool.id,
         visible: typeof input?.visible === 'boolean' ? input.visible : tool.defaultVisible,
         enabled: typeof input?.enabled === 'boolean' ? input.enabled : true,
+        adminOnly: typeof input?.adminOnly === 'boolean' ? input.adminOnly : false,
+        allowedLoginIds: normalizeAllowedUserRefs(input?.allowedLoginIds),
         badge: input?.badge || tool.badge,
         displayGroup: input?.displayGroup || tool.group,
         toolCategory: input?.toolCategory || defaultToolCategory(tool),
@@ -1637,15 +1714,25 @@ function normalizeToolManagement(payload) {
   };
 }
 
-function toPublicToolManagement(tools) {
-  return tools.map(({ id, visible, enabled, badge, displayGroup, toolCategory, sortOrder }) => ({ id, visible, enabled, badge, displayGroup, toolCategory, sortOrder }));
+function toPublicToolManagement(tools, user) {
+  return tools.map(({ id, visible, enabled, adminOnly, allowedLoginIds, badge, displayGroup, toolCategory, sortOrder }) => ({
+    id,
+    visible,
+    enabled,
+    adminOnly: !!adminOnly,
+    viewerAllowed: isToolAllowedForUser({ adminOnly, allowedLoginIds }, user),
+    badge,
+    displayGroup,
+    toolCategory,
+    sortOrder
+  }));
 }
 
 function toAdminToolManagement(tools) {
   const settingsById = new Map(tools.map((tool) => [tool.id, tool]));
   return TOOL_CATALOG.map(({ id, name, group, defaultVisible }) => {
-    const setting = settingsById.get(id) || { visible: defaultVisible, enabled: true, badge: 'none', displayGroup: group };
-    return { id, name, group: setting.displayGroup || group, defaultVisible, visible: setting.visible, enabled: setting.enabled !== false, badge: setting.badge, displayGroup: setting.displayGroup || group, toolCategory: setting.toolCategory || defaultToolCategory({ id, group }), sortOrder: Number(setting.sortOrder || 0), disabledMessage: setting.disabledMessage || '' };
+    const setting = settingsById.get(id) || { visible: defaultVisible, enabled: true, adminOnly: false, allowedLoginIds: [], badge: 'none', displayGroup: group };
+    return { id, name, group: setting.displayGroup || group, defaultVisible, visible: setting.visible, enabled: setting.enabled !== false, adminOnly: setting.adminOnly === true, allowedLoginIds: normalizeAllowedUserRefs(setting.allowedLoginIds), badge: setting.badge, displayGroup: setting.displayGroup || group, toolCategory: setting.toolCategory || defaultToolCategory({ id, group }), sortOrder: Number(setting.sortOrder || 0), disabledMessage: setting.disabledMessage || '' };
   });
 }
 
@@ -1664,12 +1751,16 @@ function createToolManagementHandlers(dependencies = {}) {
   const logError = dependencies.logError || ((...args) => console.error(...args));
   const defaultTools = () => normalizeToolManagement([]).tools;
 
-  async function getPublic(_req, res) {
+  const resolveUser = dependencies.currentUserFromRequest || currentUserFromRequest;
+
+  async function getPublic(req, res) {
     try {
       const stored = await readSetting(TOOL_MANAGEMENT_SETTING_KEY, { tools: defaultTools() });
       const normalized = normalizeToolManagement(stored);
       const tools = normalized.error ? defaultTools() : normalized.tools;
-      return res.json({ tools: toPublicToolManagement(tools) });
+      let user = null;
+      try { user = req ? await resolveUser(req) : null; } catch (_error) { user = null; }
+      return res.json({ tools: toPublicToolManagement(tools, user) });
     } catch (err) {
       logError('tool management get failed:', err);
       return res.json({ tools: toPublicToolManagement(defaultTools()) });
@@ -1715,6 +1806,8 @@ function createToolManagementHandlers(dependencies = {}) {
       metadata: {
         visibleCount: normalized.tools.filter((tool) => tool.visible).length,
         enabledCount: normalized.tools.filter((tool) => tool.enabled).length,
+        adminOnlyCount: normalized.tools.filter((tool) => tool.adminOnly).length,
+        allowedUserCount: normalized.tools.reduce((sum, tool) => sum + (Array.isArray(tool.allowedLoginIds) ? tool.allowedLoginIds.length : 0), 0),
         badgeCount: normalized.tools.filter((tool) => tool.badge !== 'none').length
       }
     });
@@ -5456,6 +5549,8 @@ module.exports = {
   app,
   TOOL_CATALOG,
   normalizeToolManagement,
+  normalizeAllowedUserRefs,
+  isToolAllowedForUser,
   toPublicToolManagement,
   toAdminToolManagement,
   createToolManagementHandlers,

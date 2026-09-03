@@ -14,7 +14,7 @@ test('every home tool has a unique management id and no static badge', () => {
   const toolCards = [...html.matchAll(/<section class="card [^"]*(?:featured-tool-card|tool-tile-card)[^"]*"[^>]*data-tool-id="([^"]+)"/g)];
   const ids = toolCards.map((match) => match[1]);
 
-  assert.equal(ids.length, 32);
+  assert.equal(ids.length, 33);
   assert.equal(new Set(ids).size, ids.length);
   assert.doesNotMatch(html, /<span class="new-badge">(?:新|热)<\/span>/);
 });
@@ -25,6 +25,8 @@ test('home page applies public tool visibility and badge settings', () => {
   assert.match(html, /fetch\('\/api\/tool-management'/);
   assert.match(html, /querySelectorAll\('\[data-tool-id\]'/);
   assert.match(html, /config\.visible\s*===\s*false/);
+  assert.match(html, /config\.adminOnly/);
+  assert.match(html, /viewerAllowed/);
   assert.match(html, /config\.enabled\s*===\s*false/);
   assert.match(html, /config\.displayGroup/);
   assert.match(html, /config\.toolCategory/);

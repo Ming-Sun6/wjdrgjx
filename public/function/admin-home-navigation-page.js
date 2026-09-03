@@ -24,16 +24,21 @@
   }
   function normalize(value){
     var list=value&&Array.isArray(value.items)?value.items:[];
-    var map=new Map(list.map(function(item){return [item.id,item.visible===true];}));
-    return IDS.map(function(id){return {id:id,visible:map.has(id)?map.get(id):true};});
+    var map=new Map(list.map(function(item){return [item.id,{visible:item.visible===true,adminOnly:item.adminOnly===true}];}));
+    return IDS.map(function(id){
+      var stored=map.get(id);
+      return {id:id,visible:stored?stored.visible:true,adminOnly:stored?stored.adminOnly:false};
+    });
   }
   function render(){
     var host=byId('homeNavigationItems');
     if(!host)return;
     host.innerHTML=items.map(function(item,index){
-      return '<label class="tool-management-row" style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;">'+
-        '<input class="home-navigation-visible" type="checkbox" data-home-navigation-id="'+item.id+'"'+(item.visible?' checked':'')+' />'+
-        '<strong>'+LABELS[item.id]+'</strong><span class="admin-status">位置 '+(index+1)+' · 桌面端与手机版同步</span></label>';
+      return '<div class="tool-management-row" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;">'+
+        '<strong>'+LABELS[item.id]+'</strong>'+
+        '<label class="tool-management-visible-label"><input class="home-navigation-visible" type="checkbox" data-home-navigation-id="'+item.id+'"'+(item.visible?' checked':'')+' />显示</label>'+
+        '<label class="tool-management-visible-label"><input class="home-navigation-admin-only" type="checkbox" data-home-navigation-admin-id="'+item.id+'"'+(item.adminOnly?' checked':'')+' />仅管理员可见</label>'+
+        '<span class="admin-status">位置 '+(index+1)+' · 桌面端与手机版同步</span></div>';
     }).join('');
   }
   async function load(){
@@ -50,20 +55,21 @@
   function collect(){
     return IDS.map(function(id){
       var checkbox=document.querySelector('[data-home-navigation-id="'+id+'"]');
-      return {id:id,visible:!!(checkbox&&checkbox.checked)};
+      var adminOnly=document.querySelector('[data-home-navigation-admin-id="'+id+'"]');
+      return {id:id,visible:!!(checkbox&&checkbox.checked),adminOnly:!!(adminOnly&&adminOnly.checked)};
     });
   }
   async function save(){
     if(!loaded){setStatus('请先成功加载菜单配置。',true);return;}
     var next=collect();
-    if(!next.some(function(item){return item.visible;})){setStatus('HOME_NAVIGATION_EMPTY：至少保留一个首页菜单。',true);return;}
+    if(!next.some(function(item){return item.visible && !item.adminOnly;})){setStatus('HOME_NAVIGATION_EMPTY：至少保留一个对所有人可见的首页菜单。',true);return;}
     setBusy(true);setStatus('正在保存…');
     try{
       var options={method:'PUT',body:JSON.stringify({items:next})};
       var response=await request('/api/admin/home-navigation',options);
       if(response.status===404||response.status===405) response=await request('/api/admin/home-navigation',{method:'POST',body:options.body});
       var data=await response.json().catch(function(){return {};});
-      if(!response.ok) throw new Error(data.error==='HOME_NAVIGATION_EMPTY'?'至少保留一个首页菜单。':data.error||'保存失败');
+      if(!response.ok) throw new Error(data.error==='HOME_NAVIGATION_EMPTY'?'至少保留一个对所有人可见的首页菜单。':data.error||'保存失败');
       items=normalize(data);loaded=true;render();setStatus('首页菜单配置已保存。');
     }catch(error){setStatus(error.message,true);}
     setBusy(false);

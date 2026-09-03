@@ -44,7 +44,8 @@ const expectedCatalog = [
   ['special-gift-data', '特惠礼包', 'extended', true],
   ['reference-hub', '礼包参考总览', 'extended', true],
   ['gift-rotation-schedule', '礼包轮换表', 'extended', true],
-  ['aeroplane-chess', '极简飞行棋', 'miniGames', true]
+  ['aeroplane-chess', '极简飞行棋', 'miniGames', true],
+  ['map-editor', '全能地图编辑器', 'core', true]
 ];
 
 test('server exports the complete tool catalog without starting its listener', () => {
@@ -60,7 +61,7 @@ test('normalization fills missing tools and fields from defaults and discards un
   assert.equal(typeof server.normalizeToolManagement, 'function');
   const result = server.normalizeToolManagement({
     tools: [
-      { id: 'training-calculator', visible: false, badge: 'hot' },
+      { id: 'training-calculator', visible: false, badge: 'hot', adminOnly: true },
       { id: 'bear-pit', badge: 'new' },
       { id: 'unknown-tool', visible: false, badge: 'hot' }
     ]
@@ -68,9 +69,9 @@ test('normalization fills missing tools and fields from defaults and discards un
 
   assert.equal(result.error, undefined);
   assert.equal(result.tools.length, expectedCatalog.length);
-  assert.deepEqual(result.tools[0], { id: 'training-calculator', visible: false, enabled: true, badge: 'hot', displayGroup: 'featured', toolCategory: 'calcTools', sortOrder: 0, disabledMessage: '' });
-  assert.deepEqual(result.tools[4], { id: 'bear-pit', visible: true, enabled: true, badge: 'new', displayGroup: 'core', toolCategory: 'calcTools', sortOrder: 40, disabledMessage: '' });
-  assert.deepEqual(result.tools[15], { id: 'giftcode-center', visible: false, enabled: true, badge: 'none', displayGroup: 'extended', toolCategory: 'calcTools', sortOrder: 150, disabledMessage: '' });
+  assert.deepEqual(result.tools[0], { id: 'training-calculator', visible: false, enabled: true, adminOnly: true, allowedLoginIds: [], badge: 'hot', displayGroup: 'featured', toolCategory: 'calcTools', sortOrder: 0, disabledMessage: '' });
+  assert.deepEqual(result.tools[4], { id: 'bear-pit', visible: true, enabled: true, adminOnly: false, allowedLoginIds: [], badge: 'new', displayGroup: 'core', toolCategory: 'calcTools', sortOrder: 40, disabledMessage: '' });
+  assert.deepEqual(result.tools[15], { id: 'giftcode-center', visible: false, enabled: true, adminOnly: false, allowedLoginIds: [], badge: 'none', displayGroup: 'extended', toolCategory: 'calcTools', sortOrder: 150, disabledMessage: '' });
   assert.equal(result.tools.some((tool) => tool.id === 'unknown-tool'), false);
 });
 
@@ -90,8 +91,10 @@ test('public and admin projections expose only their intended fields', () => {
   const publicTools = server.toPublicToolManagement(normalized.tools);
   const adminTools = server.toAdminToolManagement(normalized.tools);
 
-  assert.deepEqual(Object.keys(publicTools[0]), ['id', 'visible', 'enabled', 'badge', 'displayGroup', 'toolCategory', 'sortOrder']);
-  assert.deepEqual(Object.keys(adminTools[0]), ['id', 'name', 'group', 'defaultVisible', 'visible', 'enabled', 'badge', 'displayGroup', 'toolCategory', 'sortOrder', 'disabledMessage']);
+  assert.deepEqual(Object.keys(publicTools[0]), ['id', 'visible', 'enabled', 'adminOnly', 'viewerAllowed', 'badge', 'displayGroup', 'toolCategory', 'sortOrder']);
+  assert.deepEqual(Object.keys(adminTools[0]), ['id', 'name', 'group', 'defaultVisible', 'visible', 'enabled', 'adminOnly', 'allowedLoginIds', 'badge', 'displayGroup', 'toolCategory', 'sortOrder', 'disabledMessage']);
+  assert.equal(publicTools[0].viewerAllowed, true);
+  assert.ok(!Object.prototype.hasOwnProperty.call(publicTools[0], 'allowedLoginIds'));
   assert.equal(adminTools[15].defaultVisible, false);
 });
 
@@ -109,8 +112,13 @@ test('managed tool paths resolve for direct-link availability checks', () => {
   assert.equal(server.findManagedToolByPath('/function/BeaPit').id, 'bear-pit');
   assert.equal(server.findManagedToolByPath('/public/function/reference-hub/pages/weekly-cards.html').id, 'reference-hub');
   assert.equal(server.findManagedToolByPath('/giftcode/').id, 'giftcode-center');
+  assert.equal(server.findManagedToolByPath('/map-tool/').id, 'map-editor');
+  assert.equal(server.findManagedToolByPath('/map-tool').id, 'map-editor');
   assert.equal(server.findManagedToolByPath('/function/forum.html'), null);
   assert.match(serverSource, /sendToolDisabledPage/);
+  assert.match(serverSource, /sendToolAdminOnlyPage/);
+  assert.match(serverSource, /sendToolRestrictedPage/);
+  assert.match(serverSource, /isToolAllowedForUser/);
   assert.ok(serverSource.indexOf("tool availability check skipped") < serverSource.indexOf('mountGiftcodeProxy(app)'));
   assert.match(webConfigSource, /ReverseProxyFunctionDirectoryIndexToNode3000/);
   assert.match(webConfigSource, /\^\(\?:public\/\)\?giftcode/);
@@ -166,7 +174,7 @@ test('admin save persists a complete normalized catalog and writes an audit log'
   assert.equal(writes.length, 1);
   assert.equal(writes[0].key, 'tool_management');
   assert.equal(writes[0].value.tools.length, expectedCatalog.length);
-  assert.deepEqual(writes[0].value.tools[3], { id: 'hero-data', visible: false, enabled: true, badge: 'new', displayGroup: 'featured', toolCategory: 'dataQuery', sortOrder: 30, disabledMessage: '' });
+  assert.deepEqual(writes[0].value.tools[3], { id: 'hero-data', visible: false, enabled: true, adminOnly: false, allowedLoginIds: [], badge: 'new', displayGroup: 'featured', toolCategory: 'dataQuery', sortOrder: 30, disabledMessage: '' });
   assert.equal(writes[0].value.updatedAt, '2026-07-12T08:00:00.000Z');
   assert.equal(writes[0].value.updatedBy, '管理员');
   assert.equal(audits.length, 1);
@@ -224,6 +232,25 @@ test('admin save rejects invalid known badges without writing settings or audit 
   assert.deepEqual(response.body, { error: 'BAD_BADGE' });
   assert.equal(writes, 0);
   assert.equal(audits, 0);
+});
+
+test('allowlists grant specified users without automatically granting admins', () => {
+  const result = server.normalizeToolManagement({
+    tools: [{ id: 'map-editor', allowedLoginIds: ['player_01', '42', 'player_01', 'bad id'] }]
+  });
+  assert.deepEqual(result.tools.find((tool) => tool.id === 'map-editor').allowedLoginIds, ['player_01', '42']);
+  assert.equal(server.isToolAllowedForUser(result.tools.find((tool) => tool.id === 'map-editor'), null), false);
+  assert.equal(server.isToolAllowedForUser(result.tools.find((tool) => tool.id === 'map-editor'), { login_id: 'player_01' }), true);
+  assert.equal(server.isToolAllowedForUser(result.tools.find((tool) => tool.id === 'map-editor'), { id: 42 }), true);
+  assert.equal(server.isToolAllowedForUser(result.tools.find((tool) => tool.id === 'map-editor'), { login_id: 'admin_test01', is_admin: 1 }), false);
+
+  const both = server.normalizeToolManagement({
+    tools: [{ id: 'map-editor', adminOnly: true, allowedLoginIds: ['player_01'] }]
+  }).tools.find((tool) => tool.id === 'map-editor');
+  assert.equal(server.isToolAllowedForUser(both, { is_admin: 1 }), true);
+  assert.equal(server.isToolAllowedForUser(both, { loginId: 'player_01' }), true);
+  assert.equal(server.toPublicToolManagement([both], { login_id: 'other_user' })[0].viewerAllowed, false);
+  assert.ok(!Object.prototype.hasOwnProperty.call(server.toPublicToolManagement([both])[0], 'allowedLoginIds'));
 });
 
 function createResponse() {

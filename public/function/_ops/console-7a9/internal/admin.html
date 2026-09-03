@@ -787,7 +787,7 @@
     .tool-management-empty{padding:16px 12px;color:var(--muted);font-size:.85rem;}
     .tool-management-row{
       display:grid;
-      grid-template-columns:minmax(180px,1fr) repeat(2,auto) repeat(3,minmax(118px,150px));
+      grid-template-columns:minmax(180px,1fr) repeat(3,auto) repeat(3,minmax(118px,150px));
       gap:12px;
       align-items:center;
       min-height:58px;
@@ -808,8 +808,8 @@
       background:var(--surface-strong);
       color:var(--text);
     }
-    .tool-management-select,.tool-management-message{width:100%;min-height:38px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface-strong);color:var(--text);}
-    .tool-management-message{grid-column:1/-1;min-height:40px;resize:vertical;}
+    .tool-management-select,.tool-management-message,.tool-management-allowed{width:100%;min-height:38px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface-strong);color:var(--text);}
+    .tool-management-message,.tool-management-allowed{grid-column:1/-1;min-height:40px;resize:vertical;}
 
     @media (max-width: 600px){
       .container{padding:48px 12px 24px;}
@@ -818,8 +818,8 @@
       .layout{flex-direction:column;}
       .sidebar{width:100%;position:relative;top:auto;}
       .tool-management-groups{grid-template-columns:minmax(0,1fr);}
-      .tool-management-row{grid-template-columns:minmax(0,1fr) auto auto;}
-      .tool-management-select,.tool-management-badge,.tool-management-message{grid-column:1/-1;}
+      .tool-management-row{grid-template-columns:minmax(0,1fr) auto auto auto;}
+      .tool-management-select,.tool-management-badge,.tool-management-message,.tool-management-allowed{grid-column:1/-1;}
       .tool-management-badge{grid-column:1 / -1;}
     }
   </style>
@@ -2231,7 +2231,7 @@
 
         <section class="card page" id="page-tool-management" data-page="tool-management">
           <div class="page-title">工具管理</div>
-          <p class="admin-status" style="margin:8px 0 12px;">“入口显示”只控制首页入口；“工具启用”关闭后，复制的直链也会显示工具已关闭。展示位置和功能分类可分别调整。</p>
+          <p class="admin-status" style="margin:8px 0 12px;">“入口显示”只控制首页入口。勾选“仅管理员可见”后所有管理员可看；填写“指定用户”后仅名单内用户可看（不勾选仅管理员时，管理员也不会自动看到）。直链会按同样规则拦截。“工具启用”关闭后，复制的直链会显示工具已关闭。</p>
           <div class="tool-management-toolbar">
             <div class="admin-status" id="toolManagementStatus">请先登录管理员账号。</div>
             <div class="tool-management-actions">
@@ -2245,7 +2245,7 @@
         <section class="card page" id="page-home-navigation" data-page="home-navigation">
           <div class="page-title">首页菜单显示控制</div>
           <div class="admin-status" id="homeNavigationStatus">请先加载菜单配置。</div>
-          <p class="admin-status" style="margin:8px 0 12px;">桌面顶部菜单和手机版底部菜单共用此配置；为避免首页无法操作，至少保留一个菜单。</p>
+          <p class="admin-status" style="margin:8px 0 12px;">桌面顶部菜单和手机版底部菜单共用此配置。可勾选“仅管理员可见”；为避免普通用户无法操作首页，至少保留一个对所有人可见的菜单。</p>
           <div id="homeNavigationItems" class="tool-management-groups"></div>
           <div class="calendar-actions" style="margin-top:12px;">
             <button class="btn secondary" id="homeNavigationReloadBtn" type="button">刷新</button>
@@ -4329,6 +4329,7 @@
           return '<div class="tool-management-row" data-tool-id="'+escapedId+'">'+
             '<div class="tool-management-name">'+escapedName+'<span class="tool-management-id">'+escapedId+'</span></div>'+
             '<label class="tool-management-visible-label"><input class="tool-management-visible" type="checkbox" aria-label="显示 '+labelAttr+' 入口"'+(tool.visible===false?'':' checked')+' />入口显示</label>'+
+            '<label class="tool-management-visible-label"><input class="tool-management-admin-only" type="checkbox" aria-label="仅管理员可见 '+labelAttr+'"'+(tool.adminOnly===true?' checked':'')+' />仅管理员可见</label>'+
             '<label class="tool-management-visible-label"><input class="tool-management-enabled" type="checkbox" aria-label="启用 '+labelAttr+'"'+(tool.enabled===false?'':' checked')+' />工具启用</label>'+
             '<select class="tool-management-select tool-management-group-select" aria-label="'+labelAttr+' 展示位置">'+TOOL_MANAGEMENT_GROUPS.map(function(value){return '<option value="'+value+'"'+(value===displayGroup?' selected':'')+'>'+TOOL_MANAGEMENT_GROUP_LABELS[value]+'</option>';}).join('')+'</select>'+
             '<select class="tool-management-select tool-management-category-select" aria-label="'+labelAttr+' 功能分类">'+TOOL_MANAGEMENT_CATEGORIES.map(function(value){return '<option value="'+value+'"'+(value===toolCategory?' selected':'')+'>'+TOOL_MANAGEMENT_CATEGORY_LABELS[value]+'</option>';}).join('')+'</select>'+
@@ -4337,6 +4338,7 @@
               '<option value="new"'+(badge==='new'?' selected':'')+'>新</option>'+
               '<option value="hot"'+(badge==='hot'?' selected':'')+'>热</option>'+
             '</select>'+
+            '<textarea class="tool-management-allowed" maxlength="2000" rows="1" placeholder="指定用户登录ID或用户ID，逗号/换行分隔。只填名单则仅这些用户可访问。">'+escapeHtml(Array.isArray(tool.allowedLoginIds)?tool.allowedLoginIds.join(', '):'')+'</textarea>'+
             '<textarea class="tool-management-message" maxlength="240" rows="1" placeholder="关闭说明（可选）">'+escapeHtml(tool.disabledMessage||'')+'</textarea>'+
           '</div>';
         }).join('');
@@ -4414,14 +4416,17 @@
       if(!container) return;
       var tools=Array.from(container.querySelectorAll('.tool-management-row')).map(function(row){
         var visibleInput=row.querySelector('.tool-management-visible');
+        var adminOnlyInput=row.querySelector('.tool-management-admin-only');
         var enabledInput=row.querySelector('.tool-management-enabled');
         var badgeSelect=row.querySelector('.tool-management-badge');
         var groupSelect=row.querySelector('.tool-management-group-select');
         var categorySelect=row.querySelector('.tool-management-category-select');
+        var allowedInput=row.querySelector('.tool-management-allowed');
         var messageInput=row.querySelector('.tool-management-message');
         var badge=badgeSelect ? badgeSelect.value : 'none';
         if(badge!=='new' && badge!=='hot') badge='none';
-        return {id:row.getAttribute('data-tool-id')||'',visible:!!(visibleInput && visibleInput.checked),enabled:!!(enabledInput && enabledInput.checked),badge:badge,displayGroup:groupSelect?groupSelect.value:'extended',toolCategory:categorySelect?categorySelect.value:'calcTools',sortOrder:Array.from(container.querySelectorAll('.tool-management-row')).indexOf(row)*10,disabledMessage:messageInput?messageInput.value.trim():''};
+        var allowedLoginIds=allowedInput?String(allowedInput.value||'').split(/[,，;；\s]+/).map(function(item){return item.trim();}).filter(Boolean):[];
+        return {id:row.getAttribute('data-tool-id')||'',visible:!!(visibleInput && visibleInput.checked),enabled:!!(enabledInput && enabledInput.checked),adminOnly:!!(adminOnlyInput && adminOnlyInput.checked),allowedLoginIds:allowedLoginIds,badge:badge,displayGroup:groupSelect?groupSelect.value:'extended',toolCategory:categorySelect?categorySelect.value:'calcTools',sortOrder:Array.from(container.querySelectorAll('.tool-management-row')).indexOf(row)*10,disabledMessage:messageInput?messageInput.value.trim():''};
       }).filter(function(tool){ return !!tool.id; });
       var body=JSON.stringify({tools:tools});
       setToolManagementBusy(true);
@@ -5864,7 +5869,7 @@
   <script src="/function/admin-history-immigration-page.js?v=2"></script>
   <script src="/function/admin-calendar-model.js?v=20260827-5"></script>
   <script src="/function/admin-calendar-page.js?v=20260829-5"></script>
-  <script src="/function/admin-home-navigation-page.js?v=1"></script>
+  <script src="/function/admin-home-navigation-page.js?v=2"></script>
   <script>
   (function(){
     if(typeof window.refreshMe === 'function'){

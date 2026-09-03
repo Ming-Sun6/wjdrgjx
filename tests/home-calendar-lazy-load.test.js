@@ -53,6 +53,7 @@ test('home app applies public navigation settings and never loads a hidden calen
 
   assert.match(js, /apiFetch\('\/api\/home-navigation'/);
   assert.match(js, /querySelectorAll\('\[data-home-nav-id\]'/);
+  assert.match(js, /item\.adminOnly/);
   assert.match(js, /homenavigationchange/);
   assert.match(js, /if\(!isValidTab\('calendar'\)\) return/);
 });

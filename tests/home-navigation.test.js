@@ -14,6 +14,19 @@ test('normalization requires the complete catalog and at least one visible item'
   assert.equal(navigation.normalizeHomeNavigation(complete).error, undefined);
   assert.deepEqual(navigation.normalizeHomeNavigation({ items: [] }), { error: 'BAD_HOME_NAVIGATION' });
   assert.deepEqual(navigation.normalizeHomeNavigation({ items: complete.items.map((item) => ({ ...item, visible: false })) }), { error: 'HOME_NAVIGATION_EMPTY' });
+  const withAdminOnly = {
+    items: navigation.HOME_NAVIGATION_CATALOG.map((item) => ({ id: item.id, visible: true, adminOnly: item.id === 'forum' }))
+  };
+  const normalized = navigation.normalizeHomeNavigation(withAdminOnly);
+  assert.equal(normalized.error, undefined);
+  assert.equal(normalized.items.find((item) => item.id === 'forum').adminOnly, true);
+  assert.ok(normalized.items.filter((item) => item.id !== 'forum').every((item) => item.adminOnly === false));
+  assert.deepEqual(
+    navigation.normalizeHomeNavigation({
+      items: navigation.HOME_NAVIGATION_CATALOG.map((item) => ({ id: item.id, visible: true, adminOnly: true }))
+    }),
+    { error: 'HOME_NAVIGATION_EMPTY' }
+  );
 });
 
 test('public handler falls back to all visible when settings read fails', async () => {
@@ -23,8 +36,8 @@ test('public handler falls back to all visible when settings read fails', async 
   });
   const response = createResponse();
   await handlers.getPublic({}, response);
-  assert.ok(response.body.items.every((item) => item.visible));
-  assert.deepEqual(Object.keys(response.body.items[0]), ['id', 'visible']);
+  assert.ok(response.body.items.every((item) => item.visible && item.adminOnly === false));
+  assert.deepEqual(Object.keys(response.body.items[0]), ['id', 'visible', 'adminOnly']);
 });
 
 test('admin save persists normalized settings and audit metadata', async () => {
@@ -44,6 +57,7 @@ test('admin save persists normalized settings and audit metadata', async () => {
   assert.equal(writes[0].value.updatedBy, '管理员');
   assert.equal(audits[0].action, 'home_navigation.update');
   assert.equal(response.body.items.find((item) => item.id === 'my').visible, false);
+  assert.ok(response.body.items.every((item) => item.adminOnly === false));
 });
 
 function createResponse() {

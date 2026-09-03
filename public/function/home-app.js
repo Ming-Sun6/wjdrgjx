@@ -18,6 +18,14 @@ function updateAuthUI(){
   if(authUser){ p.textContent=showName; L.style.display='none'; O.textContent='退出'; O.style.display=''; }
   else{ p.textContent='未登录'; L.style.display=''; O.style.display='none'; }
 }
+function currentUserIsAdmin(){
+  return !!(authUser && authUser.isAdmin);
+}
+function refreshAudienceGatedUi(){
+  if(typeof window.__wjdrReloadToolManagement==='function') window.__wjdrReloadToolManagement();
+  else if(typeof window.__wjdrReapplyToolManagement==='function') window.__wjdrReapplyToolManagement();
+  if(typeof window.__wjdrReapplyHomeNavigation==='function') window.__wjdrReapplyHomeNavigation();
+}
 var DEFAULT_PROFILE_BIO='这个人很高冷，连个人介绍都不改！';
 var PROFILE_BIO_MAX_CHARS=120;
 function countChars(str){ return Array.from(String(str||'')).length; }
@@ -3859,6 +3867,7 @@ async function refreshMe(opts){
   }
   authChecked=true;
   updateAuthUI();
+  refreshAudienceGatedUi();
   renderMe();
   loadMyCollections();
   loadMeRewards();
@@ -3910,6 +3919,7 @@ async function doLogin(){
       authUser=d.user;
       authChecked=true;
       updateAuthUI();
+      refreshAudienceGatedUi();
       renderMe();
       loadMyCollections();
       loadMeRewards();
@@ -3982,6 +3992,7 @@ async function logout(){
   closeMePointsRanking();
   closeMeRedeemModal();
   updateAuthUI();
+  refreshAudienceGatedUi();
   renderMe();
   meRewardsState.rewards=null;
   meShopState.items=[];
@@ -4604,9 +4615,14 @@ refreshMe();
     current.className='tool-status-badge '+(badge==='hot'?'badge-hot':'badge-new');
     current.textContent=label;
   }
+  var lastToolManagementPayload=null;
   function applyToolManagement(payload){
+    if(payload && typeof payload==='object') lastToolManagementPayload=payload;
+    else payload=lastToolManagementPayload;
+    if(!payload) return;
     var list=payload&&Array.isArray(payload.tools)?payload.tools:[];
     var byId={};
+    var isAdmin=currentUserIsAdmin();
     list.forEach(function(config){
       if(config&&config.id)byId[String(config.id)]=config;
     });
@@ -4620,7 +4636,10 @@ refreshMe();
       card.setAttribute('data-tool-priority',group);
       if(config.toolCategory)card.setAttribute('data-category',config.toolCategory);
       card.dataset.toolSortOrder=String(Number(config.sortOrder)||0);
-      var managedHidden=config.visible === false;
+      var viewerAllowed=Object.prototype.hasOwnProperty.call(config,'viewerAllowed')
+        ? config.viewerAllowed !== false
+        : !(config.adminOnly && !isAdmin);
+      var managedHidden=config.visible === false || !viewerAllowed;
       card.dataset.toolManagedHidden=managedHidden?'1':'0';
       card.toggleAttribute('hidden',managedHidden);
       if(managedHidden)card.setAttribute('aria-hidden','true');
@@ -4639,11 +4658,16 @@ refreshMe();
     document.dispatchEvent(new CustomEvent('toolmanagementchange'));
   }
   window.__wjdrApplyToolManagement=applyToolManagement;
+  window.__wjdrReapplyToolManagement=function(){ if(lastToolManagementPayload) applyToolManagement(lastToolManagementPayload); };
+  function reloadToolManagement(){
+    fetch('/api/tool-management',{credentials:'same-origin',headers:{'Accept':'application/json'}})
+      .then(function(response){return response.ok?response.json():null;})
+      .then(function(data){if(data)applyToolManagement(data);})
+      .catch(function(){});
+  }
+  window.__wjdrReloadToolManagement=reloadToolManagement;
   document.addEventListener('click',function(event){var card=event.target.closest&&event.target.closest('[data-tool-id].tool-is-disabled');if(card){event.preventDefault();event.stopPropagation();}},{capture:true});
-  fetch('/api/tool-management',{credentials:'same-origin',headers:{'Accept':'application/json'}})
-    .then(function(response){return response.ok?response.json():null;})
-    .then(function(data){if(data)applyToolManagement(data);})
-    .catch(function(){});
+  reloadToolManagement();
 })();
 
 // 顶部分栏：按类型筛选卡片 + 全部搜索
@@ -4968,18 +4992,28 @@ refreshMe();
     host.innerHTML='';
     host.appendChild(iframe);
   }
+  var lastHomeNavigationItems=null;
   function applyHomeNavigation(items){
+    if(Array.isArray(items)) lastHomeNavigationItems=items;
+    else items=lastHomeNavigationItems;
+    if(!Array.isArray(items)) return;
     var visibility={};
-    (Array.isArray(items)?items:[]).forEach(function(item){
-      if(item && typeof item.id==='string' && typeof item.visible==='boolean') visibility[item.id]=item.visible;
+    var adminOnly={};
+    var isAdmin=currentUserIsAdmin();
+    items.forEach(function(item){
+      if(item && typeof item.id==='string'){
+        if(typeof item.visible==='boolean') visibility[item.id]=item.visible;
+        adminOnly[item.id]=!!item.adminOnly;
+      }
     });
     document.querySelectorAll('[data-home-nav-id]').forEach(function(control){
       var id=control.getAttribute('data-home-nav-id');
-      control.toggleAttribute('hidden', visibility[id]===false);
+      control.toggleAttribute('hidden', visibility[id]===false || (!!adminOnly[id] && !isAdmin));
     });
     if(!isValidTab(activeTab)) setActiveTab(firstVisibleTab());
     document.dispatchEvent(new CustomEvent('homenavigationchange',{detail:{items:items||[]}}));
   }
+  window.__wjdrReapplyHomeNavigation=function(){ if(lastHomeNavigationItems) applyHomeNavigation(lastHomeNavigationItems); };
   async function loadHomeNavigation(){
     try{
       var response=await apiFetch('/api/home-navigation',{method:'GET'});
