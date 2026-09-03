@@ -3,7 +3,7 @@
   if (window.__wjdrSmartBackBound) return;
   window.__wjdrSmartBackBound = true;
 
-  var DATA_QUERY_PAGES = /\/(?:T12DataOverview|neighbor-progress|history-immigration-group|migration-prediction|building-upgrade-1-30|pet-data-query|bear-body-recommendation|tiantian-strategy-hub)\.html$/i;
+  var DATA_QUERY_PAGES = /\/(?:T12DataOverview|neighbor-progress|history-immigration-group|migration-prediction|farthest-migration-range|building-upgrade-1-30|pet-data-query|bear-body-recommendation|tiantian-strategy-hub)\.html$/i;
   var CALCULATOR_PAGES = /\/(?:Architecture10|BeaPit|building-upgrade-calculator|duihuan|engineering-station-time|equipment-training-calculator|expert-calculator|gift-value-calculator|hero-equipment-calculator|jisuan|lord-equipment-gem-calculator|refine-crystal-calculator|refine-crystal-simulator|T11Calculator|T12Calculator|wjti-personality-test)\.html$/i;
 
   function sameOriginReferrer() {

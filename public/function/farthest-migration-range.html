@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>最远移民区间-冬日工具箱</title>
+  <meta name="description" content="自动判断本区火晶进度，计算往前、往后最远能移到哪一区；填写目标区后按移民预测期次推到能移入为止。" />
+  <style>
+    :root{
+      --bg-1:#0b1220;--bg-2:#111a2e;
+      --card:rgba(16,24,40,.78);--card-strong:rgba(20,30,50,.92);
+      --border:rgba(148,163,184,.28);--text:#e6edf8;--muted:#93a4bf;
+      --accent:#34d399;--accent-2:#60a5fa;
+      --shadow:0 14px 36px rgba(0,0,0,.35);
+      --grid:rgba(148,163,184,.34);--grid-s:rgba(148,163,184,.58);
+      --head-bg:rgba(15,23,42,.94);--head-text:#c6d4ea;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:"Segoe UI","Microsoft YaHei",sans-serif;color:var(--text);min-height:100vh;background:
+      radial-gradient(900px 550px at 8% 0%,rgba(52,211,153,.14),transparent 52%),
+      radial-gradient(900px 550px at 90% 12%,rgba(96,165,250,.18),transparent 52%),
+      linear-gradient(140deg,var(--bg-1),var(--bg-2));padding:20px 16px 28px}
+    body.theme-light{
+      --bg-1:#eaf2ff;--bg-2:#f8fbff;--card:rgba(255,255,255,.88);--card-strong:rgba(255,255,255,.96);
+      --border:rgba(71,85,105,.38);--text:#0f172a;--muted:#475569;
+      --shadow:0 10px 28px rgba(15,23,42,.12);
+      --grid:rgba(71,85,105,.32);--grid-s:rgba(71,85,105,.48);
+      --head-bg:rgba(226,232,240,.96);--head-text:#0f172a;
+    }
+    .wrap{max-width:1080px;margin:0 auto}
+    .top{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap}
+    .top-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .title{font-size:1.35rem;font-weight:800;letter-spacing:.02em}
+    .sub{color:var(--muted);margin-top:6px;font-size:.9rem;line-height:1.5}
+    .btn{border:1px solid var(--border);background:var(--card);color:var(--text);text-decoration:none;padding:9px 14px;border-radius:10px;font-weight:700;font-size:.86rem;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:.2s}
+    .btn:hover{background:rgba(96,165,250,.22);border-color:rgba(96,165,250,.6)}
+    .card{background:linear-gradient(165deg,var(--card-strong),var(--card));border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+    .card h2{font-size:1.03rem;margin-bottom:10px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+    label{color:var(--muted);font-size:.88rem;min-width:100px}
+    input[type="number"]{background:rgba(15,23,42,.7);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:8px 10px;min-width:140px}
+    body.theme-light input[type="number"]{background:#fff;color:#0f172a}
+    input:focus{border-color:rgba(96,165,250,.8);outline:none;box-shadow:0 0 0 3px rgba(96,165,250,.2)}
+    .tiny{color:var(--muted);font-size:.82rem;line-height:1.55;margin:6px 0 10px}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:700;background:rgba(96,165,250,.2);border:1px solid rgba(96,165,250,.35);margin-right:6px;color:var(--text)}
+    .pill.ok{border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.16)}
+    .pill.no{border-color:rgba(251,113,133,.45);background:rgba(251,113,133,.16)}
+    .pill.zone{min-width:2.2em;text-align:center;font-size:.95rem;padding:2px 10px;margin-right:0}
+    .over-cap{color:#fb7185}
+    .summary-box{border:1px solid var(--grid-s);border-radius:10px;padding:12px 14px;margin-top:10px;background:rgba(15,23,42,.35);font-size:.9rem;line-height:1.6}
+    body.theme-light .summary-box{background:rgba(255,255,255,.72)}
+    .summary-box strong{font-weight:800}
+    .reach-line{font-size:1.05rem;margin:8px 0 0;line-height:1.7}
+    .hop-list{list-style:none;margin:10px 0 0;padding:0}
+    .hop-list li{padding:10px 0;border-top:1px solid var(--border);font-size:.9rem;line-height:1.6}
+    .hop-list li:first-child{border-top:0;padding-top:2px}
+    .foot{margin-top:8px;color:var(--muted);font-size:.82rem;line-height:1.65}
+    @media (max-width:760px){
+      .row{flex-direction:column;align-items:stretch}
+      label{min-width:0}
+      input{min-width:0;width:100%}
+    }
+  </style>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/mobile-responsive.css" />
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="最远移民区间-冬日工具箱" />
+  <meta property="og:description" content="自动判断本区火晶进度，计算往前、往后最远能移到哪一区；填写目标区后按移民预测期次推到能移入为止。" />
+  <meta property="og:url" content="https://wjgl.store/function/farthest-migration-range.html" />
+  <meta property="og:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="675" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="最远移民区间-冬日工具箱" />
+  <meta name="twitter:description" content="自动判断本区火晶进度，计算往前、往后最远能移到哪一区；填写目标区后按移民预测期次推到能移入为止。" />
+  <meta name="twitter:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%86%8C-%E5%88%86%E4%BA%AB.jpg" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="title">最远移民区间</div>
+        <div class="sub">按移民预测的同期分组，看本区这期往前、往后最远能移到哪。填写目标区后继续往后推期次，直到能进同一组或确认进不去。</div>
+      </div>
+      <div class="top-actions">
+        <a class="btn" href="migration-prediction.html">移民预测</a>
+        <a class="btn" href="neighbor-progress.html">邻邦进度</a>
+        <a class="btn" href="/">返回首页</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <h2>查询</h2>
+      <div class="row">
+        <label for="serverInput">区号</label>
+        <input id="serverInput" type="number" min="1" max="10000" value="755" />
+        <label for="targetInput">目标区</label>
+        <input id="targetInput" type="number" min="1" max="10000" placeholder="可选" />
+        <button class="btn" id="runBtn" type="button">计算</button>
+      </div>
+      <div class="summary-box" id="originSummary">输入区号后计算。</div>
+    </section>
+
+    <section class="card" id="compareCard">
+      <h2>移民到目标区</h2>
+      <div class="summary-box" id="compareSummary">填写目标区后，按移民预测同期分组看下期最远能到哪。</div>
+    </section>
+
+    <div class="foot">
+      说明：仅供参考，请以游戏内为准。
+    </div>
+  </div>
+
+  <script src="/function/farthest-migration-range.js?v=20260903-9"></script>
+  <script>
+  (function(){
+    var api = window.WjdrFarthestMigration;
+    var schedule = api.buildSchedule();
+    var historyConfig = { dates: api.DEFAULT_HISTORY_DATES.map(function(date){ return { date: date, enabled: true }; }), intervalDays: api.DEFAULT_HISTORY_INTERVAL_DAYS, rules: { displayOffsetDays: api.DEFAULT_DISPLAY_OFFSET_DAYS } };
+    var serverInput = document.getElementById("serverInput");
+    var targetInput = document.getElementById("targetInput");
+    var originSummary = document.getElementById("originSummary");
+    var compareSummary = document.getElementById("compareSummary");
+
+    function escapeHtml(value){
+      return String(value == null ? "" : value)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    function zonePill(value, bad){
+      if (value == null || value === "") return "—";
+      if (bad) return "<span class=\"pill no zone\">" + escapeHtml(value) + "</span> ❌";
+      return "<span class=\"pill ok zone\">" + escapeHtml(value) + "</span>";
+    }
+
+    function reachLine(prefix, reach){
+      if (!reach) return prefix + "：" + zonePill("");
+      return prefix + "：" + zonePill(reach.server);
+    }
+
+    function readQuery(){
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var server = Number(params.get("server") || params.get("s") || params.get("id"));
+        var target = Number(params.get("target") || params.get("t"));
+        if (Number.isFinite(server) && server > 0) serverInput.value = String(server);
+        if (Number.isFinite(target) && target > 0) targetInput.value = String(target);
+      } catch (_error) {}
+    }
+
+    function render(){
+      var originId = Number(serverInput.value);
+      var targetId = Number(targetInput.value);
+      var current = api.lookupCurrent(schedule, originId);
+      if (current.error || !current.origin){
+        originSummary.textContent = "找不到这个区对应的邻邦区间，请核对区号。";
+        compareSummary.textContent = "先输入有效区号。";
+        return;
+      }
+      var origin = current.origin;
+      var furnace = current.furnace;
+      originSummary.innerHTML =
+        "<div><strong>" + origin.server + "</strong> · " + escapeHtml(furnace.name) + "</div>" +
+        "<div class=\"reach-line\">" + reachLine("往前最远区", current.older) + "</div>" +
+        "<div class=\"reach-line\">" + reachLine("往后最远区", current.newer) + "</div>";
+
+      if (!Number.isFinite(targetId) || targetId <= 0){
+        compareSummary.textContent = "填写目标区后，按移民预测同期分组看下期最远能到哪。";
+        return;
+      }
+      var plan = api.planHopsToTarget(schedule, originId, targetId, { historyConfig: historyConfig });
+      if (plan.error){
+        compareSummary.textContent = "目标区不在邻邦表里。";
+        return;
+      }
+      if (plan.alreadyThere){
+        compareSummary.innerHTML = "目标区就是本区 " + zonePill(origin.server) + "，不用移民。";
+        return;
+      }
+      if (!plan.steps.length){
+        compareSummary.textContent = "暂无后续移民期次，无法继续推算。";
+        return;
+      }
+      var items = plan.steps.map(function(step){
+        var lineClass = step.overCap ? " class=\"over-cap\"" : "";
+        var note = step.overCap ? "" : (step.reached ? " · 到达目标" : "");
+        return "<li" + lineClass + "><strong>" + escapeHtml(step.label) + "</strong>（" + escapeHtml(step.date) +
+          "）：最远 " + zonePill(step.to, step.overCap) + note + "</li>";
+      }).join("");
+      var tail = "";
+      if (plan.beyondSpan || (plan.steps.length && plan.steps[plan.steps.length - 1].overCap)) {
+        tail = "到不了 " + zonePill(plan.target.server, true) + "，超过" +
+          (plan.direction === "older" ? "往前" : "往后") + "最远区 " + zonePill(plan.capServer) + "。";
+      } else if (!plan.reached) {
+        tail = "到不了 " + zonePill(plan.target.server) + "，同期分组还盖不到。";
+      }
+      compareSummary.innerHTML = "<ul class=\"hop-list\">" + items + "</ul>" + tail;
+    }
+
+    document.getElementById("runBtn").addEventListener("click", render);
+    serverInput.addEventListener("keydown", function(event){ if (event.key === "Enter") render(); });
+    targetInput.addEventListener("keydown", function(event){ if (event.key === "Enter") render(); });
+    readQuery();
+    var remote = typeof fetch === "function"
+      ? Promise.all([
+          fetch("/api/neighbor-progress", { credentials: "include", cache: "no-store" }).then(function(response){
+            return response.ok ? response.json() : null;
+          }).catch(function(){ return null; }),
+          fetch("/api/history-immigration", { credentials: "include", cache: "no-store" }).then(function(response){
+            return response.ok ? response.json() : null;
+          }).catch(function(){ return null; })
+        ])
+      : Promise.resolve([null, null]);
+    remote.then(function(payloads){
+      if (payloads && payloads[0]) schedule = api.applyNeighborProgress(payloads[0]);
+      if (payloads && payloads[1]) historyConfig = payloads[1];
+      render();
+    });
+  })();
+  </script>
+<style id="wjdr-footer-inline">:root{--wjdr-thanks-text:"制作：2041茗子、飞菇\A数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子\A测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球、柒枫团队\A宣传大使：懒羊羊\A赞助：39 拙山枯水大江行\A\A感谢以上所有人对本攻略站的付出"}
+footer.wjdr-footer::before{content:var(--wjdr-thanks-text);white-space:pre-wrap;display:block;width:100%;max-width:min(100%,52rem);margin:0 auto 12px;padding:12px 14px;border:1px solid var(--border,rgba(148,163,184,.22));border-radius:12px;background:rgba(15,23,42,.18);color:var(--muted,#94a3b8);font-size:12px;line-height:1.65;box-sizing:border-box}
+html[data-theme="day"] footer.wjdr-footer::before,body.theme-day footer.wjdr-footer::before{border-color:rgba(15,23,42,.14);background:rgba(255,255,255,.5);color:#64748b}
+footer.wjdr-footer{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;max-width:100%;box-sizing:border-box;flex-shrink:0;margin-top:1.75rem;margin-left:0;margin-right:0;padding:14px 18px 22px;text-align:center;font-size:12px;line-height:1.65;color:var(--muted,#94a3b8);border-top:1px solid var(--border,rgba(148,163,184,.28));background:rgba(15,23,42,.28)}
+footer.wjdr-footer .site-footer-legal{margin:0 auto;padding:0;width:100%;max-width:min(100%,52rem);text-align:center}
+footer.wjdr-footer .site-footer-sep{margin:0 .35em;opacity:.45}
+footer.wjdr-footer a{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor}
+@media (max-width:600px){footer.wjdr-footer{font-size:11px}}</style>
+<footer class="wjdr-footer">
+  <p class="site-footer-legal">
+    版权所有 © 2026 冬日工具箱
+    <span class="site-footer-sep">|</span>
+    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">冀ICP备2026012727号</a>
+  </p>
+</footer>
+</body>
+</html>

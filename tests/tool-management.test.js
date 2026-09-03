@@ -35,6 +35,7 @@ const expectedCatalog = [
   ['neighbor-progress', '邻邦进度', 'extended', true],
   ['history-immigration-group', '历史移民分组', 'extended', true],
   ['migration-prediction', '移民预测', 'extended', true],
+  ['farthest-migration-range', '最远移民区间', 'extended', true],
   ['building-upgrade-query', '1-30建筑升级数据查询', 'extended', true],
   ['pet-data-query', '宠物数据查询', 'extended', true],
   ['bear-body-recommendation', '打熊车身推荐', 'core', true],

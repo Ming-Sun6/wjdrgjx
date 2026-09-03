@@ -149,6 +149,7 @@ const TOOL_CATALOG = [
   { id: 'neighbor-progress', name: '邻邦进度', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'history-immigration-group', name: '历史移民分组', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'migration-prediction', name: '移民预测', group: 'extended', defaultVisible: true, badge: 'none' },
+  { id: 'farthest-migration-range', name: '最远移民区间', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'building-upgrade-query', name: '1-30建筑升级数据查询', group: 'extended', defaultVisible: true, badge: 'none' },
   { id: 'pet-data-query', name: '宠物数据查询', group: 'extended', defaultVisible: true, badge: 'none' },
 { id: 'bear-body-recommendation', name: '打熊车身推荐', group: 'core', defaultVisible: true, badge: 'none' },
@@ -164,6 +165,7 @@ const TOOL_CATALOG = [
 const TOOL_DATA_QUERY_IDS = new Set([
   'hero-data', 'tiantian-strategy', 'bear-body-recommendation', 'ice-workshop-placement',
   't12-data-overview', 'neighbor-progress', 'history-immigration-group', 'migration-prediction',
+  'farthest-migration-range',
   'building-upgrade-query', 'pet-data-query', 'regular-gift-data', 'special-gift-data',
   'reference-hub', 'gift-rotation-schedule'
 ]);
@@ -190,6 +192,7 @@ const TOOL_ENTRY_PATHS = {
   'neighbor-progress': ['/function/neighbor-progress.html'],
   'history-immigration-group': ['/function/history-immigration-group.html'],
   'migration-prediction': ['/function/migration-prediction.html'],
+  'farthest-migration-range': ['/function/farthest-migration-range.html'],
   'building-upgrade-query': ['/function/building-upgrade-1-30.html'],
   'pet-data-query': ['/function/pet-data-query.html'],
   'bear-body-recommendation': ['/function/bear-body-recommendation.html'],

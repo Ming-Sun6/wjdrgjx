@@ -56,6 +56,9 @@ test('direct-open fallback preserves the current tool category', () => {
   const data = runNavigation({ pathname: '/function/pet-data-query.html' });
   assert.equal(data.window.wjdrBackFallback(), '/?tab=tools&toolTab=dataQuery');
 
+  const span = runNavigation({ pathname: '/function/farthest-migration-range.html' });
+  assert.equal(span.window.wjdrBackFallback(), '/?tab=tools&toolTab=dataQuery');
+
   const game = runNavigation({ pathname: '/function/aeroplane-chess/index.html' });
   assert.equal(game.window.wjdrBackFallback(), '/?tab=tools&toolTab=miniGames');
 
