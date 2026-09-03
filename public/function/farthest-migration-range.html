@@ -128,7 +128,7 @@
     </div>
   </div>
 
-  <script src="/function/farthest-migration-range.js?v=20260904-1"></script>
+  <script src="/function/farthest-migration-range.js?v=20260904-2"></script>
   <script>
   (function(){
     var api = window.WjdrFarthestMigration;
@@ -205,10 +205,13 @@
           "）：最远 " + zonePill(step.to, step.overCap) + note + "</li>";
       }).join("");
       var tail = "";
-      if (plan.beyondSpan || (plan.steps.length && plan.steps[plan.steps.length - 1].overCap)) {
+      if (plan.reached) {
+        var hit = plan.steps.filter(function(step){ return step.reached; }).pop();
+        tail = "能到 " + zonePill(plan.target.server) + (hit ? "，" + escapeHtml(hit.label) + "可达" : "") + "。";
+      } else if (plan.beyondSpan || (plan.steps.length && plan.steps[plan.steps.length - 1].overCap)) {
         tail = "到不了 " + zonePill(plan.target.server, true) + "，超过" +
           (plan.direction === "older" ? "往前" : "往后") + "最远区 " + zonePill(plan.capServer) + "。";
-      } else if (!plan.reached) {
+      } else {
         tail = "到不了 " + zonePill(plan.target.server) + "，同期分组还盖不到。";
       }
       compareSummary.innerHTML = "<ul class=\"hop-list\">" + items + "</ul>" + tail;

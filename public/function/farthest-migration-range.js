@@ -678,14 +678,15 @@
     const steps = [];
     let reached = false;
     let stuck = false;
-    let bestToward = Number(originId);
     const originNum = Number(originId);
     const targetNum = Number(targetId);
+    let pos = originNum;
+    let bestToward = originNum;
     for (let i = 0; i < dates.length && steps.length < MAX_HOP_PERIODS; i++) {
       const period = dates[i];
       const openDate = isIsoDate(period && period.date) ? period.date : period;
       if (!isIsoDate(openDate)) continue;
-      const grouped = lookupPredictionGroup(schedule, originNum, openDate, input.historyConfig, true);
+      const grouped = lookupPredictionGroup(schedule, pos, openDate, input.historyConfig, true);
       if (grouped.error || !grouped.group) {
         stuck = true;
         break;
@@ -693,9 +694,11 @@
       const group = grouped.group;
       const inGroup = targetNum >= group.lo && targetNum <= group.hi;
       const edge = towardNewer ? group.hi : group.lo;
-      const dest = inGroup ? targetNum : edge;
+      let dest = inGroup ? targetNum : edge;
+      if (towardNewer && dest < pos) dest = pos;
+      if (!towardNewer && dest > pos) dest = pos;
       const overCap = towardNewer ? dest > capServer : dest < capServer;
-      const farthest = inGroup && !overCap ? targetNum : edge;
+      const farthest = inGroup && !overCap ? targetNum : dest;
       const extended = towardNewer ? farthest > bestToward : farthest < bestToward;
       if (steps.length && !inGroup && !extended) continue;
       if (extended) bestToward = farthest;
@@ -705,7 +708,7 @@
         date: openDate,
         displayDate: openDate,
         kind: period && period.kind ? period.kind : "forecast",
-        from: originNum,
+        from: pos,
         to: farthest,
         fromInfo: grouped.origin,
         toInfo: describeServer(schedule, farthest),
@@ -715,8 +718,9 @@
         capServer: capServer,
         overCap: overCap,
         reached: inGroup && !overCap,
-        moved: farthest !== originNum
+        moved: farthest !== pos
       });
+      pos = farthest;
       if (inGroup && !overCap) {
         reached = true;
         break;
