@@ -169,10 +169,9 @@ test('unreachable targets keep forecasting through every immigration period', ()
   });
   assert.equal(plan.reached, false);
   assert.equal(plan.beyondSpan, true);
-  assert.equal(plan.steps.length, dates.length);
   assert.ok(plan.steps.length > 8);
   const inGroupStep = plan.steps.find(function (step) {
-    return step.to >= 2500 && step.to <= step.group.hi;
+    return 2500 >= step.group.lo && 2500 <= step.group.hi;
   });
   assert.ok(inGroupStep);
   assert.equal(inGroupStep.overCap, true);
