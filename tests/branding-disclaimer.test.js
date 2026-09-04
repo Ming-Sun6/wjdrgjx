@@ -26,7 +26,7 @@ test('embedded tools do not inject a second player-made notice', () => {
   const calendar = read('public/function/calendar.html');
 
   assert.match(source, /URLSearchParams\(window\.location\.search\)[\s\S]*?get\('embed'\)\s*===\s*'1'[\s\S]*?return/);
-  assert.match(calendar, /analytics-tracker\.js\?v=20260825-2/);
+  assert.match(calendar, /analytics-tracker\.js\?v=20260904-2/);
 });
 
 test('site footer legal links include about us and privacy policy', () => {

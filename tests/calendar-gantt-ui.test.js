@@ -19,6 +19,11 @@ test('calendar page is a week/month gantt shell with embedded mode hooks', () =>
   assert.match(html, /calendar-gantt\.css/);
   assert.match(html, /calendar-gantt\.js/);
   assert.match(html, /calendar\.html\?embed=1|embed/);
+  assert.match(html, /id="wjdrAdworkSlot"/);
+  assert.match(html, /class="adwork-net adwork-auto"/);
+  assert.match(html, /data-id="1129"/);
+  assert.match(html, /<\/main>[\s\S]*id="wjdrAdworkSlot"[\s\S]*<footer class="wjdr-footer"/);
+  assert.match(css, /html\.is-embedded \.wjdr-adwork-slot/);
 });
 
 test('browser UTC and ISO week helpers match navigation boundaries', () => {
@@ -75,7 +80,7 @@ test('calendar renders the persisted bold schedule style', () => {
 
 test('important child tasks render a thumbs-up marker in every calendar view', () => {
   assert.match(html, /calendar-gantt\.js\?v=20260829-2/);
-  assert.match(html, /calendar-gantt\.css\?v=20260829-1/);
+  assert.match(html, /calendar-gantt\.css\?v=20260904-1/);
   assert.match(js, /function appendHighlight/);
   assert.match(js, /mark\.textContent\s*=\s*["']👍["']/);
   assert.ok((js.match(/appendHighlight\(/g) || []).length >= 3);

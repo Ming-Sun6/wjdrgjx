@@ -125,7 +125,13 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
     assert.match(page, /class="adwork-net adwork-auto"/);
     assert.match(page, /data-id="1129"/);
   });
-  assert.match(admin, /邻邦进度、历史移民分组、移民预测、最远移民区间、移民券计算器/);
+  const calendar = read('public/function/calendar.html');
+  assert.match(calendar, /id="wjdrAdworkSlot"/);
+  assert.match(calendar, /class="adwork-net adwork-auto"/);
+  assert.match(calendar, /data-id="1129"/);
+  assert.match(tracker, /function isCalendarPage\(\)/);
+  assert.match(tracker, /function isEmbedPage\(\)/);
+  assert.match(admin, /邻邦进度、历史移民分组、移民预测、最远移民区间、移民券计算器、活动日历/);
 });
 
 test('home lead has responsive presentation and disabled-click styling', () => {

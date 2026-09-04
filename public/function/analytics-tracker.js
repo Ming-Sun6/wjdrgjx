@@ -323,7 +323,19 @@
   }
 
   function isToolAdPage() {
-    return /\/(farthest-migration-range|neighbor-progress|history-immigration-group|migration-prediction|jisuan)\.html$/i.test(pagePath());
+    return /\/(farthest-migration-range|neighbor-progress|history-immigration-group|migration-prediction|jisuan|calendar)\.html$/i.test(pagePath());
+  }
+
+  function isCalendarPage() {
+    return /\/calendar\.html$/i.test(pagePath());
+  }
+
+  function isEmbedPage() {
+    try {
+      return new URLSearchParams(window.location.search || '').get('embed') === '1';
+    } catch (_e) {
+      return false;
+    }
   }
 
   function isPublisherAdPage() {
@@ -364,11 +376,12 @@
 
   function applyHomeAdSlot(cfg) {
     var slot = document.getElementById('wjdrAdworkSlot');
-    var adsOff = isForumPostPage()
-      ? (cfg && cfg.forumAdEnabled === false)
-      : isToolAdPage()
-        ? (cfg && (cfg.toolAdEnabled != null ? cfg.toolAdEnabled === false : cfg.rangeAdEnabled === false))
-        : (cfg && (cfg.homeAdEnabled === false || cfg.adEnabled === false));
+    var adsOff = isEmbedPage()
+      || (isForumPostPage()
+        ? (cfg && cfg.forumAdEnabled === false)
+        : isToolAdPage()
+          ? (cfg && (cfg.toolAdEnabled != null ? cfg.toolAdEnabled === false : cfg.rangeAdEnabled === false))
+          : (cfg && (cfg.homeAdEnabled === false || cfg.adEnabled === false)));
     if (adsOff) {
       if (slot && slot.parentNode) slot.parentNode.removeChild(slot);
       return;
@@ -378,7 +391,11 @@
       slot.id = 'wjdrAdworkSlot';
       slot.className = 'wjdr-adwork-slot';
       slot.innerHTML = '<div class="adwork-net adwork-auto" data-id="1129"></div>';
-      if (isForumPostPage() || isToolAdPage()) {
+      if (isCalendarPage()) {
+        var footer = document.querySelector('footer.wjdr-footer, .wjdr-footer');
+        if (footer && footer.parentNode) footer.parentNode.insertBefore(slot, footer);
+        else document.body.appendChild(slot);
+      } else if (isForumPostPage() || isToolAdPage()) {
         var wrap = document.querySelector('.wrap') || document.querySelector('.container');
         var card = wrap && wrap.querySelector('.card');
         var top = wrap && wrap.querySelector('.top');

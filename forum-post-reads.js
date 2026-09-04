@@ -7,7 +7,8 @@ const TOOL_AD_PAGE_KEYS = [
   'function/neighbor-progress',
   'function/history-immigration-group',
   'function/migration-prediction',
-  'function/jisuan'
+  'function/jisuan',
+  'function/calendar'
 ];
 const RANGE_AD_PAGE_KEY = TOOL_AD_PAGE_KEYS[0];
 
