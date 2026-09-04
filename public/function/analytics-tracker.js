@@ -318,8 +318,16 @@
     return /\/forum-post\.html$/i.test(pagePath());
   }
 
+  function isRangePage() {
+    return isToolAdPage();
+  }
+
+  function isToolAdPage() {
+    return /\/(farthest-migration-range|neighbor-progress|history-immigration-group|migration-prediction|jisuan)\.html$/i.test(pagePath());
+  }
+
   function isPublisherAdPage() {
-    return isHomePage() || isForumPostPage();
+    return isHomePage() || isForumPostPage() || isToolAdPage();
   }
 
   function findHomeLead() {
@@ -358,7 +366,9 @@
     var slot = document.getElementById('wjdrAdworkSlot');
     var adsOff = isForumPostPage()
       ? (cfg && cfg.forumAdEnabled === false)
-      : (cfg && (cfg.homeAdEnabled === false || cfg.adEnabled === false));
+      : isToolAdPage()
+        ? (cfg && (cfg.toolAdEnabled != null ? cfg.toolAdEnabled === false : cfg.rangeAdEnabled === false))
+        : (cfg && (cfg.homeAdEnabled === false || cfg.adEnabled === false));
     if (adsOff) {
       if (slot && slot.parentNode) slot.parentNode.removeChild(slot);
       return;
@@ -368,10 +378,12 @@
       slot.id = 'wjdrAdworkSlot';
       slot.className = 'wjdr-adwork-slot';
       slot.innerHTML = '<div class="adwork-net adwork-auto" data-id="1129"></div>';
-      if (isForumPostPage()) {
-        var wrap = document.querySelector('.wrap');
+      if (isForumPostPage() || isToolAdPage()) {
+        var wrap = document.querySelector('.wrap') || document.querySelector('.container');
         var card = wrap && wrap.querySelector('.card');
-        if (card && card.parentNode) card.parentNode.insertBefore(slot, card);
+        var top = wrap && wrap.querySelector('.top');
+        if (top && top.parentNode) top.parentNode.insertBefore(slot, top.nextSibling);
+        else if (card && card.parentNode) card.parentNode.insertBefore(slot, card);
         else if (wrap) wrap.insertBefore(slot, wrap.firstChild);
         else document.body.insertBefore(slot, document.body.firstChild);
       } else {

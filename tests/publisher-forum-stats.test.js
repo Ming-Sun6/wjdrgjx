@@ -47,7 +47,7 @@ test('publisher forum stats reads fact table and ad slot events, not inflated vi
   const service = createPublisherForumStatsService({
     queryOne: async (sql) => {
       calls.push(['one', sql]);
-      if (/analytics_events/.test(sql)) return { homePv: 20, homeUv: 8, forumPv: 12, forumUv: 5 };
+      if (/analytics_events/.test(sql)) return { homePv: 20, homeUv: 8, forumPv: 12, forumUv: 5, toolPv: 7, toolUv: 3 };
       if (/COUNT\(\*\) AS total/.test(sql)) return { total: 1 };
       return { users: 1, posts: 2, realViews: 4, realUv: 3, recentViews: 1, recentUv: 1 };
     },
@@ -69,6 +69,9 @@ test('publisher forum stats reads fact table and ad slot events, not inflated vi
   assert.equal(result.summary.realUv, 3);
   assert.equal(result.ads.homePv, 20);
   assert.equal(result.ads.forumUv, 5);
+  assert.equal(result.ads.toolPv, 7);
+  assert.equal(result.ads.toolUv, 3);
+  assert.equal(result.ads.rangePv, 7);
   assert.equal(result.users[0].posts[0].displayViews, 18);
   assert.match(sql, /forum_post_reads/);
   assert.match(sql, /analytics_events/);

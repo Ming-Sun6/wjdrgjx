@@ -928,17 +928,26 @@ function normalizeHomeLeadCarousel(input) {
 }
 
 function defaultPublisherAds() {
-  return { homeAdEnabled: true, forumAdEnabled: true };
+  return { homeAdEnabled: true, forumAdEnabled: true, toolAdEnabled: true, rangeAdEnabled: true };
 }
 
 function normalizePublisherAds(input) {
   if (!input || typeof input !== 'object') return defaultPublisherAds();
   const hasHome = Object.prototype.hasOwnProperty.call(input, 'homeAdEnabled');
   const hasForum = Object.prototype.hasOwnProperty.call(input, 'forumAdEnabled');
+  const hasTool = Object.prototype.hasOwnProperty.call(input, 'toolAdEnabled')
+    || Object.prototype.hasOwnProperty.call(input, 'rangeAdEnabled');
   const legacyOn = input.adEnabled !== false;
+  const toolOn = Object.prototype.hasOwnProperty.call(input, 'toolAdEnabled')
+    ? input.toolAdEnabled !== false
+    : Object.prototype.hasOwnProperty.call(input, 'rangeAdEnabled')
+      ? input.rangeAdEnabled !== false
+      : true;
   return {
     homeAdEnabled: hasHome ? input.homeAdEnabled !== false : legacyOn,
-    forumAdEnabled: hasForum ? input.forumAdEnabled !== false : legacyOn
+    forumAdEnabled: hasForum ? input.forumAdEnabled !== false : legacyOn,
+    toolAdEnabled: hasTool ? toolOn : true,
+    rangeAdEnabled: hasTool ? toolOn : true
   };
 }
 
@@ -4418,7 +4427,9 @@ app.get('/api/home-lead', async (_req, res) => {
       ...normalizeHomeLeadCarousel(stored),
       adEnabled: publisher.homeAdEnabled,
       homeAdEnabled: publisher.homeAdEnabled,
-      forumAdEnabled: publisher.forumAdEnabled
+      forumAdEnabled: publisher.forumAdEnabled,
+      toolAdEnabled: publisher.toolAdEnabled,
+      rangeAdEnabled: publisher.toolAdEnabled
     });
   } catch (err) {
     console.error('home-lead get failed:', err);
@@ -4426,7 +4437,9 @@ app.get('/api/home-lead', async (_req, res) => {
       ...defaultHomeLeadCarousel(),
       adEnabled: true,
       homeAdEnabled: true,
-      forumAdEnabled: true
+      forumAdEnabled: true,
+      toolAdEnabled: true,
+      rangeAdEnabled: true
     });
   }
 });
@@ -4463,10 +4476,12 @@ app.put('/api/admin/publisher', async (req, res) => {
       targetType: 'publisher_ads',
       targetId: 'current',
       riskLevel: 'watch',
-      summary: `更新流量主广告位（首页${normalized.homeAdEnabled ? '开' : '关'} / 帖子页${normalized.forumAdEnabled ? '开' : '关'}）`,
+      summary: `更新流量主广告位（首页${normalized.homeAdEnabled ? '开' : '关'} / 帖子页${normalized.forumAdEnabled ? '开' : '关'} / 工具页${normalized.toolAdEnabled ? '开' : '关'}）`,
       metadata: {
         homeAdEnabled: normalized.homeAdEnabled,
-        forumAdEnabled: normalized.forumAdEnabled
+        forumAdEnabled: normalized.forumAdEnabled,
+        toolAdEnabled: normalized.toolAdEnabled,
+        rangeAdEnabled: normalized.toolAdEnabled
       }
     });
     return res.json({ ok: true, publisher: normalized });

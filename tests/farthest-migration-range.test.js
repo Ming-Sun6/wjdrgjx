@@ -272,4 +272,7 @@ test('home pages and the tool shell expose farthest migration range', () => {
   assert.match(page, /overCap/);
   assert.match(page, /pill ok zone/);
   assert.match(page, /property="og:image"/);
+  assert.match(page, /id="wjdrAdworkSlot"/);
+  assert.match(page, /class="adwork-net adwork-auto"/);
+  assert.match(page, /data-id="1129"/);
 });

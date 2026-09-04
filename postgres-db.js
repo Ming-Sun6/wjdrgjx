@@ -138,7 +138,11 @@ const ROW_ALIAS_MAP = {
   homepv: 'homePv',
   homeuv: 'homeUv',
   forumpv: 'forumPv',
-  forumuv: 'forumUv'
+  forumuv: 'forumUv',
+  rangepv: 'rangePv',
+  rangeuv: 'rangeUv',
+  toolpv: 'toolPv',
+  tooluv: 'toolUv'
 };
 
 function normalizeRowAliases(row) {

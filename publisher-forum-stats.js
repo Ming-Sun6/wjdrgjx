@@ -1,6 +1,7 @@
 const {
   HOME_AD_PAGE_KEYS,
-  FORUM_POST_PAGE_KEY
+  FORUM_POST_PAGE_KEY,
+  TOOL_AD_PAGE_KEYS
 } = require('./forum-post-reads');
 
 function toNumber(value) {
@@ -117,6 +118,10 @@ function homePageKeySql() {
   return HOME_AD_PAGE_KEYS.map(() => '?').join(',');
 }
 
+function toolPageKeySql() {
+  return TOOL_AD_PAGE_KEYS.map(() => '?').join(',');
+}
+
 function createPublisherForumStatsService(deps) {
   const services = deps || {};
   const queryRows = services.queryRows || (async () => []);
@@ -130,19 +135,27 @@ function createPublisherForumStatsService(deps) {
         COALESCE(SUM(CASE WHEN page_key IN (${homePageKeySql()}) THEN 1 ELSE 0 END), 0) AS homePv,
         COUNT(DISTINCT CASE WHEN page_key IN (${homePageKeySql()}) THEN visitor_id END) AS homeUv,
         COALESCE(SUM(CASE WHEN page_key = ? THEN 1 ELSE 0 END), 0) AS forumPv,
-        COUNT(DISTINCT CASE WHEN page_key = ? THEN visitor_id END) AS forumUv
+        COUNT(DISTINCT CASE WHEN page_key = ? THEN visitor_id END) AS forumUv,
+        COALESCE(SUM(CASE WHEN page_key IN (${toolPageKeySql()}) THEN 1 ELSE 0 END), 0) AS toolPv,
+        COUNT(DISTINCT CASE WHEN page_key IN (${toolPageKeySql()}) THEN visitor_id END) AS toolUv
       FROM analytics_events
       WHERE event_type = 'page_view'
         AND COALESCE(is_admin_area, 0) = 0
         AND occurred_at >= ? AND occurred_at <= ?
       `,
-      [...HOME_AD_PAGE_KEYS, ...HOME_AD_PAGE_KEYS, FORUM_POST_PAGE_KEY, FORUM_POST_PAGE_KEY, range.from, range.to]
+      [...HOME_AD_PAGE_KEYS, ...HOME_AD_PAGE_KEYS, FORUM_POST_PAGE_KEY, FORUM_POST_PAGE_KEY, ...TOOL_AD_PAGE_KEYS, ...TOOL_AD_PAGE_KEYS, range.from, range.to]
     );
+    const toolPv = toNumber(row && (row.toolPv || row.toolpv || row.rangePv || row.rangepv));
+    const toolUv = toNumber(row && (row.toolUv || row.tooluv || row.rangeUv || row.rangeuv));
     return {
       homePv: toNumber(row && (row.homePv || row.homepv)),
       homeUv: toNumber(row && (row.homeUv || row.homeuv)),
       forumPv: toNumber(row && (row.forumPv || row.forumpv)),
-      forumUv: toNumber(row && (row.forumUv || row.forumuv))
+      forumUv: toNumber(row && (row.forumUv || row.forumuv)),
+      toolPv,
+      toolUv,
+      rangePv: toolPv,
+      rangeUv: toolUv
     };
   }
 

@@ -2,6 +2,14 @@ const FORUM_READ_DEDUP_MS = 30 * 60 * 1000;
 const FORUM_READ_MIN_VISIBLE_MS = 2500;
 const HOME_AD_PAGE_KEYS = ['rukou', 'index', 'public/index'];
 const FORUM_POST_PAGE_KEY = 'function/forum-post';
+const TOOL_AD_PAGE_KEYS = [
+  'function/farthest-migration-range',
+  'function/neighbor-progress',
+  'function/history-immigration-group',
+  'function/migration-prediction',
+  'function/jisuan'
+];
+const RANGE_AD_PAGE_KEY = TOOL_AD_PAGE_KEYS[0];
 
 function shouldCountRealRead(input) {
   const visitorId = String((input && input.visitorId) || '').trim();
@@ -17,6 +25,14 @@ function isHomeAdPageKey(pageKey) {
 
 function isForumPostPageKey(pageKey) {
   return String(pageKey || '') === FORUM_POST_PAGE_KEY;
+}
+
+function isRangeAdPageKey(pageKey) {
+  return isToolAdPageKey(pageKey);
+}
+
+function isToolAdPageKey(pageKey) {
+  return TOOL_AD_PAGE_KEYS.indexOf(String(pageKey || '')) >= 0;
 }
 
 async function applyQualifiedForumRead(deps, input) {
@@ -77,8 +93,12 @@ module.exports = {
   FORUM_READ_MIN_VISIBLE_MS,
   HOME_AD_PAGE_KEYS,
   FORUM_POST_PAGE_KEY,
+  RANGE_AD_PAGE_KEY,
+  TOOL_AD_PAGE_KEYS,
   shouldCountRealRead,
   isHomeAdPageKey,
   isForumPostPageKey,
+  isRangeAdPageKey,
+  isToolAdPageKey,
   applyQualifiedForumRead
 };

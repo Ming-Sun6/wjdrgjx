@@ -2011,7 +2011,7 @@
             <div class="form-section">
               <div class="form-title">广告位</div>
               <div class="admin-status" style="margin-bottom:14px;color:var(--muted);font-size:.85rem;line-height:1.6;">
-                当前接入首页顶部与论坛帖子阅读页（AdWork 单元 ID 1129）。两个开关互相独立，关闭后对应页面会移除广告容器，不再请求和展示广告。
+                当前接入首页顶部、论坛帖子阅读页，以及邻邦进度、历史移民分组、移民预测、最远移民区间、移民券计算器（AdWork 单元 ID 1129）。开关互相独立，关闭后对应页面会移除广告容器，不再请求和展示广告。
               </div>
               <div class="toggle" style="justify-content:space-between;margin-bottom:12px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong);">
                 <div>
@@ -2033,6 +2033,16 @@
                   <span class="slider"></span>
                 </label>
               </div>
+              <div class="toggle" style="justify-content:space-between;margin-bottom:14px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-strong);">
+                <div>
+                  <div style="font-weight:700;">工具页广告位</div>
+                  <div style="margin-top:3px;color:var(--muted);font-size:.78rem;">关闭后邻邦进度、历史移民分组、移民预测、最远移民区间、移民券计算器上的广告会移除。重新打开并保存后立即恢复。</div>
+                </div>
+                <label class="switch" title="开启或关闭工具页广告位">
+                  <input id="publisherToolAdEnabled" type="checkbox" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
               <div class="calendar-actions">
                 <button class="btn" type="button" id="publisherSaveBtn">保存并生效</button>
                 <button class="btn secondary" type="button" id="publisherReloadBtn">重新加载</button>
@@ -2042,7 +2052,7 @@
             <div class="form-section">
               <div class="form-title">广告位流量</div>
               <div class="admin-status" style="margin-bottom:12px;color:var(--muted);font-size:.85rem;line-height:1.6;">
-                首页与帖子阅读页的独立访客 / 打开次数。这是广告位有没有人在看，不是 AdWork 收益。
+                首页、帖子阅读页与工具页的独立访客 / 打开次数。这是广告位有没有人在看，不是 AdWork 收益。
               </div>
               <div class="publisher-stat-grid" id="publisherAdSummary"></div>
             </div>
@@ -3079,14 +3089,18 @@
     function applyPublisherAdsToForm(publisher){
       var homeInput=document.getElementById('publisherHomeAdEnabled');
       var forumInput=document.getElementById('publisherForumAdEnabled');
+      var toolInput=document.getElementById('publisherToolAdEnabled');
       var homeOn=true;
       var forumOn=true;
+      var toolOn=true;
       if(publisher){
         homeOn=publisher.homeAdEnabled!=null?publisher.homeAdEnabled!==false:publisher.adEnabled!==false;
         forumOn=publisher.forumAdEnabled!=null?publisher.forumAdEnabled!==false:publisher.adEnabled!==false;
+        toolOn=publisher.toolAdEnabled!=null?publisher.toolAdEnabled!==false:publisher.rangeAdEnabled!==false;
       }
       if(homeInput) homeInput.checked=homeOn;
       if(forumInput) forumInput.checked=forumOn;
+      if(toolInput) toolInput.checked=toolOn;
     }
 
     function setPublisherRangeButtons(days, range){
@@ -3123,7 +3137,9 @@
           '<div class="publisher-stat-card"><div class="k">首页广告位 PV</div><div class="v">'+Number(a.homePv||0)+'</div></div>'+
           '<div class="publisher-stat-card"><div class="k">首页广告位 UV</div><div class="v">'+Number(a.homeUv||0)+'</div></div>'+
           '<div class="publisher-stat-card"><div class="k">帖子页广告位 PV</div><div class="v">'+Number(a.forumPv||0)+'</div></div>'+
-          '<div class="publisher-stat-card"><div class="k">帖子页广告位 UV</div><div class="v">'+Number(a.forumUv||0)+'</div></div>';
+          '<div class="publisher-stat-card"><div class="k">帖子页广告位 UV</div><div class="v">'+Number(a.forumUv||0)+'</div></div>'+
+          '<div class="publisher-stat-card"><div class="k">工具页广告位 PV</div><div class="v">'+Number(a.toolPv||a.rangePv||0)+'</div></div>'+
+          '<div class="publisher-stat-card"><div class="k">工具页广告位 UV</div><div class="v">'+Number(a.toolUv||a.rangeUv||0)+'</div></div>';
       }
       if(!mount) return;
       mount.innerHTML=
@@ -3261,13 +3277,15 @@
       }
       var homeInput=document.getElementById('publisherHomeAdEnabled');
       var forumInput=document.getElementById('publisherForumAdEnabled');
+      var toolInput=document.getElementById('publisherToolAdEnabled');
       var btn=document.getElementById('publisherSaveBtn');
       setStatus('publisherStatus','保存中...');
       if(btn) btn.disabled=true;
       try{
         var r=await apiFetch('/api/admin/publisher',{method:'PUT',body:JSON.stringify({
           homeAdEnabled: !!(homeInput&&homeInput.checked),
-          forumAdEnabled: !!(forumInput&&forumInput.checked)
+          forumAdEnabled: !!(forumInput&&forumInput.checked),
+          toolAdEnabled: !!(toolInput&&toolInput.checked)
         })});
         var d=await readApiJsonSafe(r);
         if(!r.ok||!d||d.__nonJson){
@@ -3275,7 +3293,7 @@
           return;
         }
         applyPublisherAdsToForm(d.publisher||d);
-        setStatus('publisherStatus','已保存，首页与帖子页将分别读取对应开关。');
+        setStatus('publisherStatus','已保存，首页、帖子页与工具页将分别读取对应开关。');
       }catch(e){
         setStatus('publisherStatus','保存失败：'+(e.message||'网络错误'));
       }finally{

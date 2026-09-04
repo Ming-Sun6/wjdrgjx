@@ -74,6 +74,7 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
   assert.match(server, /function defaultPublisherAds\(\)/);
   assert.match(server, /homeAdEnabled:\s*hasHome \? input\.homeAdEnabled !== false : legacyOn/);
   assert.match(server, /forumAdEnabled:\s*hasForum \? input\.forumAdEnabled !== false : legacyOn/);
+  assert.match(server, /toolAdEnabled:\s*hasTool \? toolOn : true/);
   assert.match(server, /app\.get\('\/api\/publisher'/);
   assert.match(server, /app\.get\('\/api\/admin\/publisher'/);
   assert.match(server, /app\.put\('\/api\/admin\/publisher'/);
@@ -83,6 +84,7 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
   assert.match(admin, /id="page-publisher"/);
   assert.match(admin, /id="publisherHomeAdEnabled"/);
   assert.match(admin, /id="publisherForumAdEnabled"/);
+  assert.match(admin, /id="publisherToolAdEnabled"/);
   assert.match(admin, /id="publisherViewsTbody"/);
   assert.match(admin, /\/api\/admin\/publisher\/forum-views/);
   assert.doesNotMatch(admin, /id="publisherAdEnabled"/);
@@ -96,19 +98,34 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
   const tracker = read('public/function/analytics-tracker.js');
   assert.match(tracker, /function applyHomePublisherRuntime\(\)/);
   assert.match(tracker, /function isForumPostPage\(\)/);
-  assert.match(tracker, /isHomePage\(\) \|\| isForumPostPage\(\)/);
+  assert.match(tracker, /function isToolAdPage\(\)/);
+  assert.match(tracker, /isHomePage\(\) \|\| isForumPostPage\(\) \|\| isToolAdPage\(\)/);
   assert.match(tracker, /wjdr-home-publisher-gap/);
   assert.match(tracker, /cfg\.enabled === false/);
   assert.match(tracker, /cdn\.adwork\.net\/js\/makemoney\.js/);
   assert.match(tracker, /data-id="1129"/);
   assert.match(tracker, /cfg\.forumAdEnabled === false/);
   assert.match(tracker, /cfg\.homeAdEnabled === false/);
+  assert.match(tracker, /cfg\.toolAdEnabled != null \? cfg\.toolAdEnabled === false : cfg\.rangeAdEnabled === false/);
   const forumPost = read('public/function/forum-post.html');
   assert.match(forumPost, /cdn\.adwork\.net\/js\/makemoney\.js/);
   assert.match(forumPost, /id="wjdrAdworkSlot"/);
   assert.match(forumPost, /class="adwork-net adwork-auto"/);
   assert.match(forumPost, /data-id="1129"/);
-  assert.match(admin, /首页顶部与论坛帖子阅读页/);
+  [
+    'public/function/farthest-migration-range.html',
+    'public/function/neighbor-progress.html',
+    'public/function/history-immigration-group.html',
+    'public/function/migration-prediction.html',
+    'public/function/jisuan.html'
+  ].forEach(function (rel) {
+    const page = read(rel);
+    assert.match(page, /cdn\.adwork\.net\/js\/makemoney\.js/);
+    assert.match(page, /id="wjdrAdworkSlot"/);
+    assert.match(page, /class="adwork-net adwork-auto"/);
+    assert.match(page, /data-id="1129"/);
+  });
+  assert.match(admin, /邻邦进度、历史移民分组、移民预测、最远移民区间、移民券计算器/);
 });
 
 test('home lead has responsive presentation and disabled-click styling', () => {
