@@ -92,6 +92,7 @@ test('admin publisher page and server expose split ads plus fact-table stats', (
   assert.match(admin, /前台展示量/);
   assert.match(admin, /本方案上线后/);
   assert.match(stats, /forum_post_reads/);
+  assert.match(stats, /page_key LIKE 'function\/%'/);
   assert.doesNotMatch(stats, /FORUM_VIEW_REAL_BACKFILL_SETTING/);
   assert.match(tracker, /function scheduleForumQualifiedRead/);
   assert.match(tracker, /scopeKey/);

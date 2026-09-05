@@ -33,7 +33,14 @@ function isRangeAdPageKey(pageKey) {
 }
 
 function isToolAdPageKey(pageKey) {
-  return TOOL_AD_PAGE_KEYS.indexOf(String(pageKey || '')) >= 0;
+  const key = String(pageKey || '').replace(/\.html$/i, '');
+  if (!key || key === FORUM_POST_PAGE_KEY || key === 'function/forum' || key === 'function/my') return false;
+  if (key.startsWith('function/_ops/')) return false;
+  if (/(^|\/)admin$/i.test(key)) return false;
+  if (key.startsWith('function/')) return true;
+  if (key.startsWith('map-tool')) return true;
+  if (key.startsWith('giftcode')) return true;
+  return TOOL_AD_PAGE_KEYS.indexOf(key) >= 0;
 }
 
 async function applyQualifiedForumRead(deps, input) {

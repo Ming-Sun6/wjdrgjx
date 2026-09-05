@@ -111,13 +111,25 @@ const LEGAL_PAGE_STYLE = `:root {
         color: var(--link);
         text-decoration: none;
         border-bottom: 1px dotted currentColor;
+      }
+      footer.wjdr-footer{
+        margin-top:16px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+      }
+      #wjdr-footer-credits{
+        white-space:pre-wrap;
+        width:100%;
+        margin:0 0 12px;
+        text-align:center;
       }`;
 
 const LEGAL_PAGE_CREDITS = `制作：2041茗子、飞菇
 数据：飞菇、甜甜、627贰叁、奶酪、719缥缈、2041茗子
-测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球
-
+测试：2041茗子、飞菇、甜甜、627贰叁、奶酪、719缥缈、755脆脆、2144煤球、柒枫团队
 宣传大使：懒羊羊
+赞助：39 拙山枯水大江行
 
 感谢以上所有人对本攻略站的付出`;
 
@@ -128,6 +140,15 @@ const LEGAL_DOC_LINKS_HTML = `<p id="wjdr-legal-doc-links" class="legal-doc-link
         <span aria-hidden="true"> | </span>
         <a href="/legal/privacy">《隐私政策》</a>
       </p>`;
+
+function legalPageFooterHtml() {
+  return `<footer class="wjdr-footer">
+      <div id="wjdr-footer-credits" class="muted">
+${escapeHtml(LEGAL_PAGE_CREDITS)}
+      </div>
+      ${LEGAL_DOC_LINKS_HTML}
+    </footer>`;
+}
 
 function escapeHtml(value) {
   return String(value || '')
@@ -214,11 +235,25 @@ function formatDateYmd(value) {
 
 function extractCardBodyFromHtml(html) {
   const src = String(html || '');
-  const cardStart = src.indexOf('<div class="card">');
+  const marker = '<div class="card">';
+  const cardStart = src.indexOf(marker);
   if (cardStart < 0) return '';
-  const afterCard = src.slice(cardStart + '<div class="card">'.length);
-  const endMatch = afterCard.search(/\n\s*<div class="(?:muted|note)"/);
-  const inner = (endMatch >= 0 ? afterCard.slice(0, endMatch) : afterCard).trim();
+  const afterCard = src.slice(cardStart + marker.length);
+  let depth = 1;
+  const re = /<\/?div\b[^>]*>/gi;
+  let match;
+  let endAt = -1;
+  while ((match = re.exec(afterCard))) {
+    if (/^<div\b/i.test(match[0]) && !/\/\s*>$/.test(match[0])) depth += 1;
+    else if (/^<\/div/i.test(match[0])) {
+      depth -= 1;
+      if (depth === 0) {
+        endAt = match.index;
+        break;
+      }
+    }
+  }
+  const inner = (endAt >= 0 ? afterCard.slice(0, endAt) : afterCard).trim();
   return inner
     .replace(/<h1>[\s\S]*?<\/h1>/, '')
     .replace(/<div class="meta">[\s\S]*?<\/div>/, '')
@@ -410,10 +445,7 @@ function renderLegalPageHtml(docId, docs) {
         </div>
         ${doc.bodyHtml}
       </div>
-      <div class="muted" style="margin-top: 14px; white-space: pre-wrap">
-${escapeHtml(LEGAL_PAGE_CREDITS)}
-      </div>
-      ${LEGAL_DOC_LINKS_HTML}
+      ${legalPageFooterHtml()}
     </div>
     <script src="/function/site-beian.js" defer></script>
   </body>
@@ -581,10 +613,7 @@ function renderToolAccessAgreementHtml(doc) {
         </div>
         ${normalized.bodyHtml}
       </div>
-      <div class="muted" style="margin-top: 14px; white-space: pre-wrap">
-${escapeHtml(LEGAL_PAGE_CREDITS)}
-      </div>
-      ${LEGAL_DOC_LINKS_HTML}
+      ${legalPageFooterHtml()}
     </div>
     <script src="/function/site-beian.js" defer></script>
   </body>

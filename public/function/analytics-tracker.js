@@ -322,8 +322,23 @@
     return isToolAdPage();
   }
 
+  function isExcludedAdPage() {
+    var path = pagePath();
+    if (/\/_ops\//i.test(path)) return true;
+    if (/(^|\/)admin\.html$/i.test(path)) return true;
+    if (/^\/legal(\/|$)/i.test(path)) return true;
+    if (/\/my\.html$/i.test(path)) return true;
+    if (/\/forum\.html$/i.test(path)) return true;
+    return false;
+  }
+
   function isToolAdPage() {
-    return /\/(farthest-migration-range|neighbor-progress|history-immigration-group|migration-prediction|jisuan|calendar)\.html$/i.test(pagePath());
+    if (isExcludedAdPage() || isHomePage() || isForumPostPage()) return false;
+    var path = pagePath();
+    if (/\/function\//i.test(path)) return true;
+    if (/\/map-tool/i.test(path)) return true;
+    if (/\/giftcode/i.test(path)) return true;
+    return false;
   }
 
   function isCalendarPage() {
@@ -374,7 +389,29 @@
     (document.head || document.documentElement).appendChild(sc);
   }
 
+  function ensureAdworkSlotStyle() {
+    if (document.getElementById('wjdr-adwork-slot-style')) return;
+    var style = document.createElement('style');
+    style.id = 'wjdr-adwork-slot-style';
+    style.textContent =
+      '.wjdr-adwork-slot{width:100%;max-width:min(1080px,100%);margin:10px auto 12px;padding:0 16px;text-align:center;overflow:visible;box-sizing:border-box}' +
+      '.wjdr-adwork-slot .adwork-net{display:inline-block;margin:0 auto;overflow:visible}' +
+      'html.is-embedded .wjdr-adwork-slot{display:none!important}';
+    (document.head || document.documentElement).appendChild(style);
+  }
+
+  function insertAdSlotAtTop(slot) {
+    if (!slot || !document.body) return;
+    var notice = document.getElementById('__wjdrPlayerNotice');
+    if (notice && notice.parentNode) {
+      if (slot.previousSibling !== notice) notice.parentNode.insertBefore(slot, notice.nextSibling);
+      return;
+    }
+    if (document.body.firstChild !== slot) document.body.insertBefore(slot, document.body.firstChild);
+  }
+
   function applyHomeAdSlot(cfg) {
+    ensureAdworkSlotStyle();
     var slot = document.getElementById('wjdrAdworkSlot');
     var adsOff = isEmbedPage()
       || (isForumPostPage()
@@ -391,26 +428,8 @@
       slot.id = 'wjdrAdworkSlot';
       slot.className = 'wjdr-adwork-slot';
       slot.innerHTML = '<div class="adwork-net adwork-auto" data-id="1129"></div>';
-      if (isCalendarPage()) {
-        var footer = document.querySelector('footer.wjdr-footer, .wjdr-footer');
-        if (footer && footer.parentNode) footer.parentNode.insertBefore(slot, footer);
-        else document.body.appendChild(slot);
-      } else if (isForumPostPage() || isToolAdPage()) {
-        var wrap = document.querySelector('.wrap') || document.querySelector('.container');
-        var card = wrap && wrap.querySelector('.card');
-        var top = wrap && wrap.querySelector('.top');
-        if (top && top.parentNode) top.parentNode.insertBefore(slot, top.nextSibling);
-        else if (card && card.parentNode) card.parentNode.insertBefore(slot, card);
-        else if (wrap) wrap.insertBefore(slot, wrap.firstChild);
-        else document.body.insertBefore(slot, document.body.firstChild);
-      } else {
-        var notice = document.getElementById('__wjdrPlayerNotice');
-        var lead = findHomeLead();
-        if (notice && notice.parentNode) notice.parentNode.insertBefore(slot, notice.nextSibling);
-        else if (lead && lead.parentNode) lead.parentNode.insertBefore(slot, lead);
-        else document.body.insertBefore(slot, document.body.firstChild);
-      }
     }
+    insertAdSlotAtTop(slot);
     ensureAdworkSdk();
   }
 
@@ -445,6 +464,7 @@
       })
       .catch(function () {
         if (isHomePage()) setHomeLeadVisible(true);
+        applyHomeAdSlot(null);
       });
   }
 

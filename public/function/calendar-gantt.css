@@ -18,8 +18,8 @@ html.is-mobile-desktop-viewport .calendar-scroll:has(.calendar-continuous-timeli
 .calendar-timeline-parent-title{outline:2px solid color-mix(in srgb,currentColor 32%,transparent);outline-offset:-2px;font-weight:900}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;font-family:"Microsoft YaHei",system-ui,-apple-system,sans-serif;background:linear-gradient(145deg,#fff9ef,#f7eee4);color:var(--calendar-ink)}
-body{padding:72px 18px 30px}
-.calendar-page-header{position:fixed;z-index:20;top:0;left:0;right:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:rgba(255,250,241,.92);border-bottom:1px solid var(--calendar-line);backdrop-filter:blur(12px)}
+body{padding:0 18px 30px}
+.calendar-page-header{position:sticky;z-index:20;top:0;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;margin:0 -18px;background:rgba(255,250,241,.92);border-bottom:1px solid var(--calendar-line);backdrop-filter:blur(12px)}
 .calendar-page-header h1{margin:0;font-size:1.12rem}.calendar-page-header a{color:var(--calendar-ink);text-decoration:none;padding:8px 12px;border:1px solid var(--calendar-line);border-radius:999px;background:#fff}
 .calendar-shell{width:min(1500px,100%);margin:0 auto;padding:18px;border:1px solid var(--calendar-line);border-radius:22px;background:rgba(255,253,248,.92);box-shadow:var(--calendar-shadow)}
 .calendar-preview-banner{display:none;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:12px 14px;border:1px solid #edc8a7;border-radius:14px;background:#fff1df}.calendar-preview-banner strong,.calendar-preview-banner span{display:block}.calendar-preview-banner span{margin-top:2px;color:var(--calendar-muted);font-size:.78rem}.calendar-preview-open{min-height:40px;flex:0 0 auto;border:1px solid #d99b72;border-radius:999px;padding:8px 14px;background:#efb99b;color:#4a2d1f;font-weight:800;cursor:pointer}
@@ -105,8 +105,8 @@ html.is-embedded body{padding:0;background:transparent}html.is-embedded .calenda
 .calendar-timeline-lane{background-image:repeating-linear-gradient(to right,transparent 0,transparent calc(var(--timeline-day-width) - 1px),var(--calendar-line) calc(var(--timeline-day-width) - 1px),var(--calendar-line) var(--timeline-day-width));background-position:0 0;background-size:auto 100%}
 
 @media (max-width:760px) and (hover:none) and (pointer:coarse){
-  body{padding:64px 6px 16px}
-  .calendar-page-header{height:52px;padding:0 10px}
+  body{padding:0 6px 16px}
+  .calendar-page-header{height:52px;padding:0 10px;margin:0 -6px}
   .calendar-page-header h1{font-size:.96rem}
   .calendar-page-header a{padding:6px 9px;font-size:.78rem}
   .calendar-shell{width:100%;padding:7px;border-radius:14px}

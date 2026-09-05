@@ -26,10 +26,22 @@ function read(rel) {
 
 test('extracts legal card bodies from current html files', () => {
   const about = extractCardBodyFromHtml(read('legal/about.html'));
+  const privacy = extractCardBodyFromHtml(read('legal/privacy.html'));
+  const agreement = extractCardBodyFromHtml(read('legal/user-agreement.html'));
   assert.match(about, /网站是什么/);
   assert.doesNotMatch(about, /<h1>/);
-  assert.match(extractCardBodyFromHtml(read('legal/privacy.html')), /Cookie/);
-  assert.match(extractCardBodyFromHtml(read('legal/user-agreement.html')), /广告与第三方服务/);
+  assert.doesNotMatch(about, /wjdr-footer-credits/);
+  assert.match(about, /Adwork/);
+  assert.match(about, /功能申请协议/);
+  assert.match(privacy, /Cookie/);
+  assert.match(privacy, /cdn\.adwork\.net/);
+  assert.match(privacy, /投稿、纠错与建议/);
+  assert.match(privacy, /功能申请与协议确认/);
+  assert.match(privacy, /visitor_id/);
+  assert.match(agreement, /广告与第三方服务/);
+  assert.match(agreement, /Adwork/);
+  assert.match(agreement, /功能申请协议/);
+  assert.match(agreement, /仅供参考/);
 });
 
 test('public notice uses a stable first-visit version until publish', () => {
@@ -58,6 +70,8 @@ test('publish bumps version and keeps sanitized html', () => {
   assert.doesNotMatch(applied.docs.documents.about.bodyHtml, /script/i);
   assert.match(renderLegalPageHtml('about', applied.docs), /协议已更新|测试|关于我们/);
   assert.match(renderLegalPageHtml('about', applied.docs), /id="wjdr-legal-doc-links"/);
+  assert.match(renderLegalPageHtml('about', applied.docs), /<footer class="wjdr-footer">/);
+  assert.match(renderLegalPageHtml('about', applied.docs), /id="wjdr-footer-credits"/);
 });
 
 test('request path maps to legal document ids', () => {
@@ -119,6 +133,8 @@ test('tool access agreement publish is independent of site-wide legal notice', (
   assert.match(applied.doc.bodyHtml, /<h2>申请须知<\/h2>/);
   assert.doesNotMatch(applied.doc.bodyHtml, /script/i);
   assert.match(renderToolAccessAgreementHtml(applied.doc), /申请须知|功能申请协议/);
+  assert.match(renderToolAccessAgreementHtml(applied.doc), /<footer class="wjdr-footer">/);
+  assert.match(renderToolAccessAgreementHtml(applied.doc), /id="wjdr-footer-credits"/);
   assert.equal(toPublicNotice(siteDocs).version, INITIAL_NOTICE_VERSION);
   assert.equal(toPublicNotice(siteDocs).links.length, 3);
 });

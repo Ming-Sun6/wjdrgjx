@@ -4,7 +4,8 @@ const assert = require('node:assert/strict');
 const {
   FORUM_READ_DEDUP_MS,
   shouldCountRealRead,
-  applyQualifiedForumRead
+  applyQualifiedForumRead,
+  isToolAdPageKey
 } = require('../forum-post-reads');
 
 test('real reads skip authors, admins, and missing visitors', () => {
@@ -13,6 +14,16 @@ test('real reads skip authors, admins, and missing visitors', () => {
   assert.equal(shouldCountRealRead({ visitorId: 'abc', isAuthor: true, isAdmin: false }), false);
   assert.equal(shouldCountRealRead({ visitorId: 'abc', isAuthor: false, isAdmin: true }), false);
   assert.equal(FORUM_READ_DEDUP_MS, 30 * 60 * 1000);
+});
+
+test('tool ad page keys cover front-end tools and skip admin or account pages', () => {
+  assert.equal(isToolAdPageKey('function/equipment-training-calculator'), true);
+  assert.equal(isToolAdPageKey('function/BeaPit.html'), true);
+  assert.equal(isToolAdPageKey('map-tool/index'), true);
+  assert.equal(isToolAdPageKey('function/forum-post'), false);
+  assert.equal(isToolAdPageKey('function/my'), false);
+  assert.equal(isToolAdPageKey('function/_ops/console-7a9/internal/admin'), false);
+  assert.equal(isToolAdPageKey('function/aeroplane-chess/admin'), false);
 });
 
 test('qualified read inserts one fact row and display rows only when accepted', async () => {

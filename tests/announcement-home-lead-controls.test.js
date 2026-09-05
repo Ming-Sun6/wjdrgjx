@@ -99,6 +99,10 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
   assert.match(tracker, /function applyHomePublisherRuntime\(\)/);
   assert.match(tracker, /function isForumPostPage\(\)/);
   assert.match(tracker, /function isToolAdPage\(\)/);
+  assert.match(tracker, /function isExcludedAdPage\(\)/);
+  assert.match(tracker, /function insertAdSlotAtTop\(/);
+  assert.ok(tracker.includes('/\\/function\\//i.test(path)'));
+  assert.match(tracker, /applyHomeAdSlot\(null\)/);
   assert.match(tracker, /isHomePage\(\) \|\| isForumPostPage\(\) \|\| isToolAdPage\(\)/);
   assert.match(tracker, /wjdr-home-publisher-gap/);
   assert.match(tracker, /cfg\.enabled === false/);
@@ -131,7 +135,19 @@ test('publisher menu controls homepage ads independently of the carousel', () =>
   assert.match(calendar, /data-id="1129"/);
   assert.match(tracker, /function isCalendarPage\(\)/);
   assert.match(tracker, /function isEmbedPage\(\)/);
-  assert.match(admin, /邻邦进度、历史移民分组、移民预测、最远移民区间、移民券计算器、活动日历/);
+  assert.match(admin, /全部前台工具页顶部/);
+  [
+    'public/function/farthest-migration-range.html',
+    'public/function/neighbor-progress.html',
+    'public/function/history-immigration-group.html',
+    'public/function/migration-prediction.html',
+    'public/function/jisuan.html',
+    'public/function/forum-post.html',
+    'public/function/calendar.html'
+  ].forEach(function (rel) {
+    const page = read(rel);
+    assert.match(page, /<body[^>]*>[\s\S]{0,240}id="wjdrAdworkSlot"/, `${rel} should place the ad slot at the top of body`);
+  });
 });
 
 test('home lead has responsive presentation and disabled-click styling', () => {

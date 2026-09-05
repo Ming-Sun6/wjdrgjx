@@ -1,7 +1,6 @@
 const {
   HOME_AD_PAGE_KEYS,
-  FORUM_POST_PAGE_KEY,
-  TOOL_AD_PAGE_KEYS
+  FORUM_POST_PAGE_KEY
 } = require('./forum-post-reads');
 
 function toNumber(value) {
@@ -118,8 +117,17 @@ function homePageKeySql() {
   return HOME_AD_PAGE_KEYS.map(() => '?').join(',');
 }
 
-function toolPageKeySql() {
-  return TOOL_AD_PAGE_KEYS.map(() => '?').join(',');
+function toolAdPageSql() {
+  return `(
+    (
+      page_key LIKE 'function/%'
+      AND page_key NOT IN ('function/forum-post', 'function/forum', 'function/my')
+      AND page_key NOT LIKE 'function/_ops/%'
+      AND page_key NOT LIKE '%/admin'
+    )
+    OR page_key LIKE 'map-tool%'
+    OR page_key LIKE 'giftcode%'
+  )`;
 }
 
 function createPublisherForumStatsService(deps) {
@@ -136,14 +144,14 @@ function createPublisherForumStatsService(deps) {
         COUNT(DISTINCT CASE WHEN page_key IN (${homePageKeySql()}) THEN visitor_id END) AS homeUv,
         COALESCE(SUM(CASE WHEN page_key = ? THEN 1 ELSE 0 END), 0) AS forumPv,
         COUNT(DISTINCT CASE WHEN page_key = ? THEN visitor_id END) AS forumUv,
-        COALESCE(SUM(CASE WHEN page_key IN (${toolPageKeySql()}) THEN 1 ELSE 0 END), 0) AS toolPv,
-        COUNT(DISTINCT CASE WHEN page_key IN (${toolPageKeySql()}) THEN visitor_id END) AS toolUv
+        COALESCE(SUM(CASE WHEN ${toolAdPageSql()} THEN 1 ELSE 0 END), 0) AS toolPv,
+        COUNT(DISTINCT CASE WHEN ${toolAdPageSql()} THEN visitor_id END) AS toolUv
       FROM analytics_events
       WHERE event_type = 'page_view'
         AND COALESCE(is_admin_area, 0) = 0
         AND occurred_at >= ? AND occurred_at <= ?
       `,
-      [...HOME_AD_PAGE_KEYS, ...HOME_AD_PAGE_KEYS, FORUM_POST_PAGE_KEY, FORUM_POST_PAGE_KEY, ...TOOL_AD_PAGE_KEYS, ...TOOL_AD_PAGE_KEYS, range.from, range.to]
+      [...HOME_AD_PAGE_KEYS, ...HOME_AD_PAGE_KEYS, FORUM_POST_PAGE_KEY, FORUM_POST_PAGE_KEY, range.from, range.to]
     );
     const toolPv = toNumber(row && (row.toolPv || row.toolpv || row.rangePv || row.rangepv));
     const toolUv = toNumber(row && (row.toolUv || row.tooluv || row.rangeUv || row.rangeuv));

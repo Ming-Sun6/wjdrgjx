@@ -32,20 +32,21 @@
       document.documentElement.style.setProperty('--wjdr-thanks-text', cssString(text));
     } catch (_e) {}
 
-    var footer = document.querySelector('footer.wjdr-footer');
-    if (!footer) return;
     ensureStyle();
-    footer.classList.add('wjdr-footer-configured');
 
+    var footer = document.querySelector('footer.wjdr-footer');
     var box = document.getElementById('wjdr-footer-credits');
-    if (!box) {
-      box = document.createElement('div');
-      box.id = 'wjdr-footer-credits';
-      var firstLegal = footer.querySelector('.site-footer-legal, #wjdr-legal-doc-links, #wjdr-icp-links, #wjdr-site-beian-wrap');
-      if (firstLegal) footer.insertBefore(box, firstLegal);
-      else footer.insertBefore(box, footer.firstChild);
+    if (footer) {
+      footer.classList.add('wjdr-footer-configured');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'wjdr-footer-credits';
+        var firstLegal = footer.querySelector('.site-footer-legal, #wjdr-legal-doc-links, #wjdr-icp-links, #wjdr-site-beian-wrap');
+        if (firstLegal) footer.insertBefore(box, firstLegal);
+        else footer.insertBefore(box, footer.firstChild);
+      }
     }
-    box.textContent = text;
+    if (box) box.textContent = text;
   }
 
   function load() {

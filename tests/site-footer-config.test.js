@@ -24,8 +24,24 @@ test('shared footer script loads configurable credits and renders safely', () =>
 
   assert.match(source, /fetch\('\/api\/site-footer'/);
   assert.match(source, /footer\.wjdr-footer/);
+  assert.match(source, /wjdr-footer-credits/);
   assert.match(source, /textContent/);
   assert.doesNotMatch(source, /innerHTML\s*=\s*data\./);
+});
+
+test('legal pages reuse the shared site footer credits slot', () => {
+  const pages = [
+    'legal/about.html',
+    'legal/privacy.html',
+    'legal/user-agreement.html',
+    'legal/tool-access-agreement.html'
+  ];
+  for (const page of pages) {
+    const html = read(page);
+    assert.match(html, /<footer class="wjdr-footer">/, `${page} should use the shared footer`);
+    assert.match(html, /id="wjdr-footer-credits"/, `${page} should expose the credits slot`);
+    assert.match(html, /analytics-tracker\.js/, `${page} should load the script that installs site-footer.js`);
+  }
 });
 
 test('analytics tracker installs the shared footer script on static pages', () => {
