@@ -209,15 +209,19 @@
             <div class="f2"><label>盾数量 (万)</label><input id="shieldWan" type="number" min="0" step="0.1" value="0"></div>
             <div class="f2"><label>矛数量 (万)</label><input id="spearWan" type="number" min="0" step="0.1" value="0"></div>
             <div class="f2"><label>弓数量 (万)</label><input id="bowWan" type="number" min="0" step="0.1" value="0"></div>
-            <div class="f2 discount-field"><label>盾减免 (%)</label><input id="shieldR" type="number" min="0" max="100" step="0.1" value="0"></div>
-            <div class="f2 discount-field"><label>矛减免 (%)</label><input id="spearR" type="number" min="0" max="100" step="0.1" value="0"></div>
-            <div class="f2 discount-field"><label>弓减免 (%)</label><input id="bowR" type="number" min="0" max="100" step="0.1" value="0"></div>
+            <div class="f2 discount-field" data-tech="11"><label for="shieldTech11">盾 T11 科技等级</label><select id="shieldTech11"></select></div>
+            <div class="f2 discount-field" data-tech="11"><label for="spearTech11">矛 T11 科技等级</label><select id="spearTech11"></select></div>
+            <div class="f2 discount-field" data-tech="11"><label for="bowTech11">弓 T11 科技等级</label><select id="bowTech11"></select></div>
+            <div class="f2 discount-field" data-tech="12"><label for="shieldTech12">盾 T12 科技等级</label><select id="shieldTech12"></select></div>
+            <div class="f2 discount-field" data-tech="12"><label for="spearTech12">矛 T12 科技等级</label><select id="spearTech12"></select></div>
+            <div class="f2 discount-field" data-tech="12"><label for="bowTech12">弓 T12 科技等级</label><select id="bowTech12"></select></div>
           </div>
           <div class="stats" style="margin-top:8px;grid-template-columns:repeat(3,minmax(0,1fr));">
             <div class="stat"><div class="k">消耗加速 (天)</div><div class="v" id="needDays">0</div></div>
             <div class="stat"><div class="k">备战分数 (万)</div><div class="v" id="prepByCount">0</div></div>
             <div class="stat"><div class="k">冻土分数 (万)</div><div class="v" id="frostByCount">0</div></div>
           </div>
+          <p class="hint" id="exactMinutes"></p>
           <table style="margin-top:8px;">
             <thead><tr><th>资源</th><th>消耗（亿/万）</th></tr></thead>
             <tbody>
@@ -227,7 +231,8 @@
               <tr><td><span class="res-name"><img src="../Scores/tie.png" alt="铁">铁</span></td><td id="rD">0</td></tr>
             </tbody>
           </table>
-          <p class="hint" style="margin-top:6px;">目标为 T11 或 T12 时可填减免；分数与加速按盾+矛+弓数量合计计算。</p>
+          <details><summary>查看精确资源数量</summary><p class="hint" id="exactResources"></p></details>
+          <p class="hint" style="margin-top:6px;">T11 科技每级减免 5%，T12 科技每级减免 2.5%，各为 0～10 级。先计算各兵阶科技减免后的资源，再取晋升差值；各兵种资源分别向上取整后汇总。晋升耗时各兵种向上取整到分钟后汇总。</p>
         </div>
       </div>
 
@@ -249,7 +254,7 @@
           ["T9",131,45,30,[1394,1046,244,51],[1220,1151,237,55],[872,1290,217,70]],
           ["T10",152,60,39,[2788,2091,488,102],[2440,2301,474,109],[1743,2579,433,140]],
           ["T11",180,75,49,[6970,5228,1220,253],[6099,5751,1185,271],[4357,6448,1081,349]],
-          ["T12",215,87,57,[13940,10456,2440,506],[12198,11502,2370,542],[8714,12896,2162,698]]
+          ["T12",215,94,61,[10455,7842,1830,380],[9148,8626,1778,406],[6535,9671,1621,523]]
         ].map((x)=>({lv:x[0],time:x[1],prep:x[2],frost:x[3],s:x[4],p:x[5],b:x[6],promoteTime:x[7]}));
 
     const troopMap = new Map(TROOP.map((x) => [x.lv, x]));
@@ -284,7 +289,7 @@
     function applyDiscountVisibility(){
       const show = hasTroopDiscount(document.getElementById("toTier")?.value);
       document.querySelectorAll(".discount-field").forEach((el)=>{
-        el.classList.toggle("show", show);
+        el.classList.toggle("show", show && (el.dataset.tech === "11" || document.getElementById("toTier").value === "T12"));
       });
     }
 
@@ -353,18 +358,39 @@
       return (N(curr[key]) ?? NaN) - (N(prev[key]) ?? NaN);
     }
 
-    function stepPromoteRes(prev, curr, resKey, index){
-      return (N(curr[resKey][index]) ?? NaN) - (N(prev[resKey][index]) ?? NaN);
-    }
-
     function metricForRange(from, to, isTrain, key){
       if(isDirectTrain(from, isTrain)) return N(to[key]) ?? NaN;
       return promoteRangeSum(from, to, (prev, curr) => stepPromoteMetric(prev, curr, key));
     }
 
-    function resForRange(from, to, isTrain, resKey, index){
-      if(isDirectTrain(from, isTrain)) return N(to[resKey][index]) ?? NaN;
-      return promoteRangeSum(from, to, (prev, curr) => stepPromoteRes(prev, curr, resKey, index));
+    const techLevel = (value) => clamp(Math.floor(N(value) ?? 0), 0, 10);
+    // Avoid rounding an exact integer up because of floating-point arithmetic.
+    const roundUp = (value) => Math.ceil(value - Number.EPSILON * Math.max(1, Math.abs(value)) * 4);
+
+    function adjustedResource(tier, key, index, level11, level12){
+      const base = tier[key][index];
+      const a = techLevel(level11) * 0.05;
+      const b = techLevel(level12) * 0.025;
+      if(tier.lv === "T11") return base * (1 - a);
+      if(tier.lv === "T12") return (base - troopMap.get("T11")[key][index] * a) * (1 - b);
+      return base;
+    }
+
+    function calculateTotals(from, to, isTrain, speed, expert, groups){
+      const seconds = trainSeconds(from, to, isTrain) / (1 + speed / 100);
+      const count = groups.reduce((sum, group) => sum + group.count, 0);
+      const minutes = groups.reduce((sum, group) => {
+        const raw = seconds * group.count / 60;
+        return sum + (isTrain ? raw : roundUp(raw));
+      }, 0);
+      const resources = [0, 1, 2, 3].map(index => groups.reduce((sum, group) => {
+        const target = adjustedResource(to, group.key, index, group.level11, group.level12);
+        const start = isTrain ? 0 : adjustedResource(from, group.key, index, group.level11, group.level12);
+        return sum + roundUp((target - start) * group.count);
+      }, 0));
+      return { minutes, resources,
+        prep: count * metricForRange(from, to, isTrain, "prep") * expert,
+        frost: count * metricForRange(from, to, isTrain, "frost") };
     }
 
     function trainSeconds(from, to, isTrain){
@@ -390,7 +416,7 @@
       const prepExpertLv = clamp(Math.floor(N(document.getElementById("prepExpertLevel").value) ?? 0), 0, 10);
 
       if(!valid){
-        ["needDays","prepByCount","frostByCount","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+        ["needDays","prepByCount","frostByCount","rA","rB","rC","rD","exactMinutes","exactResources"].forEach((id)=>txt(id,"--"));
         setStatus("目标兵阶必须高于起始兵阶", "bad");
         return;
       }
@@ -398,47 +424,30 @@
       const isTrain = document.getElementById("trainMode").value === "train";
       const dtRaw = trainSeconds(from, to, isTrain);
       if(!Number.isFinite(dtRaw) || dtRaw <= 0){
-        ["needDays","prepByCount","frostByCount","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
+        ["needDays","prepByCount","frostByCount","rA","rB","rC","rD","exactMinutes","exactResources"].forEach((id)=>txt(id,"--"));
         setStatus("无法计算训练时间", "bad");
         return;
       }
 
-      const qS = Math.max(0, N(document.getElementById("shieldWan").value) ?? 0);
-      const qP = Math.max(0, N(document.getElementById("spearWan").value) ?? 0);
-      const qB = Math.max(0, N(document.getElementById("bowWan").value) ?? 0);
-      const totalWan = qS + qP + qB;
-      const rate = 1 + speed / 100;
+      const groups = [["shield", "s"], ["spear", "p"], ["bow", "b"]].map(([id, key]) => ({
+        key,
+        count: Math.max(0, N(document.getElementById(id + "Wan").value) ?? 0) * 10000,
+        level11: techLevel(document.getElementById(id + "Tech11").value),
+        level12: techLevel(document.getElementById(id + "Tech12").value)
+      }));
+      const result = calculateTotals(from, to, isTrain, speed, prepExpert, groups);
       const dt = dtRaw;
-      const needDays = (dt / rate / 86400) * totalWan * 10000;
       const prepD = metricForRange(from, to, isTrain, "prep");
       const frostD = metricForRange(from, to, isTrain, "frost");
-      if(!Number.isFinite(prepD) || !Number.isFinite(frostD)){
-        ["needDays","prepByCount","frostByCount","rA","rB","rC","rD"].forEach((id)=>txt(id,"--"));
-        setStatus("无法计算晋升积分", "bad");
-        return;
-      }
-      txt("needDays", F(needDays, 2));
-      txt("prepByCount", F(totalWan * prepD * prepExpert, 2));
-      txt("frostByCount", F(totalWan * frostD, 2));
-      const rS = clamp(Math.max(0, N(document.getElementById("shieldR").value) ?? 0), 0, 100) / 100;
-      const rP = clamp(Math.max(0, N(document.getElementById("spearR").value) ?? 0), 0, 100) / 100;
-      const rB = clamp(Math.max(0, N(document.getElementById("bowR").value) ?? 0), 0, 100) / 100;
       const troopDiscount = hasTroopDiscount(to.lv);
-      const fS = troopDiscount ? 1 - rS : 1;
-      const fP = troopDiscount ? 1 - rP : 1;
-      const fB = troopDiscount ? 1 - rB : 1;
-      const calcRes = (i)=>{
-        const ds = resForRange(from, to, isTrain, "s", i);
-        const dp = resForRange(from, to, isTrain, "p", i);
-        const db = resForRange(from, to, isTrain, "b", i);
-        return Number.isFinite(ds) && Number.isFinite(dp) && Number.isFinite(db)
-          ? (ds * qS * fS + dp * qP * fP + db * qB * fB) / 10000
-          : NaN;
-      };
-      txt("rA", YW(calcRes(0)));
-      txt("rB", YW(calcRes(1)));
-      txt("rC", YW(calcRes(2)));
-      txt("rD", YW(calcRes(3)));
+      txt("needDays", F(result.minutes / 1440, 2));
+      txt("prepByCount", F(result.prep / 10000, 2));
+      txt("frostByCount", F(result.frost / 10000, 2));
+      txt("exactMinutes", isTrain
+        ? `训练耗时：${F(result.minutes, 6)} 分钟（保留六位小数）`
+        : `晋升耗时：${F(result.minutes, 0)} 分钟（各兵种向上取整后合计）`);
+      ["rA", "rB", "rC", "rD"].forEach((id, i) => txt(id, YW(result.resources[i] / 100000000)));
+      txt("exactResources", ["肉", "木", "煤", "铁"].map((name, i) => `${name}：${F(result.resources[i], 0)}`).join("；"));
 
       const expertNote = prepExpertLv > 0 ? `，备战专家 Lv.${prepExpertLv}（+${prepExpertLv * 2}%）` : "";
       const resNote = troopDiscount
@@ -459,6 +468,10 @@
         v: String(lv),
         l: lv === 0 ? "0 级（无加成）" : `${lv} 级（+${lv * 2}% 备战分）`
       })), "0");
+      ["shield", "spear", "bow"].forEach(id => {
+        [11, 12].forEach(tier => initSelect(document.getElementById(id + "Tech" + tier),
+          Array.from({length: 11}, (_, level) => ({v: level, l: `${level} 级`})), 0));
+      });
       hideZeroDirectOption("fromTier");
       hideZeroDirectOption("toTier");
       document.getElementById("trainMode").value = "promote";
@@ -467,7 +480,8 @@
       const inputs = [
         "trainMode", "trainSpeed", "fromTier", "toTier", "prepExpertLevel",
         "shieldWan", "spearWan", "bowWan",
-        "shieldR", "spearR", "bowR"
+        "shieldTech11", "spearTech11", "bowTech11",
+        "shieldTech12", "spearTech12", "bowTech12"
       ];
       inputs.forEach((id)=>{
         const el = document.getElementById(id);
