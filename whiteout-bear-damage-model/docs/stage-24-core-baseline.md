@@ -1,0 +1,37 @@
+# Stage 24 stable core baseline
+
+## 验收状态
+
+- Core audit：43/43 组通过
+- Vitest：27 个文件，292/292 项通过
+- TypeScript：通过
+- Vite production build：通过
+- Benchmark：四组通过，候选数均等于实际评估数
+- ENGINE_GAP：0
+
+UI 阶段原则上只调用稳定 API，不修改下表核心文件。如果确需修改，应重新执行完整 Core Audit、类型检查、构建与 benchmark，并生成新基线。
+
+## SHA-256
+
+| 文件 | SHA-256 |
+|---|---|
+| `src/rulesets/bear/base-damage/calculateBaseTroopDamage.ts` | `2EAD6A97D1A9DD0C5BF6AAE9C8A9C5DA48B10419A1CDEF0A6FA0F223823EBCA3` |
+| `src/game-data/troops/troopDamageCoefficients.ts` | `58AFFB06F6034AEC9043B87D5A62F114EC91F4E8DF91BDC62E1698AAA8C73BA5` |
+| `src/game-data/troops/troopLevels.ts` | `4AC890038B00EC3C58125670644A6239123722F04EFFC06091CCC153F79448AD` |
+| `src/engine/skills/resolveSkillEffects.ts` | `D5025CFF0362FD7B4156E5FA739DE0EF74532535F10290F12DB40911B521AF1E` |
+| `src/engine/skills/aggregateMultipliers.ts` | `862863F754EBE480CF0AFD133F0645E9E4C1A59FE3C05E861B474C67E1973780` |
+| `src/engine/skills/resolvers/defenseReductionResolver.ts` | `C6AEA9EAED2341646118A7E6D77CA99B00C322A2C4893E60EC4E3567631F5151` |
+| `src/engine/probability/advanceProbabilityStates.ts` | `6DFE3DFCD49DEE4B55457020B8F8183A245DCAED0C6B31B0E15E3DAB2A2389DD` |
+| `src/engine/probability/calculateExpectedBattleDamage.ts` | `04695A10102C6190A31612002DDA160BAFA3FCA08E8F081F5B8F1663A75A3C2C` |
+| `src/engine/probability/battleStateKey.ts` | `3705937D4691E43A99EC55C76542C79E9B255FCF98B7F453068D63BD8DF07553` |
+| `src/engine/rounds/resolveRound.ts` | `114CEDAEAEA07670265E6ED330B0F524CC06AA7AC804447D91A88171DAF95BB2` |
+| `src/rulesets/bear/battle/calculateBearBattleTotalDamage.ts` | `8AC2DF1DC123790AA5FB6DAE65D085B6704586ED9AC4F19A00E7E5FCBF84569D` |
+| `src/app/calculateTenRoundExpectedDamage.ts` | `F765BEF85EF2EEE44629F3F38CB375D6FE3ABE54D9641B98875881E30C841F6F` |
+| `src/optimizer/body-heroes/optimizeBodyHeroes.ts` | `8AE92BB672FC79E511C98291F8F9D978B259823036068C08179008B1827112B5` |
+| `src/optimizer/troop-ratio/optimizeTroopRatio.ts` | `F376A0C4EE74C7B984F360C703569921D1F250D08E75AEB2741196C68DB46746` |
+| `src/optimizer/battle-setup/optimizeBattleSetup.ts` | `7E2A9C40A21E872EEAE0AD8C1354FC3B510D6F145F8FFFEB22BC3D55719AB007` |
+| `src/optimizer/full-setup/optimizeFullBattleSetup.ts` | `407F751477D3AE92E241F1C2DAA8F5C3923EB9AFCE16F532593218E9B3E5BF13` |
+| `src/game-data/heroes/bodyHeroes.ts` | `3132B97BA4FE6371D856C773C90433873C0E808971A47422827973AF62449468` |
+| `src/game-data/heroes/headHeroes.ts` | `7A6ACAA75CC8643445EEEB23EBD30F44408158AE73CD8053A25F982876A7F704` |
+| `src/game-data/troop-skills/marksmanFireCrystalSkills.ts` | `53B7944654192BD3D9B8AD255761BE1FE65E8FD7CB225254311E8DE0AB332400` |
+| `src/data-audit/collectSkillCatalog.ts` | `3A9163DCF81C11B3C04FD6CEAC76150DF626D5E85D27ED1EB2869BB56A5B0B70` |

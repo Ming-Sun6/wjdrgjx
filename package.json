@@ -8,7 +8,8 @@
     "service:uninstall": "node scripts/service-uninstall.js",
     "service:giftcode:install": "node scripts/giftcode-service-install.js",
     "service:giftcode:uninstall": "node scripts/giftcode-service-uninstall.js",
-    "share-meta:inject": "node scripts/inject-static-share-meta.js"
+    "share-meta:inject": "node scripts/inject-static-share-meta.js",
+    "build:bear-damage": "npm --prefix whiteout-bear-damage-model run build -- --outDir ../public/function/bear-damage --emptyOutDir"
   },
   "devDependencies": {
     "xlsx": "^0.18.5"

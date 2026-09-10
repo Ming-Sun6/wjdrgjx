@@ -1,0 +1,37 @@
+/* Shared by legacy generation URLs and the admin-created slug template. */
+.hero-list .hero-intro{grid-template-areas:"identity portrait" "stats portrait";grid-template-rows:auto 1fr}
+.hero-list .hero-main{grid-area:identity}
+.hero-list .info{grid-area:stats;min-width:0}
+.hero-list .hero-image-wrap{grid-area:portrait}
+.hero-list .hero-stats{margin:0;display:grid;gap:6px}
+.hero-list .hero-stat{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:1rem;line-height:1.6}
+.hero-list .hero-stat dt{min-width:0;overflow-wrap:anywhere;color:var(--muted)}
+.hero-list .hero-stat dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hero-list .hero-stat-note dd{white-space:normal;overflow-wrap:anywhere;font-weight:400}
+.hero-list .hero-obtain-tags{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.hero-list .hero-obtain-tags li{font-size:.875rem;line-height:1.6;padding:3px 8px;border:1px solid var(--border);border-radius:6px;background:var(--image-bg);overflow-wrap:anywhere;max-width:100%}
+.hero-list .skill-tab{min-height:44px}
+.hero-list .skill-line{font-size:1rem;font-weight:400;line-height:1.75;word-break:normal;overflow-wrap:anywhere}
+.hero-list .skill-item h4{font-size:1.0625rem;font-weight:700;line-height:1.5;margin-bottom:6px}
+@media(max-width:680px){
+  .hero-list .hero-intro{grid-template-columns:minmax(0,1fr) 96px!important;grid-template-areas:"identity portrait" "stats stats";grid-template-rows:auto auto;gap:14px 10px;align-items:start}
+  .hero-list .hero-head{gap:8px;margin-bottom:8px;align-items:center}
+  .hero-list .hero-name{font-size:1.5rem;line-height:1.25;overflow-wrap:anywhere}
+  .hero-list .hero-attr{font-size:.875rem;padding:2px 8px}
+  .hero-list .recommend{font-size:.875rem;line-height:1.6;margin:0;font-weight:500}
+  .hero-list .hero-image-wrap{height:116px;min-height:0!important;max-height:116px;border-radius:8px}
+  .hero-list .hero-image{width:100%!important;max-width:100%!important;height:100%;max-height:116px;object-fit:contain;object-position:bottom}
+  .hero-list .info{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px;margin:0}
+  .hero-list .info-col{min-width:0;padding:10px}
+  .hero-list .info h3{font-size:.9375rem;line-height:1.5;margin-bottom:8px}
+  .hero-list .hero-stat{font-size:.875rem;gap:5px;flex-wrap:wrap}
+  .hero-list .hero-stat dd{margin-left:auto}
+  .hero-list .hero-stat-note dd{margin-left:0}
+  .hero-list .skill-tab{font-size:.875rem;padding:8px 2px}
+  .hero-list .skill-tabs{margin-top:14px;margin-bottom:14px}
+}
+@media(max-width:380px){
+  .hero-list .info{grid-template-columns:minmax(0,1fr)!important}
+  .hero-list .hero-intro{grid-template-columns:minmax(0,1fr) 82px!important}
+  .hero-list .hero-image-wrap{height:104px}
+}

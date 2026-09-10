@@ -20,17 +20,24 @@
     return (list || []).map((text) => '<p class="' + cls + '">' + escHtml(text) + '</p>').join('');
   }
 
-  function renderExpeditionStats(list) {
+  function renderStats(list) {
     const source = Array.isArray(list) ? list : [];
-    if (source.length >= 2 && source.length % 2 === 0) {
-      let html = '';
-      for (let i = 0; i < source.length; i += 2) {
-        html += '<p class="line">' + escHtml(source[i]) + '</p>';
-        html += '<p class="line">' + escHtml(source[i + 1]) + '</p>';
+    const rows = [];
+    for (let i = 0; i < source.length; i += 1) {
+      const text = String(source[i] == null ? '' : source[i]).trim();
+      const inline = text.match(/^([^\d]+?)\s*([\d][\d,.]*(?:\s*[%％万亿])?)$/);
+      const next = String(source[i + 1] == null ? '' : source[i + 1]).trim();
+      if (inline) {
+        rows.push('<div class="hero-stat"><dt>' + escHtml(inline[1].trim()) + '</dt><dd>' + escHtml(inline[2]) + '</dd></div>');
+      } else if (text && !/\d/.test(text) && /^[\d][\d,.]*(?:\s*[%％万亿])?$/.test(next)) {
+        rows.push('<div class="hero-stat"><dt>' + escHtml(text) + '</dt><dd>' + escHtml(next) + '</dd></div>');
+        i += 1;
+      } else {
+        // Preserve custom admin text when it is not a recognized name/value pair.
+        rows.push('<div class="hero-stat hero-stat-note"><dd>' + escHtml(text) + '</dd></div>');
       }
-      return html;
     }
-    return renderLines(source);
+    return '<dl class="hero-stats">' + rows.join('') + '</dl>';
   }
 
   function renderSkillItems(list) {
@@ -43,11 +50,7 @@
   }
 
   function renderObtainWays(list) {
-    const linesHtml = renderLines(list, 'line line-obtain');
-    if ((list || []).length >= 5) {
-      return '<div class="obtain-grid">' + linesHtml + '</div>';
-    }
-    return linesHtml;
+    return '<ul class="hero-obtain-tags">' + (list || []).map((text) => '<li>' + escHtml(text) + '</li>').join('') + '</ul>';
   }
 
   function renderHero(hero, heroIndex) {
@@ -96,17 +99,17 @@
       '</div></div>' +
       '<div class="recommend">' +
       escHtml(hero.advice) +
-      '</div>' +
+      '</div></div>' +
       '<div class="info">' +
       '<div class="info-col"><h3>探险</h3>' +
-      renderLines(hero.exploreStats) +
+      renderStats(hero.exploreStats) +
       '</div>' +
       '<div class="info-col"><h3>远征</h3>' +
-      renderExpeditionStats(hero.expeditionStats) +
+      renderStats(hero.expeditionStats) +
       '</div>' +
       '<div class="info-col info-col-obtain"><h3>获取方式</h3>' +
       renderObtainWays(hero.obtainWays) +
-      '</div></div></div>' +
+      '</div></div>' +
       '<div class="hero-image-wrap">' +
       '<img class="hero-image" src="' +
       escHtml(hero.image) +
