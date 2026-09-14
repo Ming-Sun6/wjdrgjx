@@ -301,7 +301,7 @@
           txt("gAttr", gFrom&&gTo ? `${F((gTo.attr-gFrom.attr)*100,2)}%` : "--");
           txt("gemMeta", gFrom&&gTo ? `属性 ${F(gFrom.attr*100,2)}% -> ${F(gTo.attr*100,2)}%，评分 ${I(gFrom.score)} -> ${I(gTo.score)} | 件数 ${gemPieces}` : "--");
 
-          if(!from||!to){ txt("equipStatus","装备数据缺失"); document.getElementById("equipStatus").className = "status bad"; }
+          if(!from||!to){ txt("equipStatus","请选择装备当前阶段与目标阶段"); document.getElementById("equipStatus").className = "status"; }
           else if(to.seq <= from.seq){ txt("equipStatus","目标阶段未高于当前阶段，材料为 0"); document.getElementById("equipStatus").className = "status warn"; }
           else { txt("equipStatus","装备与宝石计算已更新"); document.getElementById("equipStatus").className = "status ok"; }
         }
@@ -309,9 +309,10 @@
 
 
     function init(){
-      const eqOpts = EQUIP.map((x)=>({v:x.st,l:x.st}));
-      initSelect(document.getElementById("eqFrom"), eqOpts, "??");
-      initSelect(document.getElementById("eqTo"), eqOpts, "??");
+      const eqBlank = { v: "", l: "请选择" };
+      const eqOpts = [eqBlank].concat(EQUIP.map((x)=>({v:x.st,l:x.st})));
+      initSelect(document.getElementById("eqFrom"), eqOpts, "");
+      initSelect(document.getElementById("eqTo"), eqOpts, "");
 
       const gemOpts = GEMS.map((x)=>({v:x.lv,l:x.label}));
       initSelect(document.getElementById("gemFrom"), gemOpts, 1);
