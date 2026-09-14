@@ -17,6 +17,24 @@ function readEquipmentRows() {
   });
 }
 
+function readGemRows() {
+  const source = fs.readFileSync(pagePath, 'utf8');
+  const match = source.match(/const GEM_CSV = `([\s\S]*?)`;/);
+  assert.ok(match, 'gem CSV should be embedded in the calculator');
+  return match[1].trim().split('|').map((row) => {
+    const [seq, a, b, c, attr, score, label] = row.split(',');
+    return {
+      lv: Number(seq),
+      label: (label || '').trim() || `Lv.${seq}`,
+      a: Number(a),
+      b: Number(b),
+      c: Number(c),
+      attr: Number(attr),
+      score: Number(score),
+    };
+  });
+}
+
 test('lord equipment data includes the complete mythic T4-T6 progression', () => {
   const rows = readEquipmentRows();
   assert.equal(rows.length, 102);
@@ -43,5 +61,46 @@ test('lord equipment data includes the complete mythic T4-T6 progression', () =>
     attr: 1.955,
     march: 1340,
     score: 0,
+  });
+});
+
+test('lord gem data includes levels 16-1 through 18', () => {
+  const rows = readGemRows();
+  assert.equal(rows.length, 34);
+  assert.deepEqual(rows.find((row) => row.lv === 16), {
+    lv: 16,
+    label: 'Lv.16',
+    a: 650,
+    b: 550,
+    c: 100,
+    attr: 1,
+    score: 21000,
+  });
+  assert.deepEqual(rows.find((row) => row.label === '16级（1段）'), {
+    lv: 17,
+    label: '16级（1段）',
+    a: 85,
+    b: 70,
+    c: 15,
+    attr: 1.01,
+    score: 23500,
+  });
+  assert.deepEqual(rows.find((row) => row.label === '17级（1段）'), {
+    lv: 26,
+    label: '17级（1段）',
+    a: 100,
+    b: 90,
+    c: 20,
+    attr: 1.1,
+    score: 46200,
+  });
+  assert.deepEqual(rows.at(-1), {
+    lv: 34,
+    label: '18级',
+    a: 150,
+    b: 130,
+    c: 20,
+    attr: 1.18,
+    score: 67800,
   });
 });
