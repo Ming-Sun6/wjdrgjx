@@ -217,6 +217,7 @@
           <div class="grid">
             <div class="f"><label>当前等级</label><select id="gemFrom"></select></div>
             <div class="f"><label>目标等级</label><select id="gemTo"></select></div>
+            <div class="f2"><label>件数</label><input id="gemPieces" type="number" min="1" max="8" step="1" value="1"></div>
           </div>
           <table>
             <thead><tr><th>材料</th><th>消耗</th></tr></thead>
@@ -292,11 +293,13 @@
 
           const gf = N(document.getElementById("gemFrom").value) ?? 1;
           const gt = N(document.getElementById("gemTo").value) ?? 1;
+          const gemPieces = Math.max(1, Math.round(N(document.getElementById("gemPieces").value) ?? 1));
           const gFrom = gemMap.get(gf), gTo = gemMap.get(gt);
           let m1=0,m2=0,m3=0;
           if(gt > gf){ GEMS.forEach((g)=>{ if(g.lv>gf && g.lv<=gt){ m1+=g.a; m2+=g.b; m3+=g.c; } }); }
-          txt("g1", I(m1)); txt("g2", I(m2)); txt("g3", I(m3)); txt("gAttr", gFrom&&gTo ? `${F((gTo.attr-gFrom.attr)*100,2)}%` : "--");
-          txt("gemMeta", gFrom&&gTo ? `属性 ${F(gFrom.attr*100,2)}% -> ${F(gTo.attr*100,2)}%，评分 ${I(gFrom.score)} -> ${I(gTo.score)}` : "--");
+          txt("g1", I(m1*gemPieces)); txt("g2", I(m2*gemPieces)); txt("g3", I(m3*gemPieces));
+          txt("gAttr", gFrom&&gTo ? `${F((gTo.attr-gFrom.attr)*100,2)}%` : "--");
+          txt("gemMeta", gFrom&&gTo ? `属性 ${F(gFrom.attr*100,2)}% -> ${F(gTo.attr*100,2)}%，评分 ${I(gFrom.score)} -> ${I(gTo.score)} | 件数 ${gemPieces}` : "--");
 
           if(!from||!to){ txt("equipStatus","装备数据缺失"); document.getElementById("equipStatus").className = "status bad"; }
           else if(to.seq <= from.seq){ txt("equipStatus","目标阶段未高于当前阶段，材料为 0"); document.getElementById("equipStatus").className = "status warn"; }
@@ -314,7 +317,7 @@
       initSelect(document.getElementById("gemFrom"), gemOpts, 1);
       initSelect(document.getElementById("gemTo"), gemOpts, 1);
 
-      ["eqFrom","eqTo","eqPieces","gemFrom","gemTo"].forEach((id)=>document.getElementById(id).addEventListener("input", recalcEquipGem));
+      ["eqFrom","eqTo","eqPieces","gemFrom","gemTo","gemPieces"].forEach((id)=>document.getElementById(id).addEventListener("input", recalcEquipGem));
       recalcEquipGem();
     }
     init();
