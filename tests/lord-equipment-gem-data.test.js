@@ -1,44 +1,41 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const http = require('node:http');
 const path = require('node:path');
+const express = require('express');
+
+const {
+  EQUIPMENT,
+  GEMS,
+  calculateEquipment,
+  calculateGems,
+  findEquipment,
+  mountLordEquipmentGemRoutes
+} = require('../lord-equipment-gem');
 
 const pagePath = path.join(__dirname, '..', 'public', 'function', 'lord-equipment-gem-calculator.html');
+const serverSource = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 
-function readEquipmentRows() {
-  const source = fs.readFileSync(pagePath, 'utf8');
-  const baseMatch = source.match(/const EQUIP_CSV = `([\s\S]*?)`\.trim\(\);/);
-  const appendMatch = source.match(/const EQUIP_APPEND_CSV = `([\s\S]*?)`\.trim\(\);/);
-  assert.ok(baseMatch, 'base equipment CSV should be embedded in the calculator');
-  assert.ok(appendMatch, 'new equipment CSV should be embedded in the calculator');
-  return `${baseMatch[1].trim()}|${appendMatch[1].trim()}`.split('|').map((row) => {
-    const [seq, name, alloy, polish, plan, amber, power, attr, march, score] = row.split(',');
-    return { seq: Number(seq), name, alloy: Number(alloy), polish: Number(polish), plan: Number(plan), amber: Number(amber), power: Number(power), attr: Number(attr), march: Number(march), score: Number(score) };
+function startApp() {
+  const app = express();
+  app.use(express.json());
+  mountLordEquipmentGemRoutes(app);
+  return new Promise((resolve) => {
+    const server = http.createServer(app).listen(0, '127.0.0.1', () => resolve(server));
   });
 }
 
-function readGemRows() {
-  const source = fs.readFileSync(pagePath, 'utf8');
-  const match = source.match(/const GEM_CSV = `([\s\S]*?)`;/);
-  assert.ok(match, 'gem CSV should be embedded in the calculator');
-  return match[1].trim().split('|').map((row) => {
-    const [seq, a, b, c, attr, score, label] = row.split(',');
-    return {
-      lv: Number(seq),
-      label: (label || '').trim() || `Lv.${seq}`,
-      a: Number(a),
-      b: Number(b),
-      c: Number(c),
-      attr: Number(attr),
-      score: Number(score),
-    };
-  });
+async function requestJson(server, urlPath, options) {
+  const { port } = server.address();
+  const res = await fetch(`http://127.0.0.1:${port}${urlPath}`, options);
+  const json = await res.json().catch(() => null);
+  return { status: res.status, json, headers: res.headers };
 }
 
 test('lord equipment data includes the complete mythic T4-T6 progression', () => {
-  const rows = readEquipmentRows();
-  assert.equal(rows.length, 102);
-  assert.deepEqual(rows.at(-1), {
+  assert.equal(EQUIPMENT.length, 102);
+  assert.deepEqual(EQUIPMENT.at(-1), {
     seq: 102,
     name: '神话T6-3星',
     alloy: 68000,
@@ -48,9 +45,9 @@ test('lord equipment data includes the complete mythic T4-T6 progression', () =>
     power: 6120000,
     attr: 2.55,
     march: 1780,
-    score: 0,
+    score: 0
   });
-  assert.deepEqual(rows.find((row) => row.name === '神话T5'), {
+  assert.deepEqual(EQUIPMENT.find((row) => row.name === '神话T5'), {
     seq: 67,
     name: '神话T5',
     alloy: 40000,
@@ -60,47 +57,114 @@ test('lord equipment data includes the complete mythic T4-T6 progression', () =>
     power: 4692000,
     attr: 1.955,
     march: 1340,
-    score: 0,
+    score: 0
   });
 });
 
 test('lord gem data includes levels 16-1 through 18', () => {
-  const rows = readGemRows();
-  assert.equal(rows.length, 34);
-  assert.deepEqual(rows.find((row) => row.lv === 16), {
+  assert.equal(GEMS.length, 34);
+  assert.deepEqual(GEMS.find((row) => row.lv === 16), {
     lv: 16,
     label: 'Lv.16',
-    a: 650,
-    b: 550,
-    c: 100,
+    manual: 650,
+    blueprint: 550,
+    codex: 100,
     attr: 1,
-    score: 21000,
+    score: 21000
   });
-  assert.deepEqual(rows.find((row) => row.label === '16级（1段）'), {
+  assert.deepEqual(GEMS.find((row) => row.label === '16级（1段）'), {
     lv: 17,
     label: '16级（1段）',
-    a: 85,
-    b: 70,
-    c: 15,
+    manual: 85,
+    blueprint: 70,
+    codex: 15,
     attr: 1.01,
-    score: 23500,
+    score: 23500
   });
-  assert.deepEqual(rows.find((row) => row.label === '17级（1段）'), {
+  assert.deepEqual(GEMS.find((row) => row.label === '17级（1段）'), {
     lv: 26,
     label: '17级（1段）',
-    a: 100,
-    b: 90,
-    c: 20,
+    manual: 100,
+    blueprint: 90,
+    codex: 20,
     attr: 1.1,
-    score: 46200,
+    score: 46200
   });
-  assert.deepEqual(rows.at(-1), {
+  assert.deepEqual(GEMS.at(-1), {
     lv: 34,
     label: '18级',
-    a: 150,
-    b: 130,
-    c: 20,
+    manual: 150,
+    blueprint: 130,
+    codex: 20,
     attr: 1.18,
-    score: 67800,
+    score: 67800
   });
+});
+
+test('equipment name lookup accepts the mythic 2-star variant spelling', () => {
+  assert.equal(findEquipment('神话2星')?.seq, 29);
+  assert.equal(findEquipment('神話2星')?.seq, 29);
+});
+
+test('equipment calc sums exclusive current through inclusive target and scales pieces', () => {
+  const one = calculateEquipment({ from: 1, to: 2, pieces: 1 });
+  assert.equal(one.error, undefined);
+  assert.equal(one.cost.alloy, 3800);
+  assert.equal(one.cost.polish, 40);
+  const six = calculateEquipment({ fromName: '良好', toName: '良好1星', pieces: 6 });
+  assert.equal(six.cost.alloy, 3800 * 6);
+  assert.equal(six.delta.attr.toFixed(4), (0.1275 - 0.0935).toFixed(4));
+});
+
+test('gem calc uses handbook/blueprint/codex costs', () => {
+  const result = calculateGems({ from: 1, to: 2, pieces: 18 });
+  assert.equal(result.error, undefined);
+  assert.equal(result.cost.manual, 40 * 18);
+  assert.equal(result.cost.blueprint, 15 * 18);
+  assert.equal(result.cost.codex, 0);
+});
+
+test('calculator page loads shared catalog API instead of embedded CSV', () => {
+  const html = fs.readFileSync(pagePath, 'utf8');
+  assert.match(html, /\/api\/lord-equipment-gem/);
+  assert.match(html, /bindCatalog/);
+  assert.doesNotMatch(html, /const EQUIP_CSV/);
+  assert.doesNotMatch(html, /const GEM_CSV/);
+  assert.match(serverSource, /mountLordEquipmentGemRoutes\(app\)/);
+});
+
+test('public catalog and calc routes return CORS-enabled JSON', async () => {
+  const server = await startApp();
+  try {
+    const catalog = await requestJson(server, '/api/lord-equipment-gem');
+    assert.equal(catalog.status, 200);
+    assert.equal(catalog.json.equipment.length, 102);
+    assert.equal(catalog.json.gems.length, 34);
+    assert.equal(catalog.json.materials.gems[0].name, '宝石手册');
+    assert.equal(catalog.headers.get('access-control-allow-origin'), '*');
+
+    const equipment = await requestJson(server, '/api/lord-equipment');
+    assert.equal(equipment.json.equipment.at(-1).name, '神话T6-3星');
+
+    const gems = await requestJson(server, '/api/lord-gems');
+    assert.equal(gems.json.gems.at(-1).label, '18级');
+
+    const calcGet = await requestJson(server, '/api/lord-equipment/calc?from=1&to=2&pieces=6');
+    assert.equal(calcGet.status, 200);
+    assert.equal(calcGet.json.cost.alloy, 22800);
+
+    const gemPost = await requestJson(server, '/api/lord-gems/calc', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: 'Lv.16', to: '18级', pieces: 1 })
+    });
+    assert.equal(gemPost.status, 200);
+    assert.ok(gemPost.json.cost.manual > 0);
+
+    const bad = await requestJson(server, '/api/lord-equipment/calc?from=missing&to=2');
+    assert.equal(bad.status, 400);
+    assert.equal(bad.json.error, 'BAD_FROM');
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 });

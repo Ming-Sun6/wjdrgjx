@@ -58,6 +58,7 @@ const {
   seedHeroGenerationsIfEmpty,
   HERO_GENERATIONS_DDL_MYSQL
 } = require('./hero-data');
+const { mountLordEquipmentGemRoutes } = require('./lord-equipment-gem');
 const { mountUserRewardsRoutes, ensureUserRewardsSchema, repairUserRewardsSchema } = require('./user-rewards');
 const {
   mountShopRoutes,
@@ -5966,6 +5967,8 @@ mountHeroDataRoutes({
   auditAdminAction,
   pgDatabase
 });
+
+mountLordEquipmentGemRoutes(app);
 
 mountUserRewardsRoutes({
   app,
