@@ -33,3 +33,6 @@ aeroplane-chess/frontend/assets/违规词库.txt
 # should NOT be excluded as they contain compiler settings and other important
 # information for Eclipse / Flash Builder.
 .worktrees/
+
+# Release APKs served by the website and deployed through Git
+!public/downloads/*.apk

@@ -1,0 +1,9 @@
+{
+  "versionCode": 2,
+  "versionName": "1.1",
+  "apkUrl": "https://wjgl.store/downloads/toolbox-2-a05bc8fadf60.apk",
+  "releaseNotes": "新增应用内版本检查、安装包下载和更新安装入口。\n新增原生管理后台入口，支持概览、公告、工具、审核、用户与商城管理。\n修复管理页面编译及交互问题。",
+  "sha256": "a05bc8fadf609adf7ca4931cb4f73ebcb7569efda173cccfcd8c77f376e77a07",
+  "sizeBytes": 17834540,
+  "minSdk": 24
+}
