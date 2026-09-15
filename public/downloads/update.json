@@ -1,9 +1,9 @@
 {
-  "versionCode": 2,
-  "versionName": "1.1",
-  "apkUrl": "https://wjgl.store/downloads/toolbox-2-a05bc8fadf60.apk",
-  "releaseNotes": "\u65b0\u589e\u5e94\u7528\u5185\u7248\u672c\u68c0\u67e5\u3001\u5b89\u88c5\u5305\u4e0b\u8f7d\u548c\u66f4\u65b0\u5b89\u88c5\u5165\u53e3\u3002\n\u65b0\u589e\u539f\u751f\u7ba1\u7406\u540e\u53f0\u5165\u53e3\uff0c\u652f\u6301\u6982\u89c8\u3001\u516c\u544a\u3001\u5de5\u5177\u3001\u5ba1\u6838\u3001\u7528\u6237\u4e0e\u5546\u57ce\u7ba1\u7406\u3002\n\u4fee\u590d\u7ba1\u7406\u9875\u9762\u7f16\u8bd1\u53ca\u4ea4\u4e92\u95ee\u9898\u3002",
-  "sha256": "a05bc8fadf609adf7ca4931cb4f73ebcb7569efda173cccfcd8c77f376e77a07",
+  "versionCode": 3,
+  "versionName": "1.2",
+  "apkUrl": "https://wjgl.store/downloads/toolbox-3-b1314c13abd4.apk",
+  "releaseNotes": "1.2 \u66f4\u65b0\u9a8c\u8bc1\u7248\u672c\u3002\n\u7528\u4e8e\u9a8c\u8bc1\u4ece 1.1 \u68c0\u67e5\u66f4\u65b0\u3001\u4e0b\u8f7d\u548c\u8986\u76d6\u5b89\u88c5\u7684\u5b8c\u6574\u6d41\u7a0b\u3002\n\u5347\u7ea7\u540e\u53ef\u5728\u300c\u6211\u7684\u300d\u9875\u786e\u8ba4\u7248\u672c\u4e3a 1.2\u3002",
+  "sha256": "b1314c13abd4cfe1d8485fc4fa4378737f85bcd0671a363ce5891ecba4e28d68",
   "sizeBytes": 17834540,
   "minSdk": 24
 }
