@@ -52,6 +52,13 @@ const {
   BEARPIT_SIMPLE_BACKUPS_DDL_MYSQL,
   BEARPIT_SIMPLE_BACKUPS_DDL_PG
 } = require('./bearpit-backups');
+const {
+  mountBearpitCollectRoutes,
+  BEARPIT_COLLECT_FORMS_DDL_MYSQL,
+  BEARPIT_COLLECT_FORMS_DDL_PG,
+  BEARPIT_COLLECT_ENTRIES_DDL_MYSQL,
+  BEARPIT_COLLECT_ENTRIES_DDL_PG
+} = require('./bearpit-collect');
 const { mountBearpitAdminRoutes } = require('./bearpit-admin');
 const {
   mountHeroDataRoutes,
@@ -2845,6 +2852,8 @@ async function initDB() {
   await execute(BEARPIT_BACKUPS_DDL_MYSQL);
   await execute(pgDatabase ? BEARPIT_SHARES_DDL_PG : BEARPIT_SHARES_DDL_MYSQL);
   await execute(pgDatabase ? BEARPIT_SIMPLE_BACKUPS_DDL_PG : BEARPIT_SIMPLE_BACKUPS_DDL_MYSQL);
+  await execute(pgDatabase ? BEARPIT_COLLECT_FORMS_DDL_PG : BEARPIT_COLLECT_FORMS_DDL_MYSQL);
+  await execute(pgDatabase ? BEARPIT_COLLECT_ENTRIES_DDL_PG : BEARPIT_COLLECT_ENTRIES_DDL_MYSQL);
   await execute(HERO_GENERATIONS_DDL_MYSQL);
 
   await addColumnIfMissing('users', 'forum_publisher', 'forum_publisher TINYINT(1) NOT NULL DEFAULT 0');
@@ -5946,6 +5955,14 @@ const bearpitBackupApi = mountBearpitBackupRoutes({
   queryOne,
   execute,
   requireAuth,
+  pgDatabase
+});
+
+mountBearpitCollectRoutes({
+  app,
+  queryRows,
+  queryOne,
+  execute,
   pgDatabase
 });
 
