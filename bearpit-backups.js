@@ -103,6 +103,19 @@ function isValidShareData(data) {
   return isSimpleShareData(data) || isBeaPitShareData(data);
 }
 
+const MAX_MP_SHARE_ITEMS = 2500;
+const MAX_MP_SHARE_JSON = 400000;
+
+function sanitizeShareData(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) return data;
+  const copy = { ...data };
+  delete copy.ck;
+  delete copy.ct;
+  delete copy.hostToken;
+  delete copy.collectKey;
+  return copy;
+}
+
 function normalizeBackupTitle(value) {
   const title = String(value || '').trim();
   if (!title) return null;
@@ -357,35 +370,63 @@ function mountBearpitBackupRoutes(deps) {
     }
   });
 
+  async function insertShareLink(data) {
+    const clean = sanitizeShareData(data);
+    let shareKey = null;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const candidate = generateShareKey();
+      try {
+        await execute(
+          pgDatabase
+            ? 'INSERT INTO bearpit_share_links (share_key, data_json, created_at) VALUES (?, ?::jsonb, CURRENT_TIMESTAMP(3))'
+            : 'INSERT INTO bearpit_share_links (share_key, data_json, created_at) VALUES (?, ?, CURRENT_TIMESTAMP(3))',
+          [candidate, JSON.stringify(clean)]
+        );
+        shareKey = candidate;
+        break;
+      } catch (err) {
+        if (!String(err?.message || '').toLowerCase().includes('duplicate') && !String(err?.code || '').toUpperCase().includes('DUP')) throw err;
+      }
+    }
+    return shareKey;
+  }
+
   app.post('/api/bearpit/shares', async (req, res) => {
     try {
       const user = await requireAuth(req, res);
       if (!user) return;
       await ensureShareTable();
-      const data = req.body?.data;
+      const data = sanitizeShareData(req.body?.data);
       if (!isValidShareData(data)) {
         return res.status(400).json({ error: 'BAD_DATA' });
       }
-      let shareKey = null;
-      for (let attempt = 0; attempt < 5; attempt += 1) {
-        const candidate = generateShareKey();
-        try {
-          await execute(
-            pgDatabase
-              ? 'INSERT INTO bearpit_share_links (share_key, data_json, created_at) VALUES (?, ?::jsonb, CURRENT_TIMESTAMP(3))'
-              : 'INSERT INTO bearpit_share_links (share_key, data_json, created_at) VALUES (?, ?, CURRENT_TIMESTAMP(3))',
-            [candidate, JSON.stringify(data)]
-          );
-          shareKey = candidate;
-          break;
-        } catch (err) {
-          if (!String(err?.message || '').toLowerCase().includes('duplicate') && !String(err?.code || '').toUpperCase().includes('DUP')) throw err;
-        }
-      }
+      const shareKey = await insertShareLink(data);
       if (!shareKey) return res.status(503).json({ error: 'SHARE_KEY_UNAVAILABLE' });
       return res.json({ ok: true, shareKey });
     } catch (err) {
       console.error('bearpit share create failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
+  app.post('/api/bearpit/mp/shares', async (req, res) => {
+    try {
+      await ensureShareTable();
+      const data = sanitizeShareData(req.body?.data);
+      if (!isValidShareData(data)) {
+        return res.status(400).json({ error: 'BAD_DATA' });
+      }
+      if (countLayoutItems(data) > MAX_MP_SHARE_ITEMS) {
+        return res.status(400).json({ error: 'TOO_MANY' });
+      }
+      if (JSON.stringify(data).length > MAX_MP_SHARE_JSON) {
+        return res.status(400).json({ error: 'TOO_LARGE' });
+      }
+      const shareKey = await insertShareLink(data);
+      if (!shareKey) return res.status(503).json({ error: 'SHARE_KEY_UNAVAILABLE' });
+      return res.json({ ok: true, shareKey });
+    } catch (err) {
+      console.error('bearpit mp share create failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
     }
   });
@@ -420,6 +461,9 @@ module.exports = {
   generateShareKey,
   countLayoutItems,
   isValidShareData,
+  sanitizeShareData,
+  MAX_MP_SHARE_ITEMS,
+  MAX_MP_SHARE_JSON,
   normalizeBackupTitle,
   defaultBackupTitle
 };

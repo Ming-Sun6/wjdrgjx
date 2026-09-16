@@ -8,7 +8,8 @@ const {
   defaultBackupTitle,
   countLayoutItems,
   generateShareKey,
-  isValidShareData
+  isValidShareData,
+  sanitizeShareData
 } = require('../bearpit-backups');
 
 test('normalizeBackupTitle trims and caps length', () => {
@@ -44,6 +45,7 @@ test('server mounts bearpit backup routes and BeaPit page has backup UI', () => 
   assert.match(serverSource, /mountBearpitBackupRoutes\(/);
   assert.match(moduleSource, /\/api\/bearpit\/backups/);
   assert.match(moduleSource, /\/api\/bearpit\/shares/);
+  assert.match(moduleSource, /\/api\/bearpit\/mp\/shares/);
   assert.match(moduleSource, /isValidShareData\(data\)/);
   assert.match(moduleSource, /requireAuth\(req, res\)/);
 
@@ -53,6 +55,23 @@ test('server mounts bearpit backup routes and BeaPit page has backup UI', () => 
   assert.match(page, /\/api\/bearpit\/backups/);
   assert.match(page, /serializeLayoutCompact\(\)/);
   assert.match(page, /\/api\/bearpit\/shares\/' \+ encodeURIComponent\(text\)/);
+});
+
+test('sanitizeShareData strips collect session secrets from layout payloads', () => {
+  const clean = sanitizeShareData({
+    v: 1,
+    items: [{ r: 1, c: 2, s: 2 }],
+    ck: 'collectKeyShouldGo',
+    ct: 'hostTokenShouldGo',
+    collectKey: 'alsoGone',
+    hostToken: 'alsoGone'
+  });
+  assert.equal(clean.v, 1);
+  assert.equal(clean.items.length, 1);
+  assert.equal(clean.ck, undefined);
+  assert.equal(clean.ct, undefined);
+  assert.equal(clean.collectKey, undefined);
+  assert.equal(clean.hostToken, undefined);
 });
 
 test('share keys are short random alphanumeric codes', () => {
