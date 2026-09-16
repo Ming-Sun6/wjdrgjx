@@ -174,6 +174,35 @@
       opacity:.45;
       cursor:not-allowed;
     }
+    .side-group{margin-bottom:8px;}
+    .side-group-toggle{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      border:1px solid var(--border);
+      background:var(--surface-strong);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:10px;
+      text-align:left;
+      cursor:pointer;
+      font-weight:800;
+      font-size:.82rem;
+      letter-spacing:.2px;
+    }
+    .side-group-toggle:hover{background:rgba(59,130,246,.12);}
+    .side-group-toggle::after{
+      content:"▾";
+      font-size:.75rem;
+      color:var(--muted);
+      transition:transform .18s ease;
+    }
+    .side-group.open .side-group-toggle::after{transform:rotate(180deg);}
+    .side-group-items{display:none;padding:6px 0 2px 6px;}
+    .side-group.open .side-group-items{display:block;}
+    .side-group .side-item{font-size:.84rem;font-weight:600;padding:8px 10px;margin-bottom:4px;}
     .main{
       flex:1;
       min-width:0;
@@ -862,32 +891,47 @@
     <div class="layout">
       <aside class="sidebar">
         <div class="side-title">管理菜单</div>
-        <button class="side-item active" type="button" data-page="governance" data-admin-only="1">治理中心</button>
-        <button class="side-item" type="button" data-page="operations-dashboard" data-admin-only="1">后台大屏</button>
-        <button class="side-item" type="button" data-page="admins" data-admin-only="1">管理员管理</button>
-        <button class="side-item" type="button" data-page="moderators" data-admin-only="1">版主管理</button>
-        <button class="side-item" type="button" data-page="review" data-moderator-only="1">审核中心</button>
-        <button class="side-item" type="button" data-page="blackroom" data-admin-only="1">小黑屋</button>
-        <button class="side-item" type="button" data-page="users" data-admin-only="1">网站用户</button>
-        <button class="side-item" type="button" data-page="shop" data-admin-only="1">积分商城</button>
-        <button class="side-item" type="button" data-page="activation-codes" data-admin-only="1">激活码</button>
-        <button class="side-item" type="button" data-page="calendar" data-admin-only="1">活动日历</button>
-        <button class="side-item" type="button" data-page="aeroplane-chess" data-admin-only="1">飞行棋管理</button>
-        <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
-        <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
-        <button class="side-item" type="button" data-page="bearpit-data" data-admin-only="1">熊坑数据</button>
-        <button class="side-item" type="button" data-page="bearpit-templates" data-admin-only="1">小程序熊坑</button>
-        <button class="side-item" type="button" data-page="tool-management" data-admin-only="1">工具管理</button>
-        <button class="side-item" type="button" data-page="home-navigation" data-admin-only="1">首页菜单</button>
-        <button class="side-item" type="button" data-page="neighbor-progress" data-admin-only="1">邻邦进度</button>
-        <button class="side-item" type="button" data-page="history-immigration" data-admin-only="1">历史移民分组</button>
-        <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
-        <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
-        <button class="side-item" type="button" data-page="publisher" data-admin-only="1">流量主</button>
-        <button class="side-item" type="button" data-page="site-footer" data-admin-only="1">底部致谢</button>
-        <button class="side-item" type="button" data-page="legal-docs" data-admin-only="1">协议与隐私政策</button>
-        <button class="side-item" type="button" data-page="voices" data-admin-only="1">用户发声</button>
-        <button class="side-item" type="button" data-page="admin-log" data-admin-only="1">后台更新日志</button>
+        <div class="side-group" data-group="data">
+          <button class="side-group-toggle" type="button" aria-expanded="false">数据</button>
+          <div class="side-group-items">
+            <button class="side-item" type="button" data-page="operations-dashboard" data-admin-only="1">后台大屏</button>
+            <button class="side-item" type="button" data-page="users" data-admin-only="1">网站用户</button>
+            <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
+            <button class="side-item" type="button" data-page="bearpit-data" data-admin-only="1">熊坑数据</button>
+            <button class="side-item" type="button" data-page="voices" data-admin-only="1">用户发声</button>
+            <button class="side-item" type="button" data-page="publisher" data-admin-only="1">流量主</button>
+          </div>
+        </div>
+        <div class="side-group open" data-group="site">
+          <button class="side-group-toggle" type="button" aria-expanded="true">网站后台工具</button>
+          <div class="side-group-items">
+            <button class="side-item active" type="button" data-page="governance" data-admin-only="1">治理中心</button>
+            <button class="side-item" type="button" data-page="admins" data-admin-only="1">管理员管理</button>
+            <button class="side-item" type="button" data-page="moderators" data-admin-only="1">版主管理</button>
+            <button class="side-item" type="button" data-page="review" data-moderator-only="1">审核中心</button>
+            <button class="side-item" type="button" data-page="blackroom" data-admin-only="1">小黑屋</button>
+            <button class="side-item" type="button" data-page="shop" data-admin-only="1">积分商城</button>
+            <button class="side-item" type="button" data-page="activation-codes" data-admin-only="1">激活码</button>
+            <button class="side-item" type="button" data-page="calendar" data-admin-only="1">活动日历</button>
+            <button class="side-item" type="button" data-page="aeroplane-chess" data-admin-only="1">飞行棋管理</button>
+            <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
+            <button class="side-item" type="button" data-page="tool-management" data-admin-only="1">工具管理</button>
+            <button class="side-item" type="button" data-page="home-navigation" data-admin-only="1">首页菜单</button>
+            <button class="side-item" type="button" data-page="neighbor-progress" data-admin-only="1">邻邦进度</button>
+            <button class="side-item" type="button" data-page="history-immigration" data-admin-only="1">历史移民分组</button>
+            <button class="side-item" type="button" data-page="announcement" data-admin-only="1">发布公告</button>
+            <button class="side-item" type="button" data-page="home-lead" data-admin-only="1">首页活动横幅</button>
+            <button class="side-item" type="button" data-page="site-footer" data-admin-only="1">底部致谢</button>
+            <button class="side-item" type="button" data-page="legal-docs" data-admin-only="1">协议与隐私政策</button>
+            <button class="side-item" type="button" data-page="admin-log" data-admin-only="1">后台更新日志</button>
+          </div>
+        </div>
+        <div class="side-group" data-group="mp">
+          <button class="side-group-toggle" type="button" aria-expanded="false">小程序后台工具</button>
+          <div class="side-group-items">
+            <button class="side-item" type="button" data-page="bearpit-templates" data-admin-only="1">小程序熊坑</button>
+          </div>
+        </div>
       </aside>
 
       <main class="main">
@@ -4820,6 +4864,16 @@
       return brightness < 125 ? '#fff' : '#000';
     }
 
+    function openSideGroupForPage(page){
+      document.querySelectorAll('.side-group').forEach(function(group){
+        var match = group.querySelector('.side-item[data-page="'+page+'"]');
+        var open = !!match;
+        group.classList.toggle('open', open);
+        var toggle = group.querySelector('.side-group-toggle');
+        if(toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    }
+
     function switchPage(page){
       if(!page) return;
       currentPage=page;
@@ -4830,6 +4884,7 @@
       document.querySelectorAll('.page').forEach(function(p){
         p.classList.toggle('active', p.getAttribute('data-page')===page);
       });
+      openSideGroupForPage(page);
       loadCurrentPage();
     }
 
@@ -5848,6 +5903,19 @@
       btn.addEventListener('click',function(){
         if(btn.classList.contains('disabled')) return;
         switchPage(btn.getAttribute('data-page'));
+      });
+    });
+    document.querySelectorAll('.side-group-toggle').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var group = btn.closest('.side-group');
+        if(!group) return;
+        var willOpen = !group.classList.contains('open');
+        document.querySelectorAll('.side-group').forEach(function(other){
+          var open = willOpen && other === group;
+          other.classList.toggle('open', open);
+          var toggle = other.querySelector('.side-group-toggle');
+          if(toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
       });
     });
     document.getElementById('btnLogin')&&document.getElementById('btnLogin').addEventListener('click',openAuthModal);
