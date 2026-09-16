@@ -1612,7 +1612,7 @@
         <section class="card page" id="page-bearpit-templates" data-page="bearpit-templates">
           <div class="page-title">小程序熊坑管理</div>
           <p class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
-            审核小程序用户提交的公开模板。通过后才会出现在小程序模板市场；不通过会告知提交者，也可删除已公开模板。
+            审核小程序用户提交的公开模板。首次公开和之后更新都要审核，通过后才会出现在模板市场；不通过会告知提交者，也可删除已公开模板。
           </p>
           <div class="bearpit-admin-toolbar">
             <input id="bearpitTemplateSearchInput" type="search" placeholder="搜索模板名称 / Key" />
@@ -1631,6 +1631,7 @@
                 <tr>
                   <th style="min-width:140px;">名称</th>
                   <th style="width:90px;">状态</th>
+                  <th style="width:90px;">类型</th>
                   <th style="width:80px;">建筑</th>
                   <th style="width:90px;">网格</th>
                   <th style="width:80px;">下载</th>
@@ -1640,7 +1641,7 @@
                 </tr>
               </thead>
               <tbody id="bearpitTemplateTbody">
-                <tr><td colspan="8" style="color:var(--muted);">请先登录管理员账号。</td></tr>
+                <tr><td colspan="9" style="color:var(--muted);">请先登录管理员账号。</td></tr>
               </tbody>
             </table>
           </div>
@@ -6142,7 +6143,7 @@
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
   <script src="/function/admin-heroes-page.js?v=6"></script>
   <script src="/function/admin-bearpit-page.js?v=1"></script>
-  <script src="/function/admin-bearpit-templates-page.js?v=1"></script>
+  <script src="/function/admin-bearpit-templates-page.js?v=2"></script>
   <script src="/function/admin-shop-page.js?v=1"></script>
   <script src="/function/admin-activation-codes-page.js?v=3"></script>
   <script src="/function/admin-aeroplane-chess-page.js?v=1"></script>

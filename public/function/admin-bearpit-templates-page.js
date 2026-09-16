@@ -42,6 +42,10 @@ function btStatusLabel(status) {
   return '待审核';
 }
 
+function btKindLabel(kind) {
+  return kind === 'update' ? '更新' : '首次';
+}
+
 function btInstallStyles(root) {
   if (root.document.getElementById('adminBearpitTemplateStyles')) return;
   var style = root.document.createElement('style');
@@ -111,7 +115,7 @@ function btRenderTable(root) {
   var tbody = root.document.getElementById('bearpitTemplateTbody');
   if (!tbody) return;
   if (!st.rows.length) {
-    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted);">暂无符合条件的小程序熊坑模板。</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--muted);">暂无符合条件的小程序熊坑模板。</td></tr>';
     return;
   }
   tbody.innerHTML = st.rows
@@ -129,6 +133,9 @@ function btRenderTable(root) {
         '">' +
         btEsc(btStatusLabel(status)) +
         '</span></td>' +
+        '<td>' +
+        btEsc(btKindLabel(row.submitKind)) +
+        '</td>' +
         '<td>' +
         btEsc(row.itemCount) +
         '</td>' +
@@ -259,6 +266,8 @@ async function btOpenPreview(root, key) {
         (row.gs || 20) +
         '×' +
         (row.gs || 20) +
+        ' · ' +
+        btKindLabel(row.submitKind) +
         ' · 下载 ' +
         (row.downloadCount || 0) +
         (row.rejectReason ? ' · 原因：' + row.rejectReason : '');

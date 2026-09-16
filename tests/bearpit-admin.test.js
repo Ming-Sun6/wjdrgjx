@@ -85,7 +85,9 @@ test('admin includes mini-program bearpit template review page', () => {
   assert.match(adminHtml, /id="bearpitTemplateStatusFilter"/);
   assert.match(adminHtml, /id="bearpitTemplatePreviewCanvas"/);
   assert.match(adminHtml, /admin-bearpit-templates-page\.js/);
+  assert.match(adminHtml, /首次公开和之后更新都要审核/);
   assert.match(pageJs, /\/api\/admin\/bearpit-templates/);
   assert.match(pageJs, /loadBearpitTemplatesAdmin/);
   assert.match(pageJs, /btDrawPreview/);
+  assert.match(pageJs, /btKindLabel/);
 });

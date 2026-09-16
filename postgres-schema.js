@@ -259,6 +259,7 @@ const POSTGRES_SCHEMA_SQL = [
     reject_reason varchar(80) NOT NULL DEFAULT '',
     reviewed_at timestamptz(3) NULL,
     reviewed_by varchar(64) NOT NULL DEFAULT '',
+    submit_kind varchar(16) NOT NULL DEFAULT 'new',
     created_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
   )

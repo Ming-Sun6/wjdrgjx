@@ -67,6 +67,16 @@ test('server mounts bearpit template market and admin review routes', () => {
   assert.match(moduleSource, /\/api\/admin\/bearpit-templates\/:key\/reject/);
   assert.match(moduleSource, /\/api\/admin\/bearpit-templates\/:key\/delete/);
   assert.match(moduleSource, /WHERE status = \?/);
+  assert.match(moduleSource, /submit_kind = \?/);
+  assert.match(moduleSource, /SUBMIT_KIND_UPDATE/);
   assert.match(schemaSource, /bearpit_templates/);
   assert.match(schemaSource, /reject_reason/);
+  assert.match(schemaSource, /submit_kind/);
+});
+
+test('updating a published template always goes back to pending review', () => {
+  const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'bearpit-templates.js'), 'utf8');
+  assert.match(moduleSource, /status = \?, submit_kind = \?/);
+  assert.match(moduleSource, /STATUS_PENDING, SUBMIT_KIND_UPDATE/);
+  assert.match(moduleSource, /status: STATUS_PENDING,\s*submitKind: SUBMIT_KIND_UPDATE/s);
 });

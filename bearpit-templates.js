@@ -10,6 +10,8 @@ const ADMIN_LIST_LIMIT = 200;
 const STATUS_PENDING = 'pending';
 const STATUS_APPROVED = 'approved';
 const STATUS_REJECTED = 'rejected';
+const SUBMIT_KIND_NEW = 'new';
+const SUBMIT_KIND_UPDATE = 'update';
 
 const BEARPIT_TEMPLATES_DDL_MYSQL = `
   CREATE TABLE IF NOT EXISTS bearpit_templates (
@@ -24,6 +26,7 @@ const BEARPIT_TEMPLATES_DDL_MYSQL = `
     reject_reason VARCHAR(80) NOT NULL DEFAULT '',
     reviewed_at DATETIME(3) NULL,
     reviewed_by VARCHAR(64) NOT NULL DEFAULT '',
+    submit_kind VARCHAR(16) NOT NULL DEFAULT 'new',
     created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     KEY idx_bearpit_templates_updated (updated_at),
@@ -44,6 +47,7 @@ const BEARPIT_TEMPLATES_DDL_PG = `
     reject_reason varchar(80) NOT NULL DEFAULT '',
     reviewed_at timestamptz(3) NULL,
     reviewed_by varchar(64) NOT NULL DEFAULT '',
+    submit_kind varchar(16) NOT NULL DEFAULT 'new',
     created_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     updated_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
   );
@@ -60,6 +64,10 @@ function normalizeTemplateStatus(value) {
   const status = String(value || '').trim().toLowerCase();
   if (status === STATUS_APPROVED || status === STATUS_REJECTED || status === STATUS_PENDING) return status;
   return STATUS_PENDING;
+}
+
+function normalizeSubmitKind(value) {
+  return String(value || '').trim().toLowerCase() === SUBMIT_KIND_UPDATE ? SUBMIT_KIND_UPDATE : SUBMIT_KIND_NEW;
 }
 
 function normalizeRejectReason(value) {
@@ -140,6 +148,7 @@ function mapAdminTemplateRow(row, options) {
     rejectReason: String(row.reject_reason || ''),
     reviewedAt: row.reviewed_at || null,
     reviewedBy: String(row.reviewed_by || ''),
+    submitKind: normalizeSubmitKind(row.submit_kind),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     data: opts.includeData ? data : undefined,
@@ -152,7 +161,8 @@ function mapOwnerStatus(row) {
     templateKey: String(row.template_key || ''),
     status: normalizeTemplateStatus(row.status),
     rejectReason: String(row.reject_reason || ''),
-    title: String(row.title || '')
+    title: String(row.title || ''),
+    submitKind: normalizeSubmitKind(row.submit_kind)
   };
 }
 
@@ -170,6 +180,7 @@ function mountBearpitTemplateRoutes(deps) {
       await execute("ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS reject_reason varchar(80) NOT NULL DEFAULT ''");
       await execute('ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS reviewed_at timestamptz(3) NULL');
       await execute("ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS reviewed_by varchar(64) NOT NULL DEFAULT ''");
+      await execute("ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS submit_kind varchar(16) NOT NULL DEFAULT 'new'");
       await execute('CREATE INDEX IF NOT EXISTS idx_bearpit_templates_status_updated ON bearpit_templates (status, updated_at DESC)');
       return;
     }
@@ -177,7 +188,8 @@ function mountBearpitTemplateRoutes(deps) {
       "ADD COLUMN status VARCHAR(16) NOT NULL DEFAULT 'approved'",
       "ADD COLUMN reject_reason VARCHAR(80) NOT NULL DEFAULT ''",
       'ADD COLUMN reviewed_at DATETIME(3) NULL',
-      "ADD COLUMN reviewed_by VARCHAR(64) NOT NULL DEFAULT ''"
+      "ADD COLUMN reviewed_by VARCHAR(64) NOT NULL DEFAULT ''",
+      "ADD COLUMN submit_kind VARCHAR(16) NOT NULL DEFAULT 'new'"
     ];
     for (const ddl of alters) {
       try {
@@ -200,7 +212,7 @@ function mountBearpitTemplateRoutes(deps) {
     return queryOne(
       `
       SELECT template_key, owner_token, title, data_json, item_count, grid_size, download_count,
-             status, reject_reason, reviewed_at, reviewed_by, created_at, updated_at
+             status, reject_reason, reviewed_at, reviewed_by, submit_kind, created_at, updated_at
       FROM bearpit_templates
       WHERE template_key = ?
       LIMIT 1
@@ -249,9 +261,9 @@ function mountBearpitTemplateRoutes(deps) {
         if (row && String(row.owner_token) === existingToken) {
           await execute(
             pgDatabase
-              ? "UPDATE bearpit_templates SET title = ?, data_json = ?::jsonb, item_count = ?, grid_size = ?, status = ?, reject_reason = '', reviewed_at = NULL, reviewed_by = '', updated_at = CURRENT_TIMESTAMP(3) WHERE template_key = ?"
-              : "UPDATE bearpit_templates SET title = ?, data_json = ?, item_count = ?, grid_size = ?, status = ?, reject_reason = '', reviewed_at = NULL, reviewed_by = '', updated_at = CURRENT_TIMESTAMP(3) WHERE template_key = ?",
-            [title, json, itemCount, gs, STATUS_PENDING, existingKey]
+              ? "UPDATE bearpit_templates SET title = ?, data_json = ?::jsonb, item_count = ?, grid_size = ?, status = ?, submit_kind = ?, reject_reason = '', reviewed_at = NULL, reviewed_by = '', updated_at = CURRENT_TIMESTAMP(3) WHERE template_key = ?"
+              : "UPDATE bearpit_templates SET title = ?, data_json = ?, item_count = ?, grid_size = ?, status = ?, submit_kind = ?, reject_reason = '', reviewed_at = NULL, reviewed_by = '', updated_at = CURRENT_TIMESTAMP(3) WHERE template_key = ?",
+            [title, json, itemCount, gs, STATUS_PENDING, SUBMIT_KIND_UPDATE, existingKey]
           );
           return res.json({
             ok: true,
@@ -259,7 +271,8 @@ function mountBearpitTemplateRoutes(deps) {
             templateKey: existingKey,
             ownerToken: existingToken,
             title,
-            status: STATUS_PENDING
+            status: STATUS_PENDING,
+            submitKind: SUBMIT_KIND_UPDATE
           });
         }
         if (row) return res.status(403).json({ error: 'FORBIDDEN' });
@@ -272,9 +285,9 @@ function mountBearpitTemplateRoutes(deps) {
         try {
           await execute(
             pgDatabase
-              ? 'INSERT INTO bearpit_templates (template_key, owner_token, title, data_json, item_count, grid_size, download_count, status, reject_reason, created_at, updated_at) VALUES (?, ?, ?, ?::jsonb, ?, ?, 0, ?, \'\', CURRENT_TIMESTAMP(3), CURRENT_TIMESTAMP(3))'
-              : 'INSERT INTO bearpit_templates (template_key, owner_token, title, data_json, item_count, grid_size, download_count, status, reject_reason, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?, \'\', CURRENT_TIMESTAMP(3), CURRENT_TIMESTAMP(3))',
-            [candidate, ownerToken, title, json, itemCount, gs, STATUS_PENDING]
+              ? 'INSERT INTO bearpit_templates (template_key, owner_token, title, data_json, item_count, grid_size, download_count, status, reject_reason, submit_kind, created_at, updated_at) VALUES (?, ?, ?, ?::jsonb, ?, ?, 0, ?, \'\', ?, CURRENT_TIMESTAMP(3), CURRENT_TIMESTAMP(3))'
+              : 'INSERT INTO bearpit_templates (template_key, owner_token, title, data_json, item_count, grid_size, download_count, status, reject_reason, submit_kind, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?, \'\', ?, CURRENT_TIMESTAMP(3), CURRENT_TIMESTAMP(3))',
+            [candidate, ownerToken, title, json, itemCount, gs, STATUS_PENDING, SUBMIT_KIND_NEW]
           );
           templateKey = candidate;
           break;
@@ -283,7 +296,7 @@ function mountBearpitTemplateRoutes(deps) {
         }
       }
       if (!templateKey) return res.status(503).json({ error: 'TEMPLATE_KEY_UNAVAILABLE' });
-      return res.json({ ok: true, updated: false, templateKey, ownerToken, title, status: STATUS_PENDING });
+      return res.json({ ok: true, updated: false, templateKey, ownerToken, title, status: STATUS_PENDING, submitKind: SUBMIT_KIND_NEW });
     } catch (err) {
       console.error('bearpit template publish failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -383,7 +396,7 @@ function mountBearpitTemplateRoutes(deps) {
         const rows = await queryRows(
           `
           SELECT template_key, title, item_count, grid_size, download_count, status, reject_reason,
-                 reviewed_at, reviewed_by, created_at, updated_at
+                 reviewed_at, reviewed_by, submit_kind, created_at, updated_at
           FROM bearpit_templates
           ${where}
           ORDER BY updated_at DESC, created_at DESC
@@ -520,10 +533,13 @@ module.exports = {
   STATUS_PENDING,
   STATUS_APPROVED,
   STATUS_REJECTED,
+  SUBMIT_KIND_NEW,
+  SUBMIT_KIND_UPDATE,
   BEARPIT_TEMPLATES_DDL_MYSQL,
   BEARPIT_TEMPLATES_DDL_PG,
   normalizeTemplateTitle,
   normalizeTemplateStatus,
+  normalizeSubmitKind,
   normalizeRejectReason,
   isBeaPitTemplateData,
   extractTemplatePreviewItems,
