@@ -559,68 +559,21 @@
     return max > 0 ? max : 1;
   }
 
-  function buildSupportGroups(summary, split) {
-    var meta = commandDeckMeta();
-    return (meta.supportGroups || []).map(function (group) {
-      var metrics = (split.support || []).filter(function (item) {
-        return group.keys.indexOf(item.key) !== -1;
-      });
-      return {
-        key: group.key,
-        title: group.title,
-        metrics: metrics,
-        total: metrics.reduce(function (acc, item) { return acc + Number(item.value || 0); }, 0),
-        summary: metrics.map(function (item) {
-          return item.label + ' ' + formatNumber(item.value || 0);
-        }).join(' / ')
-      };
-    });
-  }
-
   function renderHeroBand(summary) {
     var heroHost = getEl('dashboardHeroGrid');
     var supportHost = getEl('dashboardSupportGrid');
     if (!heroHost || !supportHost) return;
 
     var split = splitKpis(summary || {});
-    var heroMax = maxByKeys(split.hero, ['value']);
-    var supportGroups = buildSupportGroups(summary, split);
-
-    heroHost.innerHTML = split.hero.map(function (item) {
-      var width = Math.max(22, Math.round((Number(item.value || 0) / heroMax) * 100));
-      var summaryCopy = item.key === 'pv'
-        ? '\u89c2\u5bdf\u6574\u4f53\u8bbf\u95ee\u52a8\u80fd\u662f\u5426\u62ac\u5347'
-        : '\u89c2\u5bdf\u72ec\u7acb\u8bbf\u5ba2\u662f\u5426\u540c\u6b65\u589e\u957f';
+    var items = (split.hero || []).concat(split.support || []);
+    heroHost.innerHTML = items.map(function (item) {
       return '' +
         '<article class="dashboard-card-shell dashboard-hero-card ' + escapeHtml(item.tone || '') + '">' +
-          '<div>' +
-            '<div class="dashboard-card-label">' + escapeHtml(item.label) + '</div>' +
-            '<div class="dashboard-card-value">' + escapeHtml(formatNumber(item.value || 0)) + '</div>' +
-          '</div>' +
-          '<div>' +
-            '<div class="dashboard-card-summary">' + escapeHtml(summaryCopy) + '</div>' +
-            '<div class="dashboard-card-line" style="margin-top:10px;"><span style="--line-width:' + width + '%;"></span></div>' +
-          '</div>' +
+          '<div class="dashboard-card-label">' + escapeHtml(item.label) + '</div>' +
+          '<div class="dashboard-card-value">' + escapeHtml(formatNumber(item.value || 0)) + '</div>' +
         '</article>';
     }).join('');
-
-    supportHost.innerHTML = supportGroups.map(function (group) {
-      return '' +
-        '<article class="dashboard-card-shell dashboard-support-card dashboard-support-group">' +
-          '<div class="dashboard-card-label">' + escapeHtml(group.title) + '</div>' +
-          '<div class="dashboard-card-value">' + escapeHtml(formatNumber(group.total || 0)) + '</div>' +
-          '<div class="dashboard-support-details">' +
-            group.metrics.map(function (item) {
-              return '' +
-                '<div class="dashboard-support-metric">' +
-                  '<span>' + escapeHtml(item.label) + '</span>' +
-                  '<strong>' + escapeHtml(formatNumber(item.value || 0)) + '</strong>' +
-                '</div>';
-            }).join('') +
-          '</div>' +
-          '<div class="dashboard-card-summary">' + escapeHtml(group.summary) + '</div>' +
-        '</article>';
-    }).join('');
+    supportHost.innerHTML = '';
   }
 
   function buildLegend(configs) {
@@ -714,14 +667,14 @@
     host.innerHTML = '' +
       '<div class="dashboard-signal-chart">' +
         buildLegend(configs) +
-        '<div style="margin-top:10px;border:1px solid rgba(148,163,184,.16);border-radius:14px;background:rgba(15,23,42,.28);padding:10px;overflow:hidden;">' +
+        '<div class="dashboard-chart-frame">' +
           '<svg viewBox="0 0 ' + width + ' ' + height + '" width="100%" height="auto" role="img" aria-label="趋势折线图">' +
             '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="transparent" />' +
             grid.join('') +
             series +
             xLabels +
           '</svg>' +
-          '<div style="margin-top:8px;color:rgba(148,163,184,.95);font-size:12px;line-height:1.5;">\u63d0\u793a\uff1a\u9f20\u6807\u60ac\u505c\u5728\u70b9\u4f4d\u53ef\u67e5\u770b\u5177\u4f53 PV/UV</div>' +
+          '<div class="dashboard-chart-hint">\u9f20\u6807\u60ac\u505c\u53ef\u770b\u5177\u4f53\u6570\u503c</div>' +
         '</div>' +
       '</div>';
   }
@@ -786,7 +739,6 @@
             '<div class="dashboard-rank">' + escapeHtml(index + 1) + '</div>' +
             '<div class="dashboard-list-main">' +
               '<div class="dashboard-list-key">' + escapeHtml(formatScopeLabel(row.key || '')) + '</div>' +
-              '<div class="dashboard-list-sub">' + escapeHtml(panel.meta.subtitle || '\u70ed\u70b9\u53d8\u5316') + '</div>' +
               '<div class="dashboard-list-meter"><span style="--meter-width:' + width + '%;"></span></div>' +
             '</div>' +
             '<div class="dashboard-list-value">' + escapeHtml(formatNumber(row[panel.valueKey] || 0)) + '</div>' +
@@ -844,15 +796,21 @@
       '</div>';
   }
 
+  function signalLevelLabel(level) {
+    if (level === 'high') return '\u544a\u8b66';
+    if (level === 'watch') return '\u5173\u6ce8';
+    return '\u63d0\u793a';
+  }
+
   function renderSignalBoardMarkup(signals) {
     if (!signals || !signals.length) {
-      return '<div class="dashboard-empty">\u5f53\u524d\u6682\u65e0\u663e\u8457\u5f02\u5e38</div>';
+      return '';
     }
     return '<div class="dashboard-signal-board">' + signals.map(function (signal) {
       return '' +
         '<article class="dashboard-alert-card level-' + escapeHtml(signal.level || 'info') + '">' +
           '<div class="dashboard-alert-top">' +
-            '<span class="dashboard-alert-level">' + escapeHtml((signal.level || 'info').toUpperCase()) + '</span>' +
+            '<span class="dashboard-alert-level">' + escapeHtml(signalLevelLabel(signal.level)) + '</span>' +
             '<div class="dashboard-alert-title">' + escapeHtml(signal.title || '') + '</div>' +
           '</div>' +
           '<div class="dashboard-alert-summary">' + escapeHtml(signal.summary || '') + '</div>' +
@@ -956,24 +914,22 @@
 
   function applyTrendMeta(trends) {
     var meta = trendMeta();
-    if (getEl('dashboardPrimaryTrendTitle')) getEl('dashboardPrimaryTrendTitle').textContent = meta.primary.title || '\u6d41\u91cf\u4e3b\u8d8b\u52bf';
+    if (getEl('dashboardPrimaryTrendTitle')) getEl('dashboardPrimaryTrendTitle').textContent = meta.primary.title || '\u6d41\u91cf\u8d8b\u52bf';
     if (getEl('dashboardPrimaryTrendSummary')) {
       getEl('dashboardPrimaryTrendSummary').textContent =
-        (meta.primary.subtitle || '') + ' 路 PV ' + formatNumber(sumByKey(trends.traffic || [], 'pv')) +
-        ' / UV ' + formatNumber(sumByKey(trends.traffic || [], 'uv'));
+        'PV ' + formatNumber(sumByKey(trends.traffic || [], 'pv')) +
+        '  ·  UV ' + formatNumber(sumByKey(trends.traffic || [], 'uv'));
     }
     if (getEl('dashboardUsersTrendTitle')) getEl('dashboardUsersTrendTitle').textContent = (meta.secondary[0] && meta.secondary[0].title) || '\u7528\u6237\u589e\u957f';
     if (getEl('dashboardUsersTrendSummary')) {
       getEl('dashboardUsersTrendSummary').textContent =
-        ((meta.secondary[0] && meta.secondary[0].subtitle) || '\u89c2\u5bdf\u65b0\u589e\u4e0e\u6d3b\u8dc3') +
-        ' 路 ' + formatNumber(sumByKey(trends.users || [], 'newUsers'));
+        '\u65b0\u589e ' + formatNumber(sumByKey(trends.users || [], 'newUsers'));
     }
     if (getEl('dashboardContentTrendTitle')) getEl('dashboardContentTrendTitle').textContent = (meta.secondary[1] && meta.secondary[1].title) || '\u5185\u5bb9\u589e\u957f';
     if (getEl('dashboardContentTrendSummary')) {
       getEl('dashboardContentTrendSummary').textContent =
-        ((meta.secondary[1] && meta.secondary[1].subtitle) || '\u89c2\u5bdf\u53d1\u5e16\u4e0e\u8bc4\u8bba') +
-        ' 路 \u53d1\u5e16 ' + formatNumber(sumByKey(trends.content || [], 'posts')) +
-        ' / \u8bc4\u8bba ' + formatNumber(sumByKey(trends.content || [], 'comments'));
+        '\u53d1\u5e16 ' + formatNumber(sumByKey(trends.content || [], 'posts')) +
+        '  ·  \u8bc4\u8bba ' + formatNumber(sumByKey(trends.content || [], 'comments'));
     }
   }
 
@@ -981,11 +937,11 @@
     clearTimer();
     if (!hasDom || root.currentPage !== 'operations-dashboard') return;
     if (!root.authUser || !root.authUser.isAdmin) {
-      renderBlocked('\u4ec5\u7ba1\u7406\u5458\u53ef\u67e5\u770b\u8fd0\u8425\u603b\u89c8');
+      renderBlocked('\u4ec5\u7ba1\u7406\u5458\u53ef\u67e5\u770b\u540e\u53f0\u5927\u5c4f');
       return;
     }
     try {
-      if (typeof root.setStatus === 'function') root.setStatus('dashboardStatus', '\u6b63\u5728\u52a0\u8f7d\u6307\u6325\u8231\u6570\u636e...');
+      if (typeof root.setStatus === 'function') root.setStatus('dashboardStatus', '\u6b63\u5728\u52a0\u8f7d\u5927\u5c4f\u6570\u636e...');
       var currentTimeState = state.dashboardTime || createDefaultDashboardTimeState(new Date());
       var query = buildQueryString();
       var requests = [
@@ -1042,7 +998,7 @@
         );
       }
     } catch (error) {
-      renderBlocked('\u52a0\u8f7d\u6307\u6325\u8231\u6570\u636e\u5931\u8d25\uff1a' + (error && error.message ? error.message : '\u672a\u77e5\u9519\u8bef'));
+      renderBlocked('\u52a0\u8f7d\u5927\u5c4f\u6570\u636e\u5931\u8d25\uff1a' + (error && error.message ? error.message : '\u672a\u77e5\u9519\u8bef'));
     } finally {
       schedule();
     }

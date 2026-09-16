@@ -21,7 +21,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>后台管理-冬日工具箱</title>
-  <link rel="stylesheet" href="./admin-dashboard.css" />
+  <link rel="stylesheet" href="./admin-dashboard.css?v=0.9.44" />
   <link rel="stylesheet" href="/function/admin-calendar-page.css?v=20260829-5" />
   <style>
     :root{
@@ -881,7 +881,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-        <span class="admin-version" title="与管理端打包版本一致">V0.9.43</span>
+        <span class="admin-version" title="与管理端打包版本一致">V0.9.44</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1009,120 +1009,94 @@
           </div>
         </section>
         <section class="page" id="page-operations-dashboard" data-page="operations-dashboard">
-          <div class="dashboard-command-strip">
-            <div class="dashboard-command-main">
-              <div class="dashboard-command-heading">
-                <div>
-                  <div class="dashboard-command-kicker">Operations Dashboard</div>
-                  <div class="dashboard-command-title">运营总览</div>
-                </div>
-                <div class="dashboard-command-badge">Live Signals</div>
-              </div>
-              <div class="dashboard-toolbar dashboard-time-controls">
-                <div class="dashboard-field">
-                  <span class="dashboard-label">时间主类</span>
-                  <select class="dashboard-select" id="dashboardTimeGroup"></select>
-                </div>
-                <div class="dashboard-field">
-                  <span class="dashboard-label">预设值</span>
-                  <select class="dashboard-select" id="dashboardTimePreset"></select>
-                </div>
-                <div class="dashboard-custom-inputs">
-                  <div class="dashboard-field dashboard-hidden" id="dashboardCustomDayWrap">
-                    <span class="dashboard-label">自定义天</span>
-                    <input class="dashboard-input" id="dashboardCustomDay" type="date" />
-                  </div>
-                  <div class="dashboard-field dashboard-hidden" id="dashboardCustomWeekWrap">
-                    <span class="dashboard-label">自定义周</span>
-                    <input class="dashboard-input" id="dashboardCustomWeek" type="week" />
-                  </div>
-                  <div class="dashboard-field dashboard-hidden" id="dashboardCustomMonthWrap">
-                    <span class="dashboard-label">自定义月</span>
-                    <input class="dashboard-input" id="dashboardCustomMonth" type="month" />
-                  </div>
-                </div>
-                <div class="dashboard-actions">
-                  <label class="switch-wrap" for="dashboardAutoRefresh">
-                    <span class="dashboard-label">自动刷新</span>
-                    <input id="dashboardAutoRefresh" type="checkbox" checked />
-                  </label>
-                  <button class="btn secondary" id="dashboardRefreshBtn" type="button">立即刷新</button>
-                </div>
-              </div>
-              <div class="dashboard-command-summary" id="dashboardCommandSummary"></div>
+          <div class="dashboard-head">
+            <div>
+              <div class="page-title">后台大屏</div>
+              <div class="dashboard-head-sub">看流量、用户、内容和待办。先选时间，再刷新。</div>
             </div>
-            <div class="dashboard-command-side">
+            <div class="dashboard-head-side">
               <button class="btn" id="dashboardFullscreenBtn" type="button">进入大屏</button>
               <div class="admin-status" id="dashboardStatus"></div>
             </div>
           </div>
 
-          <div class="dashboard-hero-band">
+          <div class="dashboard-toolbar dashboard-time-controls">
+            <div class="dashboard-field">
+              <span class="dashboard-label">时间范围</span>
+              <select class="dashboard-select" id="dashboardTimeGroup"></select>
+            </div>
+            <div class="dashboard-field">
+              <span class="dashboard-label">粒度</span>
+              <select class="dashboard-select" id="dashboardTimePreset"></select>
+            </div>
+            <div class="dashboard-custom-inputs">
+              <div class="dashboard-field dashboard-hidden" id="dashboardCustomDayWrap">
+                <span class="dashboard-label">自定义天</span>
+                <input class="dashboard-input" id="dashboardCustomDay" type="date" />
+              </div>
+              <div class="dashboard-field dashboard-hidden" id="dashboardCustomWeekWrap">
+                <span class="dashboard-label">自定义周</span>
+                <input class="dashboard-input" id="dashboardCustomWeek" type="week" />
+              </div>
+              <div class="dashboard-field dashboard-hidden" id="dashboardCustomMonthWrap">
+                <span class="dashboard-label">自定义月</span>
+                <input class="dashboard-input" id="dashboardCustomMonth" type="month" />
+              </div>
+            </div>
+            <div class="dashboard-actions">
+              <label class="switch-wrap" for="dashboardAutoRefresh">
+                <span class="dashboard-label">自动刷新</span>
+                <input id="dashboardAutoRefresh" type="checkbox" checked />
+              </label>
+              <button class="btn secondary" id="dashboardRefreshBtn" type="button">立即刷新</button>
+            </div>
+          </div>
+
+          <div class="dashboard-command-summary" id="dashboardCommandSummary"></div>
+          <div id="dashboardSignalBoard"></div>
+
+          <div class="dashboard-kpi-band">
             <div class="dashboard-hero-grid" id="dashboardHeroGrid"></div>
             <div class="dashboard-support-grid" id="dashboardSupportGrid"></div>
           </div>
 
-          <div class="dashboard-main-stage">
+          <div class="dashboard-charts">
             <section class="dashboard-panel dashboard-panel-primary">
               <div class="dashboard-panel-shell">
                 <div class="dashboard-panel-head">
-                  <div>
-                    <div class="dashboard-panel-kicker">Traffic</div>
-                    <div class="dashboard-panel-title" id="dashboardPrimaryTrendTitle">流量主趋势</div>
-                  </div>
+                  <div class="dashboard-panel-title" id="dashboardPrimaryTrendTitle">流量趋势</div>
                   <div class="dashboard-panel-summary" id="dashboardPrimaryTrendSummary"></div>
                 </div>
                 <div class="dashboard-panel-body" id="dashboardTrafficTrend"></div>
               </div>
             </section>
-            <aside class="dashboard-panel dashboard-panel-signal">
-              <div class="dashboard-panel-shell">
-                <div class="dashboard-panel-head">
-                  <div>
-                    <div class="dashboard-panel-kicker">Signals</div>
-                    <div class="dashboard-panel-title">异常摘要</div>
-                  </div>
-                </div>
-                <div class="dashboard-panel-body" id="dashboardSignalBoard"></div>
-              </div>
-            </aside>
-          </div>
-
-          <div class="dashboard-secondary-stage">
-            <section class="dashboard-panel dashboard-panel-secondary">
-              <div class="dashboard-panel-shell">
-                <div class="dashboard-panel-head">
-                  <div>
-                    <div class="dashboard-panel-kicker">Users</div>
+            <div class="dashboard-charts-split">
+              <section class="dashboard-panel dashboard-panel-secondary">
+                <div class="dashboard-panel-shell">
+                  <div class="dashboard-panel-head">
                     <div class="dashboard-panel-title" id="dashboardUsersTrendTitle">用户增长</div>
+                    <div class="dashboard-panel-summary" id="dashboardUsersTrendSummary"></div>
                   </div>
-                  <div class="dashboard-panel-summary" id="dashboardUsersTrendSummary"></div>
+                  <div class="dashboard-panel-body" id="dashboardUsersTrend"></div>
                 </div>
-                <div class="dashboard-panel-body" id="dashboardUsersTrend"></div>
-              </div>
-            </section>
-            <section class="dashboard-panel dashboard-panel-secondary">
-              <div class="dashboard-panel-shell">
-                <div class="dashboard-panel-head">
-                  <div>
-                    <div class="dashboard-panel-kicker">Content</div>
+              </section>
+              <section class="dashboard-panel dashboard-panel-secondary">
+                <div class="dashboard-panel-shell">
+                  <div class="dashboard-panel-head">
                     <div class="dashboard-panel-title" id="dashboardContentTrendTitle">内容增长</div>
+                    <div class="dashboard-panel-summary" id="dashboardContentTrendSummary"></div>
                   </div>
-                  <div class="dashboard-panel-summary" id="dashboardContentTrendSummary"></div>
+                  <div class="dashboard-panel-body" id="dashboardContentTrend"></div>
                 </div>
-                <div class="dashboard-panel-body" id="dashboardContentTrend"></div>
-              </div>
-            </section>
+              </section>
+            </div>
           </div>
 
-          <div class="dashboard-operations-strip">
+          <div class="dashboard-ranks">
             <section class="dashboard-panel">
               <div class="dashboard-panel-shell">
                 <div class="dashboard-panel-head">
-                  <div>
-                    <div class="dashboard-panel-kicker">Pages</div>
-                    <div class="dashboard-panel-title">热门页面</div>
-                  </div>
+                  <div class="dashboard-panel-title">热门页面</div>
                 </div>
                 <div class="dashboard-panel-body" id="dashboardTopPages"></div>
               </div>
@@ -1130,10 +1104,7 @@
             <section class="dashboard-panel">
               <div class="dashboard-panel-shell">
                 <div class="dashboard-panel-head">
-                  <div>
-                    <div class="dashboard-panel-kicker">Functions</div>
-                    <div class="dashboard-panel-title">热门功能页</div>
-                  </div>
+                  <div class="dashboard-panel-title">热门功能页</div>
                 </div>
                 <div class="dashboard-panel-body" id="dashboardTopFunctions"></div>
               </div>
@@ -1141,10 +1112,7 @@
             <section class="dashboard-panel">
               <div class="dashboard-panel-shell">
                 <div class="dashboard-panel-head">
-                  <div>
-                    <div class="dashboard-panel-kicker">API</div>
-                    <div class="dashboard-panel-title">热门 API</div>
-                  </div>
+                  <div class="dashboard-panel-title">热门接口</div>
                 </div>
                 <div class="dashboard-panel-body" id="dashboardTopApis"></div>
               </div>
@@ -1152,23 +1120,17 @@
             <section class="dashboard-panel">
               <div class="dashboard-panel-shell">
                 <div class="dashboard-panel-head">
-                  <div>
-                    <div class="dashboard-panel-kicker">Ops</div>
-                    <div class="dashboard-panel-title">运营状态</div>
-                  </div>
+                  <div class="dashboard-panel-title">运营状态</div>
                 </div>
                 <div class="dashboard-panel-body" id="dashboardOpsStatus"></div>
               </div>
             </section>
           </div>
 
-          <section class="dashboard-panel dashboard-panel-actions">
+          <section class="dashboard-panel">
             <div class="dashboard-panel-shell">
               <div class="dashboard-panel-head">
-                <div>
-                  <div class="dashboard-panel-kicker">Actions</div>
-                  <div class="dashboard-panel-title">快速动作</div>
-                </div>
+                <div class="dashboard-panel-title">快速动作</div>
               </div>
               <div class="dashboard-panel-body" id="dashboardActionZone"></div>
             </div>
@@ -2438,6 +2400,10 @@
         </section>
 
         <section class="card page" id="page-admin-log" data-page="admin-log">
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.44（2026-09-16）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>后台大屏重构</strong>：去掉英文指挥甲板层级，改成中文数据总览。指标卡、趋势图、排行和待办并排展示，时间筛选与自动刷新保留。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.43（2026-09-16）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>治理中心操作记录</strong>：操作记录默认显示 50 条，支持每页 20/50/100 条和上一页/下一页翻看全部历史操作。</div>
@@ -6218,9 +6184,9 @@
 
   </script>
   <!-- theme toggle moved to /function/theme.js -->
-  <script src="./admin-dashboard-layout.js"></script>
-  <script src="./admin-dashboard-signals.js"></script>
-  <script src="./admin-dashboard.js?v=0.8.9"></script>
+  <script src="./admin-dashboard-layout.js?v=0.9.44"></script>
+  <script src="./admin-dashboard-signals.js?v=0.9.44"></script>
+  <script src="./admin-dashboard.js?v=0.9.44"></script>
   <script src="./admin-governance.js?v=0.9.43"></script>
   <script src="./admin-users-page.js?v=9"></script>
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
