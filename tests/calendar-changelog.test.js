@@ -21,7 +21,7 @@ test('public and admin changelogs record the calendar release separately', () =>
   assert.match(homeEntry, /点击后加载/);
   assert.doesNotMatch(homeEntry, /后台|管理员|管理端|接口|数据库/);
 
-  assert.match(admin, /admin-version[^>]*>V0\.9\.40</);
+  assert.match(admin, /admin-version[^>]*>V0\.9\.42</);
   assert.match(adminEntry, /活动日历五步工作台/);
   assert.match(adminEntry, /旧日程无损编辑/);
   assert.doesNotMatch(homeEntry, /活动日历五步工作台|旧日程无损编辑/);

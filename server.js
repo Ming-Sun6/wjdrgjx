@@ -5972,7 +5972,9 @@ mountBearpitTemplateRoutes({
   queryRows,
   queryOne,
   execute,
-  pgDatabase
+  pgDatabase,
+  requireAdmin,
+  auditAdminAction
 });
 
 mountBearpitAdminRoutes({

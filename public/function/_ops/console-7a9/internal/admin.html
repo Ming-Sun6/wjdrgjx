@@ -852,7 +852,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-        <span class="admin-version" title="与管理端打包版本一致">V0.9.40</span>
+        <span class="admin-version" title="与管理端打包版本一致">V0.9.42</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -876,6 +876,7 @@
         <button class="side-item" type="button" data-page="gift-packs" data-admin-only="1">礼包管理</button>
         <button class="side-item" type="button" data-page="heroes" data-admin-only="1">英雄数据</button>
         <button class="side-item" type="button" data-page="bearpit-data" data-admin-only="1">熊坑数据</button>
+        <button class="side-item" type="button" data-page="bearpit-templates" data-admin-only="1">小程序熊坑</button>
         <button class="side-item" type="button" data-page="tool-management" data-admin-only="1">工具管理</button>
         <button class="side-item" type="button" data-page="home-navigation" data-admin-only="1">首页菜单</button>
         <button class="side-item" type="button" data-page="neighbor-progress" data-admin-only="1">邻邦进度</button>
@@ -1603,6 +1604,43 @@
               </thead>
               <tbody id="bearpitDataTbody">
                 <tr><td colspan="9" style="color:var(--muted);">请先登录管理员账号。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card page" id="page-bearpit-templates" data-page="bearpit-templates">
+          <div class="page-title">小程序熊坑管理</div>
+          <p class="admin-status" style="margin-bottom:10px;color:var(--muted);font-size:.85rem;line-height:1.6;">
+            审核小程序用户提交的公开模板。通过后才会出现在小程序模板市场；不通过会告知提交者，也可删除已公开模板。
+          </p>
+          <div class="bearpit-admin-toolbar">
+            <input id="bearpitTemplateSearchInput" type="search" placeholder="搜索模板名称 / Key" />
+            <select id="bearpitTemplateStatusFilter" aria-label="审核状态">
+              <option value="pending">待审核</option>
+              <option value="approved">已公开</option>
+              <option value="rejected">未通过</option>
+              <option value="all">全部</option>
+            </select>
+            <button class="btn" type="button" id="bearpitTemplateReloadBtn">搜索 / 刷新</button>
+          </div>
+          <div class="admin-status" id="bearpitTemplateStatus"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th style="min-width:140px;">名称</th>
+                  <th style="width:90px;">状态</th>
+                  <th style="width:80px;">建筑</th>
+                  <th style="width:90px;">网格</th>
+                  <th style="width:80px;">下载</th>
+                  <th style="width:150px;">更新时间</th>
+                  <th style="min-width:140px;">备注</th>
+                  <th style="width:240px;">操作</th>
+                </tr>
+              </thead>
+              <tbody id="bearpitTemplateTbody">
+                <tr><td colspan="8" style="color:var(--muted);">请先登录管理员账号。</td></tr>
               </tbody>
             </table>
           </div>
@@ -2345,6 +2383,10 @@
 
         <section class="card page" id="page-admin-log" data-page="admin-log">
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.42（2026-09-16）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>小程序熊坑管理</strong>：新增后台菜单，可查看小程序公开模板；用户提交公开后需审核，通过才会进入模板市场。支持通过、不通过、删除与排布预览。</div>
+          </div>
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.41（2026-08-28）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>协议与隐私政策</strong>：新增后台「协议与隐私政策」编辑栏，可快捷修改关于我们、用户协议、隐私政策；发布后前台弹出确认更新窗口，用户点击「确定」后不再重复提示。后台记录当前版本有多少人点了确定（同一访客只计 1 次）。</div>
           </div>
@@ -2662,6 +2704,26 @@
         <textarea id="bearpitDataModalJson" class="bearpit-json-box" readonly></textarea>
         <div style="margin-top:10px;display:flex;justify-content:flex-end;">
           <button class="btn secondary" type="button" id="bearpitDataModalCopy">复制 JSON</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="auth-modal" id="bearpitTemplateModal" aria-hidden="true">
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-label="小程序熊坑模板预览" style="width:min(920px,calc(100vw - 28px));max-height:min(90vh,900px);display:flex;flex-direction:column;">
+      <div class="auth-head" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <h3 id="bearpitTemplateModalTitle" style="margin:0;font-size:1rem;">模板预览</h3>
+        <button class="auth-close" id="bearpitTemplateModalClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="auth-body bearpit-preview-wrap" style="padding:12px 16px 16px;overflow:auto;">
+        <div class="bearpit-preview-meta" id="bearpitTemplateModalMeta"></div>
+        <canvas id="bearpitTemplatePreviewCanvas" width="560" height="560"></canvas>
+        <textarea id="bearpitTemplateModalJson" class="bearpit-json-box" readonly></textarea>
+        <div class="bearpit-preview-actions">
+          <button class="btn secondary" type="button" id="bearpitTemplateModalCopy">复制 JSON</button>
+          <button class="btn" type="button" id="bearpitTemplateModalApprove">通过</button>
+          <button class="btn secondary" type="button" id="bearpitTemplateModalReject">不通过</button>
+          <button class="btn secondary" type="button" id="bearpitTemplateModalDelete">删除</button>
         </div>
       </div>
     </div>
@@ -5697,6 +5759,7 @@
       else if(currentPage==='gift-packs'){ if(typeof window.loadGiftPacksAdmin==='function') window.loadGiftPacksAdmin(); }
       else if(currentPage==='heroes'){ if(typeof window.loadHeroesAdmin==='function') window.loadHeroesAdmin(); }
       else if(currentPage==='bearpit-data'){ if(typeof window.loadBearpitAdmin==='function') window.loadBearpitAdmin(); }
+      else if(currentPage==='bearpit-templates'){ if(typeof window.loadBearpitTemplatesAdmin==='function') window.loadBearpitTemplatesAdmin(); }
       else if(currentPage==='shop'){ if(typeof window.loadShopAdmin==='function') window.loadShopAdmin(); }
       else if(currentPage==='activation-codes'){
         if(typeof window.loadActivationCodesAdmin==='function') window.loadActivationCodesAdmin();
@@ -6079,6 +6142,7 @@
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
   <script src="/function/admin-heroes-page.js?v=6"></script>
   <script src="/function/admin-bearpit-page.js?v=1"></script>
+  <script src="/function/admin-bearpit-templates-page.js?v=1"></script>
   <script src="/function/admin-shop-page.js?v=1"></script>
   <script src="/function/admin-activation-codes-page.js?v=3"></script>
   <script src="/function/admin-aeroplane-chess-page.js?v=1"></script>

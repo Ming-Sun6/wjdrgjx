@@ -70,3 +70,22 @@ test('server mounts bearpit admin routes and admin page includes menu', () => {
   assert.match(adminHtml, /熊坑工具简约版/);
   assert.match(adminHtml, /admin-bearpit-page\.js/);
 });
+
+test('admin includes mini-program bearpit template review page', () => {
+  const adminHtml = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'),
+    'utf8'
+  );
+  const pageJs = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', 'admin-bearpit-templates-page.js'),
+    'utf8'
+  );
+  assert.match(adminHtml, /data-page="bearpit-templates"/);
+  assert.match(adminHtml, /小程序熊坑/);
+  assert.match(adminHtml, /id="bearpitTemplateStatusFilter"/);
+  assert.match(adminHtml, /id="bearpitTemplatePreviewCanvas"/);
+  assert.match(adminHtml, /admin-bearpit-templates-page\.js/);
+  assert.match(pageJs, /\/api\/admin\/bearpit-templates/);
+  assert.match(pageJs, /loadBearpitTemplatesAdmin/);
+  assert.match(pageJs, /btDrawPreview/);
+});
