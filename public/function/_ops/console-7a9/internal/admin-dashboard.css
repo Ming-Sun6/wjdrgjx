@@ -1,4 +1,4 @@
-#page-operations-dashboard {
+#page-operations-dashboard.active {
   display: grid;
   gap: 14px;
 }

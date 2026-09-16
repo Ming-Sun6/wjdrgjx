@@ -39,3 +39,9 @@ test('dashboard layout copy stays Chinese', () => {
   assert.match(layoutJs, /流量趋势|\\u6d41\\u91cf\\u8d8b\\u52bf/);
   assert.doesNotMatch(layoutJs, /Signal Deck/);
 });
+
+test('operations dashboard stays hidden unless its page is active', () => {
+  const css = read('public/function/admin-dashboard.css');
+  assert.match(css, /#page-operations-dashboard\.active\s*\{/);
+  assert.doesNotMatch(css, /#page-operations-dashboard\s*\{\s*display:\s*grid/);
+});
