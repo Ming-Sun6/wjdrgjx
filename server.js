@@ -60,6 +60,7 @@ const {
   BEARPIT_COLLECT_ENTRIES_DDL_PG
 } = require('./bearpit-collect');
 const { mountBearpitAdminRoutes } = require('./bearpit-admin');
+const { mountBearpitTemplateRoutes } = require('./bearpit-templates');
 const {
   mountHeroDataRoutes,
   seedHeroGenerationsIfEmpty,
@@ -5959,6 +5960,14 @@ const bearpitBackupApi = mountBearpitBackupRoutes({
 });
 
 mountBearpitCollectRoutes({
+  app,
+  queryRows,
+  queryOne,
+  execute,
+  pgDatabase
+});
+
+mountBearpitTemplateRoutes({
   app,
   queryRows,
   queryOne,
