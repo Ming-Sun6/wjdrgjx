@@ -26,5 +26,6 @@ test('server mounts bearpit template market routes', () => {
   assert.match(serverSource, /mountBearpitTemplateRoutes\(/);
   assert.match(moduleSource, /\/api\/bearpit\/mp\/templates/);
   assert.match(moduleSource, /\/api\/bearpit\/mp\/templates\/:key/);
+  assert.match(moduleSource, /\/api\/bearpit\/mp\/templates\/:key\/unpublish/);
   assert.match(schemaSource, /bearpit_templates/);
 });

@@ -184,6 +184,23 @@ function mountBearpitTemplateRoutes(deps) {
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
     }
   });
+
+  app.post('/api/bearpit/mp/templates/:key/unpublish', async (req, res) => {
+    try {
+      await ensureTable();
+      const key = String(req.params.key || '').trim();
+      const token = String(req.body?.ownerToken || req.body?.token || '').trim();
+      if (!KEY_RE.test(key) || !TOKEN_RE.test(token)) return res.status(400).json({ error: 'BAD_REQUEST' });
+      const row = await getRow(key);
+      if (!row) return res.json({ ok: true, missing: true });
+      if (String(row.owner_token) !== token) return res.status(403).json({ error: 'FORBIDDEN' });
+      await execute('DELETE FROM bearpit_templates WHERE template_key = ?', [key]);
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error('bearpit template unpublish failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
 }
 
 module.exports = {
