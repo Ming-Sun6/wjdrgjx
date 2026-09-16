@@ -52,7 +52,6 @@ const BEARPIT_TEMPLATES_DDL_PG = `
     updated_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
   );
   CREATE INDEX IF NOT EXISTS idx_bearpit_templates_updated ON bearpit_templates (updated_at DESC);
-  CREATE INDEX IF NOT EXISTS idx_bearpit_templates_status_updated ON bearpit_templates (status, updated_at DESC);
 `;
 
 function normalizeTemplateTitle(value) {
@@ -204,6 +203,7 @@ function mountBearpitTemplateRoutes(deps) {
   async function ensureTable() {
     if (tableReady) return;
     await execute(pgDatabase ? BEARPIT_TEMPLATES_DDL_PG : BEARPIT_TEMPLATES_DDL_MYSQL);
+    // Upgrade existing tables before creating indexes that use review fields.
     await ensureReviewSchema();
     tableReady = true;
   }

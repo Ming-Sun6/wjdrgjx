@@ -80,3 +80,73 @@ test('updating a published template always goes back to pending review', () => {
   assert.match(moduleSource, /STATUS_PENDING, SUBMIT_KIND_UPDATE/);
   assert.match(moduleSource, /status: STATUS_PENDING,\s*submitKind: SUBMIT_KIND_UPDATE/s);
 });
+
+// Model PostgreSQL's CREATE IF NOT EXISTS and ADD COLUMN IF NOT EXISTS behavior.
+function schemaDatabase(existing) {
+  let columns = existing ? new Set(['template_key', 'owner_token', 'title', 'data_json', 'item_count', 'grid_size', 'download_count', 'created_at', 'updated_at']) : null;
+  let statusDefault;
+  let indexReady = false;
+  const review = ['status', 'reject_reason', 'reviewed_at', 'reviewed_by', 'submit_kind'];
+  return {
+    async execute(sql) {
+      for (const statement of sql.split(';').map(s => s.trim()).filter(Boolean)) {
+        if (/^CREATE TABLE IF NOT EXISTS bearpit_templates/i.test(statement) && !columns) {
+          columns = new Set([...review, 'updated_at']);
+          statusDefault = 'pending';
+        }
+        const add = statement.match(/^ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS (\w+)/i);
+        if (add && !columns.has(add[1])) {
+          columns.add(add[1]);
+          if (add[1] === 'status') statusDefault = 'approved';
+        }
+        if (/^CREATE INDEX IF NOT EXISTS idx_bearpit_templates_status_updated/i.test(statement)) {
+          assert.ok(columns && columns.has('status'), 'status index created before status column');
+          indexReady = true;
+        }
+      }
+      return {};
+    },
+    verify() {
+      for (const column of review) assert.ok(columns.has(column), `missing ${column}`);
+      assert.equal(indexReady, true);
+      assert.equal(statusDefault, existing ? 'approved' : 'pending');
+    }
+  };
+}
+
+for (const existing of [true, false]) {
+  test(`template routes initialize ${existing ? 'legacy' : 'fresh'} PostgreSQL schema before serving requests`, async () => {
+    const { mountBearpitTemplateRoutes } = require('../bearpit-templates');
+    for (const [method, path, body] of [
+      ['get', '/api/bearpit/mp/templates', {}],
+      ['post', '/api/bearpit/mp/templates/status-batch', { items: [] }],
+      ['post', '/api/bearpit/mp/templates', { title: '测试模板', data: { v: 1, gs: 20, items: [{ r: 1, c: 1, s: 3 }] } }]
+    ]) {
+      const db = schemaDatabase(existing);
+      const routes = {};
+      mountBearpitTemplateRoutes({
+        app: { get: (p, h) => { routes['get ' + p] = h; }, post: (p, h) => { routes['post ' + p] = h; } },
+        pgDatabase: {}, execute: db.execute,
+        queryRows: async () => { db.verify(); return []; }, queryOne: async () => null
+      });
+      const res = { code: 200, status(code) { this.code = code; return this; }, json(value) { this.body = value; return this; } };
+      await routes[method + ' ' + path]({ body }, res);
+      assert.equal(res.code, 200, path);
+      assert.equal(res.body.ok, true);
+      if (body.title) {
+        assert.match(res.body.templateKey, /^[A-Za-z0-9]{16}$/);
+        assert.equal(res.body.status, 'pending');
+      }
+      db.verify();
+    }
+  });
+  test(`startup schema upgrades ${existing ? 'legacy' : 'fresh'} template table idempotently`, async () => {
+    const { POSTGRES_SCHEMA_SQL } = require('../postgres-schema');
+    const db = schemaDatabase(existing);
+    const statements = POSTGRES_SCHEMA_SQL.filter(sql => /\bbearpit_templates\b/.test(sql));
+    for (let run = 0; run < 2; run++) {
+      for (const sql of statements) await db.execute(sql);
+      db.verify();
+    }
+  });
+}

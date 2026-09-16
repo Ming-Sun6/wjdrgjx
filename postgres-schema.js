@@ -265,6 +265,13 @@ const POSTGRES_SCHEMA_SQL = [
   )
   `,
   'CREATE INDEX IF NOT EXISTS idx_bearpit_templates_updated ON bearpit_templates (updated_at DESC)',
+  // Existing tables predate review fields; add them before indexing status.
+  // Preserve previously public templates as approved. Fresh tables default to pending.
+  "ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS status varchar(16) NOT NULL DEFAULT 'approved'",
+  "ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS reject_reason varchar(80) NOT NULL DEFAULT ''",
+  'ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS reviewed_at timestamptz(3) NULL',
+  "ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS reviewed_by varchar(64) NOT NULL DEFAULT ''",
+  "ALTER TABLE bearpit_templates ADD COLUMN IF NOT EXISTS submit_kind varchar(16) NOT NULL DEFAULT 'new'",
   'CREATE INDEX IF NOT EXISTS idx_bearpit_templates_status_updated ON bearpit_templates (status, updated_at DESC)',
   `
   CREATE TABLE IF NOT EXISTS hero_generations (
