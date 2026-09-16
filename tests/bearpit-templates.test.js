@@ -81,6 +81,27 @@ test('updating a published template always goes back to pending review', () => {
   assert.match(moduleSource, /status: STATUS_PENDING,\s*submitKind: SUBMIT_KIND_UPDATE/s);
 });
 
+test('admin template list defaults to all statuses and returns counts', () => {
+  const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'bearpit-templates.js'), 'utf8');
+  const pageSource = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'admin-bearpit-templates-page.js'), 'utf8');
+  const adminHtml = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'function', '_ops', 'console-7a9', 'internal', 'admin.html'),
+    'utf8'
+  );
+  assert.match(moduleSource, /req\.query\.status \|\| 'all'/);
+  assert.match(moduleSource, /SELECT status, COUNT\(\*\) AS n FROM bearpit_templates GROUP BY status/);
+  assert.match(pageSource, /status: 'all'/);
+  assert.match(adminHtml, /option value="all" selected/);
+});
+
+test('template status batch and download avoid extra layout payloads', () => {
+  const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'bearpit-templates.js'), 'utf8');
+  assert.match(moduleSource, /WHERE template_key IN \(/);
+  assert.match(moduleSource, /includeData === false/);
+  assert.match(moduleSource, /RETURNING title, data_json, item_count, grid_size/);
+  assert.match(moduleSource, /tablePromise/);
+});
+
 // Model PostgreSQL's CREATE IF NOT EXISTS and ADD COLUMN IF NOT EXISTS behavior.
 function schemaDatabase(existing) {
   let columns = existing ? new Set(['template_key', 'owner_token', 'title', 'data_json', 'item_count', 'grid_size', 'download_count', 'created_at', 'updated_at']) : null;

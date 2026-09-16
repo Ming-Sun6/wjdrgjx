@@ -881,7 +881,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-        <span class="admin-version" title="与管理端打包版本一致">V0.9.44</span>
+        <span class="admin-version" title="与管理端打包版本一致">V0.9.45</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -1634,10 +1634,10 @@
           <div class="bearpit-admin-toolbar">
             <input id="bearpitTemplateSearchInput" type="search" placeholder="搜索模板名称 / Key" />
             <select id="bearpitTemplateStatusFilter" aria-label="审核状态">
+              <option value="all" selected>全部</option>
               <option value="pending">待审核</option>
               <option value="approved">已公开</option>
               <option value="rejected">未通过</option>
-              <option value="all">全部</option>
             </select>
             <button class="btn" type="button" id="bearpitTemplateReloadBtn">搜索 / 刷新</button>
           </div>
@@ -2400,6 +2400,10 @@
         </section>
 
         <section class="card page" id="page-admin-log" data-page="admin-log">
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.45（2026-09-16）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>小程序熊坑审核列表</strong>：默认显示全部模板，筛选项带数量。市场里已公开的模板不再因为默认「待审核」而看不见。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.44（2026-09-16）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>后台大屏重构</strong>：去掉英文指挥甲板层级，改成中文数据总览。指标卡、趋势图、排行和待办并排展示，时间筛选与自动刷新保留。</div>
@@ -6192,7 +6196,7 @@
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
   <script src="/function/admin-heroes-page.js?v=6"></script>
   <script src="/function/admin-bearpit-page.js?v=1"></script>
-  <script src="/function/admin-bearpit-templates-page.js?v=2"></script>
+  <script src="/function/admin-bearpit-templates-page.js?v=3"></script>
   <script src="/function/admin-shop-page.js?v=1"></script>
   <script src="/function/admin-activation-codes-page.js?v=3"></script>
   <script src="/function/admin-aeroplane-chess-page.js?v=1"></script>

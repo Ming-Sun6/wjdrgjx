@@ -7,7 +7,7 @@ function btState(root) {
       total: 0,
       filters: {
         q: '',
-        status: 'pending'
+        status: 'all'
       }
     };
   }
@@ -201,11 +201,27 @@ function btCollectFilters(root) {
   var st = btState(root);
   var doc = root.document;
   st.filters.q = String((doc.getElementById('bearpitTemplateSearchInput') || {}).value || '').trim();
-  st.filters.status = String((doc.getElementById('bearpitTemplateStatusFilter') || {}).value || 'pending');
+  st.filters.status = String((doc.getElementById('bearpitTemplateStatusFilter') || {}).value || 'all');
+}
+
+function btApplyCountLabels(root, counts) {
+  var sel = root.document.getElementById('bearpitTemplateStatusFilter');
+  if (!sel) return;
+  var labels = {
+    pending: '待审核',
+    approved: '已公开',
+    rejected: '未通过',
+    all: '全部'
+  };
+  Array.prototype.forEach.call(sel.options, function (opt) {
+    var label = labels[opt.value] || opt.value;
+    var n = counts && counts[opt.value];
+    opt.textContent = n == null ? label : label + '（' + n + '）';
+  });
 }
 
 function btQueryString(st) {
-  var params = ['status=' + encodeURIComponent(st.filters.status || 'pending')];
+  var params = ['status=' + encodeURIComponent(st.filters.status || 'all')];
   if (st.filters.q) params.push('q=' + encodeURIComponent(st.filters.q));
   return params.join('&');
 }
@@ -228,8 +244,11 @@ async function btLoad(root) {
     }
     st.rows = Array.isArray(d.rows) ? d.rows : [];
     st.total = Number(d.total || st.rows.length);
+    st.counts = d.counts || {};
+    btApplyCountLabels(root, st.counts);
     btRenderTable(root);
-    btStatus('共 ' + st.total + ' 条，当前显示 ' + st.rows.length + ' 条');
+    var pending = Number((st.counts && st.counts.pending) || 0);
+    btStatus('共 ' + (st.counts.all != null ? st.counts.all : st.total) + ' 条，待审核 ' + pending + ' 条，当前显示 ' + st.rows.length + ' 条');
   } catch (err) {
     btStatus('加载失败：' + ((err && err.message) || '网络错误'));
     st.rows = [];

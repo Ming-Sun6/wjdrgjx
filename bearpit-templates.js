@@ -117,9 +117,22 @@ function extractTemplatePreviewItems(data) {
 
 function parseTemplateData(row) {
   if (!row) return null;
-  if (row.data_json && typeof row.data_json === 'object') return row.data_json;
+  const raw = row.data_json;
+  if (!raw) return null;
+  if (typeof raw === 'object') return raw;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (_err) {
+      return null;
+    }
+  }
   return null;
 }
+
+const TEMPLATE_META_COLUMNS = `template_key, owner_token, title, item_count, grid_size, download_count,
+             status, reject_reason, reviewed_at, reviewed_by, submit_kind, created_at, updated_at`;
 
 function mapMarketRow(row) {
   if (!row) return null;
@@ -172,6 +185,7 @@ function reviewerName(admin) {
 function mountBearpitTemplateRoutes(deps) {
   const { app, queryRows, queryOne, execute, pgDatabase, requireAdmin, auditAdminAction } = deps;
   let tableReady = false;
+  let tablePromise = null;
 
   async function ensureReviewSchema() {
     if (pgDatabase) {
@@ -202,17 +216,26 @@ function mountBearpitTemplateRoutes(deps) {
 
   async function ensureTable() {
     if (tableReady) return;
-    await execute(pgDatabase ? BEARPIT_TEMPLATES_DDL_PG : BEARPIT_TEMPLATES_DDL_MYSQL);
-    // Upgrade existing tables before creating indexes that use review fields.
-    await ensureReviewSchema();
-    tableReady = true;
+    if (tablePromise) return tablePromise;
+    tablePromise = (async () => {
+      await execute(pgDatabase ? BEARPIT_TEMPLATES_DDL_PG : BEARPIT_TEMPLATES_DDL_MYSQL);
+      // Upgrade existing tables before creating indexes that use review fields.
+      await ensureReviewSchema();
+      tableReady = true;
+    })();
+    try {
+      await tablePromise;
+    } catch (err) {
+      tablePromise = null;
+      throw err;
+    }
   }
 
-  async function getRow(key) {
+  async function getRow(key, options) {
+    const includeData = !(options && options.includeData === false);
     return queryOne(
       `
-      SELECT template_key, owner_token, title, data_json, item_count, grid_size, download_count,
-             status, reject_reason, reviewed_at, reviewed_by, submit_kind, created_at, updated_at
+      SELECT ${TEMPLATE_META_COLUMNS}${includeData ? ', data_json' : ''}
       FROM bearpit_templates
       WHERE template_key = ?
       LIMIT 1
@@ -257,7 +280,7 @@ function mountBearpitTemplateRoutes(deps) {
       const gs = gridSizeOf(data);
 
       if (KEY_RE.test(existingKey) && TOKEN_RE.test(existingToken)) {
-        const row = await getRow(existingKey);
+        const row = await getRow(existingKey, { includeData: false });
         if (row && String(row.owner_token) === existingToken) {
           await execute(
             pgDatabase
@@ -307,22 +330,34 @@ function mountBearpitTemplateRoutes(deps) {
     try {
       await ensureTable();
       const items = Array.isArray(req.body?.items) ? req.body.items.slice(0, 30) : [];
-      const statuses = [];
-      for (const item of items) {
+      const keys = [];
+      items.forEach((item) => {
         const key = String((item && (item.templateKey || item.key)) || '').trim();
         const token = String((item && (item.ownerToken || item.token)) || '').trim();
-        if (!KEY_RE.test(key) || !TOKEN_RE.test(token)) {
-          statuses.push({ templateKey: key, missing: true });
-          continue;
-        }
-        const row = await getRow(key);
-        if (!row || String(row.owner_token) !== token) {
-          statuses.push({ templateKey: key, missing: true });
-          continue;
-        }
-        statuses.push(mapOwnerStatus(row));
-      }
-      return res.json({ ok: true, statuses });
+        if (!KEY_RE.test(key) || !TOKEN_RE.test(token)) return;
+        keys.push(key);
+      });
+      const uniqueKeys = Array.from(new Set(keys));
+      const rows = uniqueKeys.length
+        ? await queryRows(
+          `
+          SELECT ${TEMPLATE_META_COLUMNS}
+          FROM bearpit_templates
+          WHERE template_key IN (${uniqueKeys.map(() => '?').join(', ')})
+          `,
+          uniqueKeys
+        )
+        : [];
+      const byKey = new Map((rows || []).map((row) => [String(row.template_key || ''), row]));
+      const out = items.map((item) => {
+        const key = String((item && (item.templateKey || item.key)) || '').trim();
+        const token = String((item && (item.ownerToken || item.token)) || '').trim();
+        if (!KEY_RE.test(key) || !TOKEN_RE.test(token)) return { templateKey: key, missing: true };
+        const row = byKey.get(key);
+        if (!row || String(row.owner_token) !== token) return { templateKey: key, missing: true };
+        return mapOwnerStatus(row);
+      });
+      return res.json({ ok: true, statuses: out });
     } catch (err) {
       console.error('bearpit template status batch failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -334,14 +369,28 @@ function mountBearpitTemplateRoutes(deps) {
       await ensureTable();
       const key = String(req.params.key || '').trim();
       if (!KEY_RE.test(key)) return res.status(400).json({ error: 'BAD_KEY' });
-      const row = await getRow(key);
-      if (!row || normalizeTemplateStatus(row.status) !== STATUS_APPROVED) return res.status(404).json({ error: 'NOT_FOUND' });
+      let row;
+      if (pgDatabase) {
+        row = await queryOne(
+          `
+          UPDATE bearpit_templates
+          SET download_count = download_count + 1
+          WHERE template_key = ? AND status = ?
+          RETURNING title, data_json, item_count, grid_size
+          `,
+          [key, STATUS_APPROVED]
+        );
+      } else {
+        row = await getRow(key);
+        if (!row || normalizeTemplateStatus(row.status) !== STATUS_APPROVED) return res.status(404).json({ error: 'NOT_FOUND' });
+        await execute(
+          'UPDATE bearpit_templates SET download_count = download_count + 1 WHERE template_key = ?',
+          [key]
+        );
+      }
+      if (!row) return res.status(404).json({ error: 'NOT_FOUND' });
       const data = parseTemplateData(row);
       if (!data) return res.status(410).json({ error: 'BAD_DATA' });
-      await execute(
-        'UPDATE bearpit_templates SET download_count = download_count + 1 WHERE template_key = ?',
-        [key]
-      );
       return res.json({
         ok: true,
         title: String(row.title || ''),
@@ -361,7 +410,7 @@ function mountBearpitTemplateRoutes(deps) {
       const key = String(req.params.key || '').trim();
       const token = String(req.body?.ownerToken || req.body?.token || '').trim();
       if (!KEY_RE.test(key) || !TOKEN_RE.test(token)) return res.status(400).json({ error: 'BAD_REQUEST' });
-      const row = await getRow(key);
+      const row = await getRow(key, { includeData: false });
       if (!row) return res.json({ ok: true, missing: true });
       if (String(row.owner_token) !== token) return res.status(403).json({ error: 'FORBIDDEN' });
       await execute('DELETE FROM bearpit_templates WHERE template_key = ?', [key]);
@@ -378,10 +427,10 @@ function mountBearpitTemplateRoutes(deps) {
         const admin = await requireAdmin(req, res);
         if (!admin) return;
         await ensureTable();
-        const statusRaw = String(req.query.status || STATUS_PENDING).trim().toLowerCase();
+        const statusRaw = String(req.query.status || 'all').trim().toLowerCase();
         const status = statusRaw === 'all' || statusRaw === STATUS_APPROVED || statusRaw === STATUS_REJECTED || statusRaw === STATUS_PENDING
           ? statusRaw
-          : STATUS_PENDING;
+          : 'all';
         const q = String(req.query.q || '').trim();
         const params = [];
         let where = 'WHERE 1=1';
@@ -408,8 +457,20 @@ function mountBearpitTemplateRoutes(deps) {
           `SELECT COUNT(*) AS n FROM bearpit_templates ${where}`,
           params
         );
+        const statusCounts = await queryRows(
+          `SELECT status, COUNT(*) AS n FROM bearpit_templates GROUP BY status`,
+          []
+        );
+        const counts = { pending: 0, approved: 0, rejected: 0, all: 0 };
+        (statusCounts || []).forEach((row) => {
+          const key = normalizeTemplateStatus(row && row.status);
+          const n = Number(row && row.n) || 0;
+          counts[key] = (counts[key] || 0) + n;
+          counts.all += n;
+        });
         return res.json({
           total: Number(countRow && countRow.n) || (rows || []).length,
+          counts,
           rows: (rows || []).map((row) => mapAdminTemplateRow(row))
         });
       } catch (err) {
