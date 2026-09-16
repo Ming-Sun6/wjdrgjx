@@ -881,7 +881,7 @@
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div class="title">后台管理</div>
-        <span class="admin-version" title="与管理端打包版本一致">V0.9.42</span>
+        <span class="admin-version" title="与管理端打包版本一致">V0.9.43</span>
         </div>
         <div class="subtitle">管理员可配置管理员/版主、审核论坛内容、管理网站用户与查看用户发声。版主仅可进入审核中心。</div>
       </div>
@@ -954,7 +954,7 @@
             <div id="governanceRiskCenter"><div id="governanceRiskCards"></div></div>
             <div class="card" id="governanceAuditFilters">
               <div class="admin-toolbar">
-                <input id="governanceAuditQ" type="search" placeholder="搜索审计摘要/操作者" />
+                <input id="governanceAuditQ" type="search" placeholder="搜索摘要/操作者" />
                 <input id="governanceAuditAction" type="text" placeholder="动作类型" />
                 <input id="governanceAuditTargetType" type="text" placeholder="目标类型" />
                 <input id="governanceAuditTargetId" type="text" placeholder="目标 ID" />
@@ -968,16 +968,27 @@
                 </select>
                 <input id="governanceAuditFrom" type="date" />
                 <input id="governanceAuditTo" type="date" />
-                <button class="btn secondary" id="governanceAuditSearchBtn" type="button">筛选审计</button>
+                <select id="governanceAuditPageSize">
+                  <option value="20">每页 20 条</option>
+                  <option value="50" selected>每页 50 条</option>
+                  <option value="100">每页 100 条</option>
+                </select>
+                <button class="btn secondary" id="governanceAuditSearchBtn" type="button">筛选</button>
               </div>
             </div>
             <div class="card">
-              <h3>最近操作审计</h3>
+              <h3>操作记录</h3>
+              <p class="admin-status" id="governanceAuditPageInfo" style="margin:0 0 10px;color:var(--muted);">可筛选并翻看全部后台操作。</p>
               <div class="table-wrap">
                 <table>
                   <thead><tr><th>时间</th><th>操作者</th><th>动作</th><th>风险</th><th>目标</th><th>摘要</th></tr></thead>
                   <tbody id="governanceAuditRows"></tbody>
                 </table>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;flex-wrap:wrap;margin-top:10px;">
+                <button class="btn secondary" id="governanceAuditPrevBtn" type="button">上一页</button>
+                <span class="admin-status" id="governanceAuditPager" style="margin:0;">第 1 / 1 页</span>
+                <button class="btn secondary" id="governanceAuditNextBtn" type="button">下一页</button>
               </div>
             </div>
             <div class="card" id="governanceReleaseFilters">
@@ -2427,6 +2438,10 @@
         </section>
 
         <section class="card page" id="page-admin-log" data-page="admin-log">
+          <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
+            <div style="font-weight:800;margin-bottom:8px;">V0.9.43（2026-09-16）</div>
+            <div style="color:var(--muted);line-height:1.6;"><strong>治理中心操作记录</strong>：操作记录默认显示 50 条，支持每页 20/50/100 条和上一页/下一页翻看全部历史操作。</div>
+          </div>
           <div class="card" style="background:var(--surface);border:1px solid var(--border);box-shadow:none;margin-bottom:12px;">
             <div style="font-weight:800;margin-bottom:8px;">V0.9.42（2026-09-16）</div>
             <div style="color:var(--muted);line-height:1.6;"><strong>小程序熊坑管理</strong>：新增后台菜单，可查看小程序公开模板；用户提交公开后需审核，通过才会进入模板市场。支持通过、不通过、删除与排布预览。</div>
@@ -6206,7 +6221,7 @@
   <script src="./admin-dashboard-layout.js"></script>
   <script src="./admin-dashboard-signals.js"></script>
   <script src="./admin-dashboard.js?v=0.8.9"></script>
-  <script src="./admin-governance.js"></script>
+  <script src="./admin-governance.js?v=0.9.43"></script>
   <script src="./admin-users-page.js?v=9"></script>
   <script src="/function/admin-gift-packs-page.js?v=1"></script>
   <script src="/function/admin-heroes-page.js?v=6"></script>

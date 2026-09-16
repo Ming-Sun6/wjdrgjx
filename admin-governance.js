@@ -229,10 +229,17 @@ function createGovernanceService(database) {
     return rows.map(normalizeAuditRow);
   }
 
-  async function getAuditLogs(filters) {
-    const source = filters || {};
-    const take = clampTake(source.take, 50);
+  function resolveAuditPaging(source) {
+    const pageSize = clampTake(source.pageSize || source.take, 50);
+    const requestedPage = Number.parseInt(source.page, 10);
+    if (Number.isFinite(requestedPage) && requestedPage >= 1) {
+      return { page: requestedPage, pageSize, skip: (requestedPage - 1) * pageSize };
+    }
     const skip = toOffset(source.skip);
+    return { page: Math.floor(skip / pageSize) + 1, pageSize, skip };
+  }
+
+  function buildAuditWhere(source) {
     const clauses = [];
     const params = [];
 
@@ -270,7 +277,20 @@ function createGovernanceService(database) {
       params.push(keyword, keyword, keyword, keyword);
     }
 
-    const whereSql = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+    return {
+      whereSql: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '',
+      params
+    };
+  }
+
+  async function getAuditLogs(filters) {
+    const source = filters || {};
+    const paging = resolveAuditPaging(source);
+    const { whereSql, params } = buildAuditWhere(source);
+    const total = await countOne(`SELECT COUNT(*) AS c FROM admin_audit_logs ${whereSql}`, params);
+    const totalPages = Math.max(1, Math.ceil(total / paging.pageSize) || 1);
+    const page = Math.min(paging.page, totalPages);
+    const skip = (page - 1) * paging.pageSize;
     const rows = await database.queryRows(
       `SELECT id, actor_id, actor_login_id, actor_username, action, target_type, target_id,
               risk_level, summary, metadata_json, ip_hash, user_agent_hash, created_at
@@ -278,9 +298,19 @@ function createGovernanceService(database) {
        ${whereSql}
        ORDER BY created_at DESC, id DESC
        LIMIT ? OFFSET ?`,
-      [...params, take, skip]
+      [...params, paging.pageSize, skip]
     );
-    return { logs: rows.map(normalizeAuditRow), take, skip };
+    return {
+      logs: rows.map(normalizeAuditRow),
+      total,
+      page,
+      pageSize: paging.pageSize,
+      take: paging.pageSize,
+      skip,
+      totalPages,
+      hasPrev: page > 1,
+      hasNext: page < totalPages
+    };
   }
 
   async function getReleaseChecks(filters) {

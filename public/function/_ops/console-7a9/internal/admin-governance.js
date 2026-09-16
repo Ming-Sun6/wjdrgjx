@@ -12,6 +12,8 @@
     initialized: false,
     overview: null,
     auditFilters: {},
+    auditPage: 1,
+    auditPageSize: 50,
     releaseFilters: {}
   };
 
@@ -193,7 +195,6 @@
     setHtml('governanceTodayWorkspace', renderTodayWorkspace(overview));
     setHtml('governanceReleaseCheck', renderReleaseCheck(overview && overview.latestReleaseCheck));
     setHtml('governanceRiskCards', renderRiskCardsMarkup((overview && overview.risks) || []));
-    setHtml('governanceAuditRows', renderAuditRows((overview && overview.recentAuditLogs) || []));
   }
 
   async function load() {
@@ -208,6 +209,7 @@
       var overview = await apiGet('/api/admin/governance/overview');
       state.overview = overview;
       renderOverview(overview);
+      await loadAuditLogs(null, { resetPage: true }).catch(function () {});
       if (typeof root.setStatus === 'function') root.setStatus('governanceStatus', '治理中心已更新');
       return overview;
     } catch (error) {
@@ -229,7 +231,33 @@
     return el ? String(el.value || '').trim() : '';
   }
 
-  async function loadAuditLogs(filters) {
+  function readPageSize() {
+    var value = Number.parseInt(readFilterValue('governanceAuditPageSize'), 10);
+    if (value === 20 || value === 50 || value === 100) return value;
+    return 50;
+  }
+
+  function renderAuditPager(data) {
+    var total = Number((data && data.total) || 0);
+    var page = Number((data && data.page) || 1);
+    var totalPages = Number((data && data.totalPages) || 1);
+    var pageSize = Number((data && data.pageSize) || state.auditPageSize || 50);
+    var info = getEl('governanceAuditPageInfo');
+    var pager = getEl('governanceAuditPager');
+    var prev = getEl('governanceAuditPrevBtn');
+    var next = getEl('governanceAuditNextBtn');
+    if (info) info.textContent = '共 ' + total + ' 条 · 每页 ' + pageSize + ' 条';
+    if (pager) pager.textContent = '第 ' + page + ' / ' + totalPages + ' 页';
+    if (prev) prev.disabled = page <= 1;
+    if (next) next.disabled = page >= totalPages;
+  }
+
+  async function loadAuditLogs(filters, options) {
+    var resetPage = !!(options && options.resetPage);
+    var nextPage = options && options.page;
+    if (resetPage) state.auditPage = 1;
+    else if (nextPage) state.auditPage = Math.max(1, Number(nextPage) || 1);
+    state.auditPageSize = readPageSize();
     var source = filters || {
       q: readFilterValue('governanceAuditQ'),
       action: readFilterValue('governanceAuditAction'),
@@ -239,9 +267,13 @@
       from: readFilterValue('governanceAuditFrom'),
       to: readFilterValue('governanceAuditTo')
     };
+    source.page = state.auditPage;
+    source.pageSize = state.auditPageSize;
     state.auditFilters = source;
     var data = await apiGet('/api/admin/audit-logs' + buildQuery(source));
+    state.auditPage = Number(data.page || state.auditPage);
     setHtml('governanceAuditRows', renderAuditRows(data.logs || []));
+    renderAuditPager(data);
     return data;
   }
 
@@ -271,11 +303,39 @@
     state.initialized = true;
     var runBtn = getEl('governanceRunCheckBtn') || getEl('governanceRunReleaseCheck');
     var auditBtn = getEl('governanceAuditSearchBtn');
+    var auditPrev = getEl('governanceAuditPrevBtn');
+    var auditNext = getEl('governanceAuditNextBtn');
+    var auditPageSize = getEl('governanceAuditPageSize');
     var releaseBtn = getEl('governanceReleaseSearchBtn');
     var refreshBtn = getEl('governanceRefreshBtn');
 
     if (runBtn) runBtn.addEventListener('click', runReleaseCheck);
-    if (auditBtn) auditBtn.addEventListener('click', function () { loadAuditLogs(); });
+    if (auditBtn) auditBtn.addEventListener('click', function () { loadAuditLogs(null, { resetPage: true }); });
+    if (auditPrev) {
+      auditPrev.addEventListener('click', function () {
+        if (auditPrev.disabled) return;
+        loadAuditLogs(null, { page: state.auditPage - 1 });
+      });
+    }
+    if (auditNext) {
+      auditNext.addEventListener('click', function () {
+        if (auditNext.disabled) return;
+        loadAuditLogs(null, { page: state.auditPage + 1 });
+      });
+    }
+    if (auditPageSize) {
+      auditPageSize.addEventListener('change', function () { loadAuditLogs(null, { resetPage: true }); });
+    }
+    ['governanceAuditQ', 'governanceAuditAction', 'governanceAuditTargetType', 'governanceAuditTargetId'].forEach(function (id) {
+      var input = getEl(id);
+      if (!input) return;
+      input.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          loadAuditLogs(null, { resetPage: true });
+        }
+      });
+    });
     if (releaseBtn) releaseBtn.addEventListener('click', function () { loadReleaseChecks(); });
     if (refreshBtn) refreshBtn.addEventListener('click', load);
     root.document.addEventListener('click', function (event) {
@@ -306,6 +366,7 @@
       renderReleaseCheck: renderReleaseCheck,
       renderRiskCardsMarkup: renderRiskCardsMarkup,
       renderAuditRows: renderAuditRows,
+      renderAuditPager: renderAuditPager,
       renderReleaseHistory: renderReleaseHistory
     }
   };
