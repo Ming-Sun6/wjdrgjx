@@ -857,6 +857,42 @@
             transform-origin: center;
             font-size: 9px;
         }
+        /* 熊坑 / 炉子正下方格子的世界坐标：抵消地面 rotate(45deg)+scaleY(0.5) */
+        .placed-item .world-coord-label {
+            position: absolute;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 4;
+        }
+        .placed-item .world-coord-label span {
+            transform: rotate(-45deg) scaleY(2);
+            transform-origin: center;
+            font-weight: 700;
+            font-size: 6px;
+            line-height: 1;
+            white-space: nowrap;
+            text-shadow: 0 0 2px #fff, 0 0 3px #fff;
+        }
+        .placed-item .world-coord-label.bear {
+            background: rgba(180, 83, 9, 0.28);
+            color: #b45309;
+        }
+        .placed-item .world-coord-label.bear-unset {
+            background: rgba(180, 83, 9, 0.18);
+            color: #b45309;
+        }
+        .placed-item .world-coord-label.bear-unset span { opacity: 0.75; }
+        .placed-item .world-coord-label.furnace {
+            background: rgba(15, 118, 110, 0.28);
+            color: #0f766e;
+        }
+        .confirm-panel.bear-coord-panel { width: 380px; }
+        .bear-coord-fields { display: flex; gap: 12px; }
+        .bear-coord-fields .auth-row { flex: 1; margin-bottom: 0; }
         /* 2×2 编辑时显示的格式工具栏 */
         .placed-item .item-format-bar {
             display: none;
@@ -1852,6 +1888,7 @@
                     <p class="help-item"><strong>拖拽空白处</strong> <span>移动视图。</span></p>
                     <p class="help-item"><strong>滚轮 / 双指缩放</strong> <span>放大缩小网格。</span></p>
                     <p class="help-item"><strong>侧栏选建筑再点格子</strong> <span>摆放旗帜、山、湖、炉子、熊坑等。点「退出建造」可取消选中。</span></p>
+                    <p class="help-item"><strong>点击熊坑</strong> <span>填写游戏里正下方格子的 X/Y。炉子会按相对位置自动算出世界坐标，显示在格子上，也会进坐标表。</span></p>
                     <p class="help-item"><strong>右键已摆放建筑</strong> <span>删除该建筑。</span></p>
                     <p class="help-item"><strong>双击炉子名字</strong> <span>手动改命名、颜色、加粗或斜体。</span></p>
                 </div>
@@ -1864,7 +1901,7 @@
                     <p class="help-item"><strong>指定删除</strong> <span>打开后点击某个建筑即可删除，再点一次退出。平时也可右键删除。</span></p>
                     <p class="help-item"><strong>建筑偏移</strong> <span>只平移贴图位置，方便对齐观感，不改格子坐标。</span></p>
                     <p class="help-item"><strong>图标透明度</strong> <span>把建筑贴图调淡，更容易看清炉子上的名字。</span></p>
-                    <p class="help-item"><strong>横屏模式 / 坐标表</strong> <span>横屏后更方便在平板上排。坐标表可筛选、勾选炉子，批量改名字和颜色。</span></p>
+                    <p class="help-item"><strong>横屏模式 / 坐标表</strong> <span>横屏后更方便在平板上排。坐标表可看世界坐标，也可筛选、勾选炉子，批量改名字和颜色。</span></p>
                 </div>
                 <div class="help-section">
                     <h4>存档</h4>
@@ -1888,6 +1925,35 @@
                     <h4>登录</h4>
                     <p class="help-item"><strong>登录/注册</strong> <span>用来同步存档、生成分享秘钥，以及保存收集名单。换设备登录同一个账号就能继续用。</span></p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 熊坑世界坐标 -->
+    <div class="confirm-modal" id="bearCoordModal" aria-hidden="true">
+        <div class="confirm-panel bear-coord-panel" role="dialog" aria-modal="true" aria-label="熊坑坐标">
+            <div class="confirm-title">
+                <h3>熊坑坐标（正下方格子）</h3>
+                <button class="confirm-close" id="bearCoordClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="confirm-body">
+                <p class="import-hint" style="margin:0 0 12px 0;">
+                    填游戏里熊坑正下方格子的世界坐标。炉子会按相对位置自动推算。
+                </p>
+                <div class="bear-coord-fields">
+                    <div class="auth-row">
+                        <label for="bearCoordX">X</label>
+                        <input id="bearCoordX" type="number" inputmode="numeric" placeholder="例如 123" />
+                    </div>
+                    <div class="auth-row">
+                        <label for="bearCoordY">Y</label>
+                        <input id="bearCoordY" type="number" inputmode="numeric" placeholder="例如 456" />
+                    </div>
+                </div>
+            </div>
+            <div class="confirm-actions">
+                <button class="btn secondary" id="bearCoordCancel" type="button">取消</button>
+                <button class="btn" id="bearCoordConfirm" type="button">确定</button>
             </div>
         </div>
     </div>
@@ -2021,6 +2087,12 @@
             /** 全图已摆放层（建筑+范围示意）在格坐标内的像素平移，不占格、不改逻辑坐标 */
             placedGlobalOffsetX: 0,
             placedGlobalOffsetY: 0,
+            /** 熊坑正下方格子的游戏世界坐标（与小程序同一套公式） */
+            bearCoordSet: false,
+            bearWorldX: 0,
+            bearWorldY: 0,
+            bearRefR: NaN,
+            bearRefC: NaN,
         };
         /** 坐标表多选：锚点 "startRow,startCol,size" */
         CONFIG.coordsTableSelected = new Set();
@@ -2094,6 +2166,183 @@
         function isFurnaceStoveSpritePath(src) {
             const s = String(src || '');
             return s.includes('castle.png') || s.includes('online6.png') || s.includes('item_icon_302541') || s.includes('item_icon_302509');
+        }
+        function isBearPitRecord(it) {
+            return Boolean(it && it.size === 3 && !isAllianceHqSpritePath(it.img));
+        }
+        function isFurnaceStoveRecord(it) {
+            return Boolean(it && it.size === 2 && isFurnaceStoveSpritePath(it.img));
+        }
+        function findBearPitRecord() {
+            const list = CONFIG.placedList.filter(isBearPitRecord);
+            if (!list.length) return null;
+            if (Number.isFinite(CONFIG.bearRefR) && Number.isFinite(CONFIG.bearRefC)) {
+                const hit = list.find((it) => it.startRow === CONFIG.bearRefR && it.startCol === CONFIG.bearRefC);
+                if (hit) return hit;
+            }
+            return list[0];
+        }
+        function anchorCellOf(it) {
+            if (!it) return null;
+            const size = Number(it.size != null ? it.size : it.s) || 1;
+            const r = Number(it.startRow != null ? it.startRow : it.r);
+            const c = Number(it.startCol != null ? it.startCol : it.c);
+            return { r: r + size - 1, c: c + size - 1 };
+        }
+        function worldCoordOf(it, bear) {
+            if (!it || !bear) return null;
+            const a = anchorCellOf(it);
+            const b = anchorCellOf(bear);
+            if (!a || !b) return null;
+            const dx = -(a.r - b.r);
+            const dy = -(a.c - b.c);
+            if (!CONFIG.bearCoordSet) return { x: dx, y: dy, abs: false };
+            return { x: CONFIG.bearWorldX + dx, y: CONFIG.bearWorldY + dy, abs: true };
+        }
+        function formatWorldCoord(coord) {
+            if (!coord) return '';
+            if (coord.abs) return coord.x + ',' + coord.y;
+            const sx = coord.x > 0 ? '+' + coord.x : String(coord.x);
+            const sy = coord.y > 0 ? '+' + coord.y : String(coord.y);
+            return sx + ',' + sy;
+        }
+        function clearBearCoordMeta() {
+            CONFIG.bearCoordSet = false;
+            CONFIG.bearWorldX = 0;
+            CONFIG.bearWorldY = 0;
+            CONFIG.bearRefR = NaN;
+            CONFIG.bearRefC = NaN;
+        }
+        function readBearCoordFields(data) {
+            if (!data || typeof data !== 'object') {
+                return { bset: false, bx: 0, by: 0, br: NaN, bc: NaN };
+            }
+            return {
+                bset: !!(data.bset === 1 || data.bset === true),
+                bx: Number(data.bx) || 0,
+                by: Number(data.by) || 0,
+                br: data.br == null || !Number.isFinite(Number(data.br)) ? NaN : Number(data.br),
+                bc: data.bc == null || !Number.isFinite(Number(data.bc)) ? NaN : Number(data.bc)
+            };
+        }
+        function writeBearCoordMeta(out) {
+            if (!out || !CONFIG.bearCoordSet) return out;
+            out.bset = 1;
+            out.bx = Number(CONFIG.bearWorldX) || 0;
+            out.by = Number(CONFIG.bearWorldY) || 0;
+            if (Number.isFinite(CONFIG.bearRefR)) out.br = CONFIG.bearRefR;
+            if (Number.isFinite(CONFIG.bearRefC)) out.bc = CONFIG.bearRefC;
+            return out;
+        }
+        function applyBearCoordMeta(data) {
+            const m = readBearCoordFields(data);
+            CONFIG.bearCoordSet = m.bset;
+            CONFIG.bearWorldX = m.bx;
+            CONFIG.bearWorldY = m.by;
+            CONFIG.bearRefR = m.br;
+            CONFIG.bearRefC = m.bc;
+            refreshWorldCoordLabels();
+        }
+        function upsertWorldCoordLabel(rec, text, kind) {
+            if (!rec || !rec.el) return;
+            let el = rec.el.querySelector('.world-coord-label');
+            if (!text) {
+                if (el) el.remove();
+                return;
+            }
+            if (!el) {
+                el = document.createElement('div');
+                el.className = 'world-coord-label';
+                const span = document.createElement('span');
+                el.appendChild(span);
+                rec.el.appendChild(el);
+            }
+            el.classList.remove('bear', 'bear-unset', 'furnace');
+            if (kind) el.classList.add(kind);
+            const cs = CONFIG.cellSize;
+            el.style.width = cs + 'px';
+            el.style.height = cs + 'px';
+            el.style.left = ((rec.size - 1) * cs) + 'px';
+            el.style.top = ((rec.size - 1) * cs) + 'px';
+            const span = el.querySelector('span');
+            if (span) span.textContent = text;
+            else el.textContent = text;
+        }
+        function refreshWorldCoordLabels() {
+            const bear = findBearPitRecord();
+            CONFIG.placedList.forEach((rec) => {
+                if (isBearPitRecord(rec)) {
+                    upsertWorldCoordLabel(
+                        rec,
+                        CONFIG.bearCoordSet ? (CONFIG.bearWorldX + ',' + CONFIG.bearWorldY) : '设坐标',
+                        CONFIG.bearCoordSet ? 'bear' : 'bear-unset'
+                    );
+                    return;
+                }
+                if (isFurnaceStoveRecord(rec) && bear && CONFIG.bearCoordSet) {
+                    upsertWorldCoordLabel(rec, formatWorldCoord(worldCoordOf(rec, bear)), 'furnace');
+                    return;
+                }
+                const existing = rec.el && rec.el.querySelector('.world-coord-label');
+                if (existing) existing.remove();
+            });
+        }
+        function worldCoordTableText(it) {
+            const bear = findBearPitRecord();
+            if (isBearPitRecord(it)) {
+                return CONFIG.bearCoordSet ? (CONFIG.bearWorldX + ',' + CONFIG.bearWorldY) : '设坐标';
+            }
+            if (isFurnaceStoveRecord(it) && bear) {
+                return formatWorldCoord(worldCoordOf(it, bear)) || '—';
+            }
+            return '—';
+        }
+        let bearCoordTarget = null;
+        function openBearCoordModal(rec) {
+            if (CONFIG.restoring || !rec || !isBearPitRecord(rec)) return;
+            const modal = document.getElementById('bearCoordModal');
+            const xInp = document.getElementById('bearCoordX');
+            const yInp = document.getElementById('bearCoordY');
+            if (!modal) return;
+            bearCoordTarget = rec;
+            if (xInp) xInp.value = CONFIG.bearCoordSet ? String(CONFIG.bearWorldX) : '';
+            if (yInp) yInp.value = CONFIG.bearCoordSet ? String(CONFIG.bearWorldY) : '';
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            setTimeout(() => xInp && xInp.focus(), 0);
+        }
+        function closeBearCoordModal() {
+            const modal = document.getElementById('bearCoordModal');
+            if (!modal) return;
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+            bearCoordTarget = null;
+        }
+        function confirmBearCoord() {
+            const xInp = document.getElementById('bearCoordX');
+            const yInp = document.getElementById('bearCoordY');
+            const x = parseInt(String(xInp && xInp.value || '').trim(), 10);
+            const y = parseInt(String(yInp && yInp.value || '').trim(), 10);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                setTip('请输入整数坐标');
+                setStatus('请输入整数坐标', 'err');
+                return;
+            }
+            const bear = bearCoordTarget && isBearPitRecord(bearCoordTarget) ? bearCoordTarget : findBearPitRecord();
+            pushHistorySnapshot();
+            CONFIG.bearWorldX = x;
+            CONFIG.bearWorldY = y;
+            CONFIG.bearCoordSet = true;
+            if (bear) {
+                CONFIG.bearRefR = bear.startRow;
+                CONFIG.bearRefC = bear.startCol;
+            }
+            closeBearCoordModal();
+            refreshWorldCoordLabels();
+            renderCoordsTable();
+            saveLayout({ silent: true });
+            setTip('熊坑正下方 ' + x + ',' + y + ' · 炉子坐标已自动推算');
+            setStatus('已设置熊坑坐标', 'ok');
         }
         /** 2×2 命名颜色：统一为 #rrggbb，供存档还原与 <input type="color"> */
         function normalizeTwoByTwoNameColor(nameColor, fallback) {
@@ -2497,8 +2746,14 @@
                     return;
                 }
 
-                // 非删除模式：点击已摆放物品（例如编辑命名）不触发“摆放新物品”
-                if (clickedPlaced) return;
+                // 非删除模式：点击熊坑打开世界坐标；其它已摆放物品不触发摆放
+                if (clickedPlaced) {
+                    if (!document.body.classList.contains('beapit-quick-assign')) {
+                        const rec = CONFIG.placedList.find((it) => it.el === clickedPlaced);
+                        if (rec && isBearPitRecord(rec)) openBearCoordModal(rec);
+                    }
+                    return;
+                }
                 // 拖拽过则不摆放（修复：拖拽结束会触发 click 的误摆放）
                 if (CONFIG.didDrag) {
                     CONFIG.didDrag = false;
@@ -2563,6 +2818,13 @@
             // 创建摆放的物品
             createPlacedItem(startRow, startCol, size, color, Array.from(needOccupy), null, img);
             updateActionButtons();
+            const rec = CONFIG.placedList[CONFIG.placedList.length - 1];
+            if (rec && isBearPitRecord(rec) && !CONFIG.bearCoordSet) {
+                openBearCoordModal(rec);
+            } else if (rec && isFurnaceStoveRecord(rec) && CONFIG.bearCoordSet) {
+                const coord = worldCoordOf(rec, findBearPitRecord());
+                if (coord) setTip('炉子正下方 ' + formatWorldCoord(coord));
+            }
         }
 
         function applyNameFormat(inputEl, itemEl) {
@@ -2938,6 +3200,7 @@
                 nameBold: item.dataset.nameBold === '1',
                 nameItalic: item.dataset.nameItalic === '1'
             });
+            refreshWorldCoordLabels();
         }
 
         function removePlacedItem(itemEl, opts = {}) {
@@ -2973,6 +3236,7 @@
             }
 
             if (idx >= 0) CONFIG.placedList.splice(idx, 1);
+            refreshWorldCoordLabels();
             updateActionButtons();
         }
 
@@ -3007,6 +3271,7 @@
             CONFIG.coordsTypeFilter = null;
             CONFIG.placedGlobalOffsetX = 0;
             CONFIG.placedGlobalOffsetY = 0;
+            clearBearCoordMeta();
             applyPlacedGlobalOffset();
             updateActionButtons();
             if (!opts.silentTip) setTip('已清空。请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。');
@@ -3194,7 +3459,7 @@
             selAll.indeterminate = visible2ForMaster.length > 0 && sel2Count > 0 && sel2Count < visible2ForMaster.length;
             thPick.appendChild(selAll);
             hr.appendChild(thPick);
-            ['#', '类型', 'Row', 'Col', '命名 / 颜色 / 加粗 / 斜体（仅 2×2）'].forEach((label) => {
+            ['#', '类型', 'Row', 'Col', '世界坐标', '命名 / 颜色 / 加粗 / 斜体（仅 2×2）'].forEach((label) => {
                 const th = document.createElement('th');
                 th.textContent = label;
                 hr.appendChild(th);
@@ -3236,6 +3501,10 @@
                 const tdC = document.createElement('td');
                 tdC.textContent = String(it.startCol);
                 tr.appendChild(tdC);
+
+                const tdWorld = document.createElement('td');
+                tdWorld.textContent = worldCoordTableText(it);
+                tr.appendChild(tdWorld);
 
                 const tdName = document.createElement('td');
                 tdName.className = 'coords-name-cell';
@@ -3342,6 +3611,7 @@
                 out.gox = gx;
                 out.goy = gy;
             }
+            writeBearCoordMeta(out);
             return out;
         }
 
@@ -3375,11 +3645,12 @@
                         { skipHistory: true }
                     );
                 });
-                updateActionButtons();
-                renderCoordsTable();
                 CONFIG.placedGlobalOffsetX = Number(snapshot.gox) || 0;
                 CONFIG.placedGlobalOffsetY = Number(snapshot.goy) || 0;
                 applyPlacedGlobalOffset();
+                applyBearCoordMeta(snapshot);
+                updateActionButtons();
+                renderCoordsTable();
             } finally {
                 CONFIG.restoring = false;
             }
@@ -3408,6 +3679,7 @@
             const gx = Number(CONFIG.placedGlobalOffsetX) || 0;
             const gy = Number(CONFIG.placedGlobalOffsetY) || 0;
             if (gx !== 0 || gy !== 0) out.g = [gx, gy];
+            writeBearCoordMeta(out);
             return out;
         }
 
@@ -3538,12 +3810,13 @@
                     if (ok) okCount++;
                 });
 
-                CONFIG.historyStack = [];
-                pushHistorySnapshot();
-                CONFIG.restoring = false;
                 CONFIG.placedGlobalOffsetX = Number(data.gox) || 0;
                 CONFIG.placedGlobalOffsetY = Number(data.goy) || 0;
                 applyPlacedGlobalOffset();
+                applyBearCoordMeta(data);
+                CONFIG.historyStack = [];
+                pushHistorySnapshot();
+                CONFIG.restoring = false;
                 updateActionButtons();
                 renderCoordsTable();
                 setStatus(`已加载：${okCount} 个`, 'ok');
@@ -3886,12 +4159,13 @@
                 const ok = placeItemAt(r, c, s, colorBySize[s] || '#409eff', n, img, nc, nb, ni, { skipHistory: true });
                 if (ok) okCount++;
             });
-            CONFIG.historyStack = [];
-            pushHistorySnapshot();
-            CONFIG.restoring = false;
             CONFIG.placedGlobalOffsetX = Number(remote.gox) || 0;
             CONFIG.placedGlobalOffsetY = Number(remote.goy) || 0;
             applyPlacedGlobalOffset();
+            applyBearCoordMeta(remote);
+            CONFIG.historyStack = [];
+            pushHistorySnapshot();
+            CONFIG.restoring = false;
             updateActionButtons();
             renderCoordsTable();
             const label = sourceLabel ? `：${sourceLabel}` : '';
@@ -4220,6 +4494,42 @@
                     ctx.fillStyle = nc;
                     ctx.fillText(name, p.x, p.y);
                 }
+
+                const bearForExport = findBearPitRecord();
+                const paintExportCoord = (rec, text, color, muted) => {
+                    if (!rec || !text) return;
+                    const a = anchorCellOf(rec);
+                    if (!a) return;
+                    const p = m.transformPoint({
+                        x: a.c * cs + cs / 2 + exportPlacedGox,
+                        y: a.r * cs + cs / 2 + exportPlacedGoy
+                    });
+                    ctx.save();
+                    ctx.globalAlpha = muted ? 0.7 : 1;
+                    ctx.font = '700 10px "Microsoft YaHei", sans-serif';
+                    ctx.lineJoin = 'round';
+                    ctx.miterLimit = 2;
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+                    ctx.strokeText(text, p.x, p.y);
+                    ctx.fillStyle = color;
+                    ctx.fillText(text, p.x, p.y);
+                    ctx.restore();
+                };
+                if (bearForExport) {
+                    paintExportCoord(
+                        bearForExport,
+                        CONFIG.bearCoordSet ? (CONFIG.bearWorldX + ',' + CONFIG.bearWorldY) : '设坐标',
+                        '#b45309',
+                        !CONFIG.bearCoordSet
+                    );
+                }
+                if (bearForExport && CONFIG.bearCoordSet) {
+                    for (const it of CONFIG.placedList) {
+                        if (!isFurnaceStoveRecord(it)) continue;
+                        paintExportCoord(it, formatWorldCoord(worldCoordOf(it, bearForExport)), '#0f766e', false);
+                    }
+                }
                 ctx.restore();
 
                 // 导出下载
@@ -4511,6 +4821,24 @@
                     close();
                     clearAll();
                 });
+            })();
+
+            (function bindBearCoordModal() {
+                const modal = document.getElementById('bearCoordModal');
+                const btnClose = document.getElementById('bearCoordClose');
+                const btnCancel = document.getElementById('bearCoordCancel');
+                const btnDo = document.getElementById('bearCoordConfirm');
+                [btnClose, btnCancel].forEach((b) => b?.addEventListener('click', closeBearCoordModal));
+                modal?.addEventListener('click', (e) => { if (e.target === modal) closeBearCoordModal(); });
+                document.addEventListener('keydown', (e) => {
+                    if (!modal?.classList.contains('open')) return;
+                    if (e.key === 'Escape') closeBearCoordModal();
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        confirmBearCoord();
+                    }
+                });
+                btnDo?.addEventListener('click', confirmBearCoord);
             })();
 
             // 操作按钮
@@ -5354,14 +5682,14 @@
                             }
                             return { r, c, s, n, i, nc, nb, ni };
                         });
-                        return { items, gx, gy };
+                        return { items, gx, gy, ...readBearCoordFields(config) };
                     }
                     if (Array.isArray(config.items)) {
                         const items = config.items.filter(it => it && Number.isFinite(it.r) && Number.isFinite(it.c) && Number.isFinite(it.s)).map(it => ({
                             r: parseInt(it.r, 10), c: parseInt(it.c, 10), s: parseInt(it.s, 10),
                             n: it.n || '', i: it.i || '', nc: it.nc, nb: it.nb, ni: it.ni
                         }));
-                        return { items, gx, gy };
+                        return { items, gx, gy, ...readBearCoordFields(config) };
                     }
                     throw new Error('配置格式错误：缺少 items 或 i 数组');
                 }
@@ -5379,6 +5707,7 @@
                         const color = colorBySize[it.s] || '#409eff';
                         if (placeItemAt(it.r, it.c, it.s, color, it.n || '', it.i || '', it.nc, it.nb, it.ni, { skipHistory: true })) okCount++;
                     });
+                    applyBearCoordMeta(payload);
                     CONFIG.historyStack = [];
                     pushHistorySnapshot();
                     CONFIG.restoring = false;

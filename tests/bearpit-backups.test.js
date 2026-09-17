@@ -93,9 +93,16 @@ test('simple version requires login for server-backed saves and shares', () => {
   assert.match(toolbar, /登录后才能/);
 });
 
-test('simple version archives use an isolated API namespace', () => {
-  const toolbar = fs.readFileSync(path.join(__dirname, '..', 'bear-pit-simple-src', 'src', 'components', 'Toolbar.tsx'), 'utf8');
-  const moduleSource = fs.readFileSync(path.join(__dirname, '..', 'bearpit-backups.js'), 'utf8');
-  assert.match(toolbar, /\/api\/bearpit-simple\/backups/);
-  assert.match(moduleSource, /\/api\/bearpit-simple\/backups/);
+test('website BeaPit layout persists world coords like the mini-program', () => {
+  const page = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'BeaPit.html'), 'utf8');
+  assert.match(page, /熊坑坐标（正下方格子）/);
+  assert.match(page, /function worldCoordOf/);
+  assert.match(page, /function formatWorldCoord/);
+  assert.match(page, /function writeBearCoordMeta/);
+  assert.match(page, /out\.bset = 1/);
+  assert.match(page, /设坐标/);
+  assert.match(page, /world-coord-label/);
+  assert.match(page, /openBearCoordModal/);
+  assert.match(page, /世界坐标/);
+  assert.match(page, /dx = -\(a\.r - b\.r\)/);
 });

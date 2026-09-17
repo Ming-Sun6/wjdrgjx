@@ -146,6 +146,8 @@ test('website BeaPit page and public fill form expose collect flow', () => {
   assert.match(page, /collectRosterSelect/);
   assert.match(page, /listMyCollectForms/);
   assert.match(page, /换设备也不会丢/);
+  assert.match(page, /熊坑坐标（正下方格子）/);
+  assert.match(page, /点击熊坑/);
   assert.match(fillHelper, /listMyCollectForms/);
   assert.match(fillHelper, /destroyCollectForm/);
   assert.match(fillHelper, /earthPower/);
