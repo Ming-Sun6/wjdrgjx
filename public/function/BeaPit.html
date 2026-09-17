@@ -827,7 +827,7 @@
             border-radius: 0;
             border: none;
             background: transparent;
-            font-size: 7px;
+            font-size: 6px;
             font-weight: 700;
             font-style: normal;
             color: #c2185b;
@@ -855,7 +855,7 @@
         .placed-item.size-2 .item-name-input {
             transform: rotate(-45deg) scaleY(2);
             transform-origin: center;
-            font-size: 9px;
+            font-size: 8px;
         }
         /* 熊坑 / 炉子正下方格子的世界坐标：抵消地面 rotate(45deg)+scaleY(0.5) */
         .placed-item .world-coord-label {
@@ -872,7 +872,7 @@
             transform: rotate(-45deg) scaleY(2);
             transform-origin: center;
             font-weight: 700;
-            font-size: 6px;
+            font-size: 5px;
             line-height: 1;
             white-space: nowrap;
             text-shadow: 0 0 2px #fff, 0 0 3px #fff;
@@ -4486,7 +4486,7 @@
                 ctx.save();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.scale(dpr, dpr);
-                ctx.font = '700 11px "Microsoft YaHei", sans-serif';
+                ctx.font = '700 10px "Microsoft YaHei", sans-serif';
                 ctx.fillStyle = BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -4502,7 +4502,7 @@
                     const nc = it.nameColor || it.el?.dataset?.nameColor || BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR;
                     const bold = it.nameBold !== false && it.el?.dataset?.nameBold !== '0';
                     const italic = !!it.nameItalic || it.el?.dataset?.nameItalic === '1';
-                    ctx.font = `${bold ? '700' : '400'} ${italic ? 'italic ' : ''}11px "Microsoft YaHei", sans-serif`;
+                    ctx.font = `${bold ? '700' : '400'} ${italic ? 'italic ' : ''}10px "Microsoft YaHei", sans-serif`;
                     ctx.lineJoin = 'round';
                     ctx.miterLimit = 2;
                     ctx.lineWidth = 3.5;
@@ -4523,7 +4523,7 @@
                     });
                     ctx.save();
                     ctx.globalAlpha = muted ? 0.7 : 1;
-                    ctx.font = '700 10px "Microsoft YaHei", sans-serif';
+                    ctx.font = '700 8px "Microsoft YaHei", sans-serif';
                     ctx.lineJoin = 'round';
                     ctx.miterLimit = 2;
                     ctx.lineWidth = 3;
