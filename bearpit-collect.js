@@ -7,6 +7,19 @@ const MAX_NAME_LEN = 12;
 const KEY_RE = /^[A-Za-z0-9]{16}$/;
 const TOKEN_RE = /^[A-Za-z0-9]{24}$/;
 
+const COLLECT_FIELD_DEFS = [
+  { id: 'heroPower', label: '英雄总实力', placeholder: '例如 1250万', kind: 'power' },
+  { id: 'personalPower', label: '个人实力', placeholder: '例如 800万', kind: 'power' },
+  { id: 'earthPower', label: '地心战力', placeholder: '例如 300万', kind: 'power' },
+  { id: 'petPower', label: '宠物', placeholder: '例如 200万', kind: 'power' },
+  { id: 'expertPower', label: '专家', placeholder: '例如 150万', kind: 'power' },
+  { id: 'bearDamage', label: '打熊伤害', placeholder: '例如 1.2亿', kind: 'power' },
+  { id: 'expedition', label: '探险关卡数', placeholder: '例如 120', kind: 'stage' }
+];
+
+const COLLECT_FIELD_IDS = COLLECT_FIELD_DEFS.map((item) => item.id);
+const DEFAULT_COLLECT_FIELDS = ['heroPower'];
+
 const BEARPIT_COLLECT_FORMS_DDL_MYSQL = `
   CREATE TABLE IF NOT EXISTS bearpit_collect_forms (
     collect_key VARCHAR(16) PRIMARY KEY,
@@ -72,12 +85,95 @@ function parseHeroPower(raw) {
   return n;
 }
 
-function mapEntry(row) {
+function parseStageCount(raw) {
+  const s = String(raw == null ? '' : raw).trim().replace(/,/g, '').replace(/，/g, '');
+  if (!/^\d+$/.test(s)) return null;
+  const n = Number(s);
+  if (!Number.isFinite(n) || n < 1 || n > 9999) return null;
+  return n;
+}
+
+function collectFieldDef(id) {
+  return COLLECT_FIELD_DEFS.find((item) => item.id === id) || null;
+}
+
+function normalizeCollectFields(value) {
+  const raw = Array.isArray(value)
+    ? value
+    : (typeof value === 'string' ? (() => { try { return JSON.parse(value); } catch (_err) { return []; } })() : []);
+  const seen = {};
+  const out = [];
+  raw.forEach((item) => {
+    const id = String(item || '').trim();
+    if (!COLLECT_FIELD_IDS.includes(id) || seen[id]) return;
+    seen[id] = 1;
+    out.push(id);
+  });
+  return out.length ? out : DEFAULT_COLLECT_FIELDS.slice();
+}
+
+function normalizeRankField(fields, rankField) {
+  const list = normalizeCollectFields(fields);
+  const id = String(rankField || '').trim();
+  return list.includes(id) ? id : list[0];
+}
+
+function parseCollectValue(fieldId, raw) {
+  const def = collectFieldDef(fieldId);
+  if (!def) return null;
+  return def.kind === 'stage' ? parseStageCount(raw) : parseHeroPower(raw);
+}
+
+function parseJsonValue(value, fallback) {
+  if (value == null || value === '') return fallback;
+  if (typeof value === 'object') return value;
+  try { return JSON.parse(String(value)); } catch (_err) { return fallback; }
+}
+
+function stringifyJson(value) {
+  return JSON.stringify(value == null ? {} : value);
+}
+
+function parseEntryStats(row) {
+  const stats = parseJsonValue(row && row.stats_json, {}) || {};
+  const out = {};
+  COLLECT_FIELD_IDS.forEach((id) => {
+    const n = Number(stats[id]);
+    if (Number.isFinite(n) && n > 0) out[id] = n;
+  });
+  if (!out.heroPower && Number(row && row.power) > 0) out.heroPower = Number(row.power);
+  return out;
+}
+
+function parseSubmittedStats(body, fields) {
+  const source = (body && typeof body.stats === 'object' && body.stats) ? body.stats : (body || {});
+  const stats = {};
+  for (let i = 0; i < fields.length; i++) {
+    const id = fields[i];
+    const raw = source[id] != null ? source[id] : (id === 'heroPower' ? body.power : null);
+    const value = parseCollectValue(id, raw);
+    if (!value) return { error: id };
+    stats[id] = value;
+  }
+  return { stats };
+}
+
+function mapFormConfig(row) {
+  const fields = normalizeCollectFields(row && row.fields_json);
+  const rankField = normalizeRankField(fields, row && row.rank_field);
+  return { fields, rankField };
+}
+
+function mapEntry(row, rankField) {
   if (!row) return null;
+  const stats = parseEntryStats(row);
+  const rank = rankField || 'heroPower';
+  const power = Number(stats[rank] || row.power || 0);
   return {
     id: Number(row.id),
     name: String(row.name || ''),
-    power: Number(row.power || 0),
+    power,
+    stats,
     createdAt: row.created_at
   };
 }
@@ -86,17 +182,50 @@ function mountBearpitCollectRoutes(deps) {
   const { app, queryRows, queryOne, execute, pgDatabase } = deps;
   let tablesReady = false;
 
+  async function addColumn(table, mysqlDdl, pgDdl) {
+    if (pgDatabase) {
+      await execute(`ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS ${pgDdl}`);
+      return;
+    }
+    try {
+      await execute(`ALTER TABLE ${table} ADD COLUMN ${mysqlDdl}`);
+    } catch (_err) {}
+  }
+
   async function ensureTables() {
     if (tablesReady) return;
     await execute(pgDatabase ? BEARPIT_COLLECT_FORMS_DDL_PG : BEARPIT_COLLECT_FORMS_DDL_MYSQL);
     await execute(pgDatabase ? BEARPIT_COLLECT_ENTRIES_DDL_PG : BEARPIT_COLLECT_ENTRIES_DDL_MYSQL);
+    await addColumn(
+      'bearpit_collect_forms',
+      "fields_json TEXT NULL",
+      "fields_json jsonb"
+    );
+    await addColumn(
+      'bearpit_collect_forms',
+      "rank_field VARCHAR(32) NOT NULL DEFAULT 'heroPower'",
+      "rank_field varchar(32) NOT NULL DEFAULT 'heroPower'"
+    );
+    await addColumn(
+      'bearpit_collect_entries',
+      'stats_json TEXT NULL',
+      'stats_json jsonb'
+    );
     tablesReady = true;
   }
 
   async function getForm(key) {
     return queryOne(
-      'SELECT collect_key, host_token, created_at FROM bearpit_collect_forms WHERE collect_key = ? LIMIT 1',
+      'SELECT collect_key, host_token, created_at, fields_json, rank_field FROM bearpit_collect_forms WHERE collect_key = ? LIMIT 1',
       [key]
+    );
+  }
+
+  async function saveFormConfig(key, fields, rankField) {
+    const json = stringifyJson(fields);
+    await execute(
+      'UPDATE bearpit_collect_forms SET fields_json = ?, rank_field = ? WHERE collect_key = ?',
+      [json, rankField, key]
     );
   }
 
@@ -107,22 +236,31 @@ function mountBearpitCollectRoutes(deps) {
   app.post('/api/bearpit/collect', async (req, res) => {
     try {
       await ensureTables();
+      const hasConfig = Array.isArray(req.body?.fields);
+      const fields = hasConfig ? normalizeCollectFields(req.body?.fields) : DEFAULT_COLLECT_FIELDS.slice();
+      const rankField = hasConfig
+        ? normalizeRankField(fields, req.body?.rankField || req.body?.rank_field)
+        : 'heroPower';
       const existingKey = String(req.body?.collectKey || '').trim();
       const existingToken = String(req.body?.hostToken || '').trim();
       if (KEY_RE.test(existingKey) && TOKEN_RE.test(existingToken)) {
         const form = await getForm(existingKey);
         if (form && tokenOk(form, existingToken)) {
-          return res.json({ ok: true, collectKey: existingKey, hostToken: existingToken });
+          if (hasConfig) await saveFormConfig(existingKey, fields, rankField);
+          const config = hasConfig ? { fields, rankField } : mapFormConfig(form);
+          return res.json({ ok: true, collectKey: existingKey, hostToken: existingToken, ...config });
         }
       }
       let collectKey = null;
       const hostToken = generateHostToken();
+      const createFields = hasConfig ? fields : DEFAULT_COLLECT_FIELDS.slice();
+      const createRank = hasConfig ? rankField : 'heroPower';
       for (let attempt = 0; attempt < 5; attempt += 1) {
         const candidate = generateShareKey();
         try {
           await execute(
-            'INSERT INTO bearpit_collect_forms (collect_key, host_token, created_at) VALUES (?, ?, CURRENT_TIMESTAMP(3))',
-            [candidate, hostToken]
+            'INSERT INTO bearpit_collect_forms (collect_key, host_token, created_at, fields_json, rank_field) VALUES (?, ?, CURRENT_TIMESTAMP(3), ?, ?)',
+            [candidate, hostToken, stringifyJson(createFields), createRank]
           );
           collectKey = candidate;
           break;
@@ -131,7 +269,7 @@ function mountBearpitCollectRoutes(deps) {
         }
       }
       if (!collectKey) return res.status(503).json({ error: 'COLLECT_KEY_UNAVAILABLE' });
-      return res.json({ ok: true, collectKey, hostToken });
+      return res.json({ ok: true, collectKey, hostToken, fields: createFields, rankField: createRank });
     } catch (err) {
       console.error('bearpit collect create failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -145,24 +283,37 @@ function mountBearpitCollectRoutes(deps) {
       if (!KEY_RE.test(key)) return res.status(400).json({ error: 'BAD_KEY' });
       const form = await getForm(key);
       if (!form) return res.status(404).json({ error: 'NOT_FOUND' });
+      const config = mapFormConfig(form);
       const token = String(req.query?.token || req.query?.hostToken || '').trim();
       if (!tokenOk(form, token)) {
         const countRow = await queryOne(
           'SELECT COUNT(*) AS n FROM bearpit_collect_entries WHERE collect_key = ?',
           [key]
         );
-        return res.json({ ok: true, open: true, count: Number(countRow && countRow.n) || 0 });
+        return res.json({
+          ok: true,
+          open: true,
+          count: Number(countRow && countRow.n) || 0,
+          fields: config.fields,
+          rankField: config.rankField
+        });
       }
       const rows = await queryRows(
         `
-        SELECT id, name, power, created_at
+        SELECT id, name, power, stats_json, created_at
         FROM bearpit_collect_entries
         WHERE collect_key = ?
         ORDER BY power DESC, created_at ASC, id ASC
         `,
         [key]
       );
-      return res.json({ ok: true, collectKey: key, entries: rows.map(mapEntry) });
+      return res.json({
+        ok: true,
+        collectKey: key,
+        fields: config.fields,
+        rankField: config.rankField,
+        entries: rows.map((row) => mapEntry(row, config.rankField))
+      });
     } catch (err) {
       console.error('bearpit collect get failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -176,10 +327,12 @@ function mountBearpitCollectRoutes(deps) {
       if (!KEY_RE.test(key)) return res.status(400).json({ error: 'BAD_KEY' });
       const form = await getForm(key);
       if (!form) return res.status(404).json({ error: 'NOT_FOUND' });
+      const config = mapFormConfig(form);
       const name = normalizeCollectName(req.body?.name);
-      const power = parseHeroPower(req.body?.power);
       if (!name) return res.status(400).json({ error: 'BAD_NAME' });
-      if (!power) return res.status(400).json({ error: 'BAD_POWER' });
+      const parsed = parseSubmittedStats(req.body, config.fields);
+      if (parsed.error) return res.status(400).json({ error: 'BAD_POWER', field: parsed.error });
+      const power = parsed.stats[config.rankField];
       const existing = await queryOne(
         'SELECT id FROM bearpit_collect_entries WHERE collect_key = ? AND name = ? LIMIT 1',
         [key, name]
@@ -193,30 +346,31 @@ function mountBearpitCollectRoutes(deps) {
           return res.status(400).json({ error: 'FULL' });
         }
       }
+      const statsJson = stringifyJson(parsed.stats);
       if (pgDatabase) {
         await execute(
           `
-          INSERT INTO bearpit_collect_entries (collect_key, name, power, created_at)
-          VALUES (?, ?, ?, CURRENT_TIMESTAMP(3))
-          ON CONFLICT (collect_key, name) DO UPDATE SET power = EXCLUDED.power
+          INSERT INTO bearpit_collect_entries (collect_key, name, power, stats_json, created_at)
+          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP(3))
+          ON CONFLICT (collect_key, name) DO UPDATE SET power = EXCLUDED.power, stats_json = EXCLUDED.stats_json
           `,
-          [key, name, power]
+          [key, name, power, statsJson]
         );
       } else {
         await execute(
           `
-          INSERT INTO bearpit_collect_entries (collect_key, name, power, created_at)
-          VALUES (?, ?, ?, CURRENT_TIMESTAMP(3))
-          ON DUPLICATE KEY UPDATE power = VALUES(power)
+          INSERT INTO bearpit_collect_entries (collect_key, name, power, stats_json, created_at)
+          VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP(3))
+          ON DUPLICATE KEY UPDATE power = VALUES(power), stats_json = VALUES(stats_json)
           `,
-          [key, name, power]
+          [key, name, power, statsJson]
         );
       }
       const row = await queryOne(
-        'SELECT id, name, power, created_at FROM bearpit_collect_entries WHERE collect_key = ? AND name = ? LIMIT 1',
+        'SELECT id, name, power, stats_json, created_at FROM bearpit_collect_entries WHERE collect_key = ? AND name = ? LIMIT 1',
         [key, name]
       );
-      return res.json({ ok: true, updated: Boolean(existing), entry: mapEntry(row) });
+      return res.json({ ok: true, updated: Boolean(existing), entry: mapEntry(row, config.rankField) });
     } catch (err) {
       console.error('bearpit collect submit failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -264,6 +418,9 @@ module.exports = {
   MAX_NAME_LEN,
   KEY_RE,
   TOKEN_RE,
+  COLLECT_FIELD_DEFS,
+  COLLECT_FIELD_IDS,
+  DEFAULT_COLLECT_FIELDS,
   BEARPIT_COLLECT_FORMS_DDL_MYSQL,
   BEARPIT_COLLECT_FORMS_DDL_PG,
   BEARPIT_COLLECT_ENTRIES_DDL_MYSQL,
@@ -271,5 +428,9 @@ module.exports = {
   generateHostToken,
   normalizeCollectName,
   parseHeroPower,
+  parseStageCount,
+  parseCollectValue,
+  normalizeCollectFields,
+  normalizeRankField,
   mountBearpitCollectRoutes
 };

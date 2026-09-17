@@ -1425,6 +1425,19 @@
         }
         .collect-name { font-weight: 700; }
         .collect-power { color: var(--muted); font-size: 0.86rem; margin-left: 8px; }
+        .collect-stats { display: block; color: var(--muted); font-size: 0.78rem; margin-top: 4px; line-height: 1.4; }
+        .collect-field-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 10px; }
+        .collect-field-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            border: 1px solid var(--border); border-radius: 999px;
+            padding: 5px 10px; background: var(--surface); cursor: pointer; font-size: 0.82rem;
+        }
+        .collect-field-chip input { margin: 0; }
+        .collect-rank-row { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 0.86rem; }
+        .collect-rank-row select {
+            height: 32px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--surface); color: var(--text); padding: 0 8px;
+        }
         .collect-del { color: #ef4444; cursor: pointer; font-weight: 700; }
         .help-section { margin: 0 0 16px; }
         .help-section h4 {
@@ -1728,7 +1741,12 @@
                 <button class="collect-close" id="collectListClose" type="button" aria-label="关闭">×</button>
             </div>
             <div class="collect-body">
-                <p class="import-hint">把填写链接发给盟友，他们不用登录也能填游戏名和英雄总实力。</p>
+                <p class="import-hint">勾选要收集的内容，再把填写链接发给盟友。盟友不用登录也能填。</p>
+                <div class="collect-field-grid" id="collectFieldGrid"></div>
+                <div class="collect-rank-row">
+                    <span>排布按</span>
+                    <select id="collectRankField" aria-label="排布按哪一项"></select>
+                </div>
                 <div class="collect-link-row">
                     <input id="collectFillUrl" type="text" readonly placeholder="生成后显示填写链接">
                     <button class="btn secondary" id="btnCopyCollectUrl" type="button">复制链接</button>
@@ -1752,7 +1770,7 @@
                 <button class="collect-close" id="collectLayoutClose" type="button" aria-label="关闭">×</button>
             </div>
             <div class="collect-body">
-                <p class="import-hint" id="collectLayoutHint">按英雄总实力从高到低排布。仅填名字不会挪现有炉子；重新排列会先去掉现有炉子，再围着熊坑摆。</p>
+                <p class="import-hint" id="collectLayoutHint">按所选战力从高到低排布。仅填名字不会挪现有炉子；重新排列会先去掉现有炉子，再围着熊坑摆。</p>
                 <div class="collect-mode-row">
                     <button type="button" class="collect-mode-chip on" id="collectModeFill" data-mode="fill">仅填名字</button>
                     <button type="button" class="collect-mode-chip" id="collectModeRearrange" data-mode="rearrange">重新排列</button>
@@ -1846,7 +1864,7 @@
                 </div>
                 <div class="help-section">
                     <h4>收集盟友信息</h4>
-                    <p class="help-item"><strong>收集信息</strong> <span>生成填写链接并复制，发给盟友。他们不用登录，填游戏名和英雄总实力即可。</span></p>
+                    <p class="help-item"><strong>收集信息</strong> <span>勾选要收的战力项（地心、宠物、专家、打熊伤害、个人实力、英雄总实力、探险关卡数），复制链接发给盟友填写。</span></p>
                     <p class="help-item"><strong>已收集</strong> <span>查看、刷新、删除或清空已经交上来的名单。</span></p>
                     <p class="help-item"><strong>一键排布</strong> <span>按战力从高到低自动排。「仅填名字」不挪现有炉子，不够会补炉子；「重新排列」会先去掉现有炉子，再围着熊坑摆。</span></p>
                     <p class="help-item"><strong>快速排布</strong> <span>进入点选模式后，点一座炉子填战力最高的人，再点下一座填第二高，直到名单排完。已点过的炉子不会覆盖。再点按钮或按 Esc 退出。</span></p>
@@ -4527,11 +4545,19 @@
                 let collectKey = '';
                 let hostToken = '';
                 let collectEntries = [];
+                let collectFields = api.DEFAULT_COLLECT_FIELDS.slice();
+                let collectRankField = 'heroPower';
                 let layoutMode = 'fill';
                 let ensuring = null;
+                let collectGen = 0;
+                let collectDirty = false;
+                let fieldTimer = null;
                 let quickMode = false;
                 let quickIndex = 0;
                 let quickAnchors = new Set();
+                const fieldGrid = document.getElementById('collectFieldGrid');
+                const rankSelect = document.getElementById('collectRankField');
+                const layoutHintEl = document.getElementById('collectLayoutHint');
 
                 function restoreCollectSession() {
                     try {
@@ -4540,18 +4566,70 @@
                             collectKey = saved.collectKey;
                             hostToken = saved.hostToken;
                         }
+                        collectFields = api.normalizeCollectFields(saved.fields);
+                        collectRankField = api.normalizeRankField(collectFields, saved.rankField);
                     } catch (_err) {}
                     try {
                         const mode = String(localStorage.getItem(api.LAYOUT_MODE_KEY) || '');
                         layoutMode = mode === 'rearrange' ? 'rearrange' : 'fill';
                     } catch (_err) {}
                     syncLayoutModeChips();
+                    renderCollectFields();
+                    syncRankSelect();
+                    updateLayoutHint();
                     updateCollectCountLabel();
                 }
                 function saveCollectSession() {
                     try {
-                        localStorage.setItem(api.COLLECT_STORAGE_KEY, JSON.stringify({ collectKey, hostToken }));
+                        localStorage.setItem(api.COLLECT_STORAGE_KEY, JSON.stringify({
+                            collectKey,
+                            hostToken,
+                            fields: collectFields,
+                            rankField: collectRankField
+                        }));
                     } catch (_err) {}
+                }
+                function rankLabel() {
+                    const def = api.collectFieldDef(collectRankField);
+                    return (def && def.label) || '战力';
+                }
+                function updateLayoutHint() {
+                    if (!layoutHintEl) return;
+                    layoutHintEl.textContent = '按' + rankLabel() + '从高到低排布。仅填名字不会挪现有炉子；重新排列会先去掉现有炉子，再围着熊坑摆。';
+                }
+                function renderCollectFields() {
+                    if (!fieldGrid) return;
+                    fieldGrid.innerHTML = api.COLLECT_FIELD_DEFS.map((def) => (
+                        '<label class="collect-field-chip"><input type="checkbox" data-field="' + def.id + '"' +
+                        (collectFields.indexOf(def.id) >= 0 ? ' checked' : '') + '>' + def.label + '</label>'
+                    )).join('');
+                }
+                function syncRankSelect() {
+                    if (!rankSelect) return;
+                    const fields = collectFields.length ? collectFields : api.DEFAULT_COLLECT_FIELDS;
+                    rankSelect.innerHTML = fields.map((id) => {
+                        const def = api.collectFieldDef(id);
+                        return '<option value="' + id + '"' + (id === collectRankField ? ' selected' : '') + '>' +
+                            ((def && def.label) || id) + '</option>';
+                    }).join('');
+                }
+                function applyCollectConfig(fields, rankField, persist) {
+                    collectFields = api.normalizeCollectFields(fields);
+                    collectRankField = api.normalizeRankField(collectFields, rankField);
+                    renderCollectFields();
+                    syncRankSelect();
+                    updateLayoutHint();
+                    if (persist !== false) saveCollectSession();
+                }
+                function persistCollectConfig() {
+                    applyCollectConfig(collectFields, collectRankField);
+                    collectDirty = true;
+                    collectGen += 1;
+                    ensuring = null;
+                    clearTimeout(fieldTimer);
+                    fieldTimer = setTimeout(() => {
+                        ensureCollectSession().catch(() => {});
+                    }, 200);
                 }
                 function updateCollectCountLabel() {
                     if (btnList) btnList.textContent = '已收集' + (collectEntries.length ? ' ' + collectEntries.length : '');
@@ -4590,7 +4668,11 @@
                     if (ensuring) return ensuring;
                     const prevKey = collectKey;
                     const prevToken = hostToken;
-                    ensuring = api.createCollectForm(prevKey, prevToken).then((res) => {
+                    const myGen = collectGen;
+                    const options = collectDirty ? { fields: collectFields, rankField: collectRankField } : undefined;
+                    ensuring = api.createCollectForm(prevKey, prevToken, options).then((res) => {
+                        if (myGen !== collectGen) return;
+                        collectDirty = false;
                         if (prevKey && prevToken && res.collectKey && res.collectKey !== prevKey) {
                             collectKey = prevKey;
                             hostToken = prevToken;
@@ -4598,14 +4680,24 @@
                             collectKey = res.collectKey;
                             hostToken = res.hostToken;
                         }
-                        saveCollectSession();
+                        if (res.fields) applyCollectConfig(res.fields, res.rankField);
+                        else saveCollectSession();
                         if (urlInput) urlInput.value = fillUrl();
                         return refreshCollectList(true);
                     }).catch((err) => {
-                        ensuring = null;
+                        if (myGen === collectGen) ensuring = null;
                         throw err;
                     });
                     return ensuring;
+                }
+                function extraStatsText(row) {
+                    const stats = (row && row.stats) || {};
+                    return collectFields.filter((id) => id !== collectRankField).map((id) => {
+                        const n = Number(stats[id]);
+                        if (!(n > 0)) return '';
+                        const def = api.collectFieldDef(id);
+                        return ((def && def.label) || id) + ' ' + api.formatCollectValue(id, n);
+                    }).filter(Boolean).join(' · ');
                 }
                 function renderCollectList() {
                     if (!listEl) return;
@@ -4615,19 +4707,26 @@
                     }
                     listEl.innerHTML = collectEntries.map((row) => (
                         '<div class="collect-row" data-id="' + row.id + '">' +
-                        '<div><span class="collect-name"></span><span class="collect-power"></span></div>' +
+                        '<div><span class="collect-name"></span><span class="collect-power"></span><span class="collect-stats"></span></div>' +
                         '<span class="collect-del" data-id="' + row.id + '">删</span></div>'
                     )).join('');
                     Array.from(listEl.querySelectorAll('.collect-row')).forEach((el, i) => {
                         const row = collectEntries[i];
                         el.querySelector('.collect-name').textContent = row.name;
-                        el.querySelector('.collect-power').textContent = api.formatHeroPower(row.power);
+                        el.querySelector('.collect-power').textContent = api.formatCollectValue(collectRankField, row.power);
+                        const extra = extraStatsText(row);
+                        const extraEl = el.querySelector('.collect-stats');
+                        if (extraEl) {
+                            extraEl.textContent = extra;
+                            extraEl.style.display = extra ? '' : 'none';
+                        }
                     });
                 }
                 function refreshCollectList(silent) {
                     if (!collectKey || !hostToken) return Promise.resolve();
                     return api.fetchCollectForm(collectKey, hostToken).then((res) => {
                         collectEntries = Array.isArray(res.entries) ? res.entries : [];
+                        if (res.fields) applyCollectConfig(res.fields, res.rankField);
                         updateCollectCountLabel();
                         renderCollectList();
                     }).catch(() => {
@@ -4641,7 +4740,7 @@
                     return CONFIG.placedList.filter((it) => it.size === 2 && isFurnaceStoveSpritePath(it.img));
                 }
                 function applyFillNamesOnly() {
-                    const roster = api.sortRosterByPower(collectEntries);
+                    const roster = api.sortRosterByPower(collectEntries, collectRankField);
                     if (!roster.length) { setStatus('还没有收集到信息', 'err'); return; }
                     const bearRec = findBearRecord();
                     if (!bearRec) { setStatus('请先摆放熊坑', 'err'); return; }
@@ -4678,11 +4777,11 @@
                         setTip('已按现有排布填充名字，并补了 ' + placedExtra + ' 个炉子。');
                     } else {
                         setStatus('已按现有排布填充 ' + named + ' 个名字', 'ok');
-                        setTip('已按实力从高到低填充现有炉子名字。');
+                        setTip('已按' + rankLabel() + '从高到低填充现有炉子名字。');
                     }
                 }
                 function applyRearrange() {
-                    const roster = api.sortRosterByPower(collectEntries);
+                    const roster = api.sortRosterByPower(collectEntries, collectRankField);
                     if (!roster.length) { setStatus('还没有收集到信息', 'err'); return; }
                     const bearRec = findBearRecord();
                     if (!bearRec) { setStatus('请先摆放熊坑', 'err'); return; }
@@ -4706,15 +4805,15 @@
                         setStatus('空间不够，已放下 ' + made + '/' + roster.length + ' 个炉子', 'err');
                         setTip('只放下了 ' + made + ' 个炉子。');
                     } else {
-                        setStatus('已按实力从高到低排布 ' + made + ' 个炉子', 'ok');
-                        setTip('已重新排列炉子，实力高的更靠近熊坑。');
+                        setStatus('已按' + rankLabel() + '从高到低排布 ' + made + ' 个炉子', 'ok');
+                        setTip('已重新排列炉子，' + rankLabel() + '高的更靠近熊坑。');
                     }
                 }
                 function furnaceAnchor(rec) {
                     return rec.startRow + ',' + rec.startCol + ',' + rec.size;
                 }
                 function updateQuickButtons() {
-                    const next = api.nextQuickAssign(collectEntries, quickIndex);
+                    const next = api.nextQuickAssign(collectEntries, quickIndex, collectRankField);
                     const label = quickMode
                         ? (next ? '退出快速排布 ' + (next.index + 1) + '/' + next.total : '退出快速排布')
                         : '快速排布';
@@ -4737,7 +4836,7 @@
                     }
                 }
                 function startQuickAssign() {
-                    const next = api.nextQuickAssign(collectEntries, 0);
+                    const next = api.nextQuickAssign(collectEntries, 0, collectRankField);
                     if (!next) {
                         setStatus('还没有收集到信息', 'err');
                         return;
@@ -4753,10 +4852,10 @@
                     document.body.classList.add('beapit-quick-assign');
                     updateQuickButtons();
                     setStatus('快速排布中：请点击炉子', 'ok');
-                    setTip('下一个：' + next.entry.name + '（' + api.formatHeroPower(next.entry.power) + '）· 共 ' + next.total + ' 人，再点一次按钮可退出');
+                    setTip('下一个：' + next.entry.name + '（' + api.formatCollectValue(collectRankField, next.entry.power) + '）· 共 ' + next.total + ' 人，再点一次按钮可退出');
                 }
                 function assignQuickToFurnace(rec) {
-                    const next = api.nextQuickAssign(collectEntries, quickIndex);
+                    const next = api.nextQuickAssign(collectEntries, quickIndex, collectRankField);
                     if (!next) {
                         stopQuickAssign(true);
                         return;
@@ -4771,13 +4870,13 @@
                     quickIndex += 1;
                     renderCoordsTable();
                     saveLayout({ silent: true });
-                    const following = api.nextQuickAssign(collectEntries, quickIndex);
+                    const following = api.nextQuickAssign(collectEntries, quickIndex, collectRankField);
                     updateQuickButtons();
                     if (!following) {
                         stopQuickAssign(true);
                         return;
                     }
-                    setTip('已放 ' + next.entry.name + '。下一个：' + following.entry.name + '（' + api.formatHeroPower(following.entry.power) + '）· 还剩 ' + (following.remainingAfter + 1) + ' 人');
+                    setTip('已放 ' + next.entry.name + '。下一个：' + following.entry.name + '（' + api.formatCollectValue(collectRankField, following.entry.power) + '）· 还剩 ' + (following.remainingAfter + 1) + ' 人');
                 }
                 function onQuickAssignClick(e) {
                     if (!quickMode) return;
@@ -4815,6 +4914,25 @@
                 }
                 restoreCollectSession();
                 if (collectKey && hostToken) refreshCollectList(true);
+                fieldGrid?.addEventListener('change', (e) => {
+                    const input = e.target && e.target.closest && e.target.closest('input[data-field]');
+                    if (!input) return;
+                    const id = input.getAttribute('data-field');
+                    const on = collectFields.slice();
+                    const idx = on.indexOf(id);
+                    if (input.checked) {
+                        if (idx < 0) on.push(id);
+                    } else if (idx >= 0) {
+                        on.splice(idx, 1);
+                    }
+                    collectFields = api.normalizeCollectFields(on);
+                    persistCollectConfig();
+                });
+                rankSelect?.addEventListener('change', () => {
+                    collectRankField = api.normalizeRankField(collectFields, rankSelect.value);
+                    persistCollectConfig();
+                    renderCollectList();
+                });
                 btnShare?.addEventListener('click', () => {
                     ensureCollectSession().then(async () => {
                         const url = fillUrl();

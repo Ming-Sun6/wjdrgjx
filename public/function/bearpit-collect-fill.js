@@ -11,6 +11,17 @@
   const FILL_STORAGE_KEY = 'beapit_web_collect_fill_v1';
   const LAYOUT_MODE_KEY = 'beapit_web_layout_mode_v1';
   const DEFAULT_GRID = 100;
+  const COLLECT_FIELD_DEFS = [
+    { id: 'heroPower', label: '英雄总实力', placeholder: '例如 1250万', kind: 'power' },
+    { id: 'personalPower', label: '个人实力', placeholder: '例如 800万', kind: 'power' },
+    { id: 'earthPower', label: '地心战力', placeholder: '例如 300万', kind: 'power' },
+    { id: 'petPower', label: '宠物', placeholder: '例如 200万', kind: 'power' },
+    { id: 'expertPower', label: '专家', placeholder: '例如 150万', kind: 'power' },
+    { id: 'bearDamage', label: '打熊伤害', placeholder: '例如 1.2亿', kind: 'power' },
+    { id: 'expedition', label: '探险关卡数', placeholder: '例如 120', kind: 'stage' }
+  ];
+  const COLLECT_FIELD_IDS = COLLECT_FIELD_DEFS.map((item) => item.id);
+  const DEFAULT_COLLECT_FIELDS = ['heroPower'];
 
   function parseHeroPower(raw) {
     const s = String(raw == null ? '' : raw).trim().replace(/,/g, '').replace(/，/g, '').replace(/\s+/g, '');
@@ -40,9 +51,59 @@
     return String(v);
   }
 
-  function sortRosterByPower(entries) {
+  function collectFieldDef(id) {
+    return COLLECT_FIELD_DEFS.find((item) => item.id === id) || null;
+  }
+
+  function normalizeCollectFields(value) {
+    const raw = Array.isArray(value) ? value : [];
+    const seen = {};
+    const out = [];
+    raw.forEach((item) => {
+      const id = String(item || '').trim();
+      if (!COLLECT_FIELD_IDS.includes(id) || seen[id]) return;
+      seen[id] = 1;
+      out.push(id);
+    });
+    return out.length ? out : DEFAULT_COLLECT_FIELDS.slice();
+  }
+
+  function normalizeRankField(fields, rankField) {
+    const list = normalizeCollectFields(fields);
+    const id = String(rankField || '').trim();
+    return list.includes(id) ? id : list[0];
+  }
+
+  function parseStageCount(raw) {
+    const s = String(raw == null ? '' : raw).trim().replace(/,/g, '').replace(/，/g, '');
+    if (!/^\d+$/.test(s)) return null;
+    const n = Number(s);
+    if (!Number.isFinite(n) || n < 1 || n > 9999) return null;
+    return n;
+  }
+
+  function parseCollectValue(fieldId, raw) {
+    const def = collectFieldDef(fieldId);
+    if (!def) return null;
+    return def.kind === 'stage' ? parseStageCount(raw) : parseHeroPower(raw);
+  }
+
+  function formatCollectValue(fieldId, n) {
+    const def = collectFieldDef(fieldId);
+    if (def && def.kind === 'stage') return String(n || '');
+    return formatHeroPower(n);
+  }
+
+  function rosterValue(entry, rankField) {
+    const stats = entry && entry.stats;
+    if (stats && Number(stats[rankField]) > 0) return Number(stats[rankField]);
+    return Number(entry && entry.power) || 0;
+  }
+
+  function sortRosterByPower(entries, rankField) {
+    const field = String(rankField || 'heroPower');
     return (entries || []).slice().sort((a, b) => {
-      const dp = (Number(b.power) || 0) - (Number(a.power) || 0);
+      const dp = rosterValue(b, field) - rosterValue(a, field);
       if (dp) return dp;
       return String(a.name || '').localeCompare(String(b.name || ''), 'zh');
     });
@@ -248,8 +309,8 @@
     });
   }
 
-  function nextQuickAssign(entries, assignedCount) {
-    const roster = sortRosterByPower(entries);
+  function nextQuickAssign(entries, assignedCount, rankField) {
+    const roster = sortRosterByPower(entries, rankField);
     const index = Math.max(0, Math.floor(Number(assignedCount) || 0));
     if (!roster.length || index >= roster.length) return null;
     return {
@@ -290,11 +351,16 @@
     return payload;
   }
 
-  function createCollectForm(collectKey, hostToken) {
+  function createCollectForm(collectKey, hostToken, options) {
     const payload = {};
     if (KEY_RE.test(String(collectKey || '')) && TOKEN_RE.test(String(hostToken || ''))) {
       payload.collectKey = collectKey;
       payload.hostToken = hostToken;
+    }
+    if (options && Array.isArray(options.fields)) {
+      const fields = normalizeCollectFields(options.fields);
+      payload.fields = fields;
+      payload.rankField = normalizeRankField(fields, options.rankField);
     }
     return requestCollect('POST', '/api/bearpit/collect', payload);
   }
@@ -304,8 +370,14 @@
     return requestCollect('GET', '/api/bearpit/collect/' + encodeURIComponent(key), null, query);
   }
 
-  function submitCollectEntry(key, name, power) {
-    return requestCollect('POST', '/api/bearpit/collect/' + encodeURIComponent(key) + '/entries', { name, power });
+  function submitCollectEntry(key, name, stats) {
+    const payload = { name, stats: stats || {} };
+    if (stats && stats.heroPower) payload.power = stats.heroPower;
+    else if (typeof stats === 'number' || typeof stats === 'string') {
+      payload.power = stats;
+      payload.stats = { heroPower: stats };
+    }
+    return requestCollect('POST', '/api/bearpit/collect/' + encodeURIComponent(key) + '/entries', payload);
   }
 
   function deleteCollectEntry(key, id, hostToken) {
@@ -326,6 +398,15 @@
     COLLECT_STORAGE_KEY,
     FILL_STORAGE_KEY,
     LAYOUT_MODE_KEY,
+    COLLECT_FIELD_DEFS,
+    COLLECT_FIELD_IDS,
+    DEFAULT_COLLECT_FIELDS,
+    collectFieldDef,
+    normalizeCollectFields,
+    normalizeRankField,
+    parseStageCount,
+    parseCollectValue,
+    formatCollectValue,
     parseHeroPower,
     formatHeroPower,
     sortRosterByPower,

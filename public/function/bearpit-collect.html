@@ -24,14 +24,14 @@
   <script src="/function/theme.js" defer></script>
   <meta property="og:type" content="website" />
   <meta property="og:title" content="hi～快来填写你的游戏信息！" />
-  <meta property="og:description" content="填写游戏名和英雄总实力，方便盟主一键排布熊坑。" />
+  <meta property="og:description" content="填写盟主指定的游戏信息，方便一键排布熊坑。" />
   <meta property="og:url" content="https://wjgl.store/function/bearpit-collect.html" />
   <meta property="og:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%88%86%E4%BA%AB.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="675" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="hi～快来填写你的游戏信息！" />
-  <meta name="twitter:description" content="填写游戏名和英雄总实力，方便盟主一键排布熊坑。" />
+  <meta name="twitter:description" content="填写盟主指定的游戏信息，方便一键排布熊坑。" />
   <meta name="twitter:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%88%86%E4%BA%AB.jpg" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -105,8 +105,7 @@
       <p class="count hidden" id="countText"></p>
       <label for="nameInput">游戏名</label>
       <input id="nameInput" maxlength="12" placeholder="请输入游戏名" autocomplete="nickname">
-      <label for="powerInput">英雄总实力</label>
-      <input id="powerInput" placeholder="例如 1250万" inputmode="text">
+      <div id="statsFields"></div>
       <button class="btn" id="submitBtn" type="button">确认收集</button>
     </div>
     <div class="card hidden" id="doneCard">
@@ -129,8 +128,10 @@
       const errorText = document.getElementById('errorText');
       const countText = document.getElementById('countText');
       const nameInput = document.getElementById('nameInput');
-      const powerInput = document.getElementById('powerInput');
+      const statsFields = document.getElementById('statsFields');
       const submitBtn = document.getElementById('submitBtn');
+      let formFields = api.DEFAULT_COLLECT_FIELDS.slice();
+      let savedStats = {};
 
       function show(el) {
         [loadingCard, errorCard, formCard, doneCard].forEach((card) => card.classList.add('hidden'));
@@ -142,9 +143,23 @@
         show(errorCard);
       }
 
+      function renderStatsFields() {
+        statsFields.innerHTML = formFields.map((id) => {
+          const def = api.collectFieldDef(id) || { id, label: id, placeholder: '' };
+          const value = savedStats[id] != null ? String(savedStats[id]) : '';
+          return '<label for="stat-' + id + '">' + def.label + '</label>' +
+            '<input id="stat-' + id + '" data-field="' + id + '" placeholder="' + (def.placeholder || '') + '" inputmode="text" value="">';
+        }).join('');
+        Array.from(statsFields.querySelectorAll('input[data-field]')).forEach((input) => {
+          const prev = savedStats[input.getAttribute('data-field')];
+          if (prev != null && prev !== '') input.value = String(prev);
+        });
+      }
+
       try {
         const saved = JSON.parse(localStorage.getItem(api.FILL_STORAGE_KEY) || '{}');
         if (saved && saved.name) nameInput.value = String(saved.name);
+        if (saved && saved.stats && typeof saved.stats === 'object') savedStats = saved.stats;
       } catch (_err) {}
 
       if (!collectKey || !api.KEY_RE.test(collectKey)) {
@@ -154,6 +169,8 @@
 
       show(loadingCard);
       api.fetchCollectForm(collectKey).then((res) => {
+        formFields = api.normalizeCollectFields(res.fields);
+        renderStatsFields();
         const count = Number(res.count || (res.entries && res.entries.length) || 0);
         if (count) {
           countText.textContent = '已有 ' + count + ' 人填写';
@@ -168,12 +185,23 @@
       submitBtn.addEventListener('click', function () {
         if (submitBtn.disabled) return;
         const name = String(nameInput.value || '').trim();
-        const power = api.parseHeroPower(powerInput.value);
         if (!name) { alert('请填写游戏名'); return; }
-        if (!power) { alert('请填写有效的英雄总实力'); return; }
+        const stats = {};
+        for (let i = 0; i < formFields.length; i++) {
+          const id = formFields[i];
+          const input = document.getElementById('stat-' + id);
+          const raw = input ? input.value : '';
+          const value = api.parseCollectValue(id, raw);
+          if (!value) {
+            const def = api.collectFieldDef(id);
+            alert('请填写有效的' + ((def && def.label) || '信息'));
+            return;
+          }
+          stats[id] = raw;
+        }
         submitBtn.disabled = true;
-        api.submitCollectEntry(collectKey, name, power).then(() => {
-          try { localStorage.setItem(api.FILL_STORAGE_KEY, JSON.stringify({ name: name })); } catch (_err) {}
+        api.submitCollectEntry(collectKey, name, stats).then(() => {
+          try { localStorage.setItem(api.FILL_STORAGE_KEY, JSON.stringify({ name: name, stats: stats })); } catch (_err) {}
           show(doneCard);
         }).catch((err) => {
           const code = err && err.body && err.body.error;

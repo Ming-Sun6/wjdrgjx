@@ -15,7 +15,7 @@ test('share metadata uses page defaults and injects Open Graph tags', () => {
 test('bearpit collect fill page uses ally-fill share title', () => {
   const meta = resolvePageMeta('/function/bearpit-collect.html', null);
   assert.equal(meta.title, 'hi～快来填写你的游戏信息！');
-  assert.match(meta.description, /英雄总实力/);
+  assert.match(meta.description, /盟主指定/);
 });
 
 test('farthest migration range uses its own WeChat share title and subtitle', () => {

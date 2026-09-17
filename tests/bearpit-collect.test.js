@@ -47,6 +47,33 @@ test('server mounts bearpit collect routes', () => {
 
 const fill = require('../public/function/bearpit-collect-fill');
 
+test('collect hosts can choose which stats to gather', () => {
+  const {
+    COLLECT_FIELD_IDS,
+    DEFAULT_COLLECT_FIELDS,
+    normalizeCollectFields,
+    normalizeRankField,
+    parseStageCount,
+    parseCollectValue
+  } = require('../bearpit-collect');
+  assert.deepEqual(DEFAULT_COLLECT_FIELDS, ['heroPower']);
+  assert.ok(COLLECT_FIELD_IDS.includes('earthPower'));
+  assert.ok(COLLECT_FIELD_IDS.includes('petPower'));
+  assert.ok(COLLECT_FIELD_IDS.includes('expertPower'));
+  assert.ok(COLLECT_FIELD_IDS.includes('bearDamage'));
+  assert.ok(COLLECT_FIELD_IDS.includes('personalPower'));
+  assert.ok(COLLECT_FIELD_IDS.includes('expedition'));
+  assert.deepEqual(normalizeCollectFields(['earthPower', 'petPower', 'earthPower', 'nope']), ['earthPower', 'petPower']);
+  assert.deepEqual(normalizeCollectFields([]), ['heroPower']);
+  assert.equal(normalizeRankField(['petPower', 'expedition'], 'heroPower'), 'petPower');
+  assert.equal(normalizeRankField(['petPower', 'expedition'], 'expedition'), 'expedition');
+  assert.equal(parseStageCount('120'), 120);
+  assert.equal(parseStageCount('0'), null);
+  assert.equal(parseStageCount('10000'), null);
+  assert.equal(parseCollectValue('bearDamage', '1.2亿'), 120000000);
+  assert.equal(parseCollectValue('expedition', '88'), 88);
+});
+
 test('website collect helper matches server power parsing', () => {
   assert.equal(fill.parseHeroPower('1,250万'), parseHeroPower('1,250万'));
   assert.equal(fill.parseHeroPower('1.2亿'), parseHeroPower('1.2亿'));
@@ -64,6 +91,11 @@ test('quick assign walks roster from highest power', () => {
   assert.equal(fill.nextQuickAssign(roster, 2).entry.name, '乙');
   assert.equal(fill.nextQuickAssign(roster, 3), null);
   assert.equal(fill.nextQuickAssign([], 0), null);
+  const byStage = [
+    { name: '低', power: 9, stats: { expedition: 9 } },
+    { name: '高', power: 2, stats: { expedition: 80 } }
+  ];
+  assert.equal(fill.nextQuickAssign(byStage, 0, 'expedition').entry.name, '高');
 });
 
 test('first ring around a 3x3 bear has 8 furnace slots', () => {
@@ -96,8 +128,19 @@ test('website BeaPit page and public fill form expose collect flow', () => {
   assert.match(page, /nextQuickAssign/);
   assert.match(page, /beapit-quick-assign/);
   assert.match(page, /bearpit-collect-fill\.js/);
+  const fillHelper = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'bearpit-collect-fill.js'), 'utf8');
+  const schemaSource = fs.readFileSync(path.join(__dirname, '..', 'postgres-schema.js'), 'utf8');
+  assert.match(page, /collectFieldGrid/);
+  assert.match(page, /地心、宠物、专家/);
+  assert.match(page, /探险关卡数/);
+  assert.match(page, /persistCollectConfig/);
+  assert.match(fillHelper, /earthPower/);
+  assert.match(fillHelper, /地心战力/);
   assert.match(fillPage, /填写打熊信息/);
-  assert.match(fillPage, /英雄总实力/);
+  assert.match(fillPage, /statsFields/);
   assert.match(fillPage, /submitCollectEntry/);
   assert.match(fillPage, /og:title" content="hi～快来填写你的游戏信息！"/);
+  assert.match(schemaSource, /fields_json/);
+  assert.match(schemaSource, /rank_field/);
+  assert.match(schemaSource, /stats_json/);
 });
