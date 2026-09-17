@@ -1336,7 +1336,7 @@
         }
 
         /* 导入/导出/确认/备份弹窗 */
-        .import-modal, .export-modal, .confirm-modal, .backup-modal, .collect-modal, .help-modal {
+        .import-modal, .export-modal, .confirm-modal, .backup-modal, .collect-modal, .help-modal, .more-modal {
             position: fixed;
             inset: 0;
             display: none;
@@ -1346,8 +1346,8 @@
             z-index: 10003;
             padding: 16px;
         }
-        .import-modal.open, .export-modal.open, .confirm-modal.open, .backup-modal.open, .collect-modal.open, .help-modal.open { display: flex; }
-        .import-panel, .export-panel, .confirm-panel, .backup-panel, .collect-panel, .help-panel {
+        .import-modal.open, .export-modal.open, .confirm-modal.open, .backup-modal.open, .collect-modal.open, .help-modal.open, .more-modal.open { display: flex; }
+        .import-panel, .export-panel, .confirm-panel, .backup-panel, .collect-panel, .help-panel, .more-panel {
             width: 560px;
             max-width: 96vw;
             max-height: 88vh;
@@ -1362,16 +1362,16 @@
             flex-direction: column;
         }
         .confirm-panel { width: 520px; }
-        .backup-panel, .collect-panel, .help-panel { width: 620px; }
-        .import-title, .export-title, .confirm-title, .backup-title, .collect-title, .help-title {
+        .backup-panel, .collect-panel, .help-panel, .more-panel { width: 620px; }
+        .import-title, .export-title, .confirm-title, .backup-title, .collect-title, .help-title, .more-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 14px 14px 10px;
             border-bottom: 1px solid var(--border);
         }
-        .import-title h3, .export-title h3, .confirm-title h3, .backup-title h3, .collect-title h3, .help-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
-        .import-close, .export-close, .confirm-close, .backup-close, .collect-close, .help-close {
+        .import-title h3, .export-title h3, .confirm-title h3, .backup-title h3, .collect-title h3, .help-title h3, .more-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
+        .import-close, .export-close, .confirm-close, .backup-close, .collect-close, .help-close, .more-close {
             background: rgba(239, 68, 68, 0.2);
             color: #f87171;
             border: none;
@@ -1382,7 +1382,7 @@
             padding: 0;
             font-size: 1rem;
         }
-        .import-body, .export-body, .confirm-body, .backup-body, .collect-body, .help-body { padding: 12px 14px; overflow: auto; }
+        .import-body, .export-body, .confirm-body, .backup-body, .collect-body, .help-body, .more-body { padding: 12px 14px; overflow: auto; }
         .backup-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow: auto; }
         .backup-list-item {
             display: flex;
@@ -1435,6 +1435,9 @@
         .help-item { margin: 0 0 8px; font-size: 0.88rem; line-height: 1.55; color: var(--text); }
         .help-item strong { color: var(--text); }
         .help-item span { color: var(--muted); }
+        .more-modal { z-index: 10140; }
+        .more-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; }
+        .more-row #woam-password { min-width: 180px; flex: 1; }
         .btn.collect-quick.on { background: #ca8a04; color: #fff; }
         body.beapit-quick-assign .placed-item.size-2 { cursor: pointer; }
         body.beapit-quick-assign .placed-item.size-2 .item-name-input,
@@ -1520,12 +1523,8 @@
     <h1 class="title">无尽冬日熊坑排布工具| 100*100菱形网格</h1>
     <div id="woam-editor-wrap">
         <div id="woam-toolbar">
-            <input id="woam-password" type="password" placeholder="编辑密码（用于保存/加载）">
             <button class="btn" id="woam-save" type="button">💾 保存/更新</button>
-            <button class="btn secondary" id="woam-save-scheme" type="button">📁 保存方案</button>
             <button class="btn secondary" id="woam-load" type="button">📥 加载</button>
-            <button class="btn secondary" id="btnExportConfig" type="button">导出配置</button>
-            <button class="btn secondary" id="btnImportConfig" type="button">导入配置</button>
             <span class="beapit-collect-wrap">
                 <button class="btn secondary" id="btnCollectShare" type="button">收集信息</button>
                 <button class="btn secondary" id="btnCollectList" type="button">已收集</button>
@@ -1535,22 +1534,9 @@
             <div class="actions">
                 <button class="btn secondary" id="btnUndo" type="button" disabled>撤销（Ctrl+Z）</button>
                 <button class="btn danger" id="btnClear" type="button" disabled>清空</button>
-                <button class="btn secondary" id="btnDeletePick" type="button" disabled>🗑 指定删除</button>
                 <button class="btn" id="btnDownload" type="button">⬇ 下载图片</button>
             </div>
-            <span class="beapit-global-offset-wrap" title="仅平移已摆放建筑与范围示意（不占格、不改坐标表数值）；保存/导入会一并记录">
-                <span class="beapit-offset-hint">建筑偏移</span>
-                <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetLeft" aria-label="建筑左移">←</button>
-                <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetRight" aria-label="建筑右移">→</button>
-                <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetUp" aria-label="建筑上移">↑</button>
-                <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetDown" aria-label="建筑下移">↓</button>
-            </span>
-            <span class="beapit-sprite-opacity-wrap" title="调低后建筑贴图变淡，便于看清 2×2 上的命名；影响画布与导出图，不改变存档坐标">
-                <label for="beapitSpriteOpacity">图标透明度</label>
-                <input type="range" id="beapitSpriteOpacity" min="20" max="100" value="100" step="5" aria-label="已摆放建筑贴图透明度">
-                <span class="beapit-sprite-opacity-val" id="beapitSpriteOpacityVal">100%</span>
-            </span>
-            <button class="btn secondary" id="btnLandscapeMode" type="button">横屏模式</button>
+            <button class="btn secondary" id="btnBeaPitMore" type="button">更多功能</button>
             <button class="btn secondary landscape-only" id="btnCoordsTableToggle" type="button">坐标表</button>
             <button class="btn secondary landscape-only" id="btnExitLandscapeMode" type="button">退出横屏</button>
             <span id="woam-status"></span>
@@ -1779,6 +1765,53 @@
         </div>
     </div>
 
+    <!-- 更多功能弹窗 -->
+    <div class="more-modal" id="beapitMoreModal" aria-hidden="true">
+        <div class="more-panel" role="dialog" aria-modal="true" aria-label="更多功能">
+            <div class="more-title">
+                <h3>更多功能</h3>
+                <button class="more-close" id="beapitMoreClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="more-body">
+                <div class="help-section">
+                    <h4>存档与分享</h4>
+                    <div class="more-row">
+                        <input id="woam-password" type="password" placeholder="编辑密码（用于保存/加载）">
+                        <button class="btn secondary" id="woam-save-scheme" type="button">📁 保存方案</button>
+                    </div>
+                    <div class="more-row">
+                        <button class="btn secondary" id="btnExportConfig" type="button">导出配置</button>
+                        <button class="btn secondary" id="btnImportConfig" type="button">导入配置</button>
+                    </div>
+                </div>
+                <div class="help-section">
+                    <h4>编辑</h4>
+                    <div class="more-row">
+                        <button class="btn secondary" id="btnDeletePick" type="button" disabled>🗑 指定删除</button>
+                    </div>
+                    <div class="more-row beapit-global-offset-wrap" title="仅平移已摆放建筑与范围示意（不占格、不改坐标表数值）；保存/导入会一并记录">
+                        <span class="beapit-offset-hint">建筑偏移</span>
+                        <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetLeft" aria-label="建筑左移">←</button>
+                        <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetRight" aria-label="建筑右移">→</button>
+                        <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetUp" aria-label="建筑上移">↑</button>
+                        <button type="button" class="btn secondary beapit-offset-btn" id="btnPlacedOffsetDown" aria-label="建筑下移">↓</button>
+                    </div>
+                    <div class="more-row beapit-sprite-opacity-wrap" title="调低后建筑贴图变淡，便于看清 2×2 上的命名；影响画布与导出图，不改变存档坐标">
+                        <label for="beapitSpriteOpacity">图标透明度</label>
+                        <input type="range" id="beapitSpriteOpacity" min="20" max="100" value="100" step="5" aria-label="已摆放建筑贴图透明度">
+                        <span class="beapit-sprite-opacity-val" id="beapitSpriteOpacityVal">100%</span>
+                    </div>
+                </div>
+                <div class="help-section">
+                    <h4>显示</h4>
+                    <div class="more-row">
+                        <button class="btn secondary" id="btnLandscapeMode" type="button">横屏模式</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 使用教程弹窗 -->
     <div class="help-modal" id="beapitHelpModal" aria-hidden="true">
         <div class="help-panel" role="dialog" aria-modal="true" aria-label="使用教程">
@@ -1796,13 +1829,20 @@
                     <p class="help-item"><strong>双击炉子名字</strong> <span>手动改命名、颜色、加粗或斜体。</span></p>
                 </div>
                 <div class="help-section">
-                    <h4>存档与分享</h4>
+                    <h4>更多功能</h4>
+                    <p class="help-item"><strong>更多功能</strong> <span>不常用的按钮收在这里，避免工具栏太挤。</span></p>
                     <p class="help-item"><strong>编辑密码</strong> <span>给本机存档加个口令，保存和加载时用。</span></p>
-                    <p class="help-item"><strong>保存/更新</strong> <span>把当前排布存到本机；登录后也会同步到账号。</span></p>
                     <p class="help-item"><strong>保存方案</strong> <span>另存一份带标题的方案，方便以后切换。</span></p>
+                    <p class="help-item"><strong>生成分享秘钥 / 导入分享秘钥</strong> <span>登录后生成 16 位秘钥发给别人还原地形；导入会覆盖当前摆放。秘钥只显示一次。</span></p>
+                    <p class="help-item"><strong>指定删除</strong> <span>打开后点击某个建筑即可删除，再点一次退出。平时也可右键删除。</span></p>
+                    <p class="help-item"><strong>建筑偏移</strong> <span>只平移贴图位置，方便对齐观感，不改格子坐标。</span></p>
+                    <p class="help-item"><strong>图标透明度</strong> <span>把建筑贴图调淡，更容易看清炉子上的名字。</span></p>
+                    <p class="help-item"><strong>横屏模式 / 坐标表</strong> <span>横屏后更方便在平板上排。坐标表可筛选、勾选炉子，批量改名字和颜色。</span></p>
+                </div>
+                <div class="help-section">
+                    <h4>存档</h4>
+                    <p class="help-item"><strong>保存/更新</strong> <span>把当前排布存到本机；登录后也会同步到账号。</span></p>
                     <p class="help-item"><strong>加载</strong> <span>读取本机或账号里已保存的排布。</span></p>
-                    <p class="help-item"><strong>导出配置</strong> <span>登录后生成 16 位分享秘钥，发给别人还原你的地形。秘钥只显示一次。</span></p>
-                    <p class="help-item"><strong>导入配置</strong> <span>粘贴别人的分享秘钥，导入会覆盖当前摆放。</span></p>
                 </div>
                 <div class="help-section">
                     <h4>收集盟友信息</h4>
@@ -1815,11 +1855,7 @@
                     <h4>编辑与导出</h4>
                     <p class="help-item"><strong>撤销</strong> <span>回到上一步，快捷键 Ctrl+Z。</span></p>
                     <p class="help-item"><strong>清空</strong> <span>删除当前所有已摆放建筑。</span></p>
-                    <p class="help-item"><strong>指定删除</strong> <span>打开后点击某个建筑即可删除，再点一次退出。</span></p>
                     <p class="help-item"><strong>下载图片</strong> <span>把当前画面导出成图片。</span></p>
-                    <p class="help-item"><strong>建筑偏移</strong> <span>只平移贴图位置，方便对齐观感，不改格子坐标。</span></p>
-                    <p class="help-item"><strong>图标透明度</strong> <span>把建筑贴图调淡，更容易看清炉子上的名字。</span></p>
-                    <p class="help-item"><strong>横屏模式 / 坐标表</strong> <span>横屏后更方便在平板上排。坐标表可筛选、勾选炉子，批量改名字和颜色。</span></p>
                 </div>
                 <div class="help-section">
                     <h4>登录</h4>
@@ -4822,6 +4858,7 @@
                 document.addEventListener('keydown', (e) => {
                     if (e.key !== 'Escape' || !quickMode) return;
                     if (document.getElementById('beapitHelpModal')?.classList.contains('open')) return;
+                    if (document.getElementById('beapitMoreModal')?.classList.contains('open')) return;
                     stopQuickAssign(false);
                 });
                 document.getElementById('collectListClose')?.addEventListener('click', () => closeModal(listModal));
@@ -4881,6 +4918,30 @@
                 modal?.addEventListener('click', (e) => { if (e.target === modal) closeHelp(); });
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && modal?.classList.contains('open')) closeHelp();
+                });
+            })();
+            (function bindBeapitMore() {
+                const modal = document.getElementById('beapitMoreModal');
+                const openBtn = document.getElementById('btnBeaPitMore');
+                const closeBtn = document.getElementById('beapitMoreClose');
+                function openMore() {
+                    if (!modal) return;
+                    modal.classList.add('open');
+                    modal.setAttribute('aria-hidden', 'false');
+                }
+                function closeMore() {
+                    if (!modal) return;
+                    modal.classList.remove('open');
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+                openBtn?.addEventListener('click', openMore);
+                closeBtn?.addEventListener('click', closeMore);
+                modal?.addEventListener('click', (e) => { if (e.target === modal) closeMore(); });
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && modal?.classList.contains('open')) closeMore();
+                });
+                ['btnExportConfig', 'btnImportConfig', 'btnDeletePick', 'btnLandscapeMode', 'woam-save-scheme'].forEach((id) => {
+                    document.getElementById(id)?.addEventListener('click', closeMore);
                 });
             })();
             bindCoordsTableEditDelegation();
