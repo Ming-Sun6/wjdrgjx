@@ -21,6 +21,7 @@ test('tool ad page keys cover front-end tools and skip admin or account pages', 
   assert.equal(isToolAdPageKey('function/BeaPit.html'), true);
   assert.equal(isToolAdPageKey('map-tool/index'), true);
   assert.equal(isToolAdPageKey('function/forum-post'), false);
+  assert.equal(isToolAdPageKey('function/bearpit-collect.html'), false);
   assert.equal(isToolAdPageKey('function/my'), false);
   assert.equal(isToolAdPageKey('function/_ops/console-7a9/internal/admin'), false);
   assert.equal(isToolAdPageKey('function/aeroplane-chess/admin'), false);

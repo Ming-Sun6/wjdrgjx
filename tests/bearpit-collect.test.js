@@ -43,3 +43,38 @@ test('server mounts bearpit collect routes', () => {
   assert.match(schemaSource, /bearpit_collect_forms/);
   assert.match(schemaSource, /bearpit_collect_entries/);
 });
+
+
+const fill = require('../public/function/bearpit-collect-fill');
+
+test('website collect helper matches server power parsing', () => {
+  assert.equal(fill.parseHeroPower('1,250万'), parseHeroPower('1,250万'));
+  assert.equal(fill.parseHeroPower('1.2亿'), parseHeroPower('1.2亿'));
+  assert.equal(fill.formatHeroPower(12500000), '1250万');
+});
+
+test('first ring around a 3x3 bear has 8 furnace slots', () => {
+  const bear = { r: 10, c: 10, s: 3 };
+  assert.equal(fill.ringSlotCount(1), 8);
+  assert.equal(fill.ringSlotCount(2), 16);
+  assert.equal(fill.ringTilePositions(bear, 1).length, 8);
+  const occ = new Set();
+  for (let r = 10; r < 13; r++) {
+    for (let c = 10; c < 13; c++) occ.add(r + '-' + c);
+  }
+  const slots = fill.furnaceSlotsAroundBear(bear, 40, occ, 8);
+  assert.equal(slots.length, 8);
+});
+
+test('website BeaPit page and public fill form expose collect flow', () => {
+  const page = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'BeaPit.html'), 'utf8');
+  const fillPage = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'bearpit-collect.html'), 'utf8');
+  assert.match(page, /btnCollectShare/);
+  assert.match(page, /btnCollectList/);
+  assert.match(page, /btnCollectLayout/);
+  assert.match(page, /bearpit-collect-fill\.js/);
+  assert.match(fillPage, /填写打熊信息/);
+  assert.match(fillPage, /英雄总实力/);
+  assert.match(fillPage, /submitCollectEntry/);
+  assert.match(fillPage, /og:title" content="hi～快来填写你的游戏信息！"/);
+});

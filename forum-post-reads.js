@@ -34,7 +34,7 @@ function isRangeAdPageKey(pageKey) {
 
 function isToolAdPageKey(pageKey) {
   const key = String(pageKey || '').replace(/\.html$/i, '');
-  if (!key || key === FORUM_POST_PAGE_KEY || key === 'function/forum' || key === 'function/my') return false;
+  if (!key || key === FORUM_POST_PAGE_KEY || key === 'function/forum' || key === 'function/my' || key === 'function/bearpit-collect') return false;
   if (key.startsWith('function/_ops/')) return false;
   if (/(^|\/)admin$/i.test(key)) return false;
   if (key.startsWith('function/')) return true;

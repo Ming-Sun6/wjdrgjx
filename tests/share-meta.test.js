@@ -12,6 +12,12 @@ test('share metadata uses page defaults and injects Open Graph tags', () => {
   assert.match(html, /summary_large_image/);
 });
 
+test('bearpit collect fill page uses ally-fill share title', () => {
+  const meta = resolvePageMeta('/function/bearpit-collect.html', null);
+  assert.equal(meta.title, 'hi～快来填写你的游戏信息！');
+  assert.match(meta.description, /英雄总实力/);
+});
+
 test('farthest migration range uses its own WeChat share title and subtitle', () => {
   const meta = resolvePageMeta('/function/farthest-migration-range.html', null);
   assert.equal(meta.title, '最远移民区间｜冬日工具箱');

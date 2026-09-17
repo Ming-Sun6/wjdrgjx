@@ -1331,7 +1331,7 @@
         }
 
         /* 导入/导出/确认/备份弹窗 */
-        .import-modal, .export-modal, .confirm-modal, .backup-modal {
+        .import-modal, .export-modal, .confirm-modal, .backup-modal, .collect-modal {
             position: fixed;
             inset: 0;
             display: none;
@@ -1341,8 +1341,8 @@
             z-index: 10003;
             padding: 16px;
         }
-        .import-modal.open, .export-modal.open, .confirm-modal.open, .backup-modal.open { display: flex; }
-        .import-panel, .export-panel, .confirm-panel, .backup-panel {
+        .import-modal.open, .export-modal.open, .confirm-modal.open, .backup-modal.open, .collect-modal.open { display: flex; }
+        .import-panel, .export-panel, .confirm-panel, .backup-panel, .collect-panel {
             width: 560px;
             max-width: 96vw;
             max-height: 88vh;
@@ -1357,16 +1357,16 @@
             flex-direction: column;
         }
         .confirm-panel { width: 520px; }
-        .backup-panel { width: 620px; }
-        .import-title, .export-title, .confirm-title, .backup-title {
+        .backup-panel, .collect-panel { width: 620px; }
+        .import-title, .export-title, .confirm-title, .backup-title, .collect-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 14px 14px 10px;
             border-bottom: 1px solid var(--border);
         }
-        .import-title h3, .export-title h3, .confirm-title h3, .backup-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
-        .import-close, .export-close, .confirm-close, .backup-close {
+        .import-title h3, .export-title h3, .confirm-title h3, .backup-title h3, .collect-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
+        .import-close, .export-close, .confirm-close, .backup-close, .collect-close {
             background: rgba(239, 68, 68, 0.2);
             color: #f87171;
             border: none;
@@ -1377,7 +1377,7 @@
             padding: 0;
             font-size: 1rem;
         }
-        .import-body, .export-body, .confirm-body, .backup-body { padding: 12px 14px; overflow: auto; }
+        .import-body, .export-body, .confirm-body, .backup-body, .collect-body { padding: 12px 14px; overflow: auto; }
         .backup-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow: auto; }
         .backup-list-item {
             display: flex;
@@ -1397,6 +1397,31 @@
         .backup-list-title { font-weight: 700; color: var(--text); margin-bottom: 4px; word-break: break-word; }
         .backup-list-meta { font-size: 0.82rem; color: var(--muted); }
         .backup-empty { color: var(--muted); font-size: 0.9rem; line-height: 1.6; padding: 8px 0; }
+
+        .beapit-collect-wrap { display: inline-flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn.collect-green { background: #15803d; }
+        .collect-link-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+        .collect-link-row input {
+            flex: 1; min-width: 0; height: 36px; padding: 0 10px;
+            border: 1px solid var(--border); border-radius: 8px;
+            background: var(--surface); color: var(--text);
+        }
+        .collect-mode-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 12px; }
+        .collect-mode-chip {
+            border: 1px solid var(--border); background: var(--surface); color: var(--text);
+            border-radius: 999px; padding: 6px 12px; cursor: pointer; font-weight: 700;
+        }
+        .collect-mode-chip.on { background: rgba(21, 128, 61, 0.18); border-color: rgba(21, 128, 61, 0.45); color: #166534; }
+        .collect-list { display: flex; flex-direction: column; gap: 8px; max-height: 42vh; overflow: auto; }
+        .collect-empty { color: var(--muted); font-size: 0.9rem; line-height: 1.6; padding: 8px 0; }
+        .collect-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+        }
+        .collect-name { font-weight: 700; }
+        .collect-power { color: var(--muted); font-size: 0.86rem; margin-left: 8px; }
+        .collect-del { color: #ef4444; cursor: pointer; font-weight: 700; }
+
         .import-hint, .export-hint { margin: 0 0 10px; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
         .import-textarea, .export-textarea {
             width: 100%;
@@ -1434,7 +1459,7 @@
             border: 1px solid var(--info-border);
             color: var(--info-text);
         }
-        .import-actions, .export-actions {
+        .import-actions, .export-actions, .collect-actions {
             padding: 12px 14px 14px;
             border-top: 1px solid var(--border);
             display: flex;
@@ -1482,6 +1507,11 @@
             <button class="btn secondary" id="woam-load" type="button">📥 加载</button>
             <button class="btn secondary" id="btnExportConfig" type="button">导出配置</button>
             <button class="btn secondary" id="btnImportConfig" type="button">导入配置</button>
+            <span class="beapit-collect-wrap">
+                <button class="btn secondary" id="btnCollectShare" type="button">收集信息</button>
+                <button class="btn secondary" id="btnCollectList" type="button">已收集</button>
+                <button class="btn collect-green" id="btnCollectLayout" type="button">一键排布</button>
+            </span>
             <div class="actions">
                 <button class="btn secondary" id="btnUndo" type="button" disabled>撤销（Ctrl+Z）</button>
                 <button class="btn danger" id="btnClear" type="button" disabled>清空</button>
@@ -1684,6 +1714,50 @@
         </div>
     </div>
 
+    <!-- 收集名单弹窗 -->
+    <div class="collect-modal" id="collectListModal" aria-hidden="true">
+        <div class="collect-panel" role="dialog" aria-modal="true" aria-label="收集名单">
+            <div class="collect-title">
+                <h3>收集名单</h3>
+                <button class="collect-close" id="collectListClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="collect-body">
+                <p class="import-hint">把填写链接发给盟友，他们不用登录也能填游戏名和英雄总实力。小程序同一套收集表也可以在这里用。</p>
+                <div class="collect-link-row">
+                    <input id="collectFillUrl" type="text" readonly placeholder="生成后显示填写链接">
+                    <button class="btn secondary" id="btnCopyCollectUrl" type="button">复制链接</button>
+                </div>
+                <div class="collect-actions" style="padding:0 0 10px; border:none; justify-content:flex-start;">
+                    <button class="btn secondary" id="btnRefreshCollect" type="button">刷新</button>
+                    <button class="btn danger" id="btnClearCollect" type="button">清空</button>
+                    <button class="btn collect-green" id="btnCollectLayoutFromList" type="button">一键排布</button>
+                </div>
+                <div class="collect-list" id="collectEntryList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 一键排布弹窗 -->
+    <div class="collect-modal" id="collectLayoutModal" aria-hidden="true">
+        <div class="collect-panel" role="dialog" aria-modal="true" aria-label="一键排布">
+            <div class="collect-title">
+                <h3>一键排布</h3>
+                <button class="collect-close" id="collectLayoutClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="collect-body">
+                <p class="import-hint" id="collectLayoutHint">按英雄总实力从高到低排布。仅填名字不会挪现有炉子；重新排列会先去掉现有炉子，再围着熊坑摆。</p>
+                <div class="collect-mode-row">
+                    <button type="button" class="collect-mode-chip on" id="collectModeFill" data-mode="fill">仅填名字</button>
+                    <button type="button" class="collect-mode-chip" id="collectModeRearrange" data-mode="rearrange">重新排列</button>
+                </div>
+            </div>
+            <div class="collect-actions">
+                <button class="btn secondary" id="collectLayoutCancel" type="button">取消</button>
+                <button class="btn collect-green" id="collectLayoutDo" type="button">开始排布</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 清空二次确认弹窗 -->
     <div class="confirm-modal" id="confirmClearModal" aria-hidden="true">
         <div class="confirm-panel" role="dialog" aria-modal="true" aria-label="确认清空">
@@ -1745,6 +1819,7 @@
         </div>
     </div>
 
+    <script src="/function/bearpit-collect-fill.js"></script>
     <script>
         // 全局配置
         const CONFIG = {
@@ -4327,6 +4402,273 @@
                 setLandscapeMode(false);
                 await exitLandscapePresentation();
             });
+
+            (function bindBearpitCollect() {
+                const api = window.BearpitCollectFill;
+                if (!api) return;
+                const listModal = document.getElementById('collectListModal');
+                const layoutModal = document.getElementById('collectLayoutModal');
+                const listEl = document.getElementById('collectEntryList');
+                const urlInput = document.getElementById('collectFillUrl');
+                const btnShare = document.getElementById('btnCollectShare');
+                const btnList = document.getElementById('btnCollectList');
+                const btnLayout = document.getElementById('btnCollectLayout');
+                const btnLayoutFromList = document.getElementById('btnCollectLayoutFromList');
+                const FURNACE_IMG = '../Scores/castle.png';
+                let collectKey = '';
+                let hostToken = '';
+                let collectEntries = [];
+                let layoutMode = 'fill';
+                let ensuring = null;
+
+                function restoreCollectSession() {
+                    try {
+                        const saved = JSON.parse(localStorage.getItem(api.COLLECT_STORAGE_KEY) || '{}');
+                        if (api.KEY_RE.test(String(saved.collectKey || '')) && api.TOKEN_RE.test(String(saved.hostToken || ''))) {
+                            collectKey = saved.collectKey;
+                            hostToken = saved.hostToken;
+                        }
+                    } catch (_err) {}
+                    try {
+                        const mode = String(localStorage.getItem(api.LAYOUT_MODE_KEY) || '');
+                        layoutMode = mode === 'rearrange' ? 'rearrange' : 'fill';
+                    } catch (_err) {}
+                    syncLayoutModeChips();
+                    updateCollectCountLabel();
+                }
+                function saveCollectSession() {
+                    try {
+                        localStorage.setItem(api.COLLECT_STORAGE_KEY, JSON.stringify({ collectKey, hostToken }));
+                    } catch (_err) {}
+                }
+                function updateCollectCountLabel() {
+                    if (btnList) btnList.textContent = '已收集' + (collectEntries.length ? ' ' + collectEntries.length : '');
+                }
+                function setLayoutMode(mode) {
+                    layoutMode = mode === 'rearrange' ? 'rearrange' : 'fill';
+                    try { localStorage.setItem(api.LAYOUT_MODE_KEY, layoutMode); } catch (_err) {}
+                    syncLayoutModeChips();
+                }
+                function syncLayoutModeChips() {
+                    document.getElementById('collectModeFill')?.classList.toggle('on', layoutMode === 'fill');
+                    document.getElementById('collectModeRearrange')?.classList.toggle('on', layoutMode === 'rearrange');
+                }
+                function openModal(modal) {
+                    if (!modal) return;
+                    modal.classList.add('open');
+                    modal.setAttribute('aria-hidden', 'false');
+                }
+                function closeModal(modal) {
+                    if (!modal) return;
+                    modal.classList.remove('open');
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+                function fillUrl() {
+                    return api.collectFillUrl(collectKey, location.origin);
+                }
+                async function copyText(text) {
+                    try {
+                        await navigator.clipboard.writeText(text);
+                        return true;
+                    } catch (_err) {
+                        return false;
+                    }
+                }
+                function ensureCollectSession() {
+                    if (ensuring) return ensuring;
+                    const prevKey = collectKey;
+                    const prevToken = hostToken;
+                    ensuring = api.createCollectForm(prevKey, prevToken).then((res) => {
+                        if (prevKey && prevToken && res.collectKey && res.collectKey !== prevKey) {
+                            collectKey = prevKey;
+                            hostToken = prevToken;
+                        } else {
+                            collectKey = res.collectKey;
+                            hostToken = res.hostToken;
+                        }
+                        saveCollectSession();
+                        if (urlInput) urlInput.value = fillUrl();
+                        return refreshCollectList(true);
+                    }).catch((err) => {
+                        ensuring = null;
+                        throw err;
+                    });
+                    return ensuring;
+                }
+                function renderCollectList() {
+                    if (!listEl) return;
+                    if (!collectEntries.length) {
+                        listEl.innerHTML = '<div class="collect-empty">复制填写链接发给盟友后，名单会出现在这里</div>';
+                        return;
+                    }
+                    listEl.innerHTML = collectEntries.map((row) => (
+                        '<div class="collect-row" data-id="' + row.id + '">' +
+                        '<div><span class="collect-name"></span><span class="collect-power"></span></div>' +
+                        '<span class="collect-del" data-id="' + row.id + '">删</span></div>'
+                    )).join('');
+                    Array.from(listEl.querySelectorAll('.collect-row')).forEach((el, i) => {
+                        const row = collectEntries[i];
+                        el.querySelector('.collect-name').textContent = row.name;
+                        el.querySelector('.collect-power').textContent = api.formatHeroPower(row.power);
+                    });
+                }
+                function refreshCollectList(silent) {
+                    if (!collectKey || !hostToken) return Promise.resolve();
+                    return api.fetchCollectForm(collectKey, hostToken).then((res) => {
+                        collectEntries = Array.isArray(res.entries) ? res.entries : [];
+                        updateCollectCountLabel();
+                        renderCollectList();
+                    }).catch(() => {
+                        if (!silent) setStatus('刷新失败', 'err');
+                    });
+                }
+                function findBearRecord() {
+                    return CONFIG.placedList.find((it) => it.size === 3 && !isAllianceHqSpritePath(it.img)) || null;
+                }
+                function furnaceRecords() {
+                    return CONFIG.placedList.filter((it) => it.size === 2 && isFurnaceStoveSpritePath(it.img));
+                }
+                function applyFillNamesOnly() {
+                    const roster = api.sortRosterByPower(collectEntries);
+                    if (!roster.length) { setStatus('还没有收集到信息', 'err'); return; }
+                    const bearRec = findBearRecord();
+                    if (!bearRec) { setStatus('请先摆放熊坑', 'err'); return; }
+                    const bear = { r: bearRec.startRow, c: bearRec.startCol, s: 3 };
+                    pushHistorySnapshot();
+                    const mapped = furnaceRecords().map((rec) => ({ rec, r: rec.startRow, c: rec.startCol, s: 2 }));
+                    const ordered = api.sortFurnacesForFill(bear, mapped, null, CONFIG.gridSize);
+                    const used = Math.min(ordered.length, roster.length);
+                    for (let i = 0; i < used; i++) {
+                        applyPlacedItemNameMeta(ordered[i].rec, { name: roster[i].name, nameBold: true });
+                    }
+                    const extra = roster.slice(ordered.length);
+                    let placedExtra = 0;
+                    if (extra.length) {
+                        const slots = api.furnaceSlotsAroundBear(bear, CONFIG.gridSize, CONFIG.occupiedCells, extra.length, null);
+                        extra.forEach((row, i) => {
+                            const slot = slots[i];
+                            if (!slot) return;
+                            if (placeItemAt(slot.r, slot.c, 2, BEAPIT_COLOR_BY_SIZE[2], row.name, FURNACE_IMG, BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR, true, false, { skipHistory: true })) {
+                                placedExtra += 1;
+                            }
+                        });
+                    }
+                    renderCoordsTable();
+                    saveLayout({ silent: true });
+                    const named = used + placedExtra;
+                    closeModal(listModal);
+                    closeModal(layoutModal);
+                    if (named < roster.length) {
+                        setStatus('空间不够，已填充 ' + named + '/' + roster.length + ' 个名字', 'err');
+                        setTip('只填了 ' + named + ' 个名字，空位不够。');
+                    } else if (placedExtra) {
+                        setStatus('已填名字，并补了 ' + placedExtra + ' 个炉子', 'ok');
+                        setTip('已按现有排布填充名字，并补了 ' + placedExtra + ' 个炉子。');
+                    } else {
+                        setStatus('已按现有排布填充 ' + named + ' 个名字', 'ok');
+                        setTip('已按实力从高到低填充现有炉子名字。');
+                    }
+                }
+                function applyRearrange() {
+                    const roster = api.sortRosterByPower(collectEntries);
+                    if (!roster.length) { setStatus('还没有收集到信息', 'err'); return; }
+                    const bearRec = findBearRecord();
+                    if (!bearRec) { setStatus('请先摆放熊坑', 'err'); return; }
+                    const bear = { r: bearRec.startRow, c: bearRec.startCol, s: 3 };
+                    pushHistorySnapshot();
+                    furnaceRecords().slice().forEach((rec) => removePlacedItem(rec.el, { skipHistory: true }));
+                    const slots = api.furnaceSlotsAroundBear(bear, CONFIG.gridSize, CONFIG.occupiedCells, roster.length, null);
+                    let made = 0;
+                    roster.forEach((row, i) => {
+                        const slot = slots[i];
+                        if (!slot) return;
+                        if (placeItemAt(slot.r, slot.c, 2, BEAPIT_COLOR_BY_SIZE[2], row.name, FURNACE_IMG, BEAPIT_DEFAULT_TWO_BY_TWO_NAME_COLOR, true, false, { skipHistory: true })) {
+                            made += 1;
+                        }
+                    });
+                    renderCoordsTable();
+                    saveLayout({ silent: true });
+                    closeModal(listModal);
+                    closeModal(layoutModal);
+                    if (made < roster.length) {
+                        setStatus('空间不够，已放下 ' + made + '/' + roster.length + ' 个炉子', 'err');
+                        setTip('只放下了 ' + made + ' 个炉子。');
+                    } else {
+                        setStatus('已按实力从高到低排布 ' + made + ' 个炉子', 'ok');
+                        setTip('已重新排列炉子，实力高的更靠近熊坑。');
+                    }
+                }
+                function openCollectList() {
+                    openModal(listModal);
+                    ensureCollectSession().then(() => refreshCollectList()).catch(() => {
+                        setStatus('收集服务暂不可用', 'err');
+                    });
+                }
+                function openLayoutModal() {
+                    if (!collectEntries.length) {
+                        ensureCollectSession().then(() => refreshCollectList()).then(() => {
+                            if (!collectEntries.length) {
+                                setStatus('还没有收集到信息', 'err');
+                                return;
+                            }
+                            closeModal(listModal);
+                            openModal(layoutModal);
+                        }).catch(() => setStatus('收集服务暂不可用', 'err'));
+                        return;
+                    }
+                    closeModal(listModal);
+                    openModal(layoutModal);
+                }
+                restoreCollectSession();
+                if (collectKey && hostToken) refreshCollectList(true);
+                btnShare?.addEventListener('click', () => {
+                    ensureCollectSession().then(async () => {
+                        const url = fillUrl();
+                        if (urlInput) urlInput.value = url;
+                        const copied = await copyText('hi～快来填写你的游戏信息！\n' + url);
+                        setStatus(copied ? '已复制填写链接，发给盟友即可' : '已生成链接，请手动复制', copied ? 'ok' : 'err');
+                        openCollectList();
+                    }).catch(() => setStatus('收集服务暂不可用', 'err'));
+                });
+                btnList?.addEventListener('click', openCollectList);
+                btnLayout?.addEventListener('click', openLayoutModal);
+                btnLayoutFromList?.addEventListener('click', openLayoutModal);
+                document.getElementById('collectListClose')?.addEventListener('click', () => closeModal(listModal));
+                document.getElementById('collectLayoutClose')?.addEventListener('click', () => closeModal(layoutModal));
+                document.getElementById('collectLayoutCancel')?.addEventListener('click', () => closeModal(layoutModal));
+                document.getElementById('btnCopyCollectUrl')?.addEventListener('click', async () => {
+                    const url = (urlInput && urlInput.value) || fillUrl();
+                    if (!url) { setStatus('请先点收集信息', 'err'); return; }
+                    const copied = await copyText(url);
+                    setStatus(copied ? '已复制填写链接' : '请手动复制链接', copied ? 'ok' : 'err');
+                });
+                document.getElementById('btnRefreshCollect')?.addEventListener('click', () => refreshCollectList());
+                document.getElementById('btnClearCollect')?.addEventListener('click', () => {
+                    if (!collectEntries.length) return;
+                    if (!window.confirm('确定清空已收集的信息？')) return;
+                    api.clearCollectEntries(collectKey, hostToken).then(() => {
+                        collectEntries = [];
+                        updateCollectCountLabel();
+                        renderCollectList();
+                    }).catch(() => setStatus('清空失败', 'err'));
+                });
+                listEl?.addEventListener('click', (e) => {
+                    const del = e.target && e.target.closest && e.target.closest('.collect-del');
+                    if (!del) return;
+                    const id = Number(del.getAttribute('data-id'));
+                    if (!id) return;
+                    api.deleteCollectEntry(collectKey, id, hostToken).then(() => refreshCollectList()).catch(() => setStatus('删除失败', 'err'));
+                });
+                document.getElementById('collectModeFill')?.addEventListener('click', () => setLayoutMode('fill'));
+                document.getElementById('collectModeRearrange')?.addEventListener('click', () => setLayoutMode('rearrange'));
+                document.getElementById('collectLayoutDo')?.addEventListener('click', () => {
+                    if (layoutMode === 'rearrange') applyRearrange();
+                    else applyFillNamesOnly();
+                });
+                listModal?.addEventListener('click', (e) => { if (e.target === listModal) closeModal(listModal); });
+                layoutModal?.addEventListener('click', (e) => { if (e.target === layoutModal) closeModal(layoutModal); });
+            })();
+
             document.getElementById('btnExportConfig')?.addEventListener('click', exportConfigBeaPit);
             document.getElementById('btnImportConfig')?.addEventListener('click', importConfigBeaPit);
             bindCoordsTableEditDelegation();

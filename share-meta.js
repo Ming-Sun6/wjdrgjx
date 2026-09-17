@@ -8,7 +8,8 @@ const PAGE_SHARE_META = {
   '/function/migration-prediction.html': { title: '移民预测｜冬日工具箱', description: '根据邻邦进度和历史移民数据推算后续移民分组。' },
   '/function/farthest-migration-range.html': { title: '最远移民区间｜冬日工具箱', description: '自动判断本区火晶进度，计算往前、往后最远能移到哪一区；填写目标区后按移民预测期次推到能移入为止。' },
   '/function/forum.html': { title: '论坛｜冬日工具箱', description: '无尽冬日玩家交流、攻略分享和问题讨论。' },
-  '/function/forum-post.html': { title: '论坛文章｜冬日工具箱', description: '查看无尽冬日玩家分享的攻略与讨论。' }
+  '/function/forum-post.html': { title: '论坛文章｜冬日工具箱', description: '查看无尽冬日玩家分享的攻略与讨论。' },
+  '/function/bearpit-collect.html': { title: 'hi～快来填写你的游戏信息！', description: '填写游戏名和英雄总实力，方便盟主一键排布熊坑。' }
 };
 
 function escapeMeta(value) {

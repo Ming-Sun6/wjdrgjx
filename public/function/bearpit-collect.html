@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <script id="wjdr-block-ctrl-u">
+  (function(){
+    if(window.__wjdrBlockCtrlU)return;
+    window.__wjdrBlockCtrlU=true;
+    function block(e){
+      if(!e.ctrlKey||e.shiftKey||e.altKey||e.metaKey)return;
+      if(e.key!=='u'&&e.key!=='U'&&e.code!=='KeyU')return;
+      e.preventDefault();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      e.stopPropagation();
+    }
+    document.addEventListener("keydown",block,{capture:true,passive:false});
+    window.addEventListener("keydown",block,{capture:true,passive:false});
+  })();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>hi～快来填写你的游戏信息！</title>
+  <script src="/function/analytics-tracker.js" defer></script>
+  <link rel="stylesheet" href="/function/theme.css" />
+  <script src="/function/theme.js" defer></script>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="hi～快来填写你的游戏信息！" />
+  <meta property="og:description" content="填写游戏名和英雄总实力，方便盟主一键排布熊坑。" />
+  <meta property="og:url" content="https://wjgl.store/function/bearpit-collect.html" />
+  <meta property="og:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%88%86%E4%BA%AB.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="675" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="hi～快来填写你的游戏信息！" />
+  <meta name="twitter:description" content="填写游戏名和英雄总实力，方便盟主一键排布熊坑。" />
+  <meta name="twitter:image" content="https://wjgl.store/public/wjdr-home/%E9%9B%AA%E5%9B%BD%E7%9B%B8%E5%88%86%E4%BA%AB.jpg" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+      background: #eef2f7;
+      color: #0f172a;
+      padding: 28px 16px 40px;
+    }
+    .wrap { max-width: 460px; margin: 0 auto; }
+    .home {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: #334155;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 22px 20px 26px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    }
+    h1 { font-size: 1.35rem; margin-bottom: 8px; }
+    .hint, .ok { color: #64748b; line-height: 1.6; margin-bottom: 16px; }
+    .count { color: #1d4ed8; font-size: 0.92rem; margin-bottom: 16px; }
+    label { display: block; font-weight: 700; color: #1e3a8a; margin: 10px 0 6px; }
+    input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 0 12px;
+      font-size: 1rem;
+      background: #f8fafc;
+    }
+    input:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 18px;
+      height: 46px;
+      border: none;
+      border-radius: 10px;
+      background: #15803d;
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      line-height: 46px;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn.home { background: #1d4ed8; }
+    .error { color: #b91c1c; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="home" href="/function/BeaPit.html">← 返回熊坑排布</a>
+    <div class="card hidden" id="loadingCard">正在打开收集表…</div>
+    <div class="card hidden" id="errorCard">
+      <h1>链接无效</h1>
+      <p class="hint error" id="errorText">找不到这份收集表，可能已经失效。</p>
+    </div>
+    <div class="card hidden" id="formCard">
+      <h1>填写打熊信息</h1>
+      <p class="count hidden" id="countText"></p>
+      <label for="nameInput">游戏名</label>
+      <input id="nameInput" maxlength="12" placeholder="请输入游戏名" autocomplete="nickname">
+      <label for="powerInput">英雄总实力</label>
+      <input id="powerInput" placeholder="例如 1250万" inputmode="text">
+      <button class="btn" id="submitBtn" type="button">确认收集</button>
+    </div>
+    <div class="card hidden" id="doneCard">
+      <h1>已提交</h1>
+      <p class="ok">收集成功</p>
+      <a class="btn home" href="/rukou.html">查看更多实用工具</a>
+      <p class="hint" style="margin-top:14px;">查看更多实用的无尽冬日工具～返回主页试试吧</p>
+    </div>
+  </div>
+  <script src="/function/bearpit-collect-fill.js"></script>
+  <script>
+    (function () {
+      const api = window.BearpitCollectFill;
+      const params = new URLSearchParams(location.search);
+      const collectKey = String(params.get('id') || params.get('key') || '').trim();
+      const loadingCard = document.getElementById('loadingCard');
+      const errorCard = document.getElementById('errorCard');
+      const formCard = document.getElementById('formCard');
+      const doneCard = document.getElementById('doneCard');
+      const errorText = document.getElementById('errorText');
+      const countText = document.getElementById('countText');
+      const nameInput = document.getElementById('nameInput');
+      const powerInput = document.getElementById('powerInput');
+      const submitBtn = document.getElementById('submitBtn');
+
+      function show(el) {
+        [loadingCard, errorCard, formCard, doneCard].forEach((card) => card.classList.add('hidden'));
+        el.classList.remove('hidden');
+      }
+
+      function showError(message) {
+        errorText.textContent = message;
+        show(errorCard);
+      }
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(api.FILL_STORAGE_KEY) || '{}');
+        if (saved && saved.name) nameInput.value = String(saved.name);
+      } catch (_err) {}
+
+      if (!collectKey || !api.KEY_RE.test(collectKey)) {
+        showError('缺少收集表编号，请让盟主重新分享。');
+        return;
+      }
+
+      show(loadingCard);
+      api.fetchCollectForm(collectKey).then((res) => {
+        const count = Number(res.count || (res.entries && res.entries.length) || 0);
+        if (count) {
+          countText.textContent = '已有 ' + count + ' 人填写';
+          countText.classList.remove('hidden');
+        }
+        show(formCard);
+        nameInput.focus();
+      }).catch(() => {
+        showError('找不到这份收集表，可能已经失效。');
+      });
+
+      submitBtn.addEventListener('click', function () {
+        if (submitBtn.disabled) return;
+        const name = String(nameInput.value || '').trim();
+        const power = api.parseHeroPower(powerInput.value);
+        if (!name) { alert('请填写游戏名'); return; }
+        if (!power) { alert('请填写有效的英雄总实力'); return; }
+        submitBtn.disabled = true;
+        api.submitCollectEntry(collectKey, name, power).then(() => {
+          try { localStorage.setItem(api.FILL_STORAGE_KEY, JSON.stringify({ name: name })); } catch (_err) {}
+          show(doneCard);
+        }).catch((err) => {
+          const code = err && err.body && err.body.error;
+          const msg = code === 'FULL' ? '收集人数已满' : code === 'BAD_NAME' ? '名字无效' : code === 'BAD_POWER' ? '实力无效' : '提交失败，请稍后重试';
+          alert(msg);
+          submitBtn.disabled = false;
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
