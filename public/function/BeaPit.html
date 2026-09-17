@@ -172,6 +172,11 @@
             font-weight: 700;
         }
         .auth-btn:hover { background: rgba(59, 130, 246, 0.28); }
+        .auth-btn.help-guide-btn {
+            background: rgba(245, 158, 11, 0.22);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        .auth-btn.help-guide-btn:hover { background: rgba(245, 158, 11, 0.34); }
 
         .muted { color: var(--muted) !important; }
         .theme-toggle {
@@ -1331,7 +1336,7 @@
         }
 
         /* 导入/导出/确认/备份弹窗 */
-        .import-modal, .export-modal, .confirm-modal, .backup-modal, .collect-modal {
+        .import-modal, .export-modal, .confirm-modal, .backup-modal, .collect-modal, .help-modal {
             position: fixed;
             inset: 0;
             display: none;
@@ -1341,8 +1346,8 @@
             z-index: 10003;
             padding: 16px;
         }
-        .import-modal.open, .export-modal.open, .confirm-modal.open, .backup-modal.open, .collect-modal.open { display: flex; }
-        .import-panel, .export-panel, .confirm-panel, .backup-panel, .collect-panel {
+        .import-modal.open, .export-modal.open, .confirm-modal.open, .backup-modal.open, .collect-modal.open, .help-modal.open { display: flex; }
+        .import-panel, .export-panel, .confirm-panel, .backup-panel, .collect-panel, .help-panel {
             width: 560px;
             max-width: 96vw;
             max-height: 88vh;
@@ -1357,16 +1362,16 @@
             flex-direction: column;
         }
         .confirm-panel { width: 520px; }
-        .backup-panel, .collect-panel { width: 620px; }
-        .import-title, .export-title, .confirm-title, .backup-title, .collect-title {
+        .backup-panel, .collect-panel, .help-panel { width: 620px; }
+        .import-title, .export-title, .confirm-title, .backup-title, .collect-title, .help-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 14px 14px 10px;
             border-bottom: 1px solid var(--border);
         }
-        .import-title h3, .export-title h3, .confirm-title h3, .backup-title h3, .collect-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
-        .import-close, .export-close, .confirm-close, .backup-close, .collect-close {
+        .import-title h3, .export-title h3, .confirm-title h3, .backup-title h3, .collect-title h3, .help-title h3 { margin: 0; font-size: 1.05rem; color: var(--text); }
+        .import-close, .export-close, .confirm-close, .backup-close, .collect-close, .help-close {
             background: rgba(239, 68, 68, 0.2);
             color: #f87171;
             border: none;
@@ -1377,7 +1382,7 @@
             padding: 0;
             font-size: 1rem;
         }
-        .import-body, .export-body, .confirm-body, .backup-body, .collect-body { padding: 12px 14px; overflow: auto; }
+        .import-body, .export-body, .confirm-body, .backup-body, .collect-body, .help-body { padding: 12px 14px; overflow: auto; }
         .backup-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow: auto; }
         .backup-list-item {
             display: flex;
@@ -1421,6 +1426,15 @@
         .collect-name { font-weight: 700; }
         .collect-power { color: var(--muted); font-size: 0.86rem; margin-left: 8px; }
         .collect-del { color: #ef4444; cursor: pointer; font-weight: 700; }
+        .help-section { margin: 0 0 16px; }
+        .help-section h4 {
+            margin: 0 0 8px;
+            font-size: 0.95rem;
+            color: var(--text);
+        }
+        .help-item { margin: 0 0 8px; font-size: 0.88rem; line-height: 1.55; color: var(--text); }
+        .help-item strong { color: var(--text); }
+        .help-item span { color: var(--muted); }
         .btn.collect-quick.on { background: #ca8a04; color: #fff; }
         body.beapit-quick-assign .placed-item.size-2 { cursor: pointer; }
         body.beapit-quick-assign .placed-item.size-2 .item-name-input,
@@ -1498,6 +1512,7 @@
 <body>
     <a class="home-btn" href="../rukou.html">← 返回主页</a>
     <div class="auth-bar" id="authBar">
+        <button class="auth-btn help-guide-btn" id="btnBeaPitHelp" type="button">使用教程</button>
         <span class="auth-pill" id="authPill"><span class="muted">未登录</span></span>
         <button class="auth-btn" id="btnLogin" type="button">登录/注册</button>
         <button class="auth-btn" id="btnLogout" type="button" style="display:none;">退出</button>
@@ -1760,6 +1775,56 @@
             <div class="collect-actions">
                 <button class="btn secondary" id="collectLayoutCancel" type="button">取消</button>
                 <button class="btn collect-green" id="collectLayoutDo" type="button">开始排布</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用教程弹窗 -->
+    <div class="help-modal" id="beapitHelpModal" aria-hidden="true">
+        <div class="help-panel" role="dialog" aria-modal="true" aria-label="使用教程">
+            <div class="help-title">
+                <h3>熊坑排布使用教程</h3>
+                <button class="help-close" id="beapitHelpClose" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="help-body">
+                <div class="help-section">
+                    <h4>画布操作</h4>
+                    <p class="help-item"><strong>拖拽空白处</strong> <span>移动视图。</span></p>
+                    <p class="help-item"><strong>滚轮 / 双指缩放</strong> <span>放大缩小网格。</span></p>
+                    <p class="help-item"><strong>侧栏选建筑再点格子</strong> <span>摆放旗帜、山、湖、炉子、熊坑等。点「退出建造」可取消选中。</span></p>
+                    <p class="help-item"><strong>右键已摆放建筑</strong> <span>删除该建筑。</span></p>
+                    <p class="help-item"><strong>双击炉子名字</strong> <span>手动改命名、颜色、加粗或斜体。</span></p>
+                </div>
+                <div class="help-section">
+                    <h4>存档与分享</h4>
+                    <p class="help-item"><strong>编辑密码</strong> <span>给本机存档加个口令，保存和加载时用。</span></p>
+                    <p class="help-item"><strong>保存/更新</strong> <span>把当前排布存到本机；登录后也会同步到账号。</span></p>
+                    <p class="help-item"><strong>保存方案</strong> <span>另存一份带标题的方案，方便以后切换。</span></p>
+                    <p class="help-item"><strong>加载</strong> <span>读取本机或账号里已保存的排布。</span></p>
+                    <p class="help-item"><strong>导出配置</strong> <span>登录后生成 16 位分享秘钥，发给别人还原你的地形。秘钥只显示一次。</span></p>
+                    <p class="help-item"><strong>导入配置</strong> <span>粘贴别人的分享秘钥，导入会覆盖当前摆放。</span></p>
+                </div>
+                <div class="help-section">
+                    <h4>收集盟友信息</h4>
+                    <p class="help-item"><strong>收集信息</strong> <span>生成填写链接并复制，发给盟友。他们不用登录，填游戏名和英雄总实力即可。小程序同一份收集表这里也能用。</span></p>
+                    <p class="help-item"><strong>已收集</strong> <span>查看、刷新、删除或清空已经交上来的名单。</span></p>
+                    <p class="help-item"><strong>一键排布</strong> <span>按战力从高到低自动排。「仅填名字」不挪现有炉子，不够会补炉子；「重新排列」会先去掉现有炉子，再围着熊坑摆。</span></p>
+                    <p class="help-item"><strong>快速排布</strong> <span>进入点选模式后，点一座炉子填战力最高的人，再点下一座填第二高，直到名单排完。已点过的炉子不会覆盖。再点按钮或按 Esc 退出。</span></p>
+                </div>
+                <div class="help-section">
+                    <h4>编辑与导出</h4>
+                    <p class="help-item"><strong>撤销</strong> <span>回到上一步，快捷键 Ctrl+Z。</span></p>
+                    <p class="help-item"><strong>清空</strong> <span>删除当前所有已摆放建筑。</span></p>
+                    <p class="help-item"><strong>指定删除</strong> <span>打开后点击某个建筑即可删除，再点一次退出。</span></p>
+                    <p class="help-item"><strong>下载图片</strong> <span>把当前画面导出成图片。</span></p>
+                    <p class="help-item"><strong>建筑偏移</strong> <span>只平移贴图位置，方便对齐观感，不改格子坐标。</span></p>
+                    <p class="help-item"><strong>图标透明度</strong> <span>把建筑贴图调淡，更容易看清炉子上的名字。</span></p>
+                    <p class="help-item"><strong>横屏模式 / 坐标表</strong> <span>横屏后更方便在平板上排。坐标表可筛选、勾选炉子，批量改名字和颜色。</span></p>
+                </div>
+                <div class="help-section">
+                    <h4>登录</h4>
+                    <p class="help-item"><strong>登录/注册</strong> <span>用来同步存档、生成分享秘钥。收集盟友填写不需要登录。</span></p>
+                </div>
             </div>
         </div>
     </div>
@@ -4755,7 +4820,9 @@
                     }
                 }, true);
                 document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && quickMode) stopQuickAssign(false);
+                    if (e.key !== 'Escape' || !quickMode) return;
+                    if (document.getElementById('beapitHelpModal')?.classList.contains('open')) return;
+                    stopQuickAssign(false);
                 });
                 document.getElementById('collectListClose')?.addEventListener('click', () => closeModal(listModal));
                 document.getElementById('collectLayoutClose')?.addEventListener('click', () => closeModal(layoutModal));
@@ -4795,6 +4862,27 @@
 
             document.getElementById('btnExportConfig')?.addEventListener('click', exportConfigBeaPit);
             document.getElementById('btnImportConfig')?.addEventListener('click', importConfigBeaPit);
+            (function bindBeapitHelp() {
+                const modal = document.getElementById('beapitHelpModal');
+                const openBtn = document.getElementById('btnBeaPitHelp');
+                const closeBtn = document.getElementById('beapitHelpClose');
+                function openHelp() {
+                    if (!modal) return;
+                    modal.classList.add('open');
+                    modal.setAttribute('aria-hidden', 'false');
+                }
+                function closeHelp() {
+                    if (!modal) return;
+                    modal.classList.remove('open');
+                    modal.setAttribute('aria-hidden', 'true');
+                }
+                openBtn?.addEventListener('click', openHelp);
+                closeBtn?.addEventListener('click', closeHelp);
+                modal?.addEventListener('click', (e) => { if (e.target === modal) closeHelp(); });
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && modal?.classList.contains('open')) closeHelp();
+                });
+            })();
             bindCoordsTableEditDelegation();
             bindMultiBatchBar();
             bindCoordsTypeFilter();

@@ -86,6 +86,10 @@ test('website BeaPit page and public fill form expose collect flow', () => {
   assert.match(page, /btnCollectList/);
   assert.match(page, /btnCollectLayout/);
   assert.match(page, /btnCollectQuick/);
+  assert.match(page, /btnBeaPitHelp/);
+  assert.match(page, /使用教程/);
+  assert.match(page, /快速排布/);
+  assert.match(page, /收集信息/);
   assert.match(page, /nextQuickAssign/);
   assert.match(page, /beapit-quick-assign/);
   assert.match(page, /bearpit-collect-fill\.js/);
