@@ -53,6 +53,19 @@ test('website collect helper matches server power parsing', () => {
   assert.equal(fill.formatHeroPower(12500000), '1250万');
 });
 
+test('quick assign walks roster from highest power', () => {
+  const roster = [
+    { name: '乙', power: 200 },
+    { name: '甲', power: 900 },
+    { name: '丙', power: 400 }
+  ];
+  assert.equal(fill.nextQuickAssign(roster, 0).entry.name, '甲');
+  assert.equal(fill.nextQuickAssign(roster, 1).entry.name, '丙');
+  assert.equal(fill.nextQuickAssign(roster, 2).entry.name, '乙');
+  assert.equal(fill.nextQuickAssign(roster, 3), null);
+  assert.equal(fill.nextQuickAssign([], 0), null);
+});
+
 test('first ring around a 3x3 bear has 8 furnace slots', () => {
   const bear = { r: 10, c: 10, s: 3 };
   assert.equal(fill.ringSlotCount(1), 8);
@@ -72,6 +85,9 @@ test('website BeaPit page and public fill form expose collect flow', () => {
   assert.match(page, /btnCollectShare/);
   assert.match(page, /btnCollectList/);
   assert.match(page, /btnCollectLayout/);
+  assert.match(page, /btnCollectQuick/);
+  assert.match(page, /nextQuickAssign/);
+  assert.match(page, /beapit-quick-assign/);
   assert.match(page, /bearpit-collect-fill\.js/);
   assert.match(fillPage, /填写打熊信息/);
   assert.match(fillPage, /英雄总实力/);

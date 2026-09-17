@@ -1421,6 +1421,10 @@
         .collect-name { font-weight: 700; }
         .collect-power { color: var(--muted); font-size: 0.86rem; margin-left: 8px; }
         .collect-del { color: #ef4444; cursor: pointer; font-weight: 700; }
+        .btn.collect-quick.on { background: #ca8a04; color: #fff; }
+        body.beapit-quick-assign .placed-item.size-2 { cursor: pointer; }
+        body.beapit-quick-assign .placed-item.size-2 .item-name-input,
+        body.beapit-quick-assign .placed-item.size-2 .item-format-bar { pointer-events: none; }
 
         .import-hint, .export-hint { margin: 0 0 10px; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
         .import-textarea, .export-textarea {
@@ -1511,6 +1515,7 @@
                 <button class="btn secondary" id="btnCollectShare" type="button">收集信息</button>
                 <button class="btn secondary" id="btnCollectList" type="button">已收集</button>
                 <button class="btn collect-green" id="btnCollectLayout" type="button">一键排布</button>
+                <button class="btn collect-quick" id="btnCollectQuick" type="button">快速排布</button>
             </span>
             <div class="actions">
                 <button class="btn secondary" id="btnUndo" type="button" disabled>撤销（Ctrl+Z）</button>
@@ -1731,6 +1736,7 @@
                     <button class="btn secondary" id="btnRefreshCollect" type="button">刷新</button>
                     <button class="btn danger" id="btnClearCollect" type="button">清空</button>
                     <button class="btn collect-green" id="btnCollectLayoutFromList" type="button">一键排布</button>
+                    <button class="btn collect-quick" id="btnCollectQuickFromList" type="button">快速排布</button>
                 </div>
                 <div class="collect-list" id="collectEntryList"></div>
             </div>
@@ -4414,12 +4420,17 @@
                 const btnList = document.getElementById('btnCollectList');
                 const btnLayout = document.getElementById('btnCollectLayout');
                 const btnLayoutFromList = document.getElementById('btnCollectLayoutFromList');
+                const btnQuick = document.getElementById('btnCollectQuick');
+                const btnQuickFromList = document.getElementById('btnCollectQuickFromList');
                 const FURNACE_IMG = '../Scores/castle.png';
                 let collectKey = '';
                 let hostToken = '';
                 let collectEntries = [];
                 let layoutMode = 'fill';
                 let ensuring = null;
+                let quickMode = false;
+                let quickIndex = 0;
+                let quickAnchors = new Set();
 
                 function restoreCollectSession() {
                     try {
@@ -4598,6 +4609,88 @@
                         setTip('已重新排列炉子，实力高的更靠近熊坑。');
                     }
                 }
+                function furnaceAnchor(rec) {
+                    return rec.startRow + ',' + rec.startCol + ',' + rec.size;
+                }
+                function updateQuickButtons() {
+                    const next = api.nextQuickAssign(collectEntries, quickIndex);
+                    const label = quickMode
+                        ? (next ? '退出快速排布 ' + (next.index + 1) + '/' + next.total : '退出快速排布')
+                        : '快速排布';
+                    [btnQuick, btnQuickFromList].forEach((btn) => {
+                        if (!btn) return;
+                        btn.textContent = label;
+                        btn.classList.toggle('on', quickMode);
+                    });
+                }
+                function stopQuickAssign(done) {
+                    quickMode = false;
+                    document.body.classList.remove('beapit-quick-assign');
+                    quickAnchors = new Set();
+                    updateQuickButtons();
+                    if (done) {
+                        setStatus('已按战力点完所有人', 'ok');
+                        setTip('快速排布完成。可以继续微调名字，或再点快速排布重新来。');
+                    } else {
+                        setTip('已退出快速排布。请点击侧栏选择需要摆放的物品。拖拽移动视图，滚轮缩放。右键已摆放物品可删除。');
+                    }
+                }
+                function startQuickAssign() {
+                    const next = api.nextQuickAssign(collectEntries, 0);
+                    if (!next) {
+                        setStatus('还没有收集到信息', 'err');
+                        return;
+                    }
+                    if (CONFIG.deleteMode) toggleDeleteMode();
+                    deselectBuildItem();
+                    closeModal(listModal);
+                    closeModal(layoutModal);
+                    quickMode = true;
+                    quickIndex = 0;
+                    quickAnchors = new Set();
+                    pushHistorySnapshot();
+                    document.body.classList.add('beapit-quick-assign');
+                    updateQuickButtons();
+                    setStatus('快速排布中：请点击炉子', 'ok');
+                    setTip('下一个：' + next.entry.name + '（' + api.formatHeroPower(next.entry.power) + '）· 共 ' + next.total + ' 人，再点一次按钮可退出');
+                }
+                function assignQuickToFurnace(rec) {
+                    const next = api.nextQuickAssign(collectEntries, quickIndex);
+                    if (!next) {
+                        stopQuickAssign(true);
+                        return;
+                    }
+                    const anchor = furnaceAnchor(rec);
+                    if (quickAnchors.has(anchor)) {
+                        setTip('这个炉子已经排过了，请点下一个。下一个：' + next.entry.name);
+                        return;
+                    }
+                    applyPlacedItemNameMeta(rec, { name: next.entry.name, nameBold: true });
+                    quickAnchors.add(anchor);
+                    quickIndex += 1;
+                    renderCoordsTable();
+                    saveLayout({ silent: true });
+                    const following = api.nextQuickAssign(collectEntries, quickIndex);
+                    updateQuickButtons();
+                    if (!following) {
+                        stopQuickAssign(true);
+                        return;
+                    }
+                    setTip('已放 ' + next.entry.name + '。下一个：' + following.entry.name + '（' + api.formatHeroPower(following.entry.power) + '）· 还剩 ' + (following.remainingAfter + 1) + ' 人');
+                }
+                function onQuickAssignClick(e) {
+                    if (!quickMode) return;
+                    const el = e.target && e.target.closest && e.target.closest('.placed-item');
+                    if (!el || !CONFIG.frame.contains(el)) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rec = CONFIG.placedList.find((it) => it.el === el);
+                    if (!rec || rec.size !== 2 || !isFurnaceStoveSpritePath(rec.img)) {
+                        setTip('请点击炉子来排名字。');
+                        return;
+                    }
+                    assignQuickToFurnace(rec);
+                }
                 function openCollectList() {
                     openModal(listModal);
                     ensureCollectSession().then(() => refreshCollectList()).catch(() => {
@@ -4633,6 +4726,37 @@
                 btnList?.addEventListener('click', openCollectList);
                 btnLayout?.addEventListener('click', openLayoutModal);
                 btnLayoutFromList?.addEventListener('click', openLayoutModal);
+                function requestQuickAssign() {
+                    if (quickMode) {
+                        stopQuickAssign(false);
+                        return;
+                    }
+                    const begin = () => startQuickAssign();
+                    if (collectEntries.length) {
+                        begin();
+                        return;
+                    }
+                    ensureCollectSession().then(() => refreshCollectList()).then(() => begin()).catch(() => {
+                        setStatus('收集服务暂不可用', 'err');
+                    });
+                }
+                btnQuick?.addEventListener('click', requestQuickAssign);
+                btnQuickFromList?.addEventListener('click', requestQuickAssign);
+                CONFIG.frame.addEventListener('click', onQuickAssignClick, true);
+                CONFIG.frame.addEventListener('dblclick', (e) => {
+                    if (quickMode && e.target && e.target.closest && e.target.closest('.placed-item')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }, true);
+                CONFIG.frame.addEventListener('mousedown', (e) => {
+                    if (quickMode && e.target && e.target.closest && e.target.closest('.placed-item')) {
+                        e.preventDefault();
+                    }
+                }, true);
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && quickMode) stopQuickAssign(false);
+                });
                 document.getElementById('collectListClose')?.addEventListener('click', () => closeModal(listModal));
                 document.getElementById('collectLayoutClose')?.addEventListener('click', () => closeModal(layoutModal));
                 document.getElementById('collectLayoutCancel')?.addEventListener('click', () => closeModal(layoutModal));

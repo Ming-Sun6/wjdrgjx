@@ -248,6 +248,18 @@
     });
   }
 
+  function nextQuickAssign(entries, assignedCount) {
+    const roster = sortRosterByPower(entries);
+    const index = Math.max(0, Math.floor(Number(assignedCount) || 0));
+    if (!roster.length || index >= roster.length) return null;
+    return {
+      entry: roster[index],
+      index,
+      total: roster.length,
+      remainingAfter: roster.length - index - 1
+    };
+  }
+
   function collectFillUrl(collectKey, origin) {
     const key = String(collectKey || '').trim();
     const base = String(origin || (typeof location !== 'undefined' ? location.origin : 'https://wjgl.store')).replace(/\/$/, '');
@@ -322,6 +334,7 @@
     neededRingCount,
     furnaceSlotsAroundBear,
     sortFurnacesForFill,
+    nextQuickAssign,
     collectFillUrl,
     createCollectForm,
     fetchCollectForm,
