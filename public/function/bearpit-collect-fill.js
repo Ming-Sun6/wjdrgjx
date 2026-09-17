@@ -353,7 +353,9 @@
 
   function createCollectForm(collectKey, hostToken, options) {
     const payload = {};
-    if (KEY_RE.test(String(collectKey || '')) && TOKEN_RE.test(String(hostToken || ''))) {
+    if (options && options.createNew) payload.createNew = true;
+    if (options && options.title) payload.title = options.title;
+    if (!payload.createNew && KEY_RE.test(String(collectKey || '')) && TOKEN_RE.test(String(hostToken || ''))) {
       payload.collectKey = collectKey;
       payload.hostToken = hostToken;
     }
@@ -363,6 +365,26 @@
       payload.rankField = normalizeRankField(fields, options.rankField);
     }
     return requestCollect('POST', '/api/bearpit/collect', payload);
+  }
+
+  function listMyCollectForms() {
+    return requestCollect('GET', '/api/bearpit/collect/mine');
+  }
+
+  function renameCollectForm(key, hostToken, title) {
+    return requestCollect(
+      'POST',
+      '/api/bearpit/collect/' + encodeURIComponent(key) + '/rename',
+      { hostToken, title }
+    );
+  }
+
+  function destroyCollectForm(key, hostToken) {
+    return requestCollect(
+      'POST',
+      '/api/bearpit/collect/' + encodeURIComponent(key) + '/destroy',
+      { hostToken }
+    );
   }
 
   function fetchCollectForm(key, hostToken) {
@@ -418,6 +440,9 @@
     nextQuickAssign,
     collectFillUrl,
     createCollectForm,
+    listMyCollectForms,
+    renameCollectForm,
+    destroyCollectForm,
     fetchCollectForm,
     submitCollectEntry,
     deleteCollectEntry,

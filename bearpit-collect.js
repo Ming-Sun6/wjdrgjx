@@ -4,6 +4,9 @@ const { generateShareKey } = require('./bearpit-backups');
 
 const MAX_ENTRIES = 80;
 const MAX_NAME_LEN = 12;
+const MAX_TITLE_LEN = 16;
+const MAX_FORMS_PER_USER = 20;
+const DEFAULT_COLLECT_TITLE = '收集名单';
 const KEY_RE = /^[A-Za-z0-9]{16}$/;
 const TOKEN_RE = /^[A-Za-z0-9]{24}$/;
 
@@ -69,6 +72,11 @@ function generateHostToken() {
 function normalizeCollectName(value) {
   const name = Array.from(String(value || '').trim().replace(/\s+/g, ' ')).slice(0, MAX_NAME_LEN).join('');
   return name || null;
+}
+
+function normalizeCollectTitle(value) {
+  const title = Array.from(String(value || '').trim().replace(/\s+/g, ' ')).slice(0, MAX_TITLE_LEN).join('');
+  return title || DEFAULT_COLLECT_TITLE;
 }
 
 function parseHeroPower(raw) {
@@ -161,7 +169,11 @@ function parseSubmittedStats(body, fields) {
 function mapFormConfig(row) {
   const fields = normalizeCollectFields(row && row.fields_json);
   const rankField = normalizeRankField(fields, row && row.rank_field);
-  return { fields, rankField };
+  return {
+    fields,
+    rankField,
+    title: normalizeCollectTitle(row && row.title)
+  };
 }
 
 function mapEntry(row, rankField) {
@@ -179,7 +191,7 @@ function mapEntry(row, rankField) {
 }
 
 function mountBearpitCollectRoutes(deps) {
-  const { app, queryRows, queryOne, execute, pgDatabase } = deps;
+  const { app, queryRows, queryOne, execute, pgDatabase, currentUserFromRequest, requireAuth } = deps;
   let tablesReady = false;
 
   async function addColumn(table, mysqlDdl, pgDdl) {
@@ -211,14 +223,80 @@ function mountBearpitCollectRoutes(deps) {
       'stats_json TEXT NULL',
       'stats_json jsonb'
     );
+    await addColumn(
+      'bearpit_collect_forms',
+      'user_id INT NULL',
+      'user_id integer NULL'
+    );
+    await addColumn(
+      'bearpit_collect_forms',
+      "title VARCHAR(16) NOT NULL DEFAULT '收集名单'",
+      "title varchar(16) NOT NULL DEFAULT '收集名单'"
+    );
+    if (pgDatabase) {
+      await execute('CREATE INDEX IF NOT EXISTS idx_bearpit_collect_forms_user ON bearpit_collect_forms (user_id, created_at DESC)');
+    } else {
+      try {
+        await execute('CREATE INDEX idx_bearpit_collect_forms_user ON bearpit_collect_forms (user_id, created_at)');
+      } catch (_err) {}
+    }
     tablesReady = true;
   }
 
   async function getForm(key) {
     return queryOne(
-      'SELECT collect_key, host_token, created_at, fields_json, rank_field FROM bearpit_collect_forms WHERE collect_key = ? LIMIT 1',
+      'SELECT collect_key, host_token, created_at, fields_json, rank_field, title, user_id FROM bearpit_collect_forms WHERE collect_key = ? LIMIT 1',
       [key]
     );
+  }
+
+  function ownerOk(form, user) {
+    return Boolean(form && user && form.user_id != null && Number(form.user_id) === Number(user.id));
+  }
+
+  async function hostOk(form, token, req) {
+    if (tokenOk(form, token)) return true;
+    if (!currentUserFromRequest) return false;
+    const user = await currentUserFromRequest(req);
+    return ownerOk(form, user);
+  }
+
+  async function countUserForms(userId) {
+    const row = await queryOne(
+      'SELECT COUNT(*) AS n FROM bearpit_collect_forms WHERE user_id = ?',
+      [userId]
+    );
+    return Number(row && row.n) || 0;
+  }
+
+  async function insertForm(fields, rankField, title, userId) {
+    const hostToken = generateHostToken();
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const candidate = generateShareKey();
+      try {
+        await execute(
+          'INSERT INTO bearpit_collect_forms (collect_key, host_token, created_at, fields_json, rank_field, title, user_id) VALUES (?, ?, CURRENT_TIMESTAMP(3), ?, ?, ?, ?)',
+          [candidate, hostToken, stringifyJson(fields), rankField, title, userId == null ? null : Number(userId)]
+        );
+        return { collectKey: candidate, hostToken };
+      } catch (err) {
+        if (!String(err?.message || '').toLowerCase().includes('duplicate') && !String(err?.code || '').toUpperCase().includes('DUP')) throw err;
+      }
+    }
+    return null;
+  }
+
+  function mapOwnedForm(row, count) {
+    const config = mapFormConfig(row);
+    return {
+      collectKey: String(row.collect_key),
+      hostToken: String(row.host_token),
+      title: config.title,
+      fields: config.fields,
+      rankField: config.rankField,
+      count: Number(count) || 0,
+      createdAt: row.created_at
+    };
   }
 
   async function saveFormConfig(key, fields, rankField) {
@@ -236,42 +314,93 @@ function mountBearpitCollectRoutes(deps) {
   app.post('/api/bearpit/collect', async (req, res) => {
     try {
       await ensureTables();
+      const user = currentUserFromRequest ? await currentUserFromRequest(req) : null;
       const hasConfig = Array.isArray(req.body?.fields);
       const fields = hasConfig ? normalizeCollectFields(req.body?.fields) : DEFAULT_COLLECT_FIELDS.slice();
       const rankField = hasConfig
         ? normalizeRankField(fields, req.body?.rankField || req.body?.rank_field)
         : 'heroPower';
+      const title = req.body?.title != null ? normalizeCollectTitle(req.body.title) : null;
+      const createNew = Boolean(req.body?.createNew);
       const existingKey = String(req.body?.collectKey || '').trim();
       const existingToken = String(req.body?.hostToken || '').trim();
-      if (KEY_RE.test(existingKey) && TOKEN_RE.test(existingToken)) {
+      if (!createNew && KEY_RE.test(existingKey) && TOKEN_RE.test(existingToken)) {
         const form = await getForm(existingKey);
         if (form && tokenOk(form, existingToken)) {
+          const ownerId = form.user_id == null || form.user_id === '' ? null : Number(form.user_id);
+          if (user && ownerId && ownerId !== Number(user.id)) {
+            return res.status(403).json({ error: 'FORBIDDEN' });
+          }
+          if (user && !ownerId) {
+            await execute(
+              'UPDATE bearpit_collect_forms SET user_id = ?, title = ? WHERE collect_key = ?',
+              [Number(user.id), title || normalizeCollectTitle(form.title), existingKey]
+            );
+          } else if (title) {
+            await execute('UPDATE bearpit_collect_forms SET title = ? WHERE collect_key = ?', [title, existingKey]);
+          }
           if (hasConfig) await saveFormConfig(existingKey, fields, rankField);
-          const config = hasConfig ? { fields, rankField } : mapFormConfig(form);
-          return res.json({ ok: true, collectKey: existingKey, hostToken: existingToken, ...config });
+          const latest = await getForm(existingKey);
+          const config = mapFormConfig(latest || form);
+          return res.json({
+            ok: true,
+            collectKey: existingKey,
+            hostToken: existingToken,
+            title: config.title,
+            fields: hasConfig ? fields : config.fields,
+            rankField: hasConfig ? rankField : config.rankField
+          });
         }
       }
-      let collectKey = null;
-      const hostToken = generateHostToken();
       const createFields = hasConfig ? fields : DEFAULT_COLLECT_FIELDS.slice();
       const createRank = hasConfig ? rankField : 'heroPower';
-      for (let attempt = 0; attempt < 5; attempt += 1) {
-        const candidate = generateShareKey();
-        try {
-          await execute(
-            'INSERT INTO bearpit_collect_forms (collect_key, host_token, created_at, fields_json, rank_field) VALUES (?, ?, CURRENT_TIMESTAMP(3), ?, ?)',
-            [candidate, hostToken, stringifyJson(createFields), createRank]
-          );
-          collectKey = candidate;
-          break;
-        } catch (err) {
-          if (!String(err?.message || '').toLowerCase().includes('duplicate') && !String(err?.code || '').toUpperCase().includes('DUP')) throw err;
-        }
+      const createTitle = title || DEFAULT_COLLECT_TITLE;
+      if (user && (await countUserForms(user.id)) >= MAX_FORMS_PER_USER) {
+        return res.status(400).json({ error: 'FORM_LIMIT' });
       }
-      if (!collectKey) return res.status(503).json({ error: 'COLLECT_KEY_UNAVAILABLE' });
-      return res.json({ ok: true, collectKey, hostToken, fields: createFields, rankField: createRank });
+      const created = await insertForm(createFields, createRank, createTitle, user ? user.id : null);
+      if (!created) return res.status(503).json({ error: 'COLLECT_KEY_UNAVAILABLE' });
+      return res.json({
+        ok: true,
+        collectKey: created.collectKey,
+        hostToken: created.hostToken,
+        title: createTitle,
+        fields: createFields,
+        rankField: createRank
+      });
     } catch (err) {
       console.error('bearpit collect create failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
+  app.get('/api/bearpit/collect/mine', async (req, res) => {
+    try {
+      if (!requireAuth) return res.status(401).json({ error: 'UNAUTHORIZED' });
+      const user = await requireAuth(req, res);
+      if (!user) return;
+      await ensureTables();
+      const rows = await queryRows(
+        `
+        SELECT collect_key, host_token, created_at, fields_json, rank_field, title, user_id
+        FROM bearpit_collect_forms
+        WHERE user_id = ?
+        ORDER BY created_at DESC, collect_key DESC
+        `,
+        [Number(user.id)]
+      );
+      const forms = [];
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const countRow = await queryOne(
+          'SELECT COUNT(*) AS n FROM bearpit_collect_entries WHERE collect_key = ?',
+          [row.collect_key]
+        );
+        forms.push(mapOwnedForm(row, countRow && countRow.n));
+      }
+      return res.json({ ok: true, forms });
+    } catch (err) {
+      console.error('bearpit collect mine failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
     }
   });
@@ -285,7 +414,7 @@ function mountBearpitCollectRoutes(deps) {
       if (!form) return res.status(404).json({ error: 'NOT_FOUND' });
       const config = mapFormConfig(form);
       const token = String(req.query?.token || req.query?.hostToken || '').trim();
-      if (!tokenOk(form, token)) {
+      if (!(await hostOk(form, token, req))) {
         const countRow = await queryOne(
           'SELECT COUNT(*) AS n FROM bearpit_collect_entries WHERE collect_key = ?',
           [key]
@@ -310,6 +439,7 @@ function mountBearpitCollectRoutes(deps) {
       return res.json({
         ok: true,
         collectKey: key,
+        title: config.title,
         fields: config.fields,
         rankField: config.rankField,
         entries: rows.map((row) => mapEntry(row, config.rankField))
@@ -386,7 +516,7 @@ function mountBearpitCollectRoutes(deps) {
       if (!KEY_RE.test(key) || !Number.isFinite(id) || id <= 0) return res.status(400).json({ error: 'BAD_REQUEST' });
       const form = await getForm(key);
       if (!form) return res.status(404).json({ error: 'NOT_FOUND' });
-      if (!tokenOk(form, token)) return res.status(403).json({ error: 'FORBIDDEN' });
+      if (!(await hostOk(form, token, req))) return res.status(403).json({ error: 'FORBIDDEN' });
       await execute('DELETE FROM bearpit_collect_entries WHERE id = ? AND collect_key = ?', [id, key]);
       return res.json({ ok: true });
     } catch (err) {
@@ -403,11 +533,47 @@ function mountBearpitCollectRoutes(deps) {
       if (!KEY_RE.test(key)) return res.status(400).json({ error: 'BAD_KEY' });
       const form = await getForm(key);
       if (!form) return res.status(404).json({ error: 'NOT_FOUND' });
-      if (!tokenOk(form, token)) return res.status(403).json({ error: 'FORBIDDEN' });
+      if (!(await hostOk(form, token, req))) return res.status(403).json({ error: 'FORBIDDEN' });
       await execute('DELETE FROM bearpit_collect_entries WHERE collect_key = ?', [key]);
       return res.json({ ok: true });
     } catch (err) {
       console.error('bearpit collect clear failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
+  app.post('/api/bearpit/collect/:key/rename', async (req, res) => {
+    try {
+      await ensureTables();
+      const key = String(req.params.key || '').trim();
+      const token = String(req.body?.hostToken || req.body?.token || '').trim();
+      if (!KEY_RE.test(key)) return res.status(400).json({ error: 'BAD_KEY' });
+      const form = await getForm(key);
+      if (!form) return res.status(404).json({ error: 'NOT_FOUND' });
+      if (!(await hostOk(form, token, req))) return res.status(403).json({ error: 'FORBIDDEN' });
+      const title = normalizeCollectTitle(req.body?.title);
+      await execute('UPDATE bearpit_collect_forms SET title = ? WHERE collect_key = ?', [title, key]);
+      return res.json({ ok: true, title });
+    } catch (err) {
+      console.error('bearpit collect rename failed:', err);
+      return res.status(500).json({ error: 'INTERNAL_ERROR' });
+    }
+  });
+
+  app.post('/api/bearpit/collect/:key/destroy', async (req, res) => {
+    try {
+      await ensureTables();
+      const key = String(req.params.key || '').trim();
+      const token = String(req.body?.hostToken || req.body?.token || '').trim();
+      if (!KEY_RE.test(key)) return res.status(400).json({ error: 'BAD_KEY' });
+      const form = await getForm(key);
+      if (!form) return res.status(404).json({ error: 'NOT_FOUND' });
+      if (!(await hostOk(form, token, req))) return res.status(403).json({ error: 'FORBIDDEN' });
+      await execute('DELETE FROM bearpit_collect_entries WHERE collect_key = ?', [key]);
+      await execute('DELETE FROM bearpit_collect_forms WHERE collect_key = ?', [key]);
+      return res.json({ ok: true });
+    } catch (err) {
+      console.error('bearpit collect destroy failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
     }
   });
@@ -416,6 +582,9 @@ function mountBearpitCollectRoutes(deps) {
 module.exports = {
   MAX_ENTRIES,
   MAX_NAME_LEN,
+  MAX_TITLE_LEN,
+  MAX_FORMS_PER_USER,
+  DEFAULT_COLLECT_TITLE,
   KEY_RE,
   TOKEN_RE,
   COLLECT_FIELD_DEFS,
@@ -427,6 +596,7 @@ module.exports = {
   BEARPIT_COLLECT_ENTRIES_DDL_PG,
   generateHostToken,
   normalizeCollectName,
+  normalizeCollectTitle,
   parseHeroPower,
   parseStageCount,
   parseCollectValue,

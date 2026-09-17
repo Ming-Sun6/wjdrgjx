@@ -26,6 +26,14 @@ test('parseHeroPower accepts raw numbers and 万/亿', () => {
   assert.equal(parseHeroPower('abc'), null);
 });
 
+test('collect roster titles stay short and have a default', () => {
+  const { normalizeCollectTitle, DEFAULT_COLLECT_TITLE, MAX_TITLE_LEN, MAX_FORMS_PER_USER } = require('../bearpit-collect');
+  assert.equal(normalizeCollectTitle(''), DEFAULT_COLLECT_TITLE);
+  assert.equal(normalizeCollectTitle('  周三打熊  '), '周三打熊');
+  assert.equal(normalizeCollectTitle('甲'.repeat(20)).length, MAX_TITLE_LEN);
+  assert.equal(MAX_FORMS_PER_USER, 20);
+});
+
 test('host tokens and collect keys use short alphanumeric codes', () => {
   const token = generateHostToken();
   assert.match(token, TOKEN_RE);
@@ -39,7 +47,9 @@ test('server mounts bearpit collect routes', () => {
   const schemaSource = fs.readFileSync(path.join(__dirname, '..', 'postgres-schema.js'), 'utf8');
   assert.match(serverSource, /mountBearpitCollectRoutes\(/);
   assert.match(moduleSource, /\/api\/bearpit\/collect/);
-  assert.match(moduleSource, /\/api\/bearpit\/collect\/:key\/entries/);
+  assert.match(moduleSource, /\/api\/bearpit\/collect\/mine/);
+  assert.match(moduleSource, /\/api\/bearpit\/collect\/:key\/rename/);
+  assert.match(moduleSource, /\/api\/bearpit\/collect\/:key\/destroy/);
   assert.match(schemaSource, /bearpit_collect_forms/);
   assert.match(schemaSource, /bearpit_collect_entries/);
 });
@@ -131,9 +141,13 @@ test('website BeaPit page and public fill form expose collect flow', () => {
   const fillHelper = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'bearpit-collect-fill.js'), 'utf8');
   const schemaSource = fs.readFileSync(path.join(__dirname, '..', 'postgres-schema.js'), 'utf8');
   assert.match(page, /collectFieldGrid/);
-  assert.match(page, /地心、宠物、专家/);
-  assert.match(page, /探险关卡数/);
-  assert.match(page, /persistCollectConfig/);
+  assert.match(page, /可建多份名单/);
+  assert.match(page, /requireCollectLogin/);
+  assert.match(page, /collectRosterSelect/);
+  assert.match(page, /listMyCollectForms/);
+  assert.match(page, /换设备也不会丢/);
+  assert.match(fillHelper, /listMyCollectForms/);
+  assert.match(fillHelper, /destroyCollectForm/);
   assert.match(fillHelper, /earthPower/);
   assert.match(fillHelper, /地心战力/);
   assert.match(fillPage, /填写打熊信息/);
@@ -143,4 +157,5 @@ test('website BeaPit page and public fill form expose collect flow', () => {
   assert.match(schemaSource, /fields_json/);
   assert.match(schemaSource, /rank_field/);
   assert.match(schemaSource, /stats_json/);
+  assert.match(schemaSource, /user_id integer NULL/);
 });

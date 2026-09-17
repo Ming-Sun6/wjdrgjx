@@ -1434,10 +1434,12 @@
         }
         .collect-field-chip input { margin: 0; }
         .collect-rank-row { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 0.86rem; }
-        .collect-rank-row select {
+        .collect-rank-row select, .collect-roster-row select {
             height: 32px; border: 1px solid var(--border); border-radius: 8px;
             background: var(--surface); color: var(--text); padding: 0 8px;
         }
+        .collect-roster-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; font-size: 0.86rem; }
+        .collect-roster-row select { min-width: 140px; max-width: 220px; }
         .collect-del { color: #ef4444; cursor: pointer; font-weight: 700; }
         .help-section { margin: 0 0 16px; }
         .help-section h4 {
@@ -1741,7 +1743,14 @@
                 <button class="collect-close" id="collectListClose" type="button" aria-label="关闭">×</button>
             </div>
             <div class="collect-body">
-                <p class="import-hint">勾选要收集的内容，再把填写链接发给盟友。盟友不用登录也能填。</p>
+                <p class="import-hint">登录后名单会跟账号走，换设备也能用。勾选要收集的内容，再把填写链接发给盟友。盟友不用登录也能填。</p>
+                <div class="collect-roster-row">
+                    <span>当前名单</span>
+                    <select id="collectRosterSelect" aria-label="选择收集名单"></select>
+                    <button class="btn secondary" id="btnCollectRosterNew" type="button">新建</button>
+                    <button class="btn secondary" id="btnCollectRosterRename" type="button">改名</button>
+                    <button class="btn danger" id="btnCollectRosterDelete" type="button">删除名单</button>
+                </div>
                 <div class="collect-field-grid" id="collectFieldGrid"></div>
                 <div class="collect-rank-row">
                     <span>排布按</span>
@@ -1864,7 +1873,7 @@
                 </div>
                 <div class="help-section">
                     <h4>收集盟友信息</h4>
-                    <p class="help-item"><strong>收集信息</strong> <span>勾选要收的战力项（地心、宠物、专家、打熊伤害、个人实力、英雄总实力、探险关卡数），复制链接发给盟友填写。</span></p>
+                    <p class="help-item"><strong>收集信息</strong> <span>登录后才能用。可建多份名单并切换。勾选要收的战力项，复制链接发给盟友填写。名单跟账号走，换设备也不会丢。</span></p>
                     <p class="help-item"><strong>已收集</strong> <span>查看、刷新、删除或清空已经交上来的名单。</span></p>
                     <p class="help-item"><strong>一键排布</strong> <span>按战力从高到低自动排。「仅填名字」不挪现有炉子，不够会补炉子；「重新排列」会先去掉现有炉子，再围着熊坑摆。</span></p>
                     <p class="help-item"><strong>快速排布</strong> <span>进入点选模式后，点一座炉子填战力最高的人，再点下一座填第二高，直到名单排完。已点过的炉子不会覆盖。再点按钮或按 Esc 退出。</span></p>
@@ -1877,7 +1886,7 @@
                 </div>
                 <div class="help-section">
                     <h4>登录</h4>
-                    <p class="help-item"><strong>登录/注册</strong> <span>用来同步存档、生成分享秘钥。收集盟友填写不需要登录。</span></p>
+                    <p class="help-item"><strong>登录/注册</strong> <span>用来同步存档、生成分享秘钥，以及保存收集名单。换设备登录同一个账号就能继续用。</span></p>
                 </div>
             </div>
         </div>
@@ -3698,10 +3707,12 @@
                 authUser = data && data.authenticated ? data.user : null;
                 authChecked = true;
                 setAuthPill();
+                document.dispatchEvent(new Event('beapit-auth-change'));
             } catch {
                 authUser = null;
                 authChecked = true;
                 setAuthPill();
+                document.dispatchEvent(new Event('beapit-auth-change'));
             }
         }
         function mapAuthApiError(msg) {
@@ -3755,6 +3766,7 @@
             } catch {}
             authUser = null;
             setAuthPill();
+            document.dispatchEvent(new Event('beapit-auth-change'));
         }
 
         async function migrateLocalIfNeeded() {
@@ -4552,11 +4564,15 @@
                 let collectGen = 0;
                 let collectDirty = false;
                 let fieldTimer = null;
+                let collectForms = [];
+                let collectTitle = '收集名单';
+                let pendingOpenCollect = false;
                 let quickMode = false;
                 let quickIndex = 0;
                 let quickAnchors = new Set();
                 const fieldGrid = document.getElementById('collectFieldGrid');
                 const rankSelect = document.getElementById('collectRankField');
+                const rosterSelect = document.getElementById('collectRosterSelect');
                 const layoutHintEl = document.getElementById('collectLayoutHint');
 
                 function restoreCollectSession() {
@@ -4585,7 +4601,8 @@
                             collectKey,
                             hostToken,
                             fields: collectFields,
-                            rankField: collectRankField
+                            rankField: collectRankField,
+                            title: collectTitle
                         }));
                     } catch (_err) {}
                 }
@@ -4631,6 +4648,94 @@
                         ensureCollectSession().catch(() => {});
                     }, 200);
                 }
+                async function requireCollectLogin() {
+                    if (!authChecked) await refreshMe();
+                    if (authUser) return true;
+                    pendingOpenCollect = true;
+                    if (window.confirm('登录后才能收集信息，换设备也不会丢名单。点击“确定”打开登录窗口。')) openAuthModal();
+                    return false;
+                }
+                function syncRosterSelect() {
+                    if (!rosterSelect) return;
+                    rosterSelect.innerHTML = '';
+                    collectForms.forEach((form) => {
+                        const opt = document.createElement('option');
+                        opt.value = form.collectKey;
+                        opt.textContent = (form.title || '收集名单') + (form.count ? '（' + form.count + '人）' : '');
+                        opt.selected = form.collectKey === collectKey;
+                        rosterSelect.appendChild(opt);
+                    });
+                }
+                function applyOwnedForm(form) {
+                    if (!form) return;
+                    collectKey = form.collectKey;
+                    hostToken = form.hostToken;
+                    collectTitle = form.title || '收集名单';
+                    applyCollectConfig(form.fields, form.rankField);
+                    ensuring = null;
+                    collectDirty = false;
+                    if (urlInput) urlInput.value = fillUrl();
+                    saveCollectSession();
+                    syncRosterSelect();
+                }
+                function defaultRosterTitle() {
+                    const used = {};
+                    collectForms.forEach((form) => { used[form.title] = 1; });
+                    for (let i = 1; i <= 20; i++) {
+                        const name = '收集名单' + i;
+                        if (!used[name]) return name;
+                    }
+                    return '收集名单';
+                }
+                async function loadMyRosters() {
+                    const res = await api.listMyCollectForms();
+                    collectForms = Array.isArray(res.forms) ? res.forms : [];
+                    syncRosterSelect();
+                    return collectForms;
+                }
+                function formByKey(key) {
+                    return collectForms.find((form) => form.collectKey === key) || null;
+                }
+                async function ensureActiveRoster() {
+                    await loadMyRosters();
+                    let current = formByKey(collectKey);
+                    if (current) {
+                        applyOwnedForm(current);
+                        return refreshCollectList(true);
+                    }
+                    if (collectKey && hostToken) {
+                        try {
+                            const claimed = await api.createCollectForm(collectKey, hostToken);
+                            await loadMyRosters();
+                            current = formByKey(claimed.collectKey) || claimed;
+                            if (current && current.collectKey) {
+                                applyOwnedForm({
+                                    collectKey: current.collectKey,
+                                    hostToken: current.hostToken,
+                                    title: current.title,
+                                    fields: current.fields,
+                                    rankField: current.rankField
+                                });
+                                return refreshCollectList(true);
+                            }
+                        } catch (_err) {
+                            collectKey = '';
+                            hostToken = '';
+                        }
+                    }
+                    if (!collectForms.length) {
+                        const created = await api.createCollectForm('', '', {
+                            createNew: true,
+                            title: defaultRosterTitle()
+                        });
+                        await loadMyRosters();
+                        current = formByKey(created.collectKey) || created;
+                    } else {
+                        current = collectForms[0];
+                    }
+                    applyOwnedForm(current);
+                    return refreshCollectList(true);
+                }
                 function updateCollectCountLabel() {
                     if (btnList) btnList.textContent = '已收集' + (collectEntries.length ? ' ' + collectEntries.length : '');
                 }
@@ -4666,6 +4771,13 @@
                 }
                 function ensureCollectSession() {
                     if (ensuring) return ensuring;
+                    if (!collectKey || !hostToken) {
+                        ensuring = ensureActiveRoster().catch((err) => {
+                            ensuring = null;
+                            throw err;
+                        });
+                        return ensuring;
+                    }
                     const prevKey = collectKey;
                     const prevToken = hostToken;
                     const myGen = collectGen;
@@ -4727,8 +4839,16 @@
                     return api.fetchCollectForm(collectKey, hostToken).then((res) => {
                         collectEntries = Array.isArray(res.entries) ? res.entries : [];
                         if (res.fields) applyCollectConfig(res.fields, res.rankField);
+                        if (res.title) collectTitle = res.title;
+                        collectForms.forEach((form) => {
+                            if (form.collectKey === collectKey) {
+                                form.count = collectEntries.length;
+                                if (res.title) form.title = res.title;
+                            }
+                        });
                         updateCollectCountLabel();
                         renderCollectList();
+                        syncRosterSelect();
                     }).catch(() => {
                         if (!silent) setStatus('刷新失败', 'err');
                     });
@@ -4891,15 +5011,17 @@
                     }
                     assignQuickToFurnace(rec);
                 }
-                function openCollectList() {
+                async function openCollectList() {
+                    if (!(await requireCollectLogin())) return;
                     openModal(listModal);
-                    ensureCollectSession().then(() => refreshCollectList()).catch(() => {
+                    ensureActiveRoster().then(() => refreshCollectList()).catch(() => {
                         setStatus('收集服务暂不可用', 'err');
                     });
                 }
-                function openLayoutModal() {
+                async function openLayoutModal() {
+                    if (!(await requireCollectLogin())) return;
                     if (!collectEntries.length) {
-                        ensureCollectSession().then(() => refreshCollectList()).then(() => {
+                        ensureActiveRoster().then(() => refreshCollectList()).then(() => {
                             if (!collectEntries.length) {
                                 setStatus('还没有收集到信息', 'err');
                                 return;
@@ -4913,7 +5035,25 @@
                     openModal(layoutModal);
                 }
                 restoreCollectSession();
-                if (collectKey && hostToken) refreshCollectList(true);
+                document.addEventListener('beapit-auth-change', () => {
+                    if (!authUser) {
+                        collectEntries = [];
+                        updateCollectCountLabel();
+                        closeModal(listModal);
+                        return;
+                    }
+                    if (pendingOpenCollect) {
+                        pendingOpenCollect = false;
+                        openCollectList();
+                        return;
+                    }
+                    loadMyRosters().then(() => {
+                        const current = formByKey(collectKey) || collectForms[0];
+                        if (!current) return;
+                        applyOwnedForm(current);
+                        return refreshCollectList(true);
+                    }).catch(() => {});
+                });
                 fieldGrid?.addEventListener('change', (e) => {
                     const input = e.target && e.target.closest && e.target.closest('input[data-field]');
                     if (!input) return;
@@ -4933,8 +5073,77 @@
                     persistCollectConfig();
                     renderCollectList();
                 });
-                btnShare?.addEventListener('click', () => {
-                    ensureCollectSession().then(async () => {
+                rosterSelect?.addEventListener('change', () => {
+                    const form = formByKey(rosterSelect.value);
+                    if (!form) return;
+                    applyOwnedForm(form);
+                    refreshCollectList();
+                });
+                document.getElementById('btnCollectRosterNew')?.addEventListener('click', async () => {
+                    if (!(await requireCollectLogin())) return;
+                    const title = window.prompt('名单名称（最多16字）', defaultRosterTitle());
+                    if (title == null) return;
+                    try {
+                        const created = await api.createCollectForm('', '', {
+                            createNew: true,
+                            title,
+                            fields: collectFields,
+                            rankField: collectRankField
+                        });
+                        await loadMyRosters();
+                        applyOwnedForm(formByKey(created.collectKey) || created);
+                        await refreshCollectList();
+                        setStatus('已新建名单：' + (created.title || title), 'ok');
+                    } catch (err) {
+                        const code = err && err.body && err.body.error;
+                        setStatus(code === 'FORM_LIMIT' ? '名单数量已达上限' : '新建名单失败', 'err');
+                    }
+                });
+                document.getElementById('btnCollectRosterRename')?.addEventListener('click', async () => {
+                    if (!collectKey || !hostToken) return;
+                    const title = window.prompt('名单名称（最多16字）', collectTitle);
+                    if (title == null) return;
+                    try {
+                        const res = await api.renameCollectForm(collectKey, hostToken, title);
+                        collectTitle = res.title || title;
+                        collectForms.forEach((form) => {
+                            if (form.collectKey === collectKey) form.title = collectTitle;
+                        });
+                        saveCollectSession();
+                        syncRosterSelect();
+                        setStatus('已改名为：' + collectTitle, 'ok');
+                    } catch (_err) {
+                        setStatus('改名失败', 'err');
+                    }
+                });
+                document.getElementById('btnCollectRosterDelete')?.addEventListener('click', async () => {
+                    if (!collectKey || !hostToken) return;
+                    if (!window.confirm('确定删除这份名单和里面已填写的人？')) return;
+                    try {
+                        await api.destroyCollectForm(collectKey, hostToken);
+                        collectKey = '';
+                        hostToken = '';
+                        collectEntries = [];
+                        await loadMyRosters();
+                        if (collectForms.length) {
+                            applyOwnedForm(collectForms[0]);
+                            await refreshCollectList();
+                        } else {
+                            updateCollectCountLabel();
+                            renderCollectList();
+                            syncRosterSelect();
+                            if (urlInput) urlInput.value = '';
+                            setStatus('名单已删除', 'ok');
+                            return;
+                        }
+                        setStatus('名单已删除', 'ok');
+                    } catch (_err) {
+                        setStatus('删除名单失败', 'err');
+                    }
+                });
+                btnShare?.addEventListener('click', async () => {
+                    if (!(await requireCollectLogin())) return;
+                    ensureActiveRoster().then(async () => {
                         const url = fillUrl();
                         if (urlInput) urlInput.value = url;
                         const copied = await copyText('hi～快来填写你的游戏信息！\n' + url);
@@ -4945,17 +5154,18 @@
                 btnList?.addEventListener('click', openCollectList);
                 btnLayout?.addEventListener('click', openLayoutModal);
                 btnLayoutFromList?.addEventListener('click', openLayoutModal);
-                function requestQuickAssign() {
+                async function requestQuickAssign() {
                     if (quickMode) {
                         stopQuickAssign(false);
                         return;
                     }
+                    if (!(await requireCollectLogin())) return;
                     const begin = () => startQuickAssign();
                     if (collectEntries.length) {
                         begin();
                         return;
                     }
-                    ensureCollectSession().then(() => refreshCollectList()).then(() => begin()).catch(() => {
+                    ensureActiveRoster().then(() => refreshCollectList()).then(() => begin()).catch(() => {
                         setStatus('收集服务暂不可用', 'err');
                     });
                 }

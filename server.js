@@ -2505,6 +2505,11 @@ async function deleteUserCascadeById(userId) {
   await execute('DELETE FROM chat_read_states WHERE user_id = ? OR peer_id = ?', [userId, userId]);
   await execute('DELETE FROM user_voices WHERE user_id = ?', [userId]);
   await execute('DELETE FROM bearpit_layouts WHERE user_id = ?', [userId]);
+  const collectForms = await queryRows('SELECT collect_key FROM bearpit_collect_forms WHERE user_id = ?', [userId]);
+  for (const form of collectForms) {
+    await execute('DELETE FROM bearpit_collect_entries WHERE collect_key = ?', [form.collect_key]);
+  }
+  await execute('DELETE FROM bearpit_collect_forms WHERE user_id = ?', [userId]);
   await execute('DELETE FROM user_follows WHERE follower_id = ? OR following_id = ?', [userId, userId]);
   await execute('DELETE FROM users WHERE id = ?', [userId]);
   deleteSessionsByUserId(userId);
@@ -5964,7 +5969,9 @@ mountBearpitCollectRoutes({
   queryRows,
   queryOne,
   execute,
-  pgDatabase
+  pgDatabase,
+  currentUserFromRequest,
+  requireAuth
 });
 
 mountBearpitTemplateRoutes({
