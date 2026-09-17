@@ -84,6 +84,35 @@ test('collect hosts can choose which stats to gather', () => {
   assert.equal(parseCollectValue('expedition', '88'), 88);
 });
 
+test('collect hosts can add custom text fields', () => {
+  const {
+    normalizeCollectFields,
+    normalizeCollectFieldDefs,
+    serializeCollectFields,
+    normalizeRankField,
+    parseCollectValue,
+    nextCustomFieldId,
+    MAX_CUSTOM_FIELDS
+  } = require('../bearpit-collect');
+  const defs = normalizeCollectFieldDefs(['heroPower', { id: 'c1', label: '车头' }]);
+  assert.equal(defs[0].id, 'heroPower');
+  assert.equal(defs[1].id, 'c1');
+  assert.equal(defs[1].label, '车头');
+  assert.equal(defs[1].custom, true);
+  assert.deepEqual(normalizeCollectFields(['heroPower', { id: 'c1', label: '车头' }]), ['heroPower', 'c1']);
+  assert.deepEqual(serializeCollectFields(['heroPower', { id: 'c1', label: '  车头  ' }]), ['heroPower', { id: 'c1', label: '车头' }]);
+  assert.equal(normalizeRankField(['heroPower', { id: 'c1', label: '车头' }], 'c1'), 'heroPower');
+  assert.equal(parseCollectValue('c1', '  备注一  '), '备注一');
+  assert.equal(parseCollectValue('c1', '   '), null);
+  assert.equal(nextCustomFieldId(['heroPower', 'c1']), 'c2');
+  assert.equal(MAX_CUSTOM_FIELDS, 8);
+  const fillHelper = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'bearpit-collect-fill.js'), 'utf8');
+  const page = fs.readFileSync(path.join(__dirname, '..', 'public', 'function', 'BeaPit.html'), 'utf8');
+  assert.match(fillHelper, /serializeCollectFields/);
+  assert.match(page, /btnCollectCustomAdd/);
+  assert.match(page, /自定义，例如 车头/);
+});
+
 test('website collect helper matches server power parsing', () => {
   assert.equal(fill.parseHeroPower('1,250万'), parseHeroPower('1,250万'));
   assert.equal(fill.parseHeroPower('1.2亿'), parseHeroPower('1.2亿'));
@@ -146,6 +175,8 @@ test('website BeaPit page and public fill form expose collect flow', () => {
   assert.match(page, /collectRosterSelect/);
   assert.match(page, /listMyCollectForms/);
   assert.match(page, /换设备也不会丢/);
+  assert.match(page, /btnCollectCustomAdd/);
+  assert.match(page, /自定义项/);
   assert.match(page, /熊坑坐标（正下方格子）/);
   assert.match(page, /点击熊坑/);
   assert.match(fillHelper, /listMyCollectForms/);

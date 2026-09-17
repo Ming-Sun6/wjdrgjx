@@ -130,6 +130,7 @@
       const nameInput = document.getElementById('nameInput');
       const statsFields = document.getElementById('statsFields');
       const submitBtn = document.getElementById('submitBtn');
+      let formFieldDefs = api.DEFAULT_COLLECT_FIELDS.map((id) => api.collectFieldDef(id));
       let formFields = api.DEFAULT_COLLECT_FIELDS.slice();
       let savedStats = {};
 
@@ -143,12 +144,20 @@
         show(errorCard);
       }
 
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, (ch) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[ch]));
+      }
+
       function renderStatsFields() {
-        statsFields.innerHTML = formFields.map((id) => {
-          const def = api.collectFieldDef(id) || { id, label: id, placeholder: '' };
-          const value = savedStats[id] != null ? String(savedStats[id]) : '';
-          return '<label for="stat-' + id + '">' + def.label + '</label>' +
-            '<input id="stat-' + id + '" data-field="' + id + '" placeholder="' + (def.placeholder || '') + '" inputmode="text" value="">';
+        const defs = formFieldDefs;
+        statsFields.innerHTML = defs.map((def) => {
+          const value = savedStats[def.id] != null ? String(savedStats[def.id]) : '';
+          return '<label for="stat-' + escapeHtml(def.id) + '">' + escapeHtml(def.label) + '</label>' +
+            '<input id="stat-' + escapeHtml(def.id) + '" data-field="' + escapeHtml(def.id) + '" placeholder="' +
+            escapeHtml(def.placeholder || '请填写') + '" inputmode="text" maxlength="' +
+            (def.custom ? '24' : '20') + '" value="">';
         }).join('');
         Array.from(statsFields.querySelectorAll('input[data-field]')).forEach((input) => {
           const prev = savedStats[input.getAttribute('data-field')];
@@ -169,7 +178,8 @@
 
       show(loadingCard);
       api.fetchCollectForm(collectKey).then((res) => {
-        formFields = api.normalizeCollectFields(res.fields);
+        formFieldDefs = api.normalizeCollectFieldDefs(res.fields);
+        formFields = formFieldDefs.map((item) => item.id);
         renderStatsFields();
         const count = Number(res.count || (res.entries && res.entries.length) || 0);
         if (count) {
@@ -191,9 +201,9 @@
           const id = formFields[i];
           const input = document.getElementById('stat-' + id);
           const raw = input ? input.value : '';
-          const value = api.parseCollectValue(id, raw);
+          const value = api.parseCollectValue(id, raw, formFieldDefs.filter((item) => item.custom));
           if (!value) {
-            const def = api.collectFieldDef(id);
+            const def = formFieldDefs.find((item) => item.id === id) || api.collectFieldDef(id);
             alert('请填写有效的' + ((def && def.label) || '信息'));
             return;
           }

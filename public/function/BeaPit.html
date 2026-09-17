@@ -1469,6 +1469,19 @@
             padding: 5px 10px; background: var(--surface); cursor: pointer; font-size: 0.82rem;
         }
         .collect-field-chip input { margin: 0; }
+        .collect-field-chip.custom { background: rgba(15, 118, 110, 0.08); border-color: rgba(15, 118, 110, 0.35); }
+        .collect-field-chip .collect-custom-x {
+            border: none; background: transparent; color: #0f766e; cursor: pointer;
+            font-weight: 700; padding: 0 0 0 2px; line-height: 1;
+        }
+        .collect-custom-row {
+            display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 12px;
+        }
+        .collect-custom-row input {
+            flex: 1; min-width: 140px; height: 32px; padding: 0 10px;
+            border: 1px solid var(--border); border-radius: 8px;
+            background: var(--surface); color: var(--text);
+        }
         .collect-rank-row { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 0.86rem; }
         .collect-rank-row select, .collect-roster-row select {
             height: 32px; border: 1px solid var(--border); border-radius: 8px;
@@ -1788,6 +1801,10 @@
                     <button class="btn danger" id="btnCollectRosterDelete" type="button">删除名单</button>
                 </div>
                 <div class="collect-field-grid" id="collectFieldGrid"></div>
+                <div class="collect-custom-row">
+                    <input id="collectCustomLabel" maxlength="12" placeholder="自定义，例如 车头" aria-label="自定义收集项">
+                    <button class="btn secondary" id="btnCollectCustomAdd" type="button">添加</button>
+                </div>
                 <div class="collect-rank-row">
                     <span>排布按</span>
                     <select id="collectRankField" aria-label="排布按哪一项"></select>
@@ -1910,7 +1927,7 @@
                 </div>
                 <div class="help-section">
                     <h4>收集盟友信息</h4>
-                    <p class="help-item"><strong>收集信息</strong> <span>登录后才能用。可建多份名单并切换。勾选要收的战力项，复制链接发给盟友填写。名单跟账号走，换设备也不会丢。</span></p>
+                    <p class="help-item"><strong>收集信息</strong> <span>登录后才能用。可建多份名单并切换。勾选要收的战力项，也可添加自定义项。复制链接发给盟友填写。名单跟账号走，换设备也不会丢。</span></p>
                     <p class="help-item"><strong>已收集</strong> <span>查看、刷新、删除或清空已经交上来的名单。</span></p>
                     <p class="help-item"><strong>一键排布</strong> <span>按战力从高到低自动排。「仅填名字」不挪现有炉子，不够会补炉子；「重新排列」会先去掉现有炉子，再围着熊坑摆。</span></p>
                     <p class="help-item"><strong>快速排布</strong> <span>进入点选模式后，点一座炉子填战力最高的人，再点下一座填第二高，直到名单排完。已点过的炉子不会覆盖。再点按钮或按 Esc 退出。</span></p>
@@ -4886,6 +4903,7 @@
                 let hostToken = '';
                 let collectEntries = [];
                 let collectFields = api.DEFAULT_COLLECT_FIELDS.slice();
+                let collectCustomFields = [];
                 let collectRankField = 'heroPower';
                 let layoutMode = 'fill';
                 let ensuring = null;
@@ -4911,7 +4929,10 @@
                             hostToken = saved.hostToken;
                         }
                         collectFields = api.normalizeCollectFields(saved.fields);
-                        collectRankField = api.normalizeRankField(collectFields, saved.rankField);
+                        collectCustomFields = api.normalizeCollectFieldDefs(saved.fields)
+                            .filter((item) => item.custom)
+                            .map((item) => ({ id: item.id, label: item.label }));
+                        collectRankField = api.normalizeRankField(saved.fields, saved.rankField);
                     } catch (_err) {}
                     try {
                         const mode = String(localStorage.getItem(api.LAYOUT_MODE_KEY) || '');
@@ -4928,14 +4949,22 @@
                         localStorage.setItem(api.COLLECT_STORAGE_KEY, JSON.stringify({
                             collectKey,
                             hostToken,
-                            fields: collectFields,
+                            fields: api.serializeCollectFields(collectFields, collectCustomFields),
                             rankField: collectRankField,
                             title: collectTitle
                         }));
                     } catch (_err) {}
                 }
+                function fieldDefOf(id) {
+                    return api.collectFieldDef(id, collectCustomFields);
+                }
+                function escapeCollectLabel(value) {
+                    return String(value == null ? '' : value).replace(/[&<>"']/g, (ch) => ({
+                        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                    }[ch]));
+                }
                 function rankLabel() {
-                    const def = api.collectFieldDef(collectRankField);
+                    const def = fieldDefOf(collectRankField);
                     return (def && def.label) || '战力';
                 }
                 function updateLayoutHint() {
@@ -4944,30 +4973,43 @@
                 }
                 function renderCollectFields() {
                     if (!fieldGrid) return;
-                    fieldGrid.innerHTML = api.COLLECT_FIELD_DEFS.map((def) => (
+                    const known = api.COLLECT_FIELD_DEFS.map((def) => (
                         '<label class="collect-field-chip"><input type="checkbox" data-field="' + def.id + '"' +
                         (collectFields.indexOf(def.id) >= 0 ? ' checked' : '') + '>' + def.label + '</label>'
                     )).join('');
+                    const custom = collectCustomFields.map((item) => (
+                        '<span class="collect-field-chip custom">' + escapeCollectLabel(item.label) +
+                        '<button type="button" class="collect-custom-x" data-remove="' + escapeCollectLabel(item.id) + '" aria-label="删除' + escapeCollectLabel(item.label) + '">×</button></span>'
+                    )).join('');
+                    fieldGrid.innerHTML = known + custom;
                 }
                 function syncRankSelect() {
                     if (!rankSelect) return;
-                    const fields = collectFields.length ? collectFields : api.DEFAULT_COLLECT_FIELDS;
+                    const fields = api.rankableCollectFields(collectFields, collectCustomFields);
+                    if (!fields.length) {
+                        rankSelect.innerHTML = '<option value="">自定义项不参与排布</option>';
+                        rankSelect.disabled = true;
+                        return;
+                    }
+                    rankSelect.disabled = false;
                     rankSelect.innerHTML = fields.map((id) => {
-                        const def = api.collectFieldDef(id);
+                        const def = fieldDefOf(id);
                         return '<option value="' + id + '"' + (id === collectRankField ? ' selected' : '') + '>' +
                             ((def && def.label) || id) + '</option>';
                     }).join('');
                 }
                 function applyCollectConfig(fields, rankField, persist) {
-                    collectFields = api.normalizeCollectFields(fields);
-                    collectRankField = api.normalizeRankField(collectFields, rankField);
+                    const defs = api.normalizeCollectFieldDefs(fields);
+                    collectFields = defs.map((item) => item.id);
+                    collectCustomFields = defs.filter((item) => item.custom).map((item) => ({ id: item.id, label: item.label }));
+                    collectRankField = api.normalizeRankField(defs, rankField);
                     renderCollectFields();
                     syncRankSelect();
                     updateLayoutHint();
                     if (persist !== false) saveCollectSession();
                 }
                 function persistCollectConfig() {
-                    applyCollectConfig(collectFields, collectRankField);
+                    applyCollectConfig(api.serializeCollectFields(collectFields, collectCustomFields), collectRankField);
                     collectDirty = true;
                     collectGen += 1;
                     ensuring = null;
@@ -5109,7 +5151,7 @@
                     const prevKey = collectKey;
                     const prevToken = hostToken;
                     const myGen = collectGen;
-                    const options = collectDirty ? { fields: collectFields, rankField: collectRankField } : undefined;
+                    const options = collectDirty ? { fields: api.serializeCollectFields(collectFields, collectCustomFields), rankField: collectRankField } : undefined;
                     ensuring = api.createCollectForm(prevKey, prevToken, options).then((res) => {
                         if (myGen !== collectGen) return;
                         collectDirty = false;
@@ -5133,10 +5175,15 @@
                 function extraStatsText(row) {
                     const stats = (row && row.stats) || {};
                     return collectFields.filter((id) => id !== collectRankField).map((id) => {
-                        const n = Number(stats[id]);
+                        const def = fieldDefOf(id);
+                        const raw = stats[id];
+                        if (def && (def.custom || def.kind === 'text')) {
+                            const text = String(raw || '').trim();
+                            return text ? (def.label + ' ' + text) : '';
+                        }
+                        const n = Number(raw);
                         if (!(n > 0)) return '';
-                        const def = api.collectFieldDef(id);
-                        return ((def && def.label) || id) + ' ' + api.formatCollectValue(id, n);
+                        return ((def && def.label) || id) + ' ' + api.formatCollectValue(id, n, collectCustomFields);
                     }).filter(Boolean).join(' · ');
                 }
                 function renderCollectList() {
@@ -5391,10 +5438,51 @@
                     if (input.checked) {
                         if (idx < 0) on.push(id);
                     } else if (idx >= 0) {
+                        if (on.length === 1) {
+                            input.checked = true;
+                            return;
+                        }
                         on.splice(idx, 1);
                     }
-                    collectFields = api.normalizeCollectFields(on);
+                    collectFields = on;
                     persistCollectConfig();
+                });
+                fieldGrid?.addEventListener('click', (e) => {
+                    const btn = e.target && e.target.closest && e.target.closest('[data-remove]');
+                    if (!btn) return;
+                    e.preventDefault();
+                    const id = btn.getAttribute('data-remove');
+                    if (collectFields.length <= 1) return;
+                    collectFields = collectFields.filter((item) => item !== id);
+                    collectCustomFields = collectCustomFields.filter((item) => item.id !== id);
+                    persistCollectConfig();
+                });
+                document.getElementById('btnCollectCustomAdd')?.addEventListener('click', () => {
+                    const input = document.getElementById('collectCustomLabel');
+                    const label = api.normalizeCustomLabel(input && input.value);
+                    if (!label) {
+                        setStatus('请填写自定义项名称', 'err');
+                        return;
+                    }
+                    if (collectCustomFields.some((item) => item.label === label)) {
+                        setStatus('已经有同名自定义项', 'err');
+                        return;
+                    }
+                    const id = api.nextCustomFieldId(collectFields);
+                    if (!id) {
+                        setStatus('自定义项最多 8 个', 'err');
+                        return;
+                    }
+                    collectFields.push(id);
+                    collectCustomFields.push({ id, label });
+                    if (input) input.value = '';
+                    persistCollectConfig();
+                });
+                document.getElementById('collectCustomLabel')?.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('btnCollectCustomAdd')?.click();
+                    }
                 });
                 rankSelect?.addEventListener('change', () => {
                     collectRankField = api.normalizeRankField(collectFields, rankSelect.value);
@@ -5415,7 +5503,7 @@
                         const created = await api.createCollectForm('', '', {
                             createNew: true,
                             title,
-                            fields: collectFields,
+                            fields: api.serializeCollectFields(collectFields, collectCustomFields),
                             rankField: collectRankField
                         });
                         await loadMyRosters();

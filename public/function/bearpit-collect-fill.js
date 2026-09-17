@@ -22,6 +22,10 @@
   ];
   const COLLECT_FIELD_IDS = COLLECT_FIELD_DEFS.map((item) => item.id);
   const DEFAULT_COLLECT_FIELDS = ['heroPower'];
+  const CUSTOM_ID_RE = /^c[1-9]\d?$/;
+  const MAX_CUSTOM_FIELDS = 8;
+  const MAX_CUSTOM_LABEL_LEN = 12;
+  const MAX_CUSTOM_VALUE_LEN = 24;
 
   function parseHeroPower(raw) {
     const s = String(raw == null ? '' : raw).trim().replace(/,/g, '').replace(/，/g, '').replace(/\s+/g, '');
@@ -51,27 +55,119 @@
     return String(v);
   }
 
-  function collectFieldDef(id) {
-    return COLLECT_FIELD_DEFS.find((item) => item.id === id) || null;
+  function isCustomFieldId(id) {
+    return CUSTOM_ID_RE.test(String(id || ''));
   }
 
-  function normalizeCollectFields(value) {
-    const raw = Array.isArray(value) ? value : [];
+  function normalizeCustomLabel(value) {
+    const label = Array.from(String(value || '').trim().replace(/\s+/g, ' ')).slice(0, MAX_CUSTOM_LABEL_LEN).join('');
+    return label || null;
+  }
+
+  function normalizeCustomValue(value) {
+    const text = Array.from(String(value == null ? '' : value).trim().replace(/\s+/g, ' ')).slice(0, MAX_CUSTOM_VALUE_LEN).join('');
+    return text || null;
+  }
+
+  function parseFieldsRaw(value) {
+    if (Array.isArray(value)) return value.slice();
+    if (typeof value === 'string') {
+      try {
+        const parsed = JSON.parse(value);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (_err) {
+        return [];
+      }
+    }
+    return [];
+  }
+
+  function nextCustomFieldId(ids) {
+    const used = {};
+    (ids || []).forEach((id) => { used[String(id)] = 1; });
+    for (let i = 1; i <= MAX_CUSTOM_FIELDS; i++) {
+      const id = 'c' + i;
+      if (!used[id]) return id;
+    }
+    return null;
+  }
+
+  function collectFieldDef(id, customFields) {
+    const key = String(id || '').trim();
+    const known = COLLECT_FIELD_DEFS.find((item) => item.id === key);
+    if (known) return known;
+    if (!isCustomFieldId(key)) return null;
+    const list = Array.isArray(customFields) ? customFields : [];
+    const hit = list.find((item) => item && String(item.id) === key);
+    const label = normalizeCustomLabel(hit && hit.label);
+    if (!label) return { id: key, label: key, kind: 'text', custom: true, placeholder: '请填写' };
+    return { id: key, label, kind: 'text', custom: true, placeholder: '请填写' };
+  }
+
+  function normalizeCollectFieldDefs(value, customFields) {
+    const raw = parseFieldsRaw(value);
+    const extra = Array.isArray(customFields) ? customFields : [];
+    extra.forEach((item) => {
+      if (item && (item.id || item.label)) raw.push(item);
+    });
     const seen = {};
+    const usedLabels = {};
     const out = [];
     raw.forEach((item) => {
-      const id = String(item || '').trim();
-      if (!COLLECT_FIELD_IDS.includes(id) || seen[id]) return;
+      let current = item;
+      if (typeof current === 'string' && isCustomFieldId(current)) {
+        const hit = extra.find((row) => row && String(row.id) === current);
+        if (hit) current = hit;
+      }
+      const knownId = typeof current === 'string' ? current.trim() : String((current && current.id) || '').trim();
+      const known = COLLECT_FIELD_IDS.includes(knownId) ? collectFieldDef(knownId) : null;
+      if (known) {
+        if (seen[known.id]) return;
+        seen[known.id] = 1;
+        out.push(known);
+        return;
+      }
+      const label = normalizeCustomLabel(current && typeof current === 'object' ? current.label : '');
+      if (!label || usedLabels[label]) return;
+      let id = isCustomFieldId(knownId) && !seen[knownId] ? knownId : nextCustomFieldId(Object.keys(seen));
+      if (!id || seen[id]) return;
       seen[id] = 1;
-      out.push(id);
+      usedLabels[label] = 1;
+      out.push({ id, label, kind: 'text', custom: true, placeholder: '请填写' });
     });
-    return out.length ? out : DEFAULT_COLLECT_FIELDS.slice();
+    const limited = [];
+    let customCount = 0;
+    out.forEach((def) => {
+      if (def.custom) {
+        if (customCount >= MAX_CUSTOM_FIELDS) return;
+        customCount += 1;
+      }
+      limited.push(def);
+    });
+    return limited.length ? limited : DEFAULT_COLLECT_FIELDS.map((id) => collectFieldDef(id));
   }
 
-  function normalizeRankField(fields, rankField) {
-    const list = normalizeCollectFields(fields);
+  function normalizeCollectFields(value, customFields) {
+    return normalizeCollectFieldDefs(value, customFields).map((item) => item.id);
+  }
+
+  function serializeCollectFields(value, customFields) {
+    return normalizeCollectFieldDefs(value, customFields).map((item) => (
+      item.custom ? { id: item.id, label: item.label } : item.id
+    ));
+  }
+
+  function rankableCollectFields(fields, customFields) {
+    return normalizeCollectFields(fields, customFields).filter((id) => COLLECT_FIELD_IDS.includes(id));
+  }
+
+  function normalizeRankField(fields, rankField, customFields) {
+    const rankable = rankableCollectFields(fields, customFields);
     const id = String(rankField || '').trim();
-    return list.includes(id) ? id : list[0];
+    if (rankable.includes(id)) return id;
+    if (rankable.length) return rankable[0];
+    const list = normalizeCollectFields(fields, customFields);
+    return list[0] || 'heroPower';
   }
 
   function parseStageCount(raw) {
@@ -82,14 +178,18 @@
     return n;
   }
 
-  function parseCollectValue(fieldId, raw) {
-    const def = collectFieldDef(fieldId);
+  function parseCollectValue(fieldId, raw, customFields) {
+    const def = collectFieldDef(fieldId, customFields);
+    if (def && (def.custom || def.kind === 'text')) return normalizeCustomValue(raw);
+    if (isCustomFieldId(fieldId)) return normalizeCustomValue(raw);
     if (!def) return null;
     return def.kind === 'stage' ? parseStageCount(raw) : parseHeroPower(raw);
   }
 
-  function formatCollectValue(fieldId, n) {
-    const def = collectFieldDef(fieldId);
+  function formatCollectValue(fieldId, n, customFields) {
+    const def = collectFieldDef(fieldId, customFields);
+    if (def && (def.kind === 'text' || def.custom)) return n == null ? '' : String(n);
+    if (typeof n === 'string' && Number.isNaN(Number(n))) return n;
     if (def && def.kind === 'stage') return String(n || '');
     return formatHeroPower(n);
   }
@@ -360,7 +460,7 @@
       payload.hostToken = hostToken;
     }
     if (options && Array.isArray(options.fields)) {
-      const fields = normalizeCollectFields(options.fields);
+      const fields = serializeCollectFields(options.fields);
       payload.fields = fields;
       payload.rankField = normalizeRankField(fields, options.rankField);
     }
@@ -423,7 +523,16 @@
     COLLECT_FIELD_DEFS,
     COLLECT_FIELD_IDS,
     DEFAULT_COLLECT_FIELDS,
+    MAX_CUSTOM_FIELDS,
+    MAX_CUSTOM_LABEL_LEN,
+    MAX_CUSTOM_VALUE_LEN,
+    isCustomFieldId,
+    nextCustomFieldId,
+    normalizeCustomLabel,
     collectFieldDef,
+    normalizeCollectFieldDefs,
+    serializeCollectFields,
+    rankableCollectFields,
     normalizeCollectFields,
     normalizeRankField,
     parseStageCount,

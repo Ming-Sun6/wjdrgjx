@@ -22,6 +22,10 @@ const COLLECT_FIELD_DEFS = [
 
 const COLLECT_FIELD_IDS = COLLECT_FIELD_DEFS.map((item) => item.id);
 const DEFAULT_COLLECT_FIELDS = ['heroPower'];
+const CUSTOM_ID_RE = /^c[1-9]\d?$/;
+const MAX_CUSTOM_FIELDS = 8;
+const MAX_CUSTOM_LABEL_LEN = 12;
+const MAX_CUSTOM_VALUE_LEN = 24;
 
 const BEARPIT_COLLECT_FORMS_DDL_MYSQL = `
   CREATE TABLE IF NOT EXISTS bearpit_collect_forms (
@@ -101,33 +105,125 @@ function parseStageCount(raw) {
   return n;
 }
 
-function collectFieldDef(id) {
-  return COLLECT_FIELD_DEFS.find((item) => item.id === id) || null;
+function isCustomFieldId(id) {
+  return CUSTOM_ID_RE.test(String(id || ''));
 }
 
-function normalizeCollectFields(value) {
-  const raw = Array.isArray(value)
-    ? value
-    : (typeof value === 'string' ? (() => { try { return JSON.parse(value); } catch (_err) { return []; } })() : []);
+function normalizeCustomLabel(value) {
+  const label = Array.from(String(value || '').trim().replace(/\s+/g, ' ')).slice(0, MAX_CUSTOM_LABEL_LEN).join('');
+  return label || null;
+}
+
+function normalizeCustomValue(value) {
+  const text = Array.from(String(value == null ? '' : value).trim().replace(/\s+/g, ' ')).slice(0, MAX_CUSTOM_VALUE_LEN).join('');
+  return text || null;
+}
+
+function parseFieldsRaw(value) {
+  if (Array.isArray(value)) return value.slice();
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_err) {
+      return [];
+    }
+  }
+  return [];
+}
+
+function nextCustomFieldId(ids) {
+  const used = {};
+  (ids || []).forEach((id) => { used[String(id)] = 1; });
+  for (let i = 1; i <= MAX_CUSTOM_FIELDS; i++) {
+    const id = 'c' + i;
+    if (!used[id]) return id;
+  }
+  return null;
+}
+
+function collectFieldDef(id, customFields) {
+  const key = String(id || '').trim();
+  const known = COLLECT_FIELD_DEFS.find((item) => item.id === key);
+  if (known) return known;
+  if (!isCustomFieldId(key)) return null;
+  const list = Array.isArray(customFields) ? customFields : [];
+  const hit = list.find((item) => item && String(item.id) === key);
+  const label = normalizeCustomLabel(hit && hit.label);
+  if (!label) return { id: key, label: key, kind: 'text', custom: true, placeholder: '请填写' };
+  return { id: key, label, kind: 'text', custom: true, placeholder: '请填写' };
+}
+
+function normalizeCollectFieldDefs(value, customFields) {
+  const raw = parseFieldsRaw(value);
+  const extra = Array.isArray(customFields) ? customFields : [];
+  extra.forEach((item) => {
+    if (item && (item.id || item.label)) raw.push(item);
+  });
   const seen = {};
+  const usedLabels = {};
   const out = [];
   raw.forEach((item) => {
-    const id = String(item || '').trim();
-    if (!COLLECT_FIELD_IDS.includes(id) || seen[id]) return;
+    let current = item;
+    if (typeof current === 'string' && isCustomFieldId(current)) {
+      const hit = extra.find((row) => row && String(row.id) === current);
+      if (hit) current = hit;
+    }
+    const knownId = typeof current === 'string' ? current.trim() : String((current && current.id) || '').trim();
+    const known = COLLECT_FIELD_IDS.includes(knownId) ? collectFieldDef(knownId) : null;
+    if (known) {
+      if (seen[known.id]) return;
+      seen[known.id] = 1;
+      out.push(known);
+      return;
+    }
+    const label = normalizeCustomLabel(current && typeof current === 'object' ? current.label : '');
+    if (!label || usedLabels[label]) return;
+    let id = isCustomFieldId(knownId) && !seen[knownId] ? knownId : nextCustomFieldId(Object.keys(seen));
+    if (!id || seen[id]) return;
     seen[id] = 1;
-    out.push(id);
+    usedLabels[label] = 1;
+    out.push({ id, label, kind: 'text', custom: true, placeholder: '请填写' });
   });
-  return out.length ? out : DEFAULT_COLLECT_FIELDS.slice();
+  const limited = [];
+  let customCount = 0;
+  out.forEach((def) => {
+    if (def.custom) {
+      if (customCount >= MAX_CUSTOM_FIELDS) return;
+      customCount += 1;
+    }
+    limited.push(def);
+  });
+  return limited.length ? limited : DEFAULT_COLLECT_FIELDS.map((id) => collectFieldDef(id));
 }
 
-function normalizeRankField(fields, rankField) {
-  const list = normalizeCollectFields(fields);
+function normalizeCollectFields(value, customFields) {
+  return normalizeCollectFieldDefs(value, customFields).map((item) => item.id);
+}
+
+function serializeCollectFields(value, customFields) {
+  return normalizeCollectFieldDefs(value, customFields).map((item) => (
+    item.custom ? { id: item.id, label: item.label } : item.id
+  ));
+}
+
+function rankableCollectFields(fields, customFields) {
+  return normalizeCollectFields(fields, customFields).filter((id) => COLLECT_FIELD_IDS.includes(id));
+}
+
+function normalizeRankField(fields, rankField, customFields) {
+  const rankable = rankableCollectFields(fields, customFields);
   const id = String(rankField || '').trim();
-  return list.includes(id) ? id : list[0];
+  if (rankable.includes(id)) return id;
+  if (rankable.length) return rankable[0];
+  const list = normalizeCollectFields(fields, customFields);
+  return list[0] || 'heroPower';
 }
 
-function parseCollectValue(fieldId, raw) {
-  const def = collectFieldDef(fieldId);
+function parseCollectValue(fieldId, raw, customFields) {
+  const def = collectFieldDef(fieldId, customFields);
+  if (def && (def.custom || def.kind === 'text')) return normalizeCustomValue(raw);
+  if (isCustomFieldId(fieldId)) return normalizeCustomValue(raw);
   if (!def) return null;
   return def.kind === 'stage' ? parseStageCount(raw) : parseHeroPower(raw);
 }
@@ -142,7 +238,7 @@ function stringifyJson(value) {
   return JSON.stringify(value == null ? {} : value);
 }
 
-function parseEntryStats(row) {
+function parseEntryStats(row, fieldDefs) {
   const stats = parseJsonValue(row && row.stats_json, {}) || {};
   const out = {};
   COLLECT_FIELD_IDS.forEach((id) => {
@@ -150,35 +246,48 @@ function parseEntryStats(row) {
     if (Number.isFinite(n) && n > 0) out[id] = n;
   });
   if (!out.heroPower && Number(row && row.power) > 0) out.heroPower = Number(row.power);
+  const defs = normalizeCollectFieldDefs(fieldDefs || []);
+  Object.keys(stats).forEach((id) => {
+    if (!isCustomFieldId(id) || out[id]) return;
+    const text = normalizeCustomValue(stats[id]);
+    if (text) out[id] = text;
+  });
+  defs.forEach((def) => {
+    if (!def.custom || out[def.id]) return;
+    const text = normalizeCustomValue(stats[def.id]);
+    if (text) out[def.id] = text;
+  });
   return out;
 }
 
 function parseSubmittedStats(body, fields) {
+  const defs = normalizeCollectFieldDefs(fields);
   const source = (body && typeof body.stats === 'object' && body.stats) ? body.stats : (body || {});
   const stats = {};
-  for (let i = 0; i < fields.length; i++) {
-    const id = fields[i];
-    const raw = source[id] != null ? source[id] : (id === 'heroPower' ? body.power : null);
-    const value = parseCollectValue(id, raw);
-    if (!value) return { error: id };
-    stats[id] = value;
+  for (let i = 0; i < defs.length; i++) {
+    const def = defs[i];
+    const raw = source[def.id] != null ? source[def.id] : (def.id === 'heroPower' ? body.power : null);
+    const value = parseCollectValue(def.id, raw, defs.filter((item) => item.custom));
+    if (value == null || value === '') return { error: def.id };
+    stats[def.id] = value;
   }
   return { stats };
 }
 
 function mapFormConfig(row) {
-  const fields = normalizeCollectFields(row && row.fields_json);
-  const rankField = normalizeRankField(fields, row && row.rank_field);
+  const defs = normalizeCollectFieldDefs(row && row.fields_json);
+  const rankField = normalizeRankField(defs, row && row.rank_field);
   return {
-    fields,
+    fields: serializeCollectFields(defs),
+    customFields: defs.filter((item) => item.custom).map((item) => ({ id: item.id, label: item.label })),
     rankField,
     title: normalizeCollectTitle(row && row.title)
   };
 }
 
-function mapEntry(row, rankField) {
+function mapEntry(row, rankField, fieldDefs) {
   if (!row) return null;
-  const stats = parseEntryStats(row);
+  const stats = parseEntryStats(row, fieldDefs);
   const rank = rankField || 'heroPower';
   const power = Number(stats[rank] || row.power || 0);
   return {
@@ -271,12 +380,13 @@ function mountBearpitCollectRoutes(deps) {
 
   async function insertForm(fields, rankField, title, userId) {
     const hostToken = generateHostToken();
+    const stored = stringifyJson(serializeCollectFields(fields));
     for (let attempt = 0; attempt < 5; attempt += 1) {
       const candidate = generateShareKey();
       try {
         await execute(
           'INSERT INTO bearpit_collect_forms (collect_key, host_token, created_at, fields_json, rank_field, title, user_id) VALUES (?, ?, CURRENT_TIMESTAMP(3), ?, ?, ?, ?)',
-          [candidate, hostToken, stringifyJson(fields), rankField, title, userId == null ? null : Number(userId)]
+          [candidate, hostToken, stored, rankField, title, userId == null ? null : Number(userId)]
         );
         return { collectKey: candidate, hostToken };
       } catch (err) {
@@ -293,6 +403,7 @@ function mountBearpitCollectRoutes(deps) {
       hostToken: String(row.host_token),
       title: config.title,
       fields: config.fields,
+      customFields: config.customFields,
       rankField: config.rankField,
       count: Number(count) || 0,
       createdAt: row.created_at
@@ -300,7 +411,7 @@ function mountBearpitCollectRoutes(deps) {
   }
 
   async function saveFormConfig(key, fields, rankField) {
-    const json = stringifyJson(fields);
+    const json = stringifyJson(serializeCollectFields(fields));
     await execute(
       'UPDATE bearpit_collect_forms SET fields_json = ?, rank_field = ? WHERE collect_key = ?',
       [json, rankField, key]
@@ -316,9 +427,10 @@ function mountBearpitCollectRoutes(deps) {
       await ensureTables();
       const user = currentUserFromRequest ? await currentUserFromRequest(req) : null;
       const hasConfig = Array.isArray(req.body?.fields);
-      const fields = hasConfig ? normalizeCollectFields(req.body?.fields) : DEFAULT_COLLECT_FIELDS.slice();
+      const defs = hasConfig ? normalizeCollectFieldDefs(req.body?.fields) : DEFAULT_COLLECT_FIELDS.map((id) => collectFieldDef(id));
+      const fields = serializeCollectFields(defs);
       const rankField = hasConfig
-        ? normalizeRankField(fields, req.body?.rankField || req.body?.rank_field)
+        ? normalizeRankField(defs, req.body?.rankField || req.body?.rank_field)
         : 'heroPower';
       const title = req.body?.title != null ? normalizeCollectTitle(req.body.title) : null;
       const createNew = Boolean(req.body?.createNew);
@@ -348,11 +460,12 @@ function mountBearpitCollectRoutes(deps) {
             hostToken: existingToken,
             title: config.title,
             fields: hasConfig ? fields : config.fields,
+            customFields: config.customFields,
             rankField: hasConfig ? rankField : config.rankField
           });
         }
       }
-      const createFields = hasConfig ? fields : DEFAULT_COLLECT_FIELDS.slice();
+      const createFields = hasConfig ? fields : serializeCollectFields(DEFAULT_COLLECT_FIELDS);
       const createRank = hasConfig ? rankField : 'heroPower';
       const createTitle = title || DEFAULT_COLLECT_TITLE;
       if (user && (await countUserForms(user.id)) >= MAX_FORMS_PER_USER) {
@@ -360,12 +473,14 @@ function mountBearpitCollectRoutes(deps) {
       }
       const created = await insertForm(createFields, createRank, createTitle, user ? user.id : null);
       if (!created) return res.status(503).json({ error: 'COLLECT_KEY_UNAVAILABLE' });
+      const createDefs = normalizeCollectFieldDefs(createFields);
       return res.json({
         ok: true,
         collectKey: created.collectKey,
         hostToken: created.hostToken,
         title: createTitle,
         fields: createFields,
+        customFields: createDefs.filter((item) => item.custom).map((item) => ({ id: item.id, label: item.label })),
         rankField: createRank
       });
     } catch (err) {
@@ -424,6 +539,7 @@ function mountBearpitCollectRoutes(deps) {
           open: true,
           count: Number(countRow && countRow.n) || 0,
           fields: config.fields,
+          customFields: config.customFields,
           rankField: config.rankField
         });
       }
@@ -441,8 +557,9 @@ function mountBearpitCollectRoutes(deps) {
         collectKey: key,
         title: config.title,
         fields: config.fields,
+        customFields: config.customFields,
         rankField: config.rankField,
-        entries: rows.map((row) => mapEntry(row, config.rankField))
+        entries: rows.map((row) => mapEntry(row, config.rankField, config.fields))
       });
     } catch (err) {
       console.error('bearpit collect get failed:', err);
@@ -462,7 +579,7 @@ function mountBearpitCollectRoutes(deps) {
       if (!name) return res.status(400).json({ error: 'BAD_NAME' });
       const parsed = parseSubmittedStats(req.body, config.fields);
       if (parsed.error) return res.status(400).json({ error: 'BAD_POWER', field: parsed.error });
-      const power = parsed.stats[config.rankField];
+      const power = Number(parsed.stats[config.rankField]) > 0 ? Number(parsed.stats[config.rankField]) : 0;
       const existing = await queryOne(
         'SELECT id FROM bearpit_collect_entries WHERE collect_key = ? AND name = ? LIMIT 1',
         [key, name]
@@ -500,7 +617,7 @@ function mountBearpitCollectRoutes(deps) {
         'SELECT id, name, power, stats_json, created_at FROM bearpit_collect_entries WHERE collect_key = ? AND name = ? LIMIT 1',
         [key, name]
       );
-      return res.json({ ok: true, updated: Boolean(existing), entry: mapEntry(row, config.rankField) });
+      return res.json({ ok: true, updated: Boolean(existing), entry: mapEntry(row, config.rankField, config.fields) });
     } catch (err) {
       console.error('bearpit collect submit failed:', err);
       return res.status(500).json({ error: 'INTERNAL_ERROR' });
@@ -590,6 +707,9 @@ module.exports = {
   COLLECT_FIELD_DEFS,
   COLLECT_FIELD_IDS,
   DEFAULT_COLLECT_FIELDS,
+  MAX_CUSTOM_FIELDS,
+  MAX_CUSTOM_LABEL_LEN,
+  MAX_CUSTOM_VALUE_LEN,
   BEARPIT_COLLECT_FORMS_DDL_MYSQL,
   BEARPIT_COLLECT_FORMS_DDL_PG,
   BEARPIT_COLLECT_ENTRIES_DDL_MYSQL,
@@ -597,9 +717,17 @@ module.exports = {
   generateHostToken,
   normalizeCollectName,
   normalizeCollectTitle,
+  normalizeCustomLabel,
+  normalizeCustomValue,
   parseHeroPower,
   parseStageCount,
   parseCollectValue,
+  collectFieldDef,
+  isCustomFieldId,
+  nextCustomFieldId,
+  normalizeCollectFieldDefs,
+  serializeCollectFields,
+  rankableCollectFields,
   normalizeCollectFields,
   normalizeRankField,
   mountBearpitCollectRoutes
