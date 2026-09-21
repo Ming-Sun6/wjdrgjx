@@ -1112,21 +1112,73 @@ function hashAnalyticsValue(value) {
   return crypto.createHash('sha256').update(text).digest('hex');
 }
 
-function createSession(userId) {
+function hashSessionToken(token) {
+  return crypto.createHash('sha256').update(String(token || '')).digest('hex');
+}
+
+function sessionExpiryDate(expiresAt) {
+  return new Date(Number(expiresAt));
+}
+
+function parseSessionExpiry(value) {
+  const ms = value instanceof Date ? value.getTime() : new Date(value).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+async function persistNewSession(token, userId, expiresAt) {
+  await execute(
+    'INSERT INTO auth_sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)',
+    [hashSessionToken(token), Number(userId), sessionExpiryDate(expiresAt)],
+  );
+}
+
+async function persistSessionExpiry(token, expiresAt) {
+  await execute(
+    'UPDATE auth_sessions SET expires_at = ? WHERE token_hash = ?',
+    [sessionExpiryDate(expiresAt), hashSessionToken(token)],
+  );
+}
+
+async function deletePersistedSession(token) {
+  if (!token) return;
+  await execute('DELETE FROM auth_sessions WHERE token_hash = ?', [hashSessionToken(token)]);
+}
+
+async function loadPersistedSession(token) {
+  const row = await queryOne(
+    'SELECT user_id, expires_at FROM auth_sessions WHERE token_hash = ? LIMIT 1',
+    [hashSessionToken(token)],
+  );
+  if (!row) return null;
+  return {
+    userId: Number(row.user_id),
+    expiresAt: parseSessionExpiry(row.expires_at),
+    persistedExpiresAt: parseSessionExpiry(row.expires_at),
+  };
+}
+
+async function createSession(userId) {
   const token = crypto.randomBytes(32).toString('hex');
-  sessions.set(token, { userId: Number(userId), expiresAt: Date.now() + SESSION_TTL_MS });
+  const expiresAt = Date.now() + SESSION_TTL_MS;
+  const sess = { userId: Number(userId), expiresAt, persistedExpiresAt: expiresAt };
+  await persistNewSession(token, sess.userId, expiresAt);
+  sessions.set(token, sess);
   return token;
 }
 
-function deleteSessionFromRequest(req) {
+async function deleteSessionFromRequest(req) {
   const token = getSessionToken(req);
-  if (token) sessions.delete(token);
+  if (!token) return;
+  sessions.delete(token);
+  await deletePersistedSession(token);
 }
 
-function deleteSessionsByUserId(userId) {
+async function deleteSessionsByUserId(userId) {
+  const id = Number(userId);
   for (const [token, sess] of sessions.entries()) {
-    if (Number(sess?.userId) === Number(userId)) sessions.delete(token);
+    if (Number(sess?.userId) === id) sessions.delete(token);
   }
+  await execute('DELETE FROM auth_sessions WHERE user_id = ?', [id]);
 }
 
 setInterval(() => {
@@ -1134,6 +1186,9 @@ setInterval(() => {
   for (const [token, sess] of sessions.entries()) {
     if (!sess || sess.expiresAt <= now) sessions.delete(token);
   }
+  execute('DELETE FROM auth_sessions WHERE expires_at <= ?', [new Date()]).catch((err) => {
+    console.warn('auth session cleanup skipped:', err.message);
+  });
 }, 60 * 60 * 1000).unref();
 
 function isModerator(user) {
@@ -2357,25 +2412,41 @@ async function normalizeUserQuota(userId) {
 async function currentUserFromRequest(req) {
   const token = getSessionToken(req);
   if (!token) return null;
-  const sess = sessions.get(token);
-  if (!sess || sess.expiresAt <= Date.now()) {
+  let sess = sessions.get(token);
+  if (!sess) {
+    try {
+      sess = await loadPersistedSession(token);
+    } catch (err) {
+      console.warn('auth session load skipped:', err.message);
+      sess = null;
+    }
+    if (sess) sessions.set(token, sess);
+  }
+  if (!sess || !Number.isFinite(sess.userId) || sess.userId <= 0 || sess.expiresAt <= Date.now()) {
     sessions.delete(token);
+    await deletePersistedSession(token).catch(() => {});
     return null;
   }
   const user = await normalizeUserQuota(sess.userId);
   if (!user) {
     sessions.delete(token);
+    await deletePersistedSession(token).catch(() => {});
     return null;
   }
   sess.expiresAt = Date.now() + SESSION_TTL_MS;
   sessions.set(token, sess);
+  if (!sess.persistedExpiresAt || sess.expiresAt - sess.persistedExpiresAt > 60 * 60 * 1000) {
+    sess.persistedExpiresAt = sess.expiresAt;
+    persistSessionExpiry(token, sess.expiresAt).catch((err) => {
+      console.warn('auth session refresh skipped:', err.message);
+    });
+  }
   return user;
 }
 
 async function requireAuth(req, res) {
   const user = await currentUserFromRequest(req);
   if (!user) {
-    // 会话存储在内存：服务重启后旧 token 会失效。此时清理 Cookie，避免前端误以为仍登录。
     const token = getSessionToken(req);
     if (token) {
       try { res.clearCookie(SESSION_COOKIE_NAME, { path: '/' }); } catch {}
@@ -2511,8 +2582,8 @@ async function deleteUserCascadeById(userId) {
   }
   await execute('DELETE FROM bearpit_collect_forms WHERE user_id = ?', [userId]);
   await execute('DELETE FROM user_follows WHERE follower_id = ? OR following_id = ?', [userId, userId]);
+  await deleteSessionsByUserId(userId);
   await execute('DELETE FROM users WHERE id = ?', [userId]);
-  deleteSessionsByUserId(userId);
 }
 
 function normalizeReviewNote(value) {
@@ -2522,7 +2593,34 @@ function normalizeReviewNote(value) {
   return text.slice(0, 240);
 }
 
+async function ensureAuthSessionsSchema() {
+  if (pgDatabase) {
+    await execute(`
+      CREATE TABLE IF NOT EXISTS auth_sessions (
+        token_hash varchar(64) PRIMARY KEY,
+        user_id integer NOT NULL,
+        expires_at timestamptz(3) NOT NULL,
+        created_at timestamptz(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+      )
+    `);
+    await execute('CREATE INDEX IF NOT EXISTS idx_auth_sessions_user ON auth_sessions (user_id)');
+    await execute('CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires ON auth_sessions (expires_at)');
+    return;
+  }
+  await execute(`
+    CREATE TABLE IF NOT EXISTS auth_sessions (
+      token_hash CHAR(64) NOT NULL PRIMARY KEY,
+      user_id INT NOT NULL,
+      expires_at DATETIME(3) NOT NULL,
+      created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+      KEY idx_auth_sessions_user (user_id),
+      KEY idx_auth_sessions_expires (expires_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+}
+
 async function initDB() {
+  await ensureAuthSessionsSchema();
   // PostgreSQL 模式：避免执行 MySQL 方言的建表 SQL（会在 AUTO_INCREMENT 处直接语法失败），
   // 并确保我们新增的 `forum_post_views` 表也在 pg 下存在。
   if (pgDatabase) {
@@ -3287,7 +3385,7 @@ app.post('/api/auth/login', async (req, res) => {
     const user = await queryOne('SELECT * FROM users WHERE login_id = ? LIMIT 1', [loginId]);
     if (!user || !verifyPassword(password, user.password_hash)) return res.status(401).json({ error: 'INVALID_CREDENTIALS' });
     if (Number(user.is_banned) === 1) return res.status(403).json({ error: 'BANNED' });
-    const token = createSession(user.id);
+    const token = await createSession(user.id);
     res.cookie(SESSION_COOKIE_NAME, token, { httpOnly: true, sameSite: 'lax', secure: isHttpsRequest(req), maxAge: SESSION_TTL_MS, path: '/' });
     const fresh = await normalizeUserQuota(user.id);
     const payload = await attachFollowCountsToUserPayload(toUserPayload(fresh || user));
@@ -3310,8 +3408,8 @@ app.get('/api/auth/me', async (req, res) => {
   }
 });
 
-app.post('/api/auth/logout', (req, res) => {
-  deleteSessionFromRequest(req);
+app.post('/api/auth/logout', async (req, res) => {
+  await deleteSessionFromRequest(req);
   res.clearCookie(SESSION_COOKIE_NAME, { path: '/' });
   res.json({ ok: true });
 });
