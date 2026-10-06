@@ -4452,6 +4452,10 @@ app.delete('/api/users/:id/follow', async (req, res) => {
   }
 });
 
+require('./mini-program-promotion').registerMiniProgramPromotion(app, {
+  getSetting, setSetting, requireAdmin, auditAdminAction
+});
+
 function normalizeStoredAnnouncement(raw) {
   if (!raw || typeof raw !== 'object') return null;
   return { ...raw, enabled: raw.enabled !== false };

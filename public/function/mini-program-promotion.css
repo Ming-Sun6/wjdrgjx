@@ -1,0 +1,15 @@
+.mini-promo[hidden]{display:none!important}
+.mini-promo{display:flex;align-items:center;justify-content:space-between;gap:16px;width:calc(100% - 32px);max-width:1068px;margin:46px auto 12px;padding:16px 20px;border:1px solid #49bca980;border-radius:16px;background:linear-gradient(115deg,#123c42,#172c49);color:#f0fdfa;box-shadow:0 8px 28px #071d2826}
+.mini-promo strong{display:block;font-size:clamp(16px,2.5vw,20px);line-height:1.5}
+.mini-promo p{margin:5px 0 0;font-size:14px;line-height:1.7;color:#d0e9e4}
+.mini-promo a,.mini-promo button{font:inherit;color:#8bf1ca;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.mini-promo button{border:0;background:none;padding:0}
+.mini-promo .mini-promo-qr{flex:none;display:flex;align-items:center;gap:9px;color:#f0fdfa;font-size:13px;text-decoration:none}
+.mini-promo-qr img{display:block;width:64px;height:73px;object-fit:contain;border-radius:6px;background:white}
+.mini-promo-dialog{position:fixed;inset:0;margin:auto;width:min(360px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:24px;border:1px solid #dce6e8;border-radius:20px;background:#fff;color:#172c3c;text-align:center;z-index:11000;box-shadow:0 24px 80px #0005}
+.mini-promo-dialog::backdrop{background:#071521b3}
+.mini-promo-dialog h2{font-size:21px;margin:8px 0 14px}
+.mini-promo-dialog img{width:258px;max-width:100%;height:auto;display:block;margin:auto}
+.mini-promo-dialog p{font-size:14px;line-height:1.7;margin:12px 0}
+.mini-promo-dialog button{font:inherit;padding:8px 26px;border-radius:9px;border:1px solid #c8d8df;background:#eff6f8;color:#172c3c;cursor:pointer}
+@media(max-width:600px){.mini-promo{padding:14px;gap:10px}.mini-promo .mini-promo-qr span{display:none}.mini-promo p{font-size:13px}.mini-promo-qr img{width:56px;height:64px}}

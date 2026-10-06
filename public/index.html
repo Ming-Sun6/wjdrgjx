@@ -92,12 +92,17 @@
   </style>
   <style id="wjdr-home-fab-offset">@media (max-width:768px){body:has(.tab-bar) #themeToggle{right:12px;bottom:calc(92px + env(safe-area-inset-bottom,0px))!important}}</style>
   <script src="/function/theme.js?v=20260501-0103" defer></script>
+  <link rel="stylesheet" href="/function/mini-program-promotion.css?v=20261006-1">
 </head>
 <body>
 
   <div class="wjdr-adwork-slot" id="wjdrAdworkSlot">
     <div class="adwork-net adwork-auto" data-id="1129"></div>
   </div>
+    <section class="mini-promo" id="miniProgramPromotion" aria-label="微信小程序更新" hidden>
+      <div><strong>冬日工具箱微信小程序已更新</strong><p>欢迎大家使用！<a id="miniProgramEntry" href="#miniProgramQrDialog" aria-haspopup="dialog">点击此处</a>或者微信扫码即可体验</p></div>
+      <button class="mini-promo-qr" type="button" data-mini-qr aria-label="放大小程序码"><img src="/function/images/mini-program-qr.jpg" alt="冬日工具箱微信小程序码" width="64" height="73"><span>微信扫码<br>立即体验</span></button>
+    </section>
   <div class="wjdr-home-lead" aria-label="活动说明入口" hidden>
     <div class="wjdr-home-lead-inner">
       <div class="wjdr-home-carousel" id="wjdrHomeLeadRoot">
@@ -320,6 +325,7 @@
 	    <svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.8 1.42-1.42zm10.48 14.32l1.79 1.8 1.41-1.42-1.8-1.79-1.4 1.41zM12 5a1 1 0 0 0 1-1V1h-2v3a1 1 0 0 0 1 1zm0 14a1 1 0 0 0-1 1v3h2v-3a1 1 0 0 0-1-1zM5 11H2v2h3a1 1 0 0 0 0-2zm17 0h-3a1 1 0 0 0 0 2h3v-2zM4.96 19.54l1.41 1.42 1.8-1.8-1.42-1.41-1.79 1.79zM19.04 4.46l-1.8 1.79 1.41 1.42 1.8-1.8-1.41-1.41zM12 7a5 5 0 1 0 .001 10.001A5 5 0 0 0 12 7z"/></svg>
 	  </button>
   <div class="container">
+
     <header>
       <div>
         <div class="title">冬日工具箱</div>
@@ -1829,5 +1835,12 @@ body>footer.wjdr-footer{align-self:stretch;max-width:none}
       });
   </script>
   <script src="/function/home-app.js?v=20260826-2"></script>
+  <dialog class="mini-promo-dialog" id="miniProgramQrDialog" aria-labelledby="miniProgramQrTitle">
+    <h2 id="miniProgramQrTitle">微信扫码体验</h2>
+    <img src="/function/images/mini-program-qr.jpg" alt="使用微信扫一扫打开冬日工具箱小程序" width="258" height="294">
+    <p>打开微信扫一扫，体验冬日工具箱小程序。<br>手机端可保存图片后，在微信扫一扫中选择相册。</p>
+    <form method="dialog"><button type="submit">关闭</button></form>
+  </dialog>
+  <script src="/function/mini-program-promotion.js?v=20261006-1" defer></script>
 </body>
 </html>

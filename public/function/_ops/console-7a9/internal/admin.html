@@ -1956,6 +1956,18 @@
 
         <section class="card page" id="page-announcement" data-page="announcement">
           <div class="page-title">发布公告</div>
+          <div class="calendar-admin" style="margin:16px 0"><div class="form-section">
+            <div class="form-title">微信小程序推广</div>
+            <p style="color:var(--muted);margin-bottom:12px">首页顶部显示小程序更新提示，独立于下方公告设置。默认开启，关闭后不显示推广条。</p>
+            <label><input type="checkbox" id="miniPromoEnabled" disabled> 开启首页小程序推广</label>
+            <div class="form-group" style="margin-top:12px"><label for="miniPromoUrl">小程序 URL Link（选填）</label><input id="miniPromoUrl" type="url" maxlength="2048" placeholder="留空时点击显示小程序码" disabled></div>
+            <p style="color:var(--muted);font-size:13px;margin:8px 0">支持 https://wxaurl.cn/ 或 https://wxmpurl.cn/ 链接；不支持 #小程序:// 口令。</p>
+            <img src="/function/images/mini-program-qr.jpg" alt="冬日工具箱小程序码" width="129" height="147" style="display:block;margin:12px 0;border-radius:8px">
+            <button class="btn" id="miniPromoSave" type="button" disabled>保存小程序推广设置</button>
+            <button class="btn secondary" id="miniPromoReload" type="button">刷新设置</button>
+            <div class="admin-status" id="miniPromoStatus" role="status"></div>
+          </div></div>
+
           <div class="calendar-admin">
             <div class="form-section">
               <div class="form-title">公告编辑</div>
@@ -2913,7 +2925,41 @@
         '<div>'+contentHtml+'</div>';
     }
 
+    async function loadMiniProgramPromotion(){
+      var btn=document.getElementById('miniPromoSave');
+      var enabled=document.getElementById('miniPromoEnabled');
+      var url=document.getElementById('miniPromoUrl');
+      btn.disabled=true; enabled.disabled=true; url.disabled=true;
+      setStatus('miniPromoStatus','加载中...');
+      try {
+        var r=await apiFetch('/api/admin/mini-program-promotion');
+        var d=await r.json();
+        if(!r.ok || !d.promotion) throw new Error(d.error || '读取失败');
+        enabled.checked=d.promotion.enabled;
+        url.value=d.promotion.urlLink || '';
+        btn.disabled=false; enabled.disabled=false; url.disabled=false;
+        setStatus('miniPromoStatus',d.promotion.enabled?'当前已开启':'当前已关闭');
+      } catch(e){ setStatus('miniPromoStatus','加载失败：'+e.message); }
+    }
+    document.getElementById('miniPromoReload').addEventListener('click',loadMiniProgramPromotion);
+    document.getElementById('miniPromoSave').addEventListener('click',async function(){
+      var btn=this;
+      btn.disabled=true;
+      setStatus('miniPromoStatus','保存中...');
+      try {
+        var r=await apiFetch('/api/admin/mini-program-promotion',{method:'PUT',body:JSON.stringify({
+          enabled:document.getElementById('miniPromoEnabled').checked,
+          urlLink:document.getElementById('miniPromoUrl').value.trim()
+        })});
+        var d=await r.json();
+        if(!r.ok) throw new Error(d.error || '保存失败');
+        setStatus('miniPromoStatus',d.promotion.enabled?'已保存：首页小程序推广已开启。':'已保存：首页小程序推广已关闭。');
+      } catch(e){setStatus('miniPromoStatus','保存失败：'+e.message);}
+      finally {btn.disabled=false;}
+    });
+
     async function loadAnnouncementAdmin(){
+      if (authUser && authUser.isAdmin) loadMiniProgramPromotion();
       if(!authUser || !authUser.isAdmin){
         setStatus('announcementStatus','没有权限：请使用管理员账号登录。');
         renderAnnouncementPreview(null);
