@@ -116,7 +116,7 @@ node --test tests/tool-management.test.js
 
 [Polyform Noncommercial 1.0.0](LICENSE) 只覆盖本仓库里由冬日工具箱编写的代码。非商业使用可以直接进行。它不授权使用站名、页面标识、用户内容、游戏素材，也不表示可以另开一个本站。
 
-必须保留版权声明、许可全文、本传播须知和文末致谢，并在显著位置说明：这是玩家制作的非官方衍生版本，不是游戏官方，也不是 [https://wjgl.store/](https://wjgl.store/)。删掉这些声明后再传播，视为未获许可。
+转载代码、页面或资料时，必须写明来自冬日工具箱，并附上 [https://wjgl.store/](https://wjgl.store/)。同时保留版权声明、许可全文、本传播须知和文末致谢，并在显著位置说明：这是玩家制作的非官方衍生版本，不是游戏官方，也不是 [https://wjgl.store/](https://wjgl.store/) 本身。删掉这些声明后再传播，视为未获许可。
 
 禁止以下行为：
 
