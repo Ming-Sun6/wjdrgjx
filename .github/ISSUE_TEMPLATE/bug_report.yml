@@ -1,0 +1,19 @@
+name: 问题反馈
+description: 某个页面或功能的结果不符合预期
+title: "[问题] "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: 发生了什么
+      description: 写清页面、操作步骤和实际结果。不要粘贴数据库账号、密码或日志。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 你期望的结果
+    validations:
+      required: true

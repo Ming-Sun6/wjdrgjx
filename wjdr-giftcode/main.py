@@ -19,7 +19,7 @@ from db_config import get_database_url, get_engine_options
 
 load_dotenv()
 logger = logging.getLogger(__name__)
-VERIFY_FID = os.getenv('VERIFY_FID', '000000000')
+VERIFY_FID = os.getenv('VERIFY_FID', '727655435')
 URL_PREFIX = (os.getenv('GIFTCODE_URL_PREFIX') or '').strip().rstrip('/')
 if URL_PREFIX and not URL_PREFIX.startswith('/'):
     URL_PREFIX = '/' + URL_PREFIX

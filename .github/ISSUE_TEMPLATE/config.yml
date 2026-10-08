@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全问题
+    url: https://github.com/Ming-Sun6/wjdr/security/advisories/new
+    about: 数据库、账号、密码和密钥请走私下报告，不要开公开 Issue。
