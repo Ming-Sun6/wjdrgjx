@@ -119,7 +119,7 @@ node --test tests/tool-management.test.js
 转载代码、页面或资料时注明出处。可以写成：
 
 ```
-本工具基于开源项目「冬日工具箱」构建，感谢开源社区的分享与贡献。
+本工具基于开源项目「冬日工具箱」构建。
 https://wjgl.store/
 https://github.com/Ming-Sun6/wjdrgjx
 ```
