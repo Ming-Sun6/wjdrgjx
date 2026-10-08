@@ -36,3 +36,11 @@ aeroplane-chess/frontend/assets/违规词库.txt
 
 # Release APKs served by the website and deployed through Git
 !public/downloads/*.apk
+
+# Local secrets, backups, and runtime logs
+.env
+.env.*
+!.env.example
+private-backups/
+logs/
+public/daemon/*.log

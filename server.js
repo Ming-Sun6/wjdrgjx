@@ -486,10 +486,10 @@ let pool = null;
 let db = null;
 if (mysql) {
   pool = mysql.createPool({
-    host: 'localhost',
-    user: 'db_user',
-    password: 'REDACTED',
-    database: 'test',
+    host: process.env.MYSQL_HOST || 'localhost',
+    user: process.env.MYSQL_USER || 'db_user',
+    password: process.env.MYSQL_PASSWORD || '',
+    database: process.env.MYSQL_DATABASE || 'test',
     port: 3306,
     waitForConnections: true,
     connectionLimit: 10,
