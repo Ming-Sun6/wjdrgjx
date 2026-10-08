@@ -21,6 +21,6 @@
     "node-windows": "^1.0.0-beta.8",
     "pg": "^8.20.0",
     "sanitize-html": "^2.17.0",
-    "sharp": "^0.34.4"
+    "sharp": "^0.35.5"
   }
 }
