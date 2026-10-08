@@ -116,12 +116,19 @@ node --test tests/tool-management.test.js
 
 [Polyform Noncommercial 1.0.0](LICENSE) 只覆盖本仓库里由冬日工具箱编写的代码。非商业使用可以直接进行。它不授权使用站名、页面标识、用户内容、游戏素材，也不表示可以另开一个本站。
 
-转载代码、页面或资料时，必须写明来自冬日工具箱，并附上 [https://wjgl.store/](https://wjgl.store/)。同时保留版权声明、许可全文、本传播须知和文末致谢，并在显著位置说明：这是玩家制作的非官方衍生版本，不是游戏官方，也不是 [https://wjgl.store/](https://wjgl.store/) 本身。删掉这些声明后再传播，视为未获许可。
+转载代码、页面或资料时，必须写明来自冬日工具箱，并附上 [https://wjgl.store/](https://wjgl.store/)。可以写成：
+
+```
+来自冬日工具箱：https://wjgl.store/
+这是玩家制作的非官方衍生版本，不是游戏官方，也不是 wjgl.store 本身。
+```
+
+同时保留版权声明、许可全文、本传播须知和文末致谢。删掉这些声明后再传播，视为未获许可。
 
 禁止以下行为：
 
 - 使用「冬日工具箱」名称、`wjgl.store`、备案信息、图标、配色或页面结构开设站点，或让访问者误以为仍在使用本站。
-- 未经维护者书面同意，对界面、结构编排、原创内容、源代码和工具实现做商业复制、售卖、收费代搭建或广告引流。同意请通过网站 [《关于我们》](https://wjgl.store/legal/about) 的联系方式取得。
+- 未经维护者书面同意，对界面、结构编排、原创内容、源代码和工具实现做商业复制、售卖、收费代搭建或广告引流。申请请通过网站 [《关于我们》](https://wjgl.store/legal/about) 的联系方式发送，并写明用途、是否收费、会不会使用「冬日工具箱」这个名字。
 - 整站镜像，或用程序批量抓取页面、论坛和接口。
 - 转载、打包或公开论坛帖子、评论、用户上传的图片和账号资料。
 - 传播尚未对所有人开放的测试功能、后台入口、数据库、日志、账号和密钥。
@@ -137,6 +144,8 @@ node --test tests/tool-management.test.js
 可以未登录读取或修改他人数据、绕过登录权限、注入脚本或 SQL，以及仓库和日志泄露真实连接信息时，请私下报告：
 
 [https://github.com/Ming-Sun6/wjdr/security/advisories/new](https://github.com/Ming-Sun6/wjdr/security/advisories/new)
+
+仓库公开后，需要在 **Settings → Advanced Security** 打开 **Private vulnerability reporting**，这个链接才会接受外部报告。仓库仍是私有时，GitHub 不提供这个开关。
 
 写清影响的页面或接口、复现步骤、可能影响到的数据，以及这些信息是否已经公开。游戏数值争议和第三方广告页面不由本仓库处理。
 
