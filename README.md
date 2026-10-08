@@ -78,9 +78,19 @@ node --test tests/*.js
 node --test tests/tool-management.test.js
 ```
 
-## 参与
+## 参与贡献
 
-问题反馈、改动方式和提交时要避开的内容写在 [CONTRIBUTING.md](CONTRIBUTING.md)。安全问题按 [SECURITY.md](SECURITY.md) 私下报告，不要写进公开讨论。联系方式以网站 [《关于我们》](https://wjgl.store/legal/about) 为准。
+欢迎修正错误数据、修复页面，以及让现有工具更好用。一次改动只处理一件事，并在说明里写清怎么验证。环境准备、测试命令，以及不能提交的密钥和日志，写在 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+## 社区交流
+
+代码问题走本仓库的 Issue 和 Pull Request。攻略和活动讨论走站内论坛：[https://wjgl.store/function/forum.html](https://wjgl.store/function/forum.html)。投诉和联系维护者以网站 [《关于我们》](https://wjgl.store/legal/about) 为准。讨论场所、说话方式和禁止公开的内容见 [COMMUNITY.md](COMMUNITY.md)，相处约定见 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。
+
+漏洞、密钥和用户数据泄露按 [SECURITY.md](SECURITY.md) 私下报告，不要发到论坛或公开 Issue。
+
+## 传播须知
+
+本仓库代码按 [MIT 许可](LICENSE) 再分发，需要保留版权声明和许可协议。再分发时要说明这是非官方玩家工具，不是游戏官方，也不是冬日工具箱网站本身。游戏商标、用户帖子、致谢资料和数据库密钥的处理见 [SHARING.md](SHARING.md)。
 
 ## 致谢
 
