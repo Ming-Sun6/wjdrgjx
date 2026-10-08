@@ -80,17 +80,60 @@ node --test tests/tool-management.test.js
 
 ## 参与贡献
 
-欢迎修正错误数据、修复页面，以及让现有工具更好用。一次改动只处理一件事，并在说明里写清怎么验证。环境准备、测试命令，以及不能提交的密钥和日志，写在 [CONTRIBUTING.md](CONTRIBUTING.md)。
+单独页面：[CONTRIBUTING.md](CONTRIBUTING.md)。
+
+欢迎修正错误数据、补齐说明、修复页面，以及让现有工具更好用。仓库公开之后，用 Issue 讨论想法，用 Pull Request 提交改动。
+
+本地运行见上文。打熊伤害计算器在 `whiteout-bear-damage-model/`，熊坑简约版、地图编辑器和飞行棋也各自有源码目录。改动前先确认你改的是源码，还是已经生成到 `public/` 里的页面。
+
+一次改动只处理一件事。说明里写清改了哪个工具、用户能看到什么，以及你如何确认它是对的。界面文案使用简体中文。计算器和资料页的数字如果来自游戏内，请写下核对方式。
+
+不要提交这些内容：
+
+- `.env`，以及任何真实的数据库主机、账号、密码
+- `private-backups/`、`logs/` 和 `public/daemon/` 下的运行日志
+- 后台账号、云服务密钥、证书和私钥
+- 只在你自己机器上有意义的绝对路径和本机配置
+
+提交前看一遍 `git diff`。开 Issue 时写清页面名称、操作步骤、实际结果和期望结果。
 
 ## 社区交流
 
-代码问题走本仓库的 Issue 和 Pull Request。攻略和活动讨论走站内论坛：[https://wjgl.store/function/forum.html](https://wjgl.store/function/forum.html)。投诉和联系维护者以网站 [《关于我们》](https://wjgl.store/legal/about) 为准。讨论场所、说话方式和禁止公开的内容见 [COMMUNITY.md](COMMUNITY.md)，相处约定见 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。
+单独页面：[COMMUNITY.md](COMMUNITY.md)。相处约定见 [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)。
 
-漏洞、密钥和用户数据泄露按 [SECURITY.md](SECURITY.md) 私下报告，不要发到论坛或公开 Issue。
+| 想做什么 | 去哪里 |
+| --- | --- |
+| 报告页面错误、提出功能建议、提交代码 | 本仓库的 Issue 和 Pull Request |
+| 交流攻略、活动和游戏数据 | 站内论坛：[https://wjgl.store/function/forum.html](https://wjgl.store/function/forum.html) |
+| 投诉、权利主张，或联系维护者 | 网站 [《关于我们》](https://wjgl.store/legal/about) |
+| 报告漏洞、密钥或用户数据泄露 | 本页「安全报告」，不要发到论坛或公开 Issue |
+
+论坛用来给玩家交流，不用来审代码。Issue 用来描述可以在仓库里修复的问题。就事论事，可以反对某个做法，不要攻击提出做法的人。不要公开他人的隐私、未开放的测试页面，或数据库账号和密钥。
 
 ## 传播须知
 
-本仓库代码按 [MIT 许可](LICENSE) 再分发，需要保留版权声明和许可协议。再分发时要说明这是非官方玩家工具，不是游戏官方，也不是冬日工具箱网站本身。游戏商标、用户帖子、致谢资料和数据库密钥的处理见 [SHARING.md](SHARING.md)。
+单独页面：[SHARING.md](SHARING.md)。
+
+本仓库代码按 [MIT 许可](LICENSE) 再分发，必须保留版权声明和许可协议全文。再分发时请说明：这是玩家制作的非官方工具，与游戏官方没有隶属或授权关系，也不是 [https://wjgl.store/](https://wjgl.store/) 本身。不要沿用本站域名、备案信息或「官方」名义。
+
+这些内容不随代码一起授权：
+
+- 游戏名称、标识、美术和商标属于相应权利人。
+- 论坛帖子、评论和用户上传的图片属于发布它们的用户。
+- 攻略和数值由玩家整理，转载时请保留文末致谢，并提醒读者以游戏内结果为准。
+- `.env`、数据库备份、运行日志、后台账号和用户隐私数据禁止随代码传播。
+
+访问线上网站时，仍以网站上的《用户协议》和《隐私政策》为准。
+
+## 安全报告
+
+单独页面：[SECURITY.md](SECURITY.md)。
+
+可以未登录读取或修改他人数据、绕过登录权限、注入脚本或 SQL，以及仓库和日志泄露真实连接信息时，请私下报告：
+
+[https://github.com/Ming-Sun6/wjdr/security/advisories/new](https://github.com/Ming-Sun6/wjdr/security/advisories/new)
+
+写清影响的页面或接口、复现步骤、可能影响到的数据，以及这些信息是否已经公开。游戏数值争议和第三方广告页面不由本仓库处理。
 
 ## 致谢
 
